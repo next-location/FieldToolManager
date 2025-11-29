@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>道具管理システム</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+
+        * {
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+
+        .smooth-transition {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-hover:active {
+            transform: scale(0.98);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--tw-gradient-stops));
+        }
+
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        button, a {
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+            min-height: 44px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        button:focus-visible, input:focus-visible, select:focus-visible {
+            outline: 3px solid #3b82f6;
+            outline-offset: 2px;
+        }
+
+        .nav-scroll {
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .nav-scroll::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+
+    <!-- ヘッダー -->
+    <header class="sticky top-0 z-50 glass-effect border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-slate-800">道具管理システム</h1>
+                        <p class="text-xs text-slate-500">Tool Manager</p>
+                    </div>
+                </div>
+                <button class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm hover:bg-slate-50 smooth-transition">
+                    <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- タブナビゲーション -->
+    <nav class="sticky top-[73px] z-40 glass-effect border-b border-slate-200">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex nav-scroll px-2">
+                <button onclick="showScreen('dashboard')" id="tab-dashboard" class="tab-button flex-shrink-0 py-3 px-4 text-center font-semibold smooth-transition border-b-3 border-blue-600 text-blue-600">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 13a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1v-7z"></path>
+                        </svg>
+                        <span class="text-sm">ダッシュボード</span>
+                    </div>
+                </button>
+                <button onclick="showScreen('inventory')" id="tab-inventory" class="tab-button flex-shrink-0 py-3 px-4 text-center font-semibold smooth-transition border-b-3 border-transparent text-slate-500 hover:text-slate-700">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        </svg>
+                        <span class="text-sm">道具一覧</span>
+                    </div>
+                </button>
+                <button onclick="showScreen('movement')" id="tab-movement" class="tab-button flex-shrink-0 py-3 px-4 text-center font-semibold smooth-transition border-b-3 border-transparent text-slate-500 hover:text-slate-700">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                        </svg>
+                        <span class="text-sm">入出庫/移動</span>
+                    </div>
+                </button>
+                <button onclick="showScreen('sites')" id="tab-sites" class="tab-button flex-shrink-0 py-3 px-4 text-center font-semibold smooth-transition border-b-3 border-transparent text-slate-500 hover:text-slate-700">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                        <span class="text-sm">現場管理</span>
+                    </div>
+                </button>
+                <button onclick="showScreen('purchase')" id="tab-purchase" class="tab-button flex-shrink-0 py-3 px-4 text-center font-semibold smooth-transition border-b-3 border-transparent text-slate-500 hover:text-slate-700">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <span class="text-sm">購入/発注</span>
+                    </div>
+                </button>
+                <button onclick="showScreen('users')" id="tab-users" class="tab-button flex-shrink-0 py-3 px-4 text-center font-semibold smooth-transition border-b-3 border-transparent text-slate-500 hover:text-slate-700">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <span class="text-sm">ユーザー管理</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- メインコンテンツエリア -->
+    <main class="max-w-7xl mx-auto px-4 pb-8">
+
+        <!-- 画面1: ダッシュボード -->
+        <div id="screen-dashboard" class="mt-6 fade-in">
+            <div class="mb-6">
+                <p class="text-sm text-slate-500">2025年11月29日 (金)</p>
+                <h2 class="text-2xl font-bold text-slate-800 mt-1">概要</h2>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <div class="stat-card from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white smooth-transition hover:shadow-xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-blue-100 text-sm font-medium">全在庫数</p>
+                        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-4xl font-black">125<span class="text-xl ml-1">点</span></p>
+                    <p class="text-blue-100 text-xs mt-2">登録道具総数</p>
+                </div>
+
+                <div class="stat-card from-emerald-500 to-emerald-600 rounded-2xl shadow-lg p-6 text-white smooth-transition hover:shadow-xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-emerald-100 text-sm font-medium">現場利用中</p>
+                        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-4xl font-black">80<span class="text-xl ml-1">点</span></p>
+                    <p class="text-emerald-100 text-xs mt-2">稼働中 (64%)</p>
+                </div>
+
+                <div class="stat-card from-slate-500 to-slate-600 rounded-2xl shadow-lg p-6 text-white smooth-transition hover:shadow-xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-slate-100 text-sm font-medium">会社在庫</p>
+                        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-4xl font-black">45<span class="text-xl ml-1">点</span></p>
+                    <p class="text-slate-100 text-xs mt-2">倉庫保管中 (36%)</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 mb-6">
+                <div class="flex items-center justify-between mb-5">
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center">
+                        <span class="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 text-white rounded-xl flex items-center justify-center mr-3 shadow-md">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                        </span>
+                        重要な通知
+                    </h3>
+                    <span class="bg-red-100 text-red-700 text-xs font-bold px-3 py-1 rounded-full">3件</span>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="card-hover smooth-transition p-4 bg-gradient-to-r from-red-50 to-red-50/50 rounded-xl border-l-4 border-red-500">
+                        <div class="flex items-start">
+                            <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0 mr-3">
+                                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-bold text-slate-800 text-sm mb-1">要発注：インパクトドライバー</p>
+                                <p class="text-xs text-slate-600">在庫が基準値を下回っています。早急な発注をお願いします。</p>
+                                <p class="text-xs text-slate-400 mt-2">30分前</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-hover smooth-transition p-4 bg-gradient-to-r from-red-50 to-red-50/50 rounded-xl border-l-4 border-red-500">
+                        <div class="flex items-start">
+                            <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0 mr-3">
+                                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-bold text-slate-800 text-sm mb-1">要発注：サンダーの刃（消耗品）</p>
+                                <p class="text-xs text-slate-600">消耗品の在庫補充が必要です。残り2個です。</p>
+                                <p class="text-xs text-slate-400 mt-2">2時間前</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-hover smooth-transition p-4 bg-gradient-to-r from-amber-50 to-amber-50/50 rounded-xl border-l-4 border-amber-500">
+                        <div class="flex items-start">
+                            <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0 mr-3">
+                                <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-bold text-slate-800 text-sm mb-1">メンテナンス推奨：丸ノコ #023</p>
+                                <p class="text-xs text-slate-600">最終点検から3ヶ月経過しています。点検をお願いします。</p>
+                                <p class="text-xs text-slate-400 mt-2">1日前</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="showScreen('inventory')" class="bg-white border-2 border-slate-200 rounded-xl p-4 flex flex-col items-center space-y-2 smooth-transition hover:border-blue-500 hover:bg-blue-50 card-hover">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <svg class="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                    </div>
+                    <span class="font-bold text-sm text-slate-700">在庫を確認</span>
+                </button>
+
+                <button onclick="showScreen('movement')" class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-4 flex flex-col items-center space-y-2 smooth-transition hover:shadow-lg card-hover shadow-md">
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                        </svg>
+                    </div>
+                    <span class="font-bold text-sm text-white">QRスキャン</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 画面2: 道具一覧/検索 -->
+        <div id="screen-inventory" class="mt-6 hidden fade-in">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">道具一覧</h2>
+                <p class="text-sm text-slate-500 mt-1">Tool Inventory</p>
+            </div>
+
+            <div class="mb-5">
+                <div class="relative">
+                    <input type="text" placeholder="道具名・管理番号で検索..." class="w-full pl-12 pr-4 py-4 border-2 border-slate-200 rounded-xl shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 smooth-transition text-base bg-white">
+                    <svg class="w-6 h-6 text-slate-400 absolute left-4 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="flex gap-2 mb-5 overflow-x-auto pb-2">
+                <button class="px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-semibold whitespace-nowrap shadow-md smooth-transition">すべて</button>
+                <button class="px-4 py-2 bg-white border-2 border-slate-200 text-slate-700 rounded-full text-sm font-semibold whitespace-nowrap smooth-transition hover:border-blue-500">現場利用中</button>
+                <button class="px-4 py-2 bg-white border-2 border-slate-200 text-slate-700 rounded-full text-sm font-semibold whitespace-nowrap smooth-transition hover:border-blue-500">会社倉庫</button>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden card-hover smooth-transition hover:shadow-lg">
+                    <div class="p-5">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex-1">
+                                <p class="text-xs font-semibold text-slate-500 mb-1">T-001</p>
+                                <h3 class="text-lg font-bold text-slate-800 leading-tight">インパクトドライバー XXモデル</h3>
+                            </div>
+                            <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap ml-3">新築A現場</span>
+                        </div>
+                        <div class="flex items-center text-xs text-slate-500 space-x-4">
+                            <div class="flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                2025-11-28 14:30
+                            </div>
+                        </div>
+                    </div>
+                    <div class="h-1 bg-gradient-to-r from-emerald-500 to-emerald-400"></div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden card-hover smooth-transition hover:shadow-lg">
+                    <div class="p-5">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex-1">
+                                <p class="text-xs font-semibold text-slate-500 mb-1">T-005</p>
+                                <h3 class="text-lg font-bold text-slate-800 leading-tight">丸ノコ 165mm</h3>
+                            </div>
+                            <span class="bg-slate-100 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap ml-3">会社倉庫</span>
+                        </div>
+                        <div class="flex items-center text-xs text-slate-500 space-x-4">
+                            <div class="flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                2025-11-27 09:15
+                            </div>
+                        </div>
+                    </div>
+                    <div class="h-1 bg-gradient-to-r from-slate-400 to-slate-300"></div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden card-hover smooth-transition hover:shadow-lg">
+                    <div class="p-5">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex-1">
+                                <p class="text-xs font-semibold text-slate-500 mb-1">T-012</p>
+                                <h3 class="text-lg font-bold text-slate-800 leading-tight">ディスクグラインダー</h3>
+                            </div>
+                            <span class="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap ml-3">改修B現場</span>
+                        </div>
+                        <div class="flex items-center text-xs text-slate-500 space-x-4">
+                            <div class="flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                2025-11-29 08:45
+                            </div>
+                        </div>
+                    </div>
+                    <div class="h-1 bg-gradient-to-r from-blue-500 to-blue-400"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 画面3: 入出庫/移動 -->
+        <div id="screen-movement" class="mt-6 hidden fade-in">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">入出庫・移動操作</h2>
+                <p class="text-sm text-slate-500 mt-1">Movement Management</p>
+            </div>
+
+            <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-xl p-8 mb-6 text-center">
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-10 mb-5 border-2 border-dashed border-white/30">
+                    <div class="w-24 h-24 mx-auto mb-4 bg-white/20 rounded-2xl flex items-center justify-center">
+                        <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                        </svg>
+                    </div>
+                    <p class="text-2xl font-black text-white mb-2">QRコードをスキャン</p>
+                    <p class="text-blue-100 text-sm">道具のQRコードをカメラで読み取ってください</p>
+                </div>
+                <button class="bg-white text-blue-700 px-8 py-5 rounded-xl font-bold text-lg w-full hover:bg-blue-50 smooth-transition shadow-lg card-hover flex items-center justify-center space-x-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    <span>カメラを起動</span>
+                </button>
+            </div>
+
+            <div class="mb-4">
+                <h3 class="font-bold text-slate-700 text-sm mb-4 px-1">操作を選択</h3>
+            </div>
+
+            <div class="space-y-4">
+                <button class="w-full bg-white rounded-2xl shadow-md border-2 border-slate-200 p-6 flex items-center smooth-transition hover:border-emerald-500 hover:bg-emerald-50 card-hover">
+                    <div class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                        </svg>
+                    </div>
+                    <div class="flex-1 text-left ml-4">
+                        <p class="font-bold text-lg text-slate-800 mb-0.5">持ち出し</p>
+                        <p class="text-sm text-slate-500">会社倉庫 → 現場へ</p>
+                    </div>
+                    <svg class="w-6 h-6 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+
+                <button class="w-full bg-white rounded-2xl shadow-md border-2 border-slate-200 p-6 flex items-center smooth-transition hover:border-blue-500 hover:bg-blue-50 card-hover">
+                    <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+                        </svg>
+                    </div>
+                    <div class="flex-1 text-left ml-4">
+                        <p class="font-bold text-lg text-slate-800 mb-0.5">持ち込み</p>
+                        <p class="text-sm text-slate-500">現場 → 会社倉庫へ</p>
+                    </div>
+                    <svg class="w-6 h-6 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+
+                <button class="w-full bg-white rounded-2xl shadow-md border-2 border-slate-200 p-6 flex items-center smooth-transition hover:border-purple-500 hover:bg-purple-50 card-hover">
+                    <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                        </svg>
+                    </div>
+                    <div class="flex-1 text-left ml-4">
+                        <p class="font-bold text-lg text-slate-800 mb-0.5">現場間移動</p>
+                        <p class="text-sm text-slate-500">現場A → 現場Bへ</p>
+                    </div>
+                    <svg class="w-6 h-6 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="mt-8">
+                <h3 class="font-bold text-slate-700 text-sm mb-4 px-1">最近の操作</h3>
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 divide-y divide-slate-100">
+                    <div class="p-4 flex items-center">
+                        <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1 ml-3">
+                            <p class="font-semibold text-sm text-slate-800">インパクトドライバー #T-001</p>
+                            <p class="text-xs text-slate-500">会社倉庫 → 新築A現場</p>
+                        </div>
+                        <p class="text-xs text-slate-400">14:30</p>
+                    </div>
+                    <div class="p-4 flex items-center">
+                        <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1 ml-3">
+                            <p class="font-semibold text-sm text-slate-800">レーザー墨出し器 #T-018</p>
+                            <p class="text-xs text-slate-500">改修B現場 → 会社倉庫</p>
+                        </div>
+                        <p class="text-xs text-slate-400">09:15</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 画面4: 現場マスタ管理 -->
+        <div id="screen-sites" class="mt-6 hidden fade-in">
+            <div class="mb-6">
+                <div class="flex items-start justify-between gap-3 mb-4">
+                    <div class="flex-1 min-w-0">
+                        <h2 class="text-xl sm:text-2xl font-bold text-slate-800">現場マスタ管理</h2>
+                        <p class="text-xs sm:text-sm text-slate-500 mt-1">Site Management</p>
+                    </div>
+                    <button class="flex-shrink-0 bg-gradient-to-br from-blue-600 to-blue-700 text-white px-4 sm:px-5 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-md hover:shadow-lg smooth-transition card-hover flex items-center space-x-1 sm:space-x-2">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        <span class="hidden sm:inline">新規登録</span>
+                        <span class="sm:hidden">追加</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <div class="relative">
+                    <input type="text" placeholder="現場名・住所で検索..." class="w-full pl-12 pr-4 py-4 border-2 border-slate-200 rounded-xl shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 smooth-transition text-base bg-white">
+                    <svg class="w-6 h-6 text-slate-400 absolute left-4 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden hover:shadow-lg smooth-transition">
+                    <div class="p-5">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded">稼働中</span>
+                                    <p class="text-xs text-slate-500">S-001</p>
+                                </div>
+                                <h3 class="text-lg font-bold text-slate-800 leading-tight mb-1">新築A現場</h3>
+                                <p class="text-sm text-slate-600">東京都渋谷区神宮前1-2-3</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                            <div class="flex items-center space-x-4 text-xs text-slate-500">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                    </svg>
+                                    道具数: 28点
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    2025-10-01 開始
+                                </div>
+                            </div>
+                            <button class="text-blue-600 font-semibold text-sm hover:text-blue-700">編集</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden hover:shadow-lg smooth-transition">
+                    <div class="p-5">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded">稼働中</span>
+                                    <p class="text-xs text-slate-500">S-002</p>
+                                </div>
+                                <h3 class="text-lg font-bold text-slate-800 leading-tight mb-1">改修B現場</h3>
+                                <p class="text-sm text-slate-600">東京都世田谷区三軒茶屋2-15-8</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                            <div class="flex items-center space-x-4 text-xs text-slate-500">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                    </svg>
+                                    道具数: 15点
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    2025-09-15 開始
+                                </div>
+                            </div>
+                            <button class="text-blue-600 font-semibold text-sm hover:text-blue-700">編集</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden hover:shadow-lg smooth-transition">
+                    <div class="p-5">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <span class="bg-slate-100 text-slate-700 text-xs font-bold px-2 py-1 rounded">完了</span>
+                                    <p class="text-xs text-slate-500">S-003</p>
+                                </div>
+                                <h3 class="text-lg font-bold text-slate-800 leading-tight mb-1">リノベーションC現場</h3>
+                                <p class="text-sm text-slate-600">神奈川県横浜市中区本町4-5-6</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                            <div class="flex items-center space-x-4 text-xs text-slate-500">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                    </svg>
+                                    道具数: 0点
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    2025-11-15 完了
+                                </div>
+                            </div>
+                            <button class="text-blue-600 font-semibold text-sm hover:text-blue-700">編集</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 画面5: 購入/発注管理 -->
+        <div id="screen-purchase" class="mt-6 hidden fade-in">
+            <div class="mb-6">
+                <div class="flex items-start justify-between gap-3 mb-4">
+                    <div class="flex-1 min-w-0">
+                        <h2 class="text-xl sm:text-2xl font-bold text-slate-800">購入・発注管理</h2>
+                        <p class="text-xs sm:text-sm text-slate-500 mt-1">Purchase & Order</p>
+                    </div>
+                    <button class="flex-shrink-0 bg-gradient-to-br from-blue-600 to-blue-700 text-white px-4 sm:px-5 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-md hover:shadow-lg smooth-transition card-hover flex items-center space-x-1 sm:space-x-2">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        <span class="hidden sm:inline">新規発注</span>
+                        <span class="sm:hidden">発注</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex gap-2 mb-5 overflow-x-auto pb-2">
+                <button class="px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-semibold whitespace-nowrap shadow-md smooth-transition">すべて</button>
+                <button class="px-4 py-2 bg-white border-2 border-slate-200 text-slate-700 rounded-full text-sm font-semibold whitespace-nowrap smooth-transition hover:border-blue-500">発注中</button>
+                <button class="px-4 py-2 bg-white border-2 border-slate-200 text-slate-700 rounded-full text-sm font-semibold whitespace-nowrap smooth-transition hover:border-blue-500">入荷済み</button>
+                <button class="px-4 py-2 bg-white border-2 border-slate-200 text-slate-700 rounded-full text-sm font-semibold whitespace-nowrap smooth-transition hover:border-blue-500">キャンセル</button>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden hover:shadow-lg smooth-transition">
+                    <div class="p-5">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <span class="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-1 rounded">発注中</span>
+                                    <p class="text-xs text-slate-500">PO-2025-001</p>
+                                </div>
+                                <h3 class="text-lg font-bold text-slate-800 leading-tight mb-1">インパクトドライバー × 3台</h3>
+                                <p class="text-sm text-slate-600">発注先: 株式会社ツール商事</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                            <div class="flex items-center space-x-4 text-xs text-slate-500">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    ¥98,000
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    納期予定: 2025-12-05
+                                </div>
+                            </div>
+                            <button class="text-blue-600 font-semibold text-sm hover:text-blue-700">詳細</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden hover:shadow-lg smooth-transition">
+                    <div class="p-5">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded">入荷済み</span>
+                                    <p class="text-xs text-slate-500">PO-2025-002</p>
+                                </div>
+                                <h3 class="text-lg font-bold text-slate-800 leading-tight mb-1">サンダー替刃セット × 10個</h3>
+                                <p class="text-sm text-slate-600">発注先: 有限会社マツモト工具</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                            <div class="flex items-center space-x-4 text-xs text-slate-500">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    ¥15,500
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    入荷日: 2025-11-27
+                                </div>
+                            </div>
+                            <button class="text-blue-600 font-semibold text-sm hover:text-blue-700">詳細</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden hover:shadow-lg smooth-transition">
+                    <div class="p-5">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <span class="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-1 rounded">発注中</span>
+                                    <p class="text-xs text-slate-500">PO-2025-003</p>
+                                </div>
+                                <h3 class="text-lg font-bold text-slate-800 leading-tight mb-1">レーザー墨出し器 × 1台</h3>
+                                <p class="text-sm text-slate-600">発注先: 株式会社プロツール</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                            <div class="flex items-center space-x-4 text-xs text-slate-500">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    ¥78,000
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    納期予定: 2025-12-10
+                                </div>
+                            </div>
+                            <button class="text-blue-600 font-semibold text-sm hover:text-blue-700">詳細</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 画面6: ユーザー/権限管理 -->
+        <div id="screen-users" class="mt-6 hidden fade-in">
+            <div class="mb-6">
+                <div class="flex items-start justify-between gap-3 mb-4">
+                    <div class="flex-1 min-w-0">
+                        <h2 class="text-xl sm:text-2xl font-bold text-slate-800">ユーザー・権限管理</h2>
+                        <p class="text-xs sm:text-sm text-slate-500 mt-1">User & Permission</p>
+                    </div>
+                    <button class="flex-shrink-0 bg-gradient-to-br from-blue-600 to-blue-700 text-white px-4 sm:px-5 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-md hover:shadow-lg smooth-transition card-hover flex items-center space-x-1 sm:space-x-2">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        <span class="hidden sm:inline">ユーザー追加</span>
+                        <span class="sm:hidden">追加</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex gap-2 mb-5 overflow-x-auto pb-2">
+                <button class="px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-semibold whitespace-nowrap shadow-md smooth-transition">すべて</button>
+                <button class="px-4 py-2 bg-white border-2 border-slate-200 text-slate-700 rounded-full text-sm font-semibold whitespace-nowrap smooth-transition hover:border-blue-500">管理者</button>
+                <button class="px-4 py-2 bg-white border-2 border-slate-200 text-slate-700 rounded-full text-sm font-semibold whitespace-nowrap smooth-transition hover:border-blue-500">現場担当</button>
+                <button class="px-4 py-2 bg-white border-2 border-slate-200 text-slate-700 rounded-full text-sm font-semibold whitespace-nowrap smooth-transition hover:border-blue-500">閲覧のみ</button>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden hover:shadow-lg smooth-transition">
+                    <div class="p-5">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-md flex-shrink-0">
+                                田
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <h3 class="text-lg font-bold text-slate-800">田中 太郎</h3>
+                                    <span class="bg-purple-100 text-purple-700 text-xs font-bold px-2 py-1 rounded">管理者</span>
+                                </div>
+                                <p class="text-sm text-slate-600">tanaka@example.com</p>
+                                <div class="flex items-center space-x-3 mt-2 text-xs text-slate-500">
+                                    <div class="flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        最終ログイン: 2025-11-29 09:30
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="text-blue-600 font-semibold text-sm hover:text-blue-700 flex-shrink-0">編集</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden hover:shadow-lg smooth-transition">
+                    <div class="p-5">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-md flex-shrink-0">
+                                佐
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <h3 class="text-lg font-bold text-slate-800">佐藤 花子</h3>
+                                    <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded">現場担当</span>
+                                </div>
+                                <p class="text-sm text-slate-600">sato@example.com</p>
+                                <div class="flex items-center space-x-3 mt-2 text-xs text-slate-500">
+                                    <div class="flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                        </svg>
+                                        担当現場: 新築A現場
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="text-blue-600 font-semibold text-sm hover:text-blue-700 flex-shrink-0">編集</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden hover:shadow-lg smooth-transition">
+                    <div class="p-5">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-14 h-14 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-md flex-shrink-0">
+                                鈴
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <h3 class="text-lg font-bold text-slate-800">鈴木 一郎</h3>
+                                    <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded">現場担当</span>
+                                </div>
+                                <p class="text-sm text-slate-600">suzuki@example.com</p>
+                                <div class="flex items-center space-x-3 mt-2 text-xs text-slate-500">
+                                    <div class="flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                        </svg>
+                                        担当現場: 改修B現場
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="text-blue-600 font-semibold text-sm hover:text-blue-700 flex-shrink-0">編集</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden hover:shadow-lg smooth-transition">
+                    <div class="p-5">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-14 h-14 bg-gradient-to-br from-slate-400 to-slate-500 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-md flex-shrink-0">
+                                山
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <h3 class="text-lg font-bold text-slate-800">山田 次郎</h3>
+                                    <span class="bg-slate-100 text-slate-700 text-xs font-bold px-2 py-1 rounded">閲覧のみ</span>
+                                </div>
+                                <p class="text-sm text-slate-600">yamada@example.com</p>
+                                <div class="flex items-center space-x-3 mt-2 text-xs text-slate-500">
+                                    <div class="flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                        閲覧権限のみ
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="text-blue-600 font-semibold text-sm hover:text-blue-700 flex-shrink-0">編集</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        function showScreen(screenName) {
+            const screens = ['dashboard', 'inventory', 'movement', 'sites', 'purchase', 'users'];
+
+            screens.forEach(screen => {
+                const element = document.getElementById('screen-' + screen);
+                element.classList.add('hidden');
+            });
+
+            screens.forEach(screen => {
+                const tab = document.getElementById('tab-' + screen);
+                tab.classList.remove('border-blue-600', 'text-blue-600');
+                tab.classList.add('border-transparent', 'text-slate-500');
+            });
+
+            const selectedScreen = document.getElementById('screen-' + screenName);
+            selectedScreen.classList.remove('hidden');
+
+            selectedScreen.classList.remove('fade-in');
+            void selectedScreen.offsetWidth;
+            selectedScreen.classList.add('fade-in');
+
+            const selectedTab = document.getElementById('tab-' + screenName);
+            selectedTab.classList.remove('border-transparent', 'text-slate-500');
+            selectedTab.classList.add('border-blue-600', 'text-blue-600');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
