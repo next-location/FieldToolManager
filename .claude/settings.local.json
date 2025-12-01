@@ -41,7 +41,8 @@
       "Bash(psql:*)",
       "Bash(gh project item-list:*)",
       "Bash(git commit:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

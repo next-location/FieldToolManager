@@ -22,15 +22,23 @@ type Site = {
   name: string
 }
 
+type WarehouseLocation = {
+  id: string
+  code: string
+  display_name: string
+}
+
 export function MovementForm({
   toolItems,
   sites,
+  warehouseLocations = [],
   selectedItemId,
   toolSetItems = [],
   toolSetId,
 }: {
   toolItems: ToolItem[]
   sites: Site[]
+  warehouseLocations?: WarehouseLocation[]
   selectedItemId?: string
   toolSetItems?: ToolItem[]
   toolSetId?: string
@@ -39,6 +47,7 @@ export function MovementForm({
   const [toolItemId, setToolItemId] = useState(selectedItemId || '')
   const [destination, setDestination] = useState<'warehouse' | 'site' | 'repair'>('warehouse')
   const [toSiteId, setToSiteId] = useState('')
+  const [warehouseLocationId, setWarehouseLocationId] = useState('')
   const [correctionMode, setCorrectionMode] = useState(false)
   const [actualLocation, setActualLocation] = useState<'warehouse' | 'site'>('warehouse')
   const [actualSiteId, setActualSiteId] = useState('')
@@ -137,6 +146,10 @@ export function MovementForm({
               formData.append('to_site_id', toSiteId)
             }
 
+            if (destination === 'warehouse' && warehouseLocationId) {
+              formData.append('warehouse_location_id', warehouseLocationId)
+            }
+
             if (notes) {
               formData.append('notes', `[セット移動] ${notes}`)
             } else {
@@ -169,6 +182,10 @@ export function MovementForm({
 
         if (destination === 'site' && toSiteId) {
           formData.append('to_site_id', toSiteId)
+        }
+
+        if (destination === 'warehouse' && warehouseLocationId) {
+          formData.append('warehouse_location_id', warehouseLocationId)
         }
 
         if (notes) {
@@ -289,24 +306,40 @@ export function MovementForm({
                 <div className="space-y-3">
                   {/* 倉庫オプション */}
                   {selectedItem.current_location !== 'warehouse' && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setDestination('warehouse')
-                        setToSiteId('')
-                      }}
-                      className={`w-full px-4 py-3 border-2 rounded-lg text-left ${
-                        destination === 'warehouse'
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="font-medium">🏢 倉庫に戻す</div>
-                      <div className="text-sm text-gray-600 mt-1">
-                        {selectedItem.current_location === 'site' && '返却'}
-                        {selectedItem.current_location === 'repair' && '修理完了'}
-                      </div>
-                    </button>
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDestination('warehouse')
+                          setToSiteId('')
+                        }}
+                        className={`w-full px-4 py-3 border-2 rounded-lg text-left ${
+                          destination === 'warehouse'
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="font-medium">🏢 倉庫に戻す</div>
+                        <div className="text-sm text-gray-600 mt-1">
+                          {selectedItem.current_location === 'site' && '返却'}
+                          {selectedItem.current_location === 'repair' && '修理完了'}
+                        </div>
+                      </button>
+                      {destination === 'warehouse' && warehouseLocations.length > 0 && (
+                        <select
+                          value={warehouseLocationId}
+                          onChange={(e) => setWarehouseLocationId(e.target.value)}
+                          className="w-full mt-2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">倉庫位置を選択（任意）...</option>
+                          {warehouseLocations.map((location) => (
+                            <option key={location.id} value={location.id}>
+                              {location.code} - {location.display_name}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
                   )}
 
                   {/* 現場オプション */}

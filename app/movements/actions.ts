@@ -11,6 +11,7 @@ export async function createMovement(formData: FormData) {
   const movement_type = formData.get('movement_type') as string
   const from_site_id = formData.get('from_site_id') as string | null
   const to_site_id = formData.get('to_site_id') as string | null
+  const warehouse_location_id = formData.get('warehouse_location_id') as string | null
   const quantity = parseInt(formData.get('quantity') as string) || 1
   const notes = formData.get('notes') as string
 
@@ -76,6 +77,7 @@ export async function createMovement(formData: FormData) {
     updateData = {
       current_location: 'warehouse',
       current_site_id: null,
+      warehouse_location_id: warehouse_location_id || null,
       status: 'available',
     }
   } else if (movement_type === 'transfer' && to_site_id) {
@@ -93,6 +95,7 @@ export async function createMovement(formData: FormData) {
     updateData = {
       current_location: 'warehouse',
       current_site_id: null,
+      warehouse_location_id: warehouse_location_id || null,
       status: 'available',
     }
   }

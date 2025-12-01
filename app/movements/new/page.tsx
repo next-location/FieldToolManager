@@ -91,6 +91,14 @@ export default async function NewMovementPage({
     .is('deleted_at', null)
     .order('name')
 
+  // 倉庫位置一覧を取得
+  const { data: warehouseLocations } = await supabase
+    .from('warehouse_locations')
+    .select('id, code, display_name')
+    .eq('organization_id', userData?.organization_id)
+    .is('deleted_at', null)
+    .order('code')
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-2xl mx-auto px-4">
@@ -115,6 +123,7 @@ export default async function NewMovementPage({
           <MovementForm
             toolItems={toolItems || []}
             sites={sites || []}
+            warehouseLocations={warehouseLocations || []}
             selectedItemId={params.tool_item_id}
             toolSetItems={toolSetItems}
             toolSetId={params.tool_set_id}

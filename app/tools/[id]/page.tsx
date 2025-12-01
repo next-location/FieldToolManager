@@ -48,7 +48,8 @@ export default async function ToolDetailPage({
     .select(
       `
       *,
-      current_site:sites(name)
+      current_site:sites(name),
+      warehouse_location:warehouse_locations(code, display_name)
     `
     )
     .eq('tool_id', id)
@@ -246,7 +247,9 @@ export default async function ToolDetailPage({
                               <span>
                                 📍{' '}
                                 {item.current_location === 'warehouse'
-                                  ? '倉庫'
+                                  ? item.warehouse_location
+                                    ? `倉庫 (${(item.warehouse_location as any).code} - ${(item.warehouse_location as any).display_name})`
+                                    : '倉庫'
                                   : item.current_location === 'site'
                                   ? `現場: ${
                                       item.current_site
