@@ -39,6 +39,10 @@ export default async function MovementsPage() {
     transfer: '🔄 移動',
     repair: '🔧 修理',
     return_from_repair: '✅ 修理完了',
+    lost: '🚨 紛失報告',
+    disposed: '🗑️ 廃棄',
+    maintenance: '🔧 メンテナンス',
+    correction: '🔄 位置修正',
   }
 
   return (

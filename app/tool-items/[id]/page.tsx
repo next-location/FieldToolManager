@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { QRCodeDisplay } from '@/app/tools/[id]/QRCodeDisplay'
+import { StatusChangeButton } from './StatusChangeButton'
 
 export default async function ToolItemDetailPage({
   params,
@@ -218,6 +219,20 @@ export default async function ToolItemDetailPage({
               )}
             </div>
 
+            {/* ステータス変更カード */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                ステータス変更
+              </h2>
+              <p className="text-sm text-gray-600 mb-4">
+                紛失、廃棄、メンテナンスなどの特別な状態を登録できます
+              </p>
+              <StatusChangeButton
+                toolItemId={toolItem.id}
+                currentStatus={toolItem.status}
+              />
+            </div>
+
             {/* 移動履歴カード */}
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
@@ -241,6 +256,14 @@ export default async function ToolItemDetailPage({
                         ? '🔧 修理'
                         : movement.movement_type === 'return_from_repair'
                         ? '✅ 修理完了'
+                        : movement.movement_type === 'lost'
+                        ? '🚨 紛失報告'
+                        : movement.movement_type === 'disposed'
+                        ? '🗑️ 廃棄'
+                        : movement.movement_type === 'maintenance'
+                        ? '🔧 メンテナンス'
+                        : movement.movement_type === 'correction'
+                        ? '🔄 位置修正'
                         : movement.movement_type
 
                     const fromLocationText = fromSite?.name || '倉庫'

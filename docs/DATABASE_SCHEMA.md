@@ -86,7 +86,7 @@ ToolMovement (移動履歴) ✨tool_item_id対応
 ├── to_location TEXT
 ├── from_site_id (FK)
 ├── to_site_id (FK)
-├── movement_type "check_out" | "check_in" | "transfer" | "repair" | "return_from_repair"
+├── movement_type "check_out" | "check_in" | "transfer" | "repair" | "return_from_repair" | "lost" | "disposed" | "maintenance" | "correction"
 ├── quantity INTEGER DEFAULT 1
 ├── performed_by (FK → User.id) ← 実行者
 ├── notes TEXT
@@ -1075,10 +1075,120 @@ UNIQUE (subdomain);
 | 2025-12-02 | 1.1.0 | **道具セット更新**: tool_item_id対応、テンプレート方式での運用 |
 | 2025-12-02 | 1.2.0 | **道具マスタ選択機能追加**: 既存の道具マスタから選択可能に、再入力不要でUX向上 |
 | 2025-12-02 | 1.3.0 | **スマート移動フォーム実装**: 移動種別自動判定、位置修正モード（2ステップ）、個別アイテム詳細ページ追加 |
+| 2025-12-02 | 1.4.0 | **ステータス管理機能追加**: 紛失報告、廃棄登録、メンテナンス登録機能、新しいmovement_type追加 |
 
 ---
 
 ## 最新の機能詳細
+
+### v1.4.0: ステータス管理機能（紛失・廃棄・メンテナンス）
+
+#### 概要
+個別アイテムの特別な状態（紛失、廃棄、メンテナンス）を管理する機能を追加。通常の移動とは異なる、道具のライフサイクル管理を実現。
+
+#### 新しいステータスとmovement_type
+
+| ステータス | movement_type | 説明 | アイコン |
+|-----------|---------------|------|---------|
+| `lost` | `lost` | 紛失した道具 | 🚨 |
+| `disposed` | `disposed` | 廃棄済みの道具（修理不可、老朽化） | 🗑️ |
+| `maintenance` | `maintenance` | メンテナンス中の道具 | 🔧 |
+| - | `correction` | 位置修正（既存） | 🔄 |
+
+#### 実装された機能
+
+**1. ステータス変更UI**
+
+個別アイテム詳細ページ（`/tool-items/[id]`）に「ステータス変更」カードを追加：
+- 🚨 **紛失報告**ボタン
+- 🗑️ **廃棄登録**ボタン
+- 🔧 **メンテナンス**ボタン
+
+**2. モーダルダイアログ**
+
+各ボタンクリック時にモーダルが表示：
+- 詳細入力（必須）
+  - 紛失: 紛失した状況や最後に見た場所
+  - 廃棄: 廃棄の理由（故障、老朽化など）
+  - メンテナンス: メンテナンス内容や実施予定日
+- 確認ボタン/キャンセルボタン
+
+**3. データ更新フロー**
+
+```
+ステータス変更ボタンクリック
+  ↓
+モーダル表示
+  ↓
+詳細入力（必須）
+  ↓
+登録
+  ↓
+1. tool_items.status を更新
+2. tool_movements に履歴記録
+3. tools.quantity を更新（紛失・廃棄の場合）
+  ↓
+個別アイテム詳細ページ更新
+```
+
+**4. 在庫数の自動調整**
+
+紛失・廃棄時の処理：
+```typescript
+// 利用可能な個別アイテム数をカウント
+const { count } = await supabase
+  .from('tool_items')
+  .select('*', { count: 'exact', head: true })
+  .eq('tool_id', toolId)
+  .in('status', ['available', 'in_use', 'maintenance'])
+  .is('deleted_at', null)
+
+// 道具マスタの数量を更新
+await supabase
+  .from('tools')
+  .update({ quantity: count || 0 })
+  .eq('id', toolId)
+```
+
+**5. 移動履歴への記録**
+
+tool_movementsテーブルに以下の情報を記録：
+- `movement_type`: 'lost' | 'disposed' | 'maintenance'
+- `from_location`: 現在地（変更なし）
+- `to_location`: 現在地（変更なし）
+- `notes`: ユーザー入力の詳細
+- `performed_by`: 実行者のユーザーID
+
+#### 実装ファイル
+
+| ファイル | 役割 | タイプ |
+|---------|------|--------|
+| `/app/tool-items/actions.ts` | ステータス更新ロジック | Server Action |
+| `/app/tool-items/[id]/StatusChangeButton.tsx` | UIコンポーネント | Client Component |
+| `/app/tool-items/[id]/page.tsx` | 個別アイテム詳細ページ（更新） | Server Component |
+| `/app/movements/page.tsx` | 移動履歴一覧（ラベル追加） | Server Component |
+
+#### ボタン表示制御
+
+現在のステータスによって表示されるボタンを制限：
+
+| 現在のステータス | 表示されるボタン |
+|-----------------|-----------------|
+| `available` | 🚨 紛失報告、🗑️ 廃棄登録、🔧 メンテナンス |
+| `in_use` | 🚨 紛失報告、🗑️ 廃棄登録、🔧 メンテナンス |
+| `maintenance` | 🚨 紛失報告、🗑️ 廃棄登録 |
+| `lost` | 🗑️ 廃棄登録 |
+| `disposed` | なし（最終状態） |
+
+#### 監査ログ
+
+すべてのステータス変更は`tool_movements`テーブルに記録され、以下の情報が追跡可能：
+- いつ（created_at）
+- 誰が（performed_by）
+- 何を（movement_type）
+- なぜ（notes）
+
+---
 
 ### v1.3.0: スマート移動フォームと位置修正機能
 
