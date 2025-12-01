@@ -207,6 +207,8 @@ export async function createToolWithItems(formData: {
   name?: string
   model_number?: string
   manufacturer?: string
+  management_type?: 'individual' | 'consumable'
+  unit?: string
   minimum_stock?: string
   // 共通（個別アイテム登録情報）
   quantity: string
@@ -287,6 +289,8 @@ export async function createToolWithItems(formData: {
         name: formData.name,
         model_number: formData.model_number || null,
         manufacturer: formData.manufacturer || null,
+        management_type: formData.management_type || 'individual',
+        unit: formData.unit || '個',
         quantity: parseInt(formData.quantity),
         minimum_stock: formData.minimum_stock ? parseInt(formData.minimum_stock) : 1,
       })
@@ -302,44 +306,67 @@ export async function createToolWithItems(formData: {
     toolData = newTool
   }
 
-  // 個別アイテムを作成
-  // 既存の最大serial_numberを取得
-  const { data: existingItems } = await supabase
-    .from('tool_items')
-    .select('serial_number')
-    .eq('tool_id', toolId)
-    .is('deleted_at', null)
-    .order('serial_number', { ascending: false })
-    .limit(1)
+  // 管理タイプによって処理を分岐
+  if (toolData.management_type === 'consumable') {
+    // 消耗品管理: 在庫レコードを作成
+    const quantity = parseInt(formData.quantity)
+    const { error: inventoryError } = await supabase
+      .from('consumable_inventory')
+      .insert({
+        organization_id: userData.organization_id,
+        tool_id: toolId,
+        location_type: 'warehouse',
+        site_id: null,
+        warehouse_location_id: null,
+        quantity: quantity,
+      })
 
-  let startNumber = 1
-  if (existingItems && existingItems.length > 0) {
-    const lastSerial = existingItems[0].serial_number
-    startNumber = parseInt(lastSerial) + 1
-  }
+    if (inventoryError) {
+      console.error('Consumable inventory insert error:', inventoryError)
+      return {
+        error: '在庫レコードの作成に失敗しました: ' + inventoryError.message,
+      }
+    }
+  } else {
+    // 個別管理: 個別アイテムを作成
+    // 既存の最大serial_numberを取得
+    const { data: existingItems } = await supabase
+      .from('tool_items')
+      .select('serial_number')
+      .eq('tool_id', toolId)
+      .is('deleted_at', null)
+      .order('serial_number', { ascending: false })
+      .limit(1)
 
-  const quantity = parseInt(formData.quantity)
-  const toolItems = []
+    let startNumber = 1
+    if (existingItems && existingItems.length > 0) {
+      const lastSerial = existingItems[0].serial_number
+      startNumber = parseInt(lastSerial) + 1
+    }
 
-  for (let i = 0; i < quantity; i++) {
-    toolItems.push({
-      tool_id: toolId,
-      organization_id: userData.organization_id,
-      serial_number: String(startNumber + i).padStart(3, '0'), // "001", "002", "003"...
-      current_location: 'warehouse',
-      status: 'available',
-      notes: formData.notes || null,
-    })
-  }
+    const quantity = parseInt(formData.quantity)
+    const toolItems = []
 
-  const { error: itemsError } = await supabase
-    .from('tool_items')
-    .insert(toolItems)
+    for (let i = 0; i < quantity; i++) {
+      toolItems.push({
+        tool_id: toolId,
+        organization_id: userData.organization_id,
+        serial_number: String(startNumber + i).padStart(3, '0'), // "001", "002", "003"...
+        current_location: 'warehouse',
+        status: 'available',
+        notes: formData.notes || null,
+      })
+    }
 
-  if (itemsError) {
-    console.error('Tool items insert error:', itemsError)
-    return {
-      error: '個別アイテムの作成に失敗しました: ' + itemsError.message,
+    const { error: itemsError } = await supabase
+      .from('tool_items')
+      .insert(toolItems)
+
+    if (itemsError) {
+      console.error('Tool items insert error:', itemsError)
+      return {
+        error: '個別アイテムの作成に失敗しました: ' + itemsError.message,
+      }
     }
   }
 

@@ -20,6 +20,8 @@ export function ToolRegistrationForm({ toolMasters }: { toolMasters: ToolMaster[
     name: '',
     model_number: '',
     manufacturer: '',
+    management_type: 'individual' as 'individual' | 'consumable',
+    unit: '個',
     minimum_stock: '1',
     quantity: '1',
     purchase_date: '',
@@ -54,6 +56,8 @@ export function ToolRegistrationForm({ toolMasters }: { toolMasters: ToolMaster[
           name: formData.name,
           model_number: formData.model_number,
           manufacturer: formData.manufacturer,
+          management_type: formData.management_type,
+          unit: formData.unit,
           minimum_stock: formData.minimum_stock,
           quantity: formData.quantity,
           purchase_date: formData.purchase_date,
@@ -145,6 +149,57 @@ export function ToolRegistrationForm({ toolMasters }: { toolMasters: ToolMaster[
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
+
+          <div>
+            <label htmlFor="management_type" className="block text-sm font-medium text-gray-700">
+              管理タイプ <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="management_type"
+              id="management_type"
+              value={formData.management_type}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  management_type: e.target.value as 'individual' | 'consumable',
+                })
+              }
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="individual">個別管理（電動ドリルなど、1つ1つ追跡する道具）</option>
+              <option value="consumable">消耗品管理（軍手など、数量だけ管理する道具）</option>
+            </select>
+            <p className="mt-1 text-xs text-gray-500">
+              個別管理: 各個体にQRコードを付けて追跡 | 消耗品管理: 数量だけを記録
+            </p>
+          </div>
+
+          {formData.management_type === 'consumable' && (
+            <div>
+              <label htmlFor="unit" className="block text-sm font-medium text-gray-700">
+                単位 <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="unit"
+                id="unit"
+                value={formData.unit}
+                onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="個">個</option>
+                <option value="本">本</option>
+                <option value="枚">枚</option>
+                <option value="箱">箱</option>
+                <option value="kg">kg</option>
+                <option value="L">L</option>
+                <option value="m">m</option>
+                <option value="セット">セット</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                消耗品を数える単位を選択してください
+              </p>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
