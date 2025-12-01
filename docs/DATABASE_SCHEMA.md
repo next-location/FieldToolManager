@@ -70,6 +70,7 @@ ToolItem (個別アイテム - 物理的な道具) ✨新規追加
 ├── qr_code UUID (UQ) ← 個別QRコード
 ├── current_location "warehouse" | "site" | "repair" | "lost"
 ├── current_site_id (FK → sites)
+├── warehouse_location_id (FK → warehouse_locations) ← 倉庫内位置 ✨NEW
 ├── status "available" | "in_use" | "maintenance" | "lost"
 ├── notes TEXT ← 個別メモ
 ├── deleted_at (論理削除)
@@ -142,6 +143,55 @@ ToolSetItem (道具セット内容) ✨tool_item_id対応
 - **既存マスタから登録**: 道具マスタを選択 → 個数のみ入力 → 個別アイテム作成
 - **新規マスタ作成**: 道具マスタを新規作成 → 個数入力 → 個別アイテム作成
 - serial_numberは既存の最大値+1から開始（例: #003まで存在 → 次は#004から）
+
+---
+
+WarehouseLocationTemplate (倉庫階層設定) ✨NEW
+├── id (PK, UUID)
+├── organization_id (FK → Organization.id) ← 重要！
+├── level INTEGER (1, 2, 3, 4, 5) ← 階層レベル
+├── label TEXT "エリア" | "棚" | "保管方法" | "段" ... ← 階層名
+├── is_active BOOLEAN DEFAULT true ← 有効/無効
+├── display_order INTEGER DEFAULT 0 ← 表示順
+├── created_at
+└── updated_at
+
+**用途**: 企業ごとに倉庫の階層構造をカスタマイズ
+- 例1（3階層）: レベル1=エリア、レベル2=棚、レベル3=段
+- 例2（1階層）: レベル1=場所のみ
+- 例3（4階層）: レベル1=フロア、レベル2=エリア、レベル3=保管方法、レベル4=番号
+
+UNIQUE(organization_id, level) ← 1組織で同じレベルは1つのみ
+
+    ↓ 設定に基づいて位置を登録
+
+WarehouseLocation (倉庫位置マスタ) ✨NEW
+├── id (PK, UUID)
+├── organization_id (FK → Organization.id) ← 重要！
+├── code TEXT "A-1-上" | "北側-壁掛け-3" | "1F-工具-棚-5" ← 位置コード
+├── display_name TEXT "Aエリア 1番棚 上段" ← 表示名
+├── parent_id (FK → WarehouseLocation.id) ← 親位置（階層構造）
+├── level INTEGER DEFAULT 0 ← 階層レベル（0=ルート）
+├── qr_code TEXT (UQ) ← 位置QRコード（UUID）
+├── description TEXT ← 説明（「入口から左手2番目の棚」）
+├── sort_order INTEGER DEFAULT 0 ← 表示順
+├── is_active BOOLEAN DEFAULT true
+├── created_at
+├── updated_at
+└── deleted_at (論理削除)
+
+**用途**: 倉庫内の具体的な位置を管理
+- QRコード付きで位置を識別
+- 階層構造で柔軟な管理（棚、壁掛け、床置き、コンテナなど）
+- 位置から道具を検索可能
+
+UNIQUE(organization_id, code) ← 1組織内で位置コードは一意
+
+    ↓ 1:N (1つの位置に複数の道具)
+
+ToolItem.warehouse_location_id (FK → WarehouseLocation.id)
+- current_location = 'warehouse' の場合のみ有効
+- 現場にいる道具は NULL
 
 AuditLog (監査ログ)
 ├── id (PK, UUID)
@@ -1295,5 +1345,256 @@ tool_items.current_location 更新
 | `/app/movements/new/MovementForm.tsx` | Client Component | 状態管理、移動種別自動判定、フォーム送信 |
 | `/app/tool-items/[id]/page.tsx` | Server Component | 個別アイテム詳細表示 |
 | `/app/movements/page.tsx` | Server Component | 移動履歴一覧（数量列削除済み） |
+
+---
+
+## 7. 倉庫内位置管理テーブル ✨NEW
+
+### 7.1 テーブル定義（SQL）
+
+```sql
+-- 倉庫階層設定テーブル
+CREATE TABLE warehouse_location_templates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  level INTEGER NOT NULL CHECK (level >= 1 AND level <= 5),
+  label TEXT NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  display_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  UNIQUE(organization_id, level)
+);
+
+COMMENT ON TABLE warehouse_location_templates IS '組織ごとの倉庫階層構造設定';
+COMMENT ON COLUMN warehouse_location_templates.level IS '階層レベル（1-5）';
+COMMENT ON COLUMN warehouse_location_templates.label IS '階層名（例：エリア、棚、保管方法、段）';
+COMMENT ON COLUMN warehouse_location_templates.is_active IS '有効/無効フラグ';
+
+-- 倉庫位置マスタテーブル
+CREATE TABLE warehouse_locations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  code TEXT NOT NULL,
+  display_name TEXT NOT NULL,
+  parent_id UUID REFERENCES warehouse_locations(id) ON DELETE CASCADE,
+  level INTEGER NOT NULL DEFAULT 0 CHECK (level >= 0),
+  qr_code TEXT UNIQUE,
+  description TEXT,
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  deleted_at TIMESTAMPTZ,
+
+  UNIQUE(organization_id, code)
+);
+
+COMMENT ON TABLE warehouse_locations IS '倉庫内位置マスタ（階層構造）';
+COMMENT ON COLUMN warehouse_locations.code IS '位置コード（例：A-1-上、北側-壁掛け-3）';
+COMMENT ON COLUMN warehouse_locations.display_name IS '表示名（例：Aエリア 1番棚 上段）';
+COMMENT ON COLUMN warehouse_locations.parent_id IS '親位置ID（階層構造）';
+COMMENT ON COLUMN warehouse_locations.level IS '階層レベル（0=ルート、1=第1階層...）';
+COMMENT ON COLUMN warehouse_locations.qr_code IS '位置識別用QRコード（UUID）';
+COMMENT ON COLUMN warehouse_locations.description IS '補足説明（例：入口から左手2番目の棚）';
+
+-- tool_itemsに倉庫位置カラムを追加
+ALTER TABLE tool_items
+  ADD COLUMN warehouse_location_id UUID REFERENCES warehouse_locations(id) ON DELETE SET NULL;
+
+COMMENT ON COLUMN tool_items.warehouse_location_id IS '倉庫内位置（current_location=warehouse時のみ有効）';
+
+-- インデックス
+CREATE INDEX idx_warehouse_location_templates_org
+  ON warehouse_location_templates(organization_id);
+
+CREATE INDEX idx_warehouse_locations_org
+  ON warehouse_locations(organization_id) WHERE deleted_at IS NULL;
+
+CREATE INDEX idx_warehouse_locations_parent
+  ON warehouse_locations(parent_id) WHERE deleted_at IS NULL;
+
+CREATE INDEX idx_warehouse_locations_qr
+  ON warehouse_locations(qr_code) WHERE qr_code IS NOT NULL;
+
+CREATE INDEX idx_warehouse_locations_code
+  ON warehouse_locations(organization_id, code);
+
+CREATE INDEX idx_tool_items_warehouse_location
+  ON tool_items(warehouse_location_id) WHERE warehouse_location_id IS NOT NULL;
+
+-- RLS ポリシー
+ALTER TABLE warehouse_location_templates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE warehouse_locations ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their organization's location templates"
+  ON warehouse_location_templates FOR SELECT
+  USING (organization_id IN (SELECT organization_id FROM users WHERE id = auth.uid()));
+
+CREATE POLICY "Admins can manage location templates"
+  ON warehouse_location_templates FOR ALL
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM users
+      WHERE id = auth.uid() AND role IN ('admin', 'super_admin')
+    )
+  );
+
+CREATE POLICY "Users can view their organization's warehouse locations"
+  ON warehouse_locations FOR SELECT
+  USING (
+    organization_id IN (SELECT organization_id FROM users WHERE id = auth.uid())
+    AND deleted_at IS NULL
+  );
+
+CREATE POLICY "Admins can manage warehouse locations"
+  ON warehouse_locations FOR ALL
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM users
+      WHERE id = auth.uid() AND role IN ('admin', 'super_admin')
+    )
+  );
+```
+
+### 7.2 TypeScript型定義
+
+```typescript
+// 倉庫階層設定
+export interface WarehouseLocationTemplate {
+  id: string;
+  organization_id: string;
+  level: number;              // 1-5
+  label: string;              // 例：「エリア」「棚」「保管方法」
+  is_active: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// 倉庫位置
+export interface WarehouseLocation {
+  id: string;
+  organization_id: string;
+  code: string;               // 例：「A-1-上」「北側-壁掛け-3」
+  display_name: string;       // 例：「Aエリア 1番棚 上段」
+  parent_id: string | null;   // 親位置ID
+  level: number;              // 階層レベル（0=ルート）
+  qr_code: string | null;     // 位置QRコード
+  description: string | null; // 説明
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+// 道具アイテムに倉庫位置を追加
+export interface ToolItem {
+  id: string;
+  tool_id: string;
+  organization_id: string;
+  serial_number: string;
+  qr_code: string;
+  current_location: 'warehouse' | 'site' | 'repair' | 'lost';
+  current_site_id: string | null;
+  warehouse_location_id: string | null; // ✨NEW
+  status: 'available' | 'in_use' | 'maintenance' | 'lost';
+  notes: string | null;
+  deleted_at: string | null;
+  created_at: string;
+  updated_at: string;
+
+  // Relations
+  tools?: Tool;
+  current_site?: Site;
+  warehouse_location?: WarehouseLocation; // ✨NEW
+}
+```
+
+### 7.3 使用例
+
+#### 例1: 3階層倉庫（エリア-棚-段）
+
+```sql
+-- 階層設定
+INSERT INTO warehouse_location_templates (organization_id, level, label) VALUES
+  ('org-1', 1, 'エリア'),
+  ('org-1', 2, '棚'),
+  ('org-1', 3, '段');
+
+-- 位置登録
+INSERT INTO warehouse_locations (organization_id, code, display_name, level, qr_code) VALUES
+  ('org-1', 'A-1-上', 'Aエリア 1番棚 上段', 3, gen_random_uuid()::text),
+  ('org-1', 'A-1-中', 'Aエリア 1番棚 中段', 3, gen_random_uuid()::text),
+  ('org-1', 'A-1-下', 'Aエリア 1番棚 下段', 3, gen_random_uuid()::text),
+  ('org-1', 'B-2-上', 'Bエリア 2番棚 上段', 3, gen_random_uuid()::text);
+```
+
+#### 例2: 1階層倉庫（場所のみ）
+
+```sql
+-- 階層設定
+INSERT INTO warehouse_location_templates (organization_id, level, label) VALUES
+  ('org-2', 1, '場所');
+
+-- 位置登録
+INSERT INTO warehouse_locations (organization_id, code, display_name, level, qr_code) VALUES
+  ('org-2', '北側', '北側エリア', 1, gen_random_uuid()::text),
+  ('org-2', '南側', '南側エリア', 1, gen_random_uuid()::text),
+  ('org-2', '入口付近', '入口付近', 1, gen_random_uuid()::text);
+```
+
+#### 例3: 4階層倉庫（フロア-エリア-保管方法-番号）
+
+```sql
+-- 階層設定
+INSERT INTO warehouse_location_templates (organization_id, level, label) VALUES
+  ('org-3', 1, 'フロア'),
+  ('org-3', 2, 'エリア'),
+  ('org-3', 3, '保管方法'),
+  ('org-3', 4, '番号');
+
+-- 位置登録
+INSERT INTO warehouse_locations (organization_id, code, display_name, level, qr_code, description) VALUES
+  ('org-3', '1F-工具-壁掛け-3', '1階 工具エリア 壁掛け 3番', 4, gen_random_uuid()::text, '入口から左手、壁掛けフックの3番目'),
+  ('org-3', '1F-工具-棚-5', '1階 工具エリア 棚 5番', 4, gen_random_uuid()::text, 'メイン通路沿いの5番棚'),
+  ('org-3', '2F-電動-床置き-1', '2階 電動工具エリア 床置き 1番', 4, gen_random_uuid()::text, '階段上がってすぐ左');
+```
+
+### 7.4 クエリ例
+
+```sql
+-- 位置から道具を検索
+SELECT ti.*, t.name, wl.display_name as location_name
+FROM tool_items ti
+JOIN tools t ON ti.tool_id = t.id
+JOIN warehouse_locations wl ON ti.warehouse_location_id = wl.id
+WHERE wl.code = 'A-1-上'
+AND ti.current_location = 'warehouse'
+AND ti.deleted_at IS NULL;
+
+-- 部分一致検索（Aエリアの全道具）
+SELECT ti.*, t.name, wl.code, wl.display_name
+FROM tool_items ti
+JOIN tools t ON ti.tool_id = t.id
+JOIN warehouse_locations wl ON ti.warehouse_location_id = wl.id
+WHERE wl.code LIKE 'A-%'
+AND ti.current_location = 'warehouse'
+AND ti.deleted_at IS NULL;
+
+-- 倉庫にある道具の位置別集計
+SELECT
+  wl.code,
+  wl.display_name,
+  COUNT(ti.id) as tool_count
+FROM warehouse_locations wl
+LEFT JOIN tool_items ti ON wl.id = ti.warehouse_location_id AND ti.current_location = 'warehouse'
+WHERE wl.organization_id = 'org-1'
+AND wl.deleted_at IS NULL
+GROUP BY wl.id, wl.code, wl.display_name
+ORDER BY wl.code;
+```
 
 ---

@@ -1044,6 +1044,359 @@ INSERT INTO tool_categories (organization_id, name, code_prefix) VALUES
 
 ---
 
+### 8.4 倉庫内位置管理機能 ✨NEW
+
+#### 8.4.1 目的
+
+倉庫内のどこに何があるかを即座に把握し、道具の探索時間を削減する。企業ごとに異なる倉庫レイアウト（棚、壁掛け、床置き、コンテナなど）に柔軟に対応。
+
+#### 8.4.2 設計コンセプト
+
+**完全カスタマイズ可能な階層構造**
+
+各企業が自社の倉庫レイアウトに合わせて、階層の名称と深さを自由に設定できる。
+
+```
+例1: 整理された倉庫（3階層）
+└── エリア（A, B, C）
+    └── 棚（1, 2, 3）
+        └── 段（上, 中, 下）
+
+コード例: "A-1-上"
+表示名例: "Aエリア 1番棚 上段"
+
+例2: シンプルな倉庫（1階層）
+└── 場所（北側, 南側, 入口付近）
+
+コード例: "北側"
+表示名例: "北側エリア"
+
+例3: 複雑な倉庫（4階層）
+└── フロア（1F, 2F）
+    └── エリア（工具, 電動, 消耗品）
+        └── 保管方法（棚, 壁掛け, 床置き, コンテナ）
+            └── 番号（1, 2, 3）
+
+コード例: "1F-工具-壁掛け-3"
+表示名例: "1階 工具エリア 壁掛け 3番"
+```
+
+#### 8.4.3 データモデル
+
+```sql
+-- 組織ごとの倉庫階層設定（テンプレート）
+CREATE TABLE warehouse_location_templates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  level INTEGER NOT NULL,              -- 階層レベル（1, 2, 3, 4...）
+  label TEXT NOT NULL,                 -- 階層名（例：「エリア」「棚」「保管方法」）
+  is_active BOOLEAN DEFAULT true,
+  display_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  UNIQUE(organization_id, level)
+);
+
+-- 倉庫位置マスタ（階層構造）
+CREATE TABLE warehouse_locations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  code TEXT NOT NULL,                  -- 位置コード（例: "A-1-上", "北側-壁掛け-3"）
+  display_name TEXT NOT NULL,          -- 表示名（例: "Aエリア 1番棚 上段"）
+  parent_id UUID REFERENCES warehouse_locations(id), -- 親位置（階層構造）
+  level INTEGER NOT NULL DEFAULT 0,    -- 階層レベル（0=ルート、1=第1階層...）
+  qr_code TEXT UNIQUE,                 -- 位置QRコード（UUID）
+  description TEXT,                    -- 説明（例：「入口から左手2番目の棚」）
+  sort_order INTEGER DEFAULT 0,        -- 表示順
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  deleted_at TIMESTAMPTZ,
+
+  UNIQUE(organization_id, code)
+);
+
+-- tool_items に倉庫位置を追加
+ALTER TABLE tool_items
+  ADD COLUMN warehouse_location_id UUID REFERENCES warehouse_locations(id);
+
+-- インデックス
+CREATE INDEX idx_warehouse_locations_org ON warehouse_locations(organization_id) WHERE deleted_at IS NULL;
+CREATE INDEX idx_warehouse_locations_parent ON warehouse_locations(parent_id) WHERE deleted_at IS NULL;
+CREATE INDEX idx_warehouse_locations_qr ON warehouse_locations(qr_code) WHERE qr_code IS NOT NULL;
+CREATE INDEX idx_tool_items_warehouse_location ON tool_items(warehouse_location_id);
+
+-- RLS ポリシー
+ALTER TABLE warehouse_location_templates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE warehouse_locations ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their organization's location templates"
+  ON warehouse_location_templates FOR SELECT
+  USING (organization_id IN (SELECT organization_id FROM users WHERE id = auth.uid()));
+
+CREATE POLICY "Users can view their organization's warehouse locations"
+  ON warehouse_locations FOR SELECT
+  USING (organization_id IN (SELECT organization_id FROM users WHERE id = auth.uid()));
+
+CREATE POLICY "Admins can manage warehouse locations"
+  ON warehouse_locations FOR ALL
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM users
+      WHERE id = auth.uid() AND role IN ('admin', 'super_admin')
+    )
+  );
+```
+
+#### 8.4.4 主要機能
+
+##### 1. 階層設定（組織管理者のみ）
+
+企業ごとに倉庫の階層構造をカスタマイズ。
+
+**設定画面イメージ**
+```
+┌─────────────────────────────────────────────────┐
+│ 倉庫位置管理 - 階層設定                         │
+├─────────────────────────────────────────────────┤
+│ 貴社の倉庫レイアウトに合わせて階層を設定       │
+│                                                 │
+│ レベル1: [エリア_____________] ☑有効           │
+│          （例: A, B, C / 北側, 南側）          │
+│                                                 │
+│ レベル2: [保管方法___________] ☑有効           │
+│          （例: 棚, 壁掛け, 床置き, コンテナ）  │
+│                                                 │
+│ レベル3: [番号_______________] ☑有効           │
+│          （例: 1, 2, 3）                       │
+│                                                 │
+│ レベル4: [段_________________] ☐有効           │
+│          （例: 上, 中, 下）                    │
+│                                                 │
+│ [保存して位置登録へ]                           │
+└─────────────────────────────────────────────────┘
+```
+
+##### 2. 位置マスタ登録
+
+設定した階層に基づいて具体的な位置を登録。
+
+**位置登録画面イメージ**
+```
+┌─────────────────────────────────────────────────┐
+│ 倉庫位置 新規登録                               │
+├─────────────────────────────────────────────────┤
+│ エリア: [▼A____________]                       │
+│                                                 │
+│ 保管方法: [▼壁掛け______]                      │
+│                                                 │
+│ 番号: [3_______________]                        │
+│                                                 │
+│ ↓ 自動生成                                     │
+│ コード: A-壁掛け-3                              │
+│                                                 │
+│ 表示名: [Aエリア 壁掛け 3番________________]   │
+│                                                 │
+│ 説明: [入口から左手、壁掛けフックの3番目___]   │
+│ [________________________________]              │
+│                                                 │
+│ ☑ QRコードを自動生成                           │
+│   （印刷して位置に貼り付けます）               │
+│                                                 │
+│ [登録]  [キャンセル]                           │
+└─────────────────────────────────────────────────┘
+```
+
+##### 3. 道具への位置割り当て
+
+倉庫に道具を返却する際、位置を指定。
+
+**方法1: 位置QRスキャン**
+```
+1. 道具のQRをスキャン → 移動画面へ
+2. 「倉庫に戻す」を選択
+3. 「位置をスキャン」ボタンをタップ
+4. 位置QRコードをスキャン → 自動入力
+5. 登録完了
+```
+
+**方法2: ドロップダウン選択**
+```
+1. 道具のQRをスキャン → 移動画面へ
+2. 「倉庫に戻す」を選択
+3. 「位置を選択」をタップ
+4. 階層的にドロップダウンで選択
+   - エリア: A
+   - 保管方法: 壁掛け
+   - 番号: 3
+5. 登録完了（位置: A-壁掛け-3）
+```
+
+##### 4. 位置検索・フィルター
+
+**位置から道具を探す**
+```
+┌─────────────────────────────────────────────────┐
+│ 倉庫位置: A-壁掛け-3                            │
+├─────────────────────────────────────────────────┤
+│ この位置にある道具 (5個)                        │
+│                                                 │
+│ ☐ インパクトドライバー #001                    │
+│ ☐ インパクトドライバー #005                    │
+│ ☐ サンダー #001                                 │
+│ ☐ 電動ドリル #003                               │
+│ ☐ 充電器 #002                                   │
+│                                                 │
+│ [一括移動]  [位置変更]                         │
+└─────────────────────────────────────────────────┘
+```
+
+**道具から位置を探す**
+```
+┌─────────────────────────────────────────────────┐
+│ インパクトドライバー #001                       │
+├─────────────────────────────────────────────────┤
+│ 現在地: 📍 倉庫                                 │
+│                                                 │
+│ 倉庫内位置: A-壁掛け-3                          │
+│ （Aエリア 壁掛け 3番）                          │
+│                                                 │
+│ 💡 入口から左手、壁掛けフックの3番目           │
+│                                                 │
+│ [位置を変更]  [📦 移動]                        │
+└─────────────────────────────────────────────────┘
+```
+
+##### 5. 位置一覧・管理
+
+**位置マスタ一覧**
+```
+┌─────────────────────────────────────────────────┐
+│ 倉庫位置マスタ管理                              │
+├─────────────────────────────────────────────────┤
+│ [+ 新規登録]  [QR一括印刷]  [階層設定]        │
+│                                                 │
+│ 検索: [___________]  エリア: [▼すべて]        │
+│                                                 │
+│ ┌─────────┬────────────┬──────┬────┬────┐       │
+│ │コード   │表示名      │階層  │道具数│QR │       │
+│ ├─────────┼────────────┼──────┼────┼────┤       │
+│ │A-棚-1-上│Aエリア...  │レベル3│ 12 │📄│       │
+│ │A-棚-1-中│Aエリア...  │レベル3│  8 │📄│       │
+│ │A-壁掛け-1│Aエリア...  │レベル2│  5 │📄│       │
+│ │B-床置き-1│Bエリア...  │レベル2│  3 │📄│       │
+│ └─────────┴────────────┴──────┴────┴────┘       │
+└─────────────────────────────────────────────────┘
+```
+
+#### 8.4.5 QRコード活用
+
+**位置QRコードの生成と印刷**
+```typescript
+// 位置登録時にUUIDベースのQRコードを自動生成
+const qrCode = crypto.randomUUID(); // 例: "550e8400-e29b-41d4-a716-446655440000"
+
+// QRコード印刷用データ
+{
+  qr_value: qrCode,
+  display_text: "A-壁掛け-3",
+  description: "Aエリア 壁掛け 3番"
+}
+```
+
+**運用フロー**
+1. 位置マスタ登録時にQRコード自動生成
+2. QRコードを印刷（ラベルシールまたはA4用紙）
+3. 該当位置にQRコードを貼り付け
+4. スタッフは位置QRをスキャンして道具の位置を記録
+5. 道具を探す際も位置から検索可能
+
+#### 8.4.6 ユースケース
+
+**ケース1: 倉庫返却時の位置登録**
+```
+1. 現場から道具を返却
+2. 道具QRをスキャン → 「倉庫に戻す」
+3. 収納する棚の位置QRをスキャン
+4. システムに「A-棚-2-中」として記録
+```
+
+**ケース2: 道具を探す**
+```
+スタッフ: 「インパクトドライバー #001 どこ？」
+
+検索 → 道具詳細画面に表示:
+📍 倉庫 > A-棚-2-中（Aエリア 2番棚 中段）
+💡 入口から右手2番目の棚の中段
+```
+
+**ケース3: 位置変更**
+```
+倉庫レイアウト変更時:
+1. 「位置マスタ管理」画面で位置を編集
+2. 表示名や説明を更新
+3. 該当位置の道具は自動的に新しい表示に反映
+```
+
+**ケース4: 一括移動**
+```
+棚の整理時:
+1. 「A-棚-1-上」位置画面を開く
+2. その位置にある道具一覧が表示（12個）
+3. 全て選択して「B-棚-3-下」に一括移動
+```
+
+#### 8.4.7 実装上の注意点
+
+**階層の柔軟性**
+- 企業によって1階層～5階層まで対応
+- 階層名は完全カスタマイズ可能
+- 途中階層の無効化も可能（例：レベル1とレベル3のみ使用）
+
+**コード生成ルール**
+```typescript
+// 階層が有効な場合のみコードに含める
+function generateLocationCode(values: Record<number, string>, template: Template[]): string {
+  const parts = [];
+  for (const tmpl of template.filter(t => t.is_active)) {
+    if (values[tmpl.level]) {
+      parts.push(values[tmpl.level]);
+    }
+  }
+  return parts.join('-'); // 例: "A-壁掛け-3"
+}
+```
+
+**現場との違い**
+- `current_location = 'warehouse'` の場合のみ `warehouse_location_id` が有効
+- 現場にいる道具は `warehouse_location_id = NULL`
+- 移動履歴には位置情報も記録（オプション）
+
+**検索最適化**
+```sql
+-- 位置から道具を検索
+SELECT * FROM tool_items
+WHERE warehouse_location_id = '...'
+AND current_location = 'warehouse';
+
+-- 部分一致検索（例: "A-"で始まる位置）
+SELECT * FROM tool_items ti
+JOIN warehouse_locations wl ON ti.warehouse_location_id = wl.id
+WHERE wl.code LIKE 'A-%';
+```
+
+#### 8.4.8 将来的な拡張
+
+**フェーズ2以降で実装可能な機能**
+- 📐 倉庫レイアウト図（ビジュアルマップ）
+- 🔥 ヒートマップ（よく使う位置を色分け）
+- 📊 位置別在庫レポート
+- 🔔 位置別の容量アラート（「A-棚-1 が満杯です」）
+- 📸 位置写真の登録（新人でもわかりやすく）
+
+---
+
 ## 9. 技術仕様
 
 ### 9.1 技術スタック
@@ -1701,6 +2054,8 @@ const CORE_FEATURES = {
 | custom_fields | カスタムフィールド | 業種特有の項目を追加 | Premium以上 |
 | bulk_import | 一括インポート | Excel/CSVから一括登録 | Premium以上 |
 | quantity_management | 数量管理 | 消耗品の在庫数管理 | Basic以上 |
+| tool_sets | 道具セット管理 | よく使う道具の組み合わせ登録・一括移動 | Basic以上 |
+| warehouse_locations | 倉庫内位置管理 | 倉庫内の詳細な位置管理（棚、壁掛け等） | Premium以上 |
 
 ##### レポート・分析機能
 | feature_key | 機能名 | 説明 | 推奨プラン |
@@ -1741,6 +2096,7 @@ const PLAN_DEFAULT_FEATURES = {
     ...CORE_FEATURES,
     // 基本オプション
     'quantity_management',
+    'tool_sets',
     'email_notifications',
     'low_stock_alerts'
   ],
@@ -1751,6 +2107,7 @@ const PLAN_DEFAULT_FEATURES = {
     // 追加機能
     'custom_fields',
     'bulk_import',
+    'warehouse_locations',
     'advanced_reports',
     'cost_analysis',
     'maintenance_scheduling',
