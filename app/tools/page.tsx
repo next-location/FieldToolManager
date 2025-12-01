@@ -144,7 +144,12 @@ export default async function ToolsPage() {
                                 メーカー: {tool.manufacturer || '未設定'}
                               </span>
                               <span className="mr-4">
-                                合計: {tool.itemCount}台
+                                管理タイプ: {tool.management_type === 'consumable' ? '消耗品' : '個別管理'}
+                              </span>
+                              <span className="mr-4">
+                                {tool.management_type === 'consumable'
+                                  ? `在庫数: データベースで管理`
+                                  : `合計: ${tool.itemCount}台`}
                               </span>
                             </div>
                             <div className="mt-1 flex items-center text-xs text-gray-400">

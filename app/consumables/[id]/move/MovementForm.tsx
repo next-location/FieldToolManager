@@ -6,7 +6,7 @@ import { moveConsumable } from './actions'
 type Site = {
   id: string
   name: string
-  status: string
+  is_active: boolean
 }
 
 type Inventory = {

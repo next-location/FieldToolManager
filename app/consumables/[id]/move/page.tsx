@@ -59,9 +59,10 @@ export default async function ConsumableMovePage({
   // 現場一覧を取得
   const { data: sites } = await supabase
     .from('sites')
-    .select('id, name, status')
+    .select('id, name, is_active')
     .eq('organization_id', userData.organization_id)
-    .eq('status', 'active')
+    .eq('is_active', true)
+    .is('deleted_at', null)
     .order('name')
 
   // 倉庫在庫
