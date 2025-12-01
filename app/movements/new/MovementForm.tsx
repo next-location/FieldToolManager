@@ -26,10 +26,14 @@ export function MovementForm({
   toolItems,
   sites,
   selectedItemId,
+  toolSetItems = [],
+  toolSetId,
 }: {
   toolItems: ToolItem[]
   sites: Site[]
   selectedItemId?: string
+  toolSetItems?: ToolItem[]
+  toolSetId?: string
 }) {
   const router = useRouter()
   const [toolItemId, setToolItemId] = useState(selectedItemId || '')
@@ -41,6 +45,9 @@ export function MovementForm({
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // 道具セットモードかどうか
+  const isToolSetMode = toolSetItems.length > 0 && toolSetId
 
   const selectedItem = toolItems.find((item) => item.id === toolItemId)
 
@@ -97,31 +104,86 @@ export function MovementForm({
     setError(null)
 
     try {
-      const formData = new FormData()
-      formData.append('tool_item_id', toolItemId)
-      formData.append('movement_type', getMovementType())
-      formData.append('quantity', '1')
+      if (isToolSetMode) {
+        // 道具セット一括移動
+        let successCount = 0
+        let failureCount = 0
+        const errors: string[] = []
 
-      if (selectedItem?.current_site_id) {
-        formData.append('from_site_id', selectedItem.current_site_id)
-      }
+        for (const item of toolSetItems) {
+          try {
+            const formData = new FormData()
+            formData.append('tool_item_id', item.id)
 
-      if (destination === 'site' && toSiteId) {
-        formData.append('to_site_id', toSiteId)
-      }
+            // 移動種別を判定
+            const from = item.current_location
+            const to = destination
+            let movementType = ''
 
-      if (notes) {
-        formData.append('notes', correctionMode ? `[位置修正] ${notes}` : notes)
-      } else if (correctionMode) {
-        formData.append('notes', '[位置修正]')
-      }
+            if (to === 'repair') movementType = 'repair'
+            else if (from === 'repair' && to === 'warehouse') movementType = 'return_from_repair'
+            else if (from === 'warehouse' && to === 'site') movementType = 'check_out'
+            else if (from === 'site' && to === 'warehouse') movementType = 'check_in'
+            else if (from === 'site' && to === 'site') movementType = 'transfer'
 
-      const result = await createMovement(formData)
+            formData.append('movement_type', movementType)
+            formData.append('quantity', '1')
 
-      if (result && result.error) {
-        setError(result.error)
+            if (item.current_site_id) {
+              formData.append('from_site_id', item.current_site_id)
+            }
+
+            if (destination === 'site' && toSiteId) {
+              formData.append('to_site_id', toSiteId)
+            }
+
+            if (notes) {
+              formData.append('notes', `[セット移動] ${notes}`)
+            } else {
+              formData.append('notes', '[セット移動]')
+            }
+
+            await createMovement(formData)
+            successCount++
+          } catch (err: any) {
+            failureCount++
+            errors.push(`${item.serial_number}: ${err.message}`)
+          }
+        }
+
+        if (failureCount > 0) {
+          setError(`${successCount}個成功、${failureCount}個失敗しました。\n${errors.join('\n')}`)
+        } else {
+          router.push('/movements')
+        }
       } else {
-        router.push('/movements')
+        // 個別移動
+        const formData = new FormData()
+        formData.append('tool_item_id', toolItemId)
+        formData.append('movement_type', getMovementType())
+        formData.append('quantity', '1')
+
+        if (selectedItem?.current_site_id) {
+          formData.append('from_site_id', selectedItem.current_site_id)
+        }
+
+        if (destination === 'site' && toSiteId) {
+          formData.append('to_site_id', toSiteId)
+        }
+
+        if (notes) {
+          formData.append('notes', correctionMode ? `[位置修正] ${notes}` : notes)
+        } else if (correctionMode) {
+          formData.append('notes', '[位置修正]')
+        }
+
+        const result = await createMovement(formData)
+
+        if (result && result.error) {
+          setError(result.error)
+        } else {
+          router.push('/movements')
+        }
       }
     } catch (err: any) {
       setError(err.message || '登録に失敗しました')
@@ -132,54 +194,90 @@ export function MovementForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* 個別アイテム選択 */}
-      <div>
-        <label htmlFor="tool_item_id" className="block text-sm font-medium text-gray-700 mb-2">
-          道具（個別アイテム） <span className="text-red-500">*</span>
-        </label>
-        <select
-          id="tool_item_id"
-          value={toolItemId}
-          onChange={(e) => setToolItemId(e.target.value)}
-          required
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="">選択してください</option>
-          {toolItems.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.tools.name} #{item.serial_number} ({item.tools.model_number || '型番なし'}) - 現在地:{' '}
-              {item.current_location === 'warehouse'
-                ? '倉庫'
-                : item.current_location === 'site'
-                ? '現場'
-                : item.current_location === 'repair'
-                ? '修理中'
-                : '不明'}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {selectedItem && (
+      {isToolSetMode ? (
         <>
-          {/* 現在地表示 */}
+          {/* 道具セットモード：セット内のアイテム一覧を表示 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">現在地</label>
-            <div className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-700">
-              📍 {currentLocationText}
-            </div>
-            <div className="mt-2 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setCorrectionMode(!correctionMode)}
-                className={`text-sm ${
-                  correctionMode ? 'text-red-600 font-medium' : 'text-blue-600'
-                } hover:underline`}
-              >
-                {correctionMode ? '✓ 位置修正モード' : '実際の場所が違う場合はこちら'}
-              </button>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              移動する道具（{toolSetItems.length}個）
+            </label>
+            <div className="border border-gray-200 rounded-lg max-h-48 overflow-y-auto">
+              {toolSetItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="px-4 py-2 border-b border-gray-100 last:border-b-0 text-sm"
+                >
+                  <span className="font-medium">{item.tools.name}</span>
+                  <span className="ml-2 font-mono text-gray-600">#{item.serial_number}</span>
+                  <span className="ml-2 text-gray-500">
+                    現在地:{' '}
+                    {item.current_location === 'warehouse'
+                      ? '倉庫'
+                      : item.current_location === 'site'
+                      ? '現場'
+                      : item.current_location === 'repair'
+                      ? '修理中'
+                      : '不明'}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
+        </>
+      ) : (
+        <>
+          {/* 個別移動モード：アイテム選択 */}
+          <div>
+            <label htmlFor="tool_item_id" className="block text-sm font-medium text-gray-700 mb-2">
+              道具（個別アイテム） <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="tool_item_id"
+              value={toolItemId}
+              onChange={(e) => setToolItemId(e.target.value)}
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">選択してください</option>
+              {toolItems.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.tools.name} #{item.serial_number} ({item.tools.model_number || '型番なし'}) - 現在地:{' '}
+                  {item.current_location === 'warehouse'
+                    ? '倉庫'
+                    : item.current_location === 'site'
+                    ? '現場'
+                    : item.current_location === 'repair'
+                    ? '修理中'
+                    : '不明'}
+                </option>
+              ))}
+            </select>
+          </div>
+        </>
+      )}
+
+      {(isToolSetMode || selectedItem) && (
+        <>
+          {/* 現在地表示（個別移動モードのみ） */}
+          {!isToolSetMode && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">現在地</label>
+              <div className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-700">
+                📍 {currentLocationText}
+              </div>
+              <div className="mt-2 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCorrectionMode(!correctionMode)}
+                  className={`text-sm ${
+                    correctionMode ? 'text-red-600 font-medium' : 'text-blue-600'
+                  } hover:underline`}
+                >
+                  {correctionMode ? '✓ 位置修正モード' : '実際の場所が違う場合はこちら'}
+                </button>
+              </div>
+            </div>
+          )}
 
           {!correctionMode ? (
             <>
@@ -395,10 +493,18 @@ export function MovementForm({
       <div className="flex gap-4 pt-4">
         <button
           type="submit"
-          disabled={loading || !toolItemId || (destination === 'site' && !toSiteId)}
+          disabled={
+            loading ||
+            (!isToolSetMode && !toolItemId) ||
+            (destination === 'site' && !toSiteId)
+          }
           className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? '登録中...' : '登録する'}
+          {loading
+            ? '登録中...'
+            : isToolSetMode
+            ? `セット一括移動 (${toolSetItems.length}個)`
+            : '登録する'}
         </button>
         <Link
           href="/movements"

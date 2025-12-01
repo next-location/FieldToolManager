@@ -3,36 +3,64 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
-type Tool = {
+type ToolItem = {
   id: string
-  name: string
-  model_number: string | null
-  quantity: number
+  serial_number: string
+  current_location: string
+  current_site_id: string | null
+  status: string
+  tools: {
+    id: string
+    name: string
+    model_number: string | null
+    manufacturer: string | null
+  }
+  current_site?: {
+    name: string
+  }
 }
 
 type ToolSetFormProps = {
-  tools: Tool[]
+  toolItems: ToolItem[]
   action: (formData: FormData) => Promise<void>
 }
 
-export function ToolSetForm({ tools, action }: ToolSetFormProps) {
-  const [selectedTools, setSelectedTools] = useState<
-    Array<{ toolId: string; quantity: number }>
-  >([{ toolId: '', quantity: 1 }])
+export function ToolSetForm({ toolItems, action }: ToolSetFormProps) {
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([])
+  const [searchTerm, setSearchTerm] = useState('')
 
-  const addTool = () => {
-    setSelectedTools([...selectedTools, { toolId: '', quantity: 1 }])
+  const toggleItem = (itemId: string) => {
+    if (selectedItemIds.includes(itemId)) {
+      setSelectedItemIds(selectedItemIds.filter((id) => id !== itemId))
+    } else {
+      setSelectedItemIds([...selectedItemIds, itemId])
+    }
   }
 
-  const removeTool = (index: number) => {
-    setSelectedTools(selectedTools.filter((_, i) => i !== index))
-  }
+  const filteredItems = toolItems.filter((item) => {
+    const tool = item.tools as any
+    const searchLower = searchTerm.toLowerCase()
+    return (
+      tool.name.toLowerCase().includes(searchLower) ||
+      item.serial_number.includes(searchLower) ||
+      tool.model_number?.toLowerCase().includes(searchLower) ||
+      false
+    )
+  })
 
-  const updateTool = (index: number, field: 'toolId' | 'quantity', value: string | number) => {
-    const updated = [...selectedTools]
-    updated[index] = { ...updated[index], [field]: value }
-    setSelectedTools(updated)
-  }
+  // 道具マスタごとにグループ化
+  const groupedItems = filteredItems.reduce((acc, item) => {
+    const tool = item.tools as any
+    const key = tool.id
+    if (!acc[key]) {
+      acc[key] = {
+        tool: tool,
+        items: [],
+      }
+    }
+    acc[key].items.push(item)
+    return acc
+  }, {} as Record<string, { tool: any; items: ToolItem[] }>)
 
   return (
     <form action={action}>
@@ -77,64 +105,111 @@ export function ToolSetForm({ tools, action }: ToolSetFormProps) {
           <div className="flex items-center justify-between mb-2">
             <label className="block text-sm font-medium text-gray-700">
               道具を選択 <span className="text-red-500">*</span>
+              <span className="ml-2 text-sm font-normal text-gray-500">
+                （{selectedItemIds.length}個選択中）
+              </span>
             </label>
-            <button
-              type="button"
-              onClick={addTool}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-            >
-              + 道具を追加
-            </button>
           </div>
 
-          <div className="space-y-3">
-            {selectedTools.map((item, index) => (
-              <div key={index} className="flex gap-3 items-start">
-                <div className="flex-1">
-                  <select
-                    name="tool_ids"
-                    value={item.toolId}
-                    onChange={(e) => updateTool(index, 'toolId', e.target.value)}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">道具を選択</option>
-                    {tools.map((tool) => (
-                      <option key={tool.id} value={tool.id}>
-                        {tool.name} ({tool.model_number || '型番なし'})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+          {/* 検索ボックス */}
+          <div className="mb-4">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="道具名、型番、シリアル番号で検索..."
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
 
-                <div className="w-32">
-                  <input
-                    type="number"
-                    name="quantities"
-                    value={item.quantity}
-                    onChange={(e) => updateTool(index, 'quantity', parseInt(e.target.value) || 1)}
-                    min="1"
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="数量"
-                  />
-                </div>
+          {/* 個別アイテムのリスト */}
+          <div className="border border-gray-300 rounded-lg max-h-96 overflow-y-auto">
+            {Object.keys(groupedItems).length > 0 ? (
+              Object.values(groupedItems).map((group) => (
+                <div key={group.tool.id} className="border-b border-gray-200 last:border-b-0">
+                  <div className="bg-gray-50 px-4 py-2 font-medium text-gray-900">
+                    {group.tool.name}
+                    {group.tool.model_number && ` (${group.tool.model_number})`}
+                  </div>
+                  <div className="divide-y divide-gray-100">
+                    {group.items.map((item) => {
+                      const currentSite = item.current_site as any
+                      const locationText =
+                        item.current_location === 'warehouse'
+                          ? '倉庫'
+                          : item.current_location === 'site'
+                          ? currentSite?.name || '現場'
+                          : item.current_location === 'repair'
+                          ? '修理中'
+                          : '不明'
 
-                {selectedTools.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeTool(index)}
-                    className="px-3 py-2 text-red-600 hover:text-red-700"
-                  >
-                    削除
-                  </button>
-                )}
+                      const statusColor =
+                        item.status === 'available'
+                          ? 'bg-green-100 text-green-800'
+                          : item.status === 'in_use'
+                          ? 'bg-blue-100 text-blue-800'
+                          : item.status === 'maintenance'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : item.status === 'lost'
+                          ? 'bg-red-100 text-red-800'
+                          : 'bg-gray-100 text-gray-800'
+
+                      return (
+                        <label
+                          key={item.id}
+                          className="flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedItemIds.includes(item.id)}
+                            onChange={() => toggleItem(item.id)}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
+                          <div className="ml-3 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-sm font-medium text-gray-900">
+                                #{item.serial_number}
+                              </span>
+                              <span
+                                className={`px-2 py-1 text-xs rounded-full ${statusColor}`}
+                              >
+                                {item.status === 'available'
+                                  ? '利用可能'
+                                  : item.status === 'in_use'
+                                  ? '使用中'
+                                  : item.status === 'maintenance'
+                                  ? 'メンテナンス'
+                                  : item.status === 'lost'
+                                  ? '紛失'
+                                  : item.status}
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              📍 {locationText}
+                            </div>
+                          </div>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="px-4 py-8 text-center text-gray-500">
+                {searchTerm
+                  ? '検索結果が見つかりません'
+                  : '道具が登録されていません'}
               </div>
-            ))}
+            )}
           </div>
+
+          {/* Hidden inputs for selected tool item IDs */}
+          {selectedItemIds.map((itemId) => (
+            <input key={itemId} type="hidden" name="tool_item_ids" value={itemId} />
+          ))}
 
           <p className="mt-2 text-sm text-gray-500">
-            ※ セットに含める道具と数量を選択してください
+            ※ セットに含める個別アイテムを選択してください（チェックボックス）
           </p>
         </div>
 
@@ -142,9 +217,10 @@ export function ToolSetForm({ tools, action }: ToolSetFormProps) {
         <div className="flex gap-4 pt-4">
           <button
             type="submit"
-            className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium"
+            disabled={selectedItemIds.length === 0}
+            className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            セットを作成
+            セットを作成 ({selectedItemIds.length}個)
           </button>
           <Link
             href="/tool-sets"

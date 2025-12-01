@@ -9,8 +9,7 @@ export async function createToolSet(formData: FormData) {
 
   const name = formData.get('name') as string
   const description = formData.get('description') as string
-  const toolIds = formData.getAll('tool_ids') as string[]
-  const quantities = formData.getAll('quantities') as string[]
+  const toolItemIds = formData.getAll('tool_item_ids') as string[]
 
   // ユーザー情報と組織IDを取得
   const {
@@ -29,6 +28,11 @@ export async function createToolSet(formData: FormData) {
 
   if (!userData) {
     throw new Error('ユーザー情報が見つかりません')
+  }
+
+  // 選択された個別アイテムが1つ以上あるかチェック
+  if (toolItemIds.length === 0) {
+    throw new Error('道具を1つ以上選択してください')
   }
 
   // 道具セットを作成
@@ -50,21 +54,18 @@ export async function createToolSet(formData: FormData) {
     throw new Error(`道具セットの作成に失敗しました: ${setError.message}`)
   }
 
-  // セットに道具を追加
-  const items = toolIds
-    .map((toolId, index) => ({
-      tool_set_id: toolSet.id,
-      tool_id: toolId,
-      quantity: parseInt(quantities[index]) || 1,
-    }))
-    .filter((item) => item.tool_id) // 空の道具IDをフィルタ
+  // 選択された個別アイテムをセットに追加
+  const items = toolItemIds.map((toolItemId) => ({
+    tool_set_id: toolSet.id,
+    tool_item_id: toolItemId,
+  }))
 
-  if (items.length > 0) {
-    const { error: itemsError } = await supabase.from('tool_set_items').insert(items)
+  const { error: itemsError } = await supabase.from('tool_set_items').insert(items)
 
-    if (itemsError) {
-      throw new Error(`道具の追加に失敗しました: ${itemsError.message}`)
-    }
+  if (itemsError) {
+    // セット作成に失敗した場合、作成した道具セットを削除（ロールバック）
+    await supabase.from('tool_sets').delete().eq('id', toolSet.id)
+    throw new Error(`道具の追加に失敗しました: ${itemsError.message}`)
   }
 
   revalidatePath('/tool-sets')
