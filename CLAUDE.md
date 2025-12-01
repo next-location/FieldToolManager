@@ -59,3 +59,144 @@ The project will use a dedicated `docs/` folder for comprehensive documentation,
 - **`docs/CONTRIBUTING.md`**: Development rules and contribution procedures, including coding conventions, branch strategy (e.g., Git Flow), and Pull Request submission guidelines.
 - **`docs/FEATURES.md`**: Detailed functional requirements (specs) for core features (Tool Master, Inventory/Location, In/Out Tracking), screen transitions, and QR code reading logic.
 - **`docs/MANUAL.md`**: User manual describing specific operational procedures for both field staff and administrators.
+
+---
+
+## Project Documentation Files Overview 📚
+
+### Core Documentation Files and Their Purposes
+
+#### 1. **`CLAUDE.md`** (This File)
+- **Purpose**: Instructions and context for Claude AI
+- **Content**: Language preferences, project goals, technology stack, and task list
+- **Usage**: Always refer to this file first when starting a new conversation with Claude
+
+#### 2. **`docs/SPECIFICATION.md`**
+- **Purpose**: Initial single-company version specification (DEPRECATED)
+- **Content**: Original tool management system design for a single construction company
+- **Status**: Superseded by SPECIFICATION_SAAS_FINAL.md
+
+#### 3. **`docs/SPECIFICATION_SAAS_FINAL.md`** ⭐ MAIN SPEC
+- **Purpose**: Final SaaS multi-tenant system specification (ACTIVE)
+- **Content**:
+  - Complete system architecture for multi-tenant SaaS
+  - Security features (UUID-based QR codes, RLS, audit logs)
+  - Contract management and billing system (invoice-based)
+  - Data models including Contract, Invoice, PaymentRecord tables
+  - Implementation phases and roadmap
+- **Usage**: This is the PRIMARY specification document for development
+
+#### 4. **`docs/ADDITIONAL_FEATURES_SPEC.md`**
+- **Purpose**: Future features specification (post-launch)
+- **Content**:
+  - Stripe payment integration details
+  - Automatic subscription management
+  - Credit card processing features
+- **Implementation Timing**: When customer base reaches 30+ companies
+
+#### 5. **`scripts/github-project-tasks.md`**
+- **Purpose**: GitHub Project management and task tracking
+- **Content**:
+  - CLI commands for creating issues and milestones
+  - Task lists organized by development phases
+  - GitHub labels configuration
+  - Automation scripts for project management
+- **Usage**: Reference for managing GitHub Projects and tracking development progress
+
+#### 6. **`prototype/`** Directory
+- **Purpose**: UI/UX prototype code and mockups
+- **Content**: HTML/CSS prototypes for testing user interfaces
+- **Status**: Reference implementation (not production code)
+
+#### 7. **`docs/ENVIRONMENT_SETUP.md`** ⭐ CRITICAL
+- **Purpose**: Complete environment setup and deployment guide
+- **Content**:
+  - Docker environment configuration
+  - Environment variable management
+  - Database migration strategies
+  - CI/CD pipeline setup
+  - Testing strategies (E2E, RLS, Unit tests)
+  - Monitoring and error tracking
+  - Production deployment checklist
+- **Usage**: MUST follow this guide to minimize local vs production environment differences
+- **Priority**: Set up environment BEFORE starting development
+
+#### 8. **`docs/UI_DESIGN.md`**
+- **Purpose**: UI design specifications and implementation guidelines
+- **Content**:
+  - Responsive design principles
+  - Component architecture
+  - Feature flag-based UI system
+  - Device-specific menu systems
+  - Performance optimization strategies
+- **Usage**: Reference for all UI/UX implementation decisions
+
+#### 9. **`docs/ROLE_BASED_ACCESS_CONTROL.md`** ⭐ CRITICAL
+- **Purpose**: Complete role-based access control (RBAC) specification
+- **Content**:
+  - User roles definition (staff, leader, admin, super_admin)
+  - 75 features with detailed permission matrix
+  - Role-specific UI/UX layouts
+  - API endpoint permissions
+  - Security implementation guidelines
+- **Usage**: MUST implement according to this specification for all features
+- **Note**: This document defines WHO can access WHAT in the system
+
+#### 10. **`docs/DATABASE_SCHEMA.md`** ⭐ CRITICAL
+- **Purpose**: Complete database schema design and management
+- **Content**:
+  - ER diagram for multi-tenant architecture
+  - All table definitions (SQL)
+  - TypeScript type definitions
+  - Index design for performance
+  - Row Level Security (RLS) policies
+  - Constraints and validation rules
+- **Usage**: MUST reference when working with database
+- **Note**: THIS DOCUMENT MUST BE UPDATED whenever table structure or columns are modified
+
+#### 11. **`docs/MIGRATIONS.md`** ⭐ CRITICAL
+- **Purpose**: Database migration management and version control
+- **Content**:
+  - Migration strategy (dev → test → staging → production)
+  - Environment-specific migration procedures
+  - Complete migration history with SQL
+  - Rollback procedures
+  - Troubleshooting guide
+- **Usage**: MUST reference when applying database changes
+- **Note**: THIS DOCUMENT MUST BE UPDATED whenever migrations are created or executed
+
+### Development Priority
+
+1. **Environment Setup**: Follow `docs/ENVIRONMENT_SETUP.md` FIRST
+2. **Start with**: `SPECIFICATION_SAAS_FINAL.md` as the main reference
+3. **Database Design**: Reference `DATABASE_SCHEMA.md` for all table structures
+4. **Database Changes**: Update `MIGRATIONS.md` when creating or executing migrations
+5. **Access Control**: Implement features according to `ROLE_BASED_ACCESS_CONTROL.md`
+6. **UI Implementation**: Follow `UI_DESIGN.md` for consistent user experience
+7. **Implement**: Phases 1-5 as outlined in the specification
+8. **Defer**: Stripe integration (see `ADDITIONAL_FEATURES_SPEC.md`) until customer growth
+9. **Track progress**: Using `scripts/github-project-tasks.md`
+
+### Important Notes for Claude
+
+- **Language**: Always respond in Japanese (日本語) for final outputs
+- **Main Spec**: Always use `SPECIFICATION_SAAS_FINAL.md` as the source of truth
+- **Database Design**: Always reference `DATABASE_SCHEMA.md` when working with database tables
+- **Database Migrations**: Always update `MIGRATIONS.md` when modifying database schema
+- **Payment Method**: Initial implementation uses invoice-based billing (請求書払い), NOT Stripe
+- **Security**: Emphasize UUID-based QR codes, RLS, and audit logging
+- **Multi-tenant**: System is designed for multiple companies (SaaS model)
+
+### 🚨 CRITICAL: Database Documentation Maintenance
+
+When working with database:
+1. **Before modifying tables**: Check `DATABASE_SCHEMA.md` for current structure
+2. **After modifying tables**: Update BOTH `DATABASE_SCHEMA.md` AND `MIGRATIONS.md`
+3. **When creating migrations**: Document the migration in `MIGRATIONS.md` with SQL and rollback procedures
+4. **Before deployment**: Verify all changes are documented in both files
+
+Failure to update these files will result in:
+- Documentation drift from actual database state
+- Difficulty in troubleshooting issues
+- Migration conflicts in team development
+- Production deployment failures

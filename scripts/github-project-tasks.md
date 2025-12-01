@@ -68,27 +68,57 @@ gh issue create --repo $REPO --title "👥 組織管理" \
 - 拠点管理" \
   --label "admin,phase2"
 
-# フェーズ3: 高度な機能
+# フェーズ3: 契約管理・請求機能
+gh issue create --repo $REPO --title "📋 契約管理システム" \
+  --body "- 契約書管理機能
+- 契約期間管理
+- 顧客情報管理
+- 更新通知機能" \
+  --label "billing,phase3"
+
+gh issue create --repo $REPO --title "📄 請求書発行システム" \
+  --body "- 請求書自動生成
+- PDF出力機能
+- メール送信機能
+- 請求ステータス管理" \
+  --label "billing,phase3"
+
+gh issue create --repo $REPO --title "💰 入金管理機能" \
+  --body "- 入金記録機能
+- 銀行振込照合
+- アカウント有効化
+- 入金履歴管理" \
+  --label "billing,phase3"
+
+gh issue create --repo $REPO --title "🔐 アカウント制御機能" \
+  --body "- 利用制限管理
+- 契約期限チェック
+- プラン制限適用
+- アカウント停止/再開" \
+  --label "admin,phase3"
+
+# フェーズ4: 高度な機能
 gh issue create --repo $REPO --title "📊 ダッシュボード" \
   --body "- 在庫サマリー
 - 貸出状況
 - アラート表示
 - グラフ/チャート" \
-  --label "ui,phase3"
+  --label "ui,phase4"
 
-gh issue create --repo $REPO --title "💳 Stripe連携" \
-  --body "- Stripe Webhook設定
-- サブスクリプション管理
-- 支払い履歴
-- 請求書生成" \
-  --label "billing,phase3"
+gh issue create --repo $REPO --title "📈 レポート機能" \
+  --body "- 売上管理レポート
+- 契約状況レポート
+- 入金状況一覧
+- CSV/PDF出力" \
+  --label "admin,phase4"
 
 gh issue create --repo $REPO --title "🔔 通知システム" \
   --body "- メール通知
 - アプリ内通知
 - 返却期限アラート
-- 在庫不足アラート" \
-  --label "notification,phase3"
+- 在庫不足アラート
+- 請求関連通知" \
+  --label "notification,phase4"
 ```
 
 ### 3. プロジェクトビューの操作
@@ -141,9 +171,21 @@ gh api repos/next-location/FieldToolManager/milestones \
 
 gh api repos/next-location/FieldToolManager/milestones \
   --method POST \
-  -f title="Phase 3: Advanced" \
-  -f description="ダッシュボード、通知、課金機能" \
+  -f title="Phase 3: Contract Management" \
+  -f description="契約管理、請求書発行、入金管理機能" \
+  -f due_on="2025-05-31T23:59:59Z"
+
+gh api repos/next-location/FieldToolManager/milestones \
+  --method POST \
+  -f title="Phase 4: Advanced" \
+  -f description="ダッシュボード、通知、レポート機能" \
   -f due_on="2025-06-30T23:59:59Z"
+
+gh api repos/next-location/FieldToolManager/milestones \
+  --method POST \
+  -f title="Phase 5: Security & Optimization" \
+  -f description="セキュリティ強化とパフォーマンス最適化" \
+  -f due_on="2025-07-15T23:59:59Z"
 ```
 
 ## 開発タスクリスト（SPECIFICATION_SAAS_FINAL.mdベース）
@@ -151,33 +193,49 @@ gh api repos/next-location/FieldToolManager/milestones \
 ### Phase 1: MVP（2-3週間）
 - [ ] Next.js初期セットアップ
 - [ ] Supabaseプロジェクト作成
-- [ ] データベーススキーマ作成
+- [ ] データベーススキーマ作成（契約管理テーブル含む）
 - [ ] RLS（Row Level Security）設定
 - [ ] 認証システム実装
 - [ ] 基本的な工具CRUD
+- [ ] 組織マスタ管理
 
 ### Phase 2: コア機能（3-4週間）
-- [ ] QRコード生成・スキャン
+- [ ] QRコード生成・スキャン（UUID使用）
 - [ ] 貸出/返却機能
-- [ ] 組織・ユーザー管理
+- [ ] ユーザー管理（権限制御）
 - [ ] 拠点（倉庫・現場）管理
 - [ ] カスタムフィールド実装
 - [ ] 検索・フィルタリング
+- [ ] 監査ログ基盤
 
-### Phase 3: 高度な機能（3-4週間）
-- [ ] ダッシュボード実装
-- [ ] 通知システム
-- [ ] Stripe課金連携
-- [ ] 監査ログ
-- [ ] レポート機能
+### Phase 3: 契約・請求管理（3-4週間）
+- [ ] 契約管理システム
+- [ ] 請求書発行機能
+- [ ] 入金管理機能
+- [ ] アカウント制御（利用制限）
+- [ ] 請求関連レポート
+- [ ] 管理者向けダッシュボード
+
+### Phase 4: 高度な機能（3-4週間）
+- [ ] 顧客向けダッシュボード
+- [ ] 通知システム（請求・在庫）
+- [ ] レポート機能（売上・契約）
 - [ ] PWA対応
+- [ ] CSV/PDF出力機能
 
-### Phase 4: セキュリティ・最適化（2週間）
-- [ ] レート制限実装
+### Phase 5: セキュリティ・最適化（2週間）
+- [ ] レート制限実装（Upstash Redis）
 - [ ] セキュリティテスト
 - [ ] パフォーマンス最適化
 - [ ] E2Eテスト
 - [ ] ドキュメント作成
+
+### 将来の追加開発（顧客30社到達後）
+- [ ] Stripe決済統合
+- [ ] セルフサービス課金
+- [ ] 自動課金・サブスクリプション
+- [ ] 決済リトライ機能
+※ 詳細は docs/ADDITIONAL_FEATURES_SPEC.md 参照
 
 ## GitHubラベルの設定
 
@@ -185,15 +243,19 @@ gh api repos/next-location/FieldToolManager/milestones \
 # ラベルを作成
 gh label create "phase1" --color "0E8A16" --description "Phase 1: MVP"
 gh label create "phase2" --color "1D76DB" --description "Phase 2: Core Features"
-gh label create "phase3" --color "5319E7" --description "Phase 3: Advanced"
+gh label create "phase3" --color "5319E7" --description "Phase 3: Contract Management"
+gh label create "phase4" --color "B60205" --description "Phase 4: Advanced Features"
+gh label create "phase5" --color "FFA500" --description "Phase 5: Security & Optimization"
 gh label create "setup" --color "F9D0C4" --description "Initial Setup"
 gh label create "frontend" --color "C2E0C6" --description "Frontend Development"
 gh label create "backend" --color "FEF2C0" --description "Backend Development"
 gh label create "auth" --color "FBCA04" --description "Authentication"
 gh label create "core" --color "0052CC" --description "Core Feature"
 gh label create "ui" --color "7057FF" --description "UI/UX"
-gh label create "billing" --color "008672" --description "Billing/Payment"
+gh label create "billing" --color "008672" --description "Billing/Payment/Contract"
+gh label create "admin" --color "FF69B4" --description "Admin Function"
 gh label create "security" --color "D93F0B" --description "Security"
+gh label create "notification" --color "9ACD32" --description "Notification System"
 gh label create "bug" --color "B60205" --description "Bug Fix"
 gh label create "enhancement" --color "84B6EB" --description "Enhancement"
 ```

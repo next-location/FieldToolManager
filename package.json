@@ -1,0 +1,76 @@
+{
+  "name": "field-tool-manager",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:reset": "docker-compose down -v && docker-compose up -d",
+    "docker:logs": "docker-compose logs -f",
+    "supabase:init": "supabase init",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "db:migrate": "supabase migration new",
+    "db:push": "supabase db push",
+    "db:reset": "supabase db reset",
+    "db:seed": "tsx supabase/seed.ts",
+    "check:env": "tsx scripts/check-env.ts",
+    "check:all": "npm run lint && npm run type-check && npm run check:env",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "prepare": "husky install"
+  },
+  "dependencies": {
+    "@sentry/nextjs": "^7.99.0",
+    "@supabase/ssr": "^0.1.0",
+    "@supabase/supabase-js": "^2.39.3",
+    "html5-qrcode": "^2.3.8",
+    "ioredis": "^5.3.2",
+    "next": "15.1.6",
+    "next-auth": "^4.24.5",
+    "qrcode": "^1.5.4",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.41.1",
+    "@tailwindcss/postcss": "^4.1.7",
+    "@testing-library/jest-dom": "^6.2.0",
+    "@testing-library/react": "^14.1.2",
+    "@types/node": "^20.11.5",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.0.4",
+    "@types/react-dom": "^19.0.2",
+    "autoprefixer": "^10.4.17",
+    "dotenv": "^16.3.1",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "15.1.6",
+    "husky": "^8.0.3",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "lint-staged": "^15.2.0",
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.1",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  }
+}
