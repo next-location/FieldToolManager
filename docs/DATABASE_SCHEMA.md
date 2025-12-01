@@ -193,6 +193,44 @@ ToolItem.warehouse_location_id (FK → WarehouseLocation.id)
 - current_location = 'warehouse' の場合のみ有効
 - 現場にいる道具は NULL
 
+---
+
+ConsumableInventory (消耗品在庫) ✨NEW
+├── id (PK, UUID)
+├── organization_id (FK → Organization.id) ← 重要！
+├── tool_id (FK → Tool.id) ← 消耗品マスタ
+├── location_type "warehouse" | "site" ← 在庫場所タイプ
+├── site_id (FK → Site.id) ← 現場の場合
+├── warehouse_location_id (FK → WarehouseLocation.id) ← 倉庫の場合
+├── quantity INTEGER ← 在庫数量
+├── created_at
+└── updated_at
+
+**用途**: 消耗品（軍手、テープなど）の場所別在庫を数量で管理
+- 倉庫在庫: location_type = 'warehouse', site_id = NULL
+- 現場在庫: location_type = 'site', site_id = '現場ID'
+- UNIQUE制約: (organization_id, tool_id, location_type, site_id, warehouse_location_id)
+
+ConsumableMovement (消耗品移動履歴) ✨NEW
+├── id (PK, UUID)
+├── organization_id (FK → Organization.id) ← 重要！
+├── tool_id (FK → Tool.id) ← 消耗品マスタ
+├── movement_type "入庫" | "出庫" | "移動" | "調整" | "棚卸"
+├── from_location_type "warehouse" | "site" ← 移動元タイプ
+├── from_site_id (FK → Site.id) ← 移動元現場
+├── to_location_type "warehouse" | "site" ← 移動先タイプ
+├── to_site_id (FK → Site.id) ← 移動先現場
+├── quantity INTEGER ← 移動数量
+├── notes TEXT ← メモ
+├── performed_by (FK → User.id) ← 実行者
+└── created_at
+
+**用途**: 消耗品の移動・調整履歴を記録
+- tool_movementsとは別テーブルで管理
+- 個別アイテムIDは不要（数量管理）
+
+---
+
 AuditLog (監査ログ)
 ├── id (PK, UUID)
 ├── organization_id (FK)
@@ -1126,6 +1164,7 @@ UNIQUE (subdomain);
 | 2025-12-02 | 1.2.0 | **道具マスタ選択機能追加**: 既存の道具マスタから選択可能に、再入力不要でUX向上 |
 | 2025-12-02 | 1.3.0 | **スマート移動フォーム実装**: 移動種別自動判定、位置修正モード（2ステップ）、個別アイテム詳細ページ追加 |
 | 2025-12-02 | 1.4.0 | **ステータス管理機能追加**: 紛失報告、廃棄登録、メンテナンス登録機能、新しいmovement_type追加 |
+| 2025-12-02 | 1.5.0 | **消耗品管理機能実装**: consumable_inventory（在庫）、consumable_movements（移動履歴）テーブル追加 |
 
 ---
 
@@ -1348,7 +1387,251 @@ tool_items.current_location 更新
 
 ---
 
-## 7. 倉庫内位置管理テーブル ✨NEW
+## 7. 消耗品管理テーブル ✨NEW
+
+### 7.1 consumable_inventory（消耗品在庫）
+
+#### テーブル定義（SQL）
+```sql
+CREATE TABLE consumable_inventory (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  tool_id UUID NOT NULL REFERENCES tools(id) ON DELETE CASCADE,  -- 消耗品マスタ
+  location_type TEXT NOT NULL CHECK (location_type IN ('warehouse', 'site')),
+  site_id UUID REFERENCES sites(id) ON DELETE CASCADE,
+  warehouse_location_id UUID REFERENCES warehouse_locations(id) ON DELETE SET NULL,
+  quantity INTEGER NOT NULL DEFAULT 0 CHECK (quantity >= 0),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  UNIQUE(organization_id, tool_id, location_type, site_id, warehouse_location_id)
+);
+
+COMMENT ON TABLE consumable_inventory IS '消耗品の在庫管理テーブル（場所別数量）';
+COMMENT ON COLUMN consumable_inventory.tool_id IS '消耗品マスタID（tools.management_type = consumable）';
+COMMENT ON COLUMN consumable_inventory.location_type IS '在庫場所タイプ（倉庫 or 現場）';
+COMMENT ON COLUMN consumable_inventory.site_id IS '現場ID（location_type = site の場合）';
+COMMENT ON COLUMN consumable_inventory.warehouse_location_id IS '倉庫位置ID（location_type = warehouse の場合）';
+COMMENT ON COLUMN consumable_inventory.quantity IS '在庫数量';
+
+-- インデックス
+CREATE INDEX idx_consumable_inventory_org ON consumable_inventory(organization_id);
+CREATE INDEX idx_consumable_inventory_tool ON consumable_inventory(tool_id);
+CREATE INDEX idx_consumable_inventory_site ON consumable_inventory(site_id);
+CREATE INDEX idx_consumable_inventory_location ON consumable_inventory(warehouse_location_id);
+
+-- RLS ポリシー
+ALTER TABLE consumable_inventory ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their organization's consumable inventory"
+  ON consumable_inventory FOR SELECT
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM users WHERE id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can manage their organization's consumable inventory"
+  ON consumable_inventory FOR ALL
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM users WHERE id = auth.uid()
+    )
+  );
+```
+
+#### TypeScript型定義
+```typescript
+export interface ConsumableInventory {
+  id: string;
+  organization_id: string;
+  tool_id: string;              // 消耗品マスタID
+  location_type: 'warehouse' | 'site';
+  site_id: string | null;       // 現場の場合
+  warehouse_location_id: string | null;  // 倉庫の場合
+  quantity: number;             // 在庫数量
+  created_at: string;
+  updated_at: string;
+}
+```
+
+### 7.2 consumable_movements（消耗品移動履歴）
+
+#### テーブル定義（SQL）
+```sql
+CREATE TABLE consumable_movements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  tool_id UUID NOT NULL REFERENCES tools(id) ON DELETE CASCADE,  -- 消耗品マスタ
+  movement_type TEXT NOT NULL CHECK (movement_type IN ('入庫', '出庫', '移動', '調整', '棚卸')),
+  from_location_type TEXT CHECK (from_location_type IN ('warehouse', 'site')),
+  from_site_id UUID REFERENCES sites(id) ON DELETE SET NULL,
+  to_location_type TEXT CHECK (to_location_type IN ('warehouse', 'site')),
+  to_site_id UUID REFERENCES sites(id) ON DELETE SET NULL,
+  quantity INTEGER NOT NULL,
+  notes TEXT,
+  performed_by UUID NOT NULL REFERENCES users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT check_valid_movement CHECK (
+    (from_location_type IS NOT NULL AND from_location_type != to_location_type) OR
+    (from_location_type IS NOT NULL AND from_site_id != to_site_id) OR
+    movement_type IN ('調整', '棚卸')
+  )
+);
+
+COMMENT ON TABLE consumable_movements IS '消耗品の移動履歴を記録するテーブル';
+COMMENT ON COLUMN consumable_movements.movement_type IS '移動タイプ: 入庫/出庫/移動/調整/棚卸';
+COMMENT ON COLUMN consumable_movements.from_location_type IS '移動元の場所タイプ';
+COMMENT ON COLUMN consumable_movements.from_site_id IS '移動元現場ID（site の場合）';
+COMMENT ON COLUMN consumable_movements.to_location_type IS '移動先の場所タイプ';
+COMMENT ON COLUMN consumable_movements.to_site_id IS '移動先現場ID（site の場合）';
+COMMENT ON COLUMN consumable_movements.quantity IS '移動数量（マイナスの場合は減少）';
+COMMENT ON COLUMN consumable_movements.performed_by IS '実行者のユーザーID';
+
+-- インデックス
+CREATE INDEX idx_consumable_movements_org ON consumable_movements(organization_id);
+CREATE INDEX idx_consumable_movements_tool ON consumable_movements(tool_id);
+CREATE INDEX idx_consumable_movements_created ON consumable_movements(created_at DESC);
+
+-- RLS ポリシー
+ALTER TABLE consumable_movements ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their organization's consumable movements"
+  ON consumable_movements FOR SELECT
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM users WHERE id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can create consumable movements for their organization"
+  ON consumable_movements FOR INSERT
+  WITH CHECK (
+    organization_id IN (
+      SELECT organization_id FROM users WHERE id = auth.uid()
+    )
+  );
+```
+
+#### TypeScript型定義
+```typescript
+export interface ConsumableMovement {
+  id: string;
+  organization_id: string;
+  tool_id: string;                      // 消耗品マスタID
+  movement_type: '入庫' | '出庫' | '移動' | '調整' | '棚卸';
+  from_location_type: 'warehouse' | 'site' | null;
+  from_site_id: string | null;
+  to_location_type: 'warehouse' | 'site' | null;
+  to_site_id: string | null;
+  quantity: number;
+  notes: string | null;
+  performed_by: string;                 // 実行者のユーザーID
+  created_at: string;
+}
+```
+
+### 7.3 消耗品管理の仕組み
+
+#### データフロー
+```
+1. 消耗品マスタ登録（tools.management_type = 'consumable'）
+   ↓
+2. 在庫登録（consumable_inventory）
+   - 倉庫在庫: location_type = 'warehouse', site_id = NULL
+   - 現場在庫: location_type = 'site', site_id = '現場ID'
+   ↓
+3. 移動処理
+   a) 在庫更新（consumable_inventory）
+      - 移動元の quantity を減算
+      - 移動先の quantity を加算
+   b) 履歴記録（consumable_movements）
+      - 移動タイプ、数量、移動元・移動先を記録
+```
+
+#### 個別管理道具との違い
+
+| 項目 | 個別管理道具 | 消耗品 |
+|------|-------------|--------|
+| テーブル | `tool_items` | `consumable_inventory` |
+| 管理単位 | 個別アイテム（#001, #002...） | 数量 |
+| 移動履歴 | `tool_movements` | `consumable_movements` |
+| QRコード | 各アイテムに1つ | マスタに1つ |
+| 在庫数 | アイテム数をカウント | quantity列で管理 |
+| ユースケース | 高価な工具、管理が重要な機材 | 軍手、テープ、ビスなど |
+
+#### クエリ例
+
+```sql
+-- 消耗品の合計在庫を取得
+SELECT
+  t.id,
+  t.name,
+  t.unit,
+  COALESCE(SUM(ci.quantity), 0) as total_quantity
+FROM tools t
+LEFT JOIN consumable_inventory ci ON t.id = ci.tool_id
+WHERE t.management_type = 'consumable'
+  AND t.organization_id = 'org-1'
+  AND t.deleted_at IS NULL
+GROUP BY t.id, t.name, t.unit;
+
+-- 倉庫と現場別の在庫
+SELECT
+  t.name,
+  ci.location_type,
+  s.name as site_name,
+  ci.quantity
+FROM consumable_inventory ci
+JOIN tools t ON ci.tool_id = t.id
+LEFT JOIN sites s ON ci.site_id = s.id
+WHERE ci.organization_id = 'org-1'
+ORDER BY t.name, ci.location_type;
+
+-- 低在庫アラート
+SELECT
+  t.id,
+  t.name,
+  t.minimum_stock,
+  COALESCE(SUM(ci.quantity), 0) as current_quantity
+FROM tools t
+LEFT JOIN consumable_inventory ci ON t.id = ci.tool_id
+WHERE t.management_type = 'consumable'
+  AND t.organization_id = 'org-1'
+  AND t.deleted_at IS NULL
+  AND t.minimum_stock > 0
+GROUP BY t.id, t.name, t.minimum_stock
+HAVING COALESCE(SUM(ci.quantity), 0) < t.minimum_stock;
+
+-- 消耗品移動履歴（最新100件）
+SELECT
+  cm.created_at,
+  t.name as tool_name,
+  cm.movement_type,
+  CASE
+    WHEN cm.from_location_type = 'warehouse' THEN '倉庫'
+    WHEN cm.from_location_type = 'site' THEN fs.name
+  END as from_location,
+  CASE
+    WHEN cm.to_location_type = 'warehouse' THEN '倉庫'
+    WHEN cm.to_location_type = 'site' THEN ts.name
+  END as to_location,
+  cm.quantity,
+  u.name as performed_by_name
+FROM consumable_movements cm
+JOIN tools t ON cm.tool_id = t.id
+LEFT JOIN sites fs ON cm.from_site_id = fs.id
+LEFT JOIN sites ts ON cm.to_site_id = ts.id
+JOIN users u ON cm.performed_by = u.id
+WHERE cm.organization_id = 'org-1'
+ORDER BY cm.created_at DESC
+LIMIT 100;
+```
+
+---
+
+## 8. 倉庫内位置管理テーブル ✨NEW
 
 ### 7.1 テーブル定義（SQL）
 
