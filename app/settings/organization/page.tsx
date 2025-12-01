@@ -37,6 +37,13 @@ export default async function OrganizationSettingsPage() {
     redirect('/')
   }
 
+  // 倉庫階層テンプレートを取得
+  const { data: warehouseTemplates } = await supabase
+    .from('warehouse_location_templates')
+    .select('*')
+    .eq('organization_id', userData.organization_id)
+    .order('level')
+
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white shadow-sm">
@@ -87,7 +94,10 @@ export default async function OrganizationSettingsPage() {
               </p>
             </div>
 
-            <OrganizationSettingsForm organization={organization} />
+            <OrganizationSettingsForm
+              organization={organization}
+              warehouseTemplates={warehouseTemplates || []}
+            />
           </div>
         </div>
       </main>

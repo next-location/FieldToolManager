@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateOrganizationSettings } from './actions'
+import { WarehouseHierarchySettings } from './WarehouseHierarchySettings'
 
 type Organization = {
   id: string
@@ -14,10 +15,20 @@ type Organization = {
   enable_site_closure_checklist: boolean
 }
 
+type WarehouseTemplate = {
+  id: string
+  level: number
+  label: string
+  is_active: boolean
+  display_order: number
+}
+
 export function OrganizationSettingsForm({
   organization,
+  warehouseTemplates,
 }: {
   organization: Organization
+  warehouseTemplates: WarehouseTemplate[]
 }) {
   const [settings, setSettings] = useState({
     require_qr_scan_on_movement: organization.require_qr_scan_on_movement,
@@ -249,6 +260,12 @@ export function OrganizationSettingsForm({
           {loading ? '保存中...' : '設定を保存'}
         </button>
       </div>
+
+      {/* 倉庫階層設定 */}
+      <WarehouseHierarchySettings
+        organizationId={organization.id}
+        initialTemplates={warehouseTemplates}
+      />
     </form>
   )
 }

@@ -60,3 +60,103 @@ export async function updateOrganizationSettings(
   revalidatePath('/settings/organization')
   return { success: true }
 }
+
+export async function saveWarehouseHierarchyTemplates(
+  organizationId: string,
+  templates: Array<{
+    level: number
+    label: string
+    is_active: boolean
+  }>
+) {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('ユーザーが見つかりません')
+  }
+
+  // ユーザーの権限を確認
+  const { data: userData } = await supabase
+    .from('users')
+    .select('organization_id, role')
+    .eq('id', user.id)
+    .single()
+
+  if (!userData || userData.role !== 'admin') {
+    throw new Error('管理者権限が必要です')
+  }
+
+  if (userData.organization_id !== organizationId) {
+    throw new Error('他の組織の設定は変更できません')
+  }
+
+  // 既存のテンプレートを削除
+  await supabase
+    .from('warehouse_location_templates')
+    .delete()
+    .eq('organization_id', organizationId)
+
+  // アクティブなテンプレートのみ保存
+  const activeTemplates = templates
+    .filter((t) => t.is_active && t.label.trim())
+    .map((t, index) => ({
+      organization_id: organizationId,
+      level: t.level,
+      label: t.label.trim(),
+      is_active: true,
+      display_order: index,
+    }))
+
+  if (activeTemplates.length > 0) {
+    const { error: insertError } = await supabase
+      .from('warehouse_location_templates')
+      .insert(activeTemplates)
+
+    if (insertError) {
+      console.error('Insert error:', insertError)
+      throw new Error('テンプレートの保存に失敗しました: ' + insertError.message)
+    }
+  }
+
+  revalidatePath('/settings/organization')
+  revalidatePath('/warehouse-locations/new')
+}
+
+export async function deleteWarehouseHierarchyTemplate(templateId: string) {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('ユーザーが見つかりません')
+  }
+
+  // ユーザーの権限を確認
+  const { data: userData } = await supabase
+    .from('users')
+    .select('organization_id, role')
+    .eq('id', user.id)
+    .single()
+
+  if (!userData || userData.role !== 'admin') {
+    throw new Error('管理者権限が必要です')
+  }
+
+  const { error } = await supabase
+    .from('warehouse_location_templates')
+    .delete()
+    .eq('id', templateId)
+    .eq('organization_id', userData.organization_id)
+
+  if (error) {
+    throw new Error('削除に失敗しました: ' + error.message)
+  }
+
+  revalidatePath('/settings/organization')
+}
