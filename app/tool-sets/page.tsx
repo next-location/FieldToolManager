@@ -211,7 +211,6 @@ export default async function ToolSetsPage() {
               </div>
             </div>
           )}
-          </div>
         </div>
       </main>
     </div>

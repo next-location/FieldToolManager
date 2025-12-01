@@ -61,22 +61,28 @@ export default async function MovementsPage() {
                 道具管理
               </Link>
               <Link
-                href="/sites"
+                href="/consumables"
                 className="text-sm font-medium text-gray-600 hover:text-gray-900"
               >
-                現場管理
+                消耗品管理
               </Link>
               <Link
                 href="/movements"
                 className="text-sm font-medium text-blue-600 hover:text-blue-700"
               >
-                移動履歴
+                道具移動履歴
               </Link>
               <Link
-                href="/scan"
+                href="/consumable-movements"
                 className="text-sm font-medium text-gray-600 hover:text-gray-900"
               >
-                QRスキャン
+                消耗品移動履歴
+              </Link>
+              <Link
+                href="/sites"
+                className="text-sm font-medium text-gray-600 hover:text-gray-900"
+              >
+                現場管理
               </Link>
             </div>
             <div className="flex items-center">

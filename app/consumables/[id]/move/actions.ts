@@ -147,27 +147,26 @@ export async function moveConsumable(formData: FormData) {
     }
   }
 
-  // 移動履歴を記録（quantity と simple モードのみ）
+  // 消耗品移動履歴を記録
   if (trackingMode !== 'none') {
     const { error: movementError } = await supabase
-      .from('tool_movements')
+      .from('consumable_movements')
       .insert({
         organization_id: userData.organization_id,
         tool_id: consumableId,
-        tool_item_id: null,
-        movement_type: direction === 'to_site' ? 'out' : 'return',
-        from_location: fromLocation,
-        to_location: toLocation,
+        movement_type: '移動',
+        from_location_type: fromLocation,
         from_site_id: fromSiteId,
+        to_location_type: toLocation,
         to_site_id: toSiteId,
-        quantity: 1, // 消耗品の場合は常に1
-        consumable_quantity: trackingMode === 'quantity' ? quantity : null,
+        quantity: trackingMode === 'quantity' ? quantity : 1,
         performed_by: user.id,
-        notes: notes || '',
+        notes: notes || null,
       })
 
     if (movementError) {
       console.error('Movement record error:', movementError)
+      throw new Error('移動履歴の記録に失敗しました: ' + movementError.message)
     }
   }
 

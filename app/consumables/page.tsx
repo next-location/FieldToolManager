@@ -78,9 +78,27 @@ export default async function ConsumablesPage() {
               <Link href="/" className="text-xl font-bold text-gray-900">
                 Field Tool Manager
               </Link>
+              <Link
+                href="/tools"
+                className="text-sm font-medium text-gray-600 hover:text-gray-900"
+              >
+                道具管理
+              </Link>
               <span className="text-sm font-medium text-blue-600">
                 消耗品管理
               </span>
+              <Link
+                href="/consumable-movements"
+                className="text-sm font-medium text-gray-600 hover:text-gray-900"
+              >
+                消耗品移動履歴
+              </Link>
+              <Link
+                href="/movements"
+                className="text-sm font-medium text-gray-600 hover:text-gray-900"
+              >
+                道具移動履歴
+              </Link>
             </div>
             <div className="flex items-center">
               <span className="text-sm text-gray-700 mr-4">{user.email}</span>
