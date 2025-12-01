@@ -209,18 +209,19 @@ CREATE INDEX idx_tools_location ON tools(current_location_id);
 CREATE INDEX idx_tools_status ON tools(status);
 ```
 
-#### tool_movements（移動履歴）
+#### tool_movements（個別管理道具の移動履歴）
 ```sql
 CREATE TABLE tool_movements (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   organization_id UUID NOT NULL REFERENCES organizations(id),
   tool_id UUID NOT NULL REFERENCES tools(id),
+  tool_item_id UUID REFERENCES tool_items(id),  -- 個別アイテムID
   user_id UUID NOT NULL REFERENCES users(id),
   from_location_id UUID REFERENCES locations(id),
   to_location_id UUID REFERENCES locations(id),
-  movement_type TEXT CHECK (movement_type IN ('checkout', 'checkin', 'transfer')),
+  movement_type TEXT CHECK (movement_type IN ('check_out', 'check_in', 'transfer', 'repair', 'return_from_repair', 'correction')),
   quantity INTEGER DEFAULT 1,
-  note TEXT,
+  notes TEXT,
   moved_at TIMESTAMP DEFAULT NOW(),
   deleted_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT NOW()
@@ -230,6 +231,48 @@ CREATE INDEX idx_movements_organization ON tool_movements(organization_id);
 CREATE INDEX idx_movements_tool ON tool_movements(tool_id);
 CREATE INDEX idx_movements_user ON tool_movements(user_id);
 CREATE INDEX idx_movements_date ON tool_movements(moved_at DESC);
+```
+
+#### consumable_inventory（消耗品在庫）
+```sql
+CREATE TABLE consumable_inventory (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  tool_id UUID NOT NULL REFERENCES tools(id),  -- 消耗品マスタ
+  location_type TEXT CHECK (location_type IN ('warehouse', 'site')),
+  site_id UUID REFERENCES sites(id),
+  warehouse_location_id UUID REFERENCES warehouse_locations(id),
+  quantity INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(organization_id, tool_id, location_type, site_id, warehouse_location_id)
+);
+
+CREATE INDEX idx_consumable_inventory_org ON consumable_inventory(organization_id);
+CREATE INDEX idx_consumable_inventory_tool ON consumable_inventory(tool_id);
+CREATE INDEX idx_consumable_inventory_site ON consumable_inventory(site_id);
+```
+
+#### consumable_movements（消耗品移動履歴）
+```sql
+CREATE TABLE consumable_movements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  tool_id UUID NOT NULL REFERENCES tools(id),  -- 消耗品マスタ
+  movement_type TEXT NOT NULL CHECK (movement_type IN ('入庫', '出庫', '移動', '調整', '棚卸')),
+  from_location_type TEXT CHECK (from_location_type IN ('warehouse', 'site')),
+  from_site_id UUID REFERENCES sites(id),
+  to_location_type TEXT CHECK (to_location_type IN ('warehouse', 'site')),
+  to_site_id UUID REFERENCES sites(id),
+  quantity INTEGER NOT NULL,
+  notes TEXT,
+  performed_by UUID NOT NULL REFERENCES users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_consumable_movements_org ON consumable_movements(organization_id);
+CREATE INDEX idx_consumable_movements_tool ON consumable_movements(tool_id);
+CREATE INDEX idx_consumable_movements_created ON consumable_movements(created_at DESC);
 ```
 
 #### locations（場所）
