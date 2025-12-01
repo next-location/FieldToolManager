@@ -13,22 +13,48 @@ export default async function ToolSetsPage() {
     redirect('/login')
   }
 
+  // ユーザー情報取得
+  const { data: userData } = await supabase
+    .from('users')
+    .select('organization_id')
+    .eq('id', user.id)
+    .single()
+
+  if (!userData) {
+    redirect('/login')
+  }
+
   // 道具セット一覧を取得
   const { data: toolSets, error } = await supabase
     .from('tool_sets')
     .select(
       `
-      *,
-      creator:users!tool_sets_created_by_fkey (name),
-      items:tool_set_items (
-        id,
-        quantity,
-        tool:tools (id, name)
-      )
+      id,
+      name,
+      description,
+      created_at,
+      created_by,
+      users:created_by (name)
     `
     )
+    .eq('organization_id', userData.organization_id)
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
+
+  // 各セットのアイテム数を取得
+  const toolSetsWithCounts = await Promise.all(
+    (toolSets || []).map(async (set) => {
+      const { count } = await supabase
+        .from('tool_set_items')
+        .select('*', { count: 'exact', head: true })
+        .eq('tool_set_id', set.id)
+
+      return {
+        ...set,
+        itemCount: count || 0,
+      }
+    })
+  )
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -103,35 +129,88 @@ export default async function ToolSetsPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {toolSets && toolSets.length > 0 ? (
-              toolSets.map((set: any) => (
-                <Link
+          {toolSetsWithCounts && toolSetsWithCounts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {toolSetsWithCounts.map((set) => (
+                <div
                   key={set.id}
-                  href={`/tool-sets/${set.id}`}
-                  className="block bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6"
+                  className="bg-white rounded-lg shadow hover:shadow-md transition-shadow"
                 >
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">
-                    {set.name}
-                  </h3>
-                  {set.description && (
-                    <p className="text-sm text-gray-600 mb-4">{set.description}</p>
-                  )}
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">
-                      道具数: {set.items?.length || 0}点
-                    </span>
-                    <span className="text-gray-500">
-                      作成者: {set.creator?.name || '不明'}
-                    </span>
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {set.name}
+                        </h3>
+                        {set.description && (
+                          <p className="mt-1 text-sm text-gray-600">
+                            {set.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                      <span>
+                        🔧 {set.itemCount}個の道具
+                      </span>
+                      <span>
+                        {new Date(set.created_at).toLocaleDateString('ja-JP')}
+                      </span>
+                    </div>
+
+                    <div className="flex space-x-2">
+                      <Link
+                        href={`/tool-sets/${set.id}`}
+                        className="flex-1 text-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                      >
+                        詳細
+                      </Link>
+                      <Link
+                        href={`/movements/new?tool_set_id=${set.id}`}
+                        className="flex-1 text-center px-3 py-2 border border-blue-600 rounded-md text-sm font-medium text-blue-600 bg-white hover:bg-blue-50"
+                      >
+                        📦 セット移動
+                      </Link>
+                    </div>
                   </div>
-                </Link>
-              ))
-            ) : (
-              <div className="col-span-full text-center py-12 text-gray-500">
-                道具セットが登録されていません
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white shadow sm:rounded-lg">
+              <div className="px-4 py-12 text-center">
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                  />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                  道具セットがありません
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  よく使う道具の組み合わせをセットとして登録しましょう
+                </p>
+                <div className="mt-6">
+                  <Link
+                    href="/tool-sets/new"
+                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                  >
+                    + 新しいセットを作成
+                  </Link>
+                </div>
               </div>
-            )}
+            </div>
+          )}
           </div>
         </div>
       </main>
