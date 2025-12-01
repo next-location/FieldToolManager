@@ -46,14 +46,21 @@ export async function moveConsumable(formData: FormData) {
   // quantity モードの場合は在庫を更新
   if (trackingMode === 'quantity' && quantity) {
     // 移動元の在庫を取得
-    const { data: sourceInventory } = await supabase
+    let sourceInventoryQuery = supabase
       .from('consumable_inventory')
       .select('*')
       .eq('tool_id', consumableId)
       .eq('organization_id', userData.organization_id)
       .eq('location_type', fromLocation)
-      .eq('site_id', fromSiteId)
-      .single()
+
+    // site_idの条件を追加（NULLの場合は.is()を使用）
+    if (fromSiteId) {
+      sourceInventoryQuery = sourceInventoryQuery.eq('site_id', fromSiteId)
+    } else {
+      sourceInventoryQuery = sourceInventoryQuery.is('site_id', null)
+    }
+
+    const { data: sourceInventory } = await sourceInventoryQuery.single()
 
     if (!sourceInventory) {
       throw new Error('移動元の在庫が見つかりません')
@@ -64,14 +71,21 @@ export async function moveConsumable(formData: FormData) {
     }
 
     // 移動先の在庫を取得
-    const { data: destInventory } = await supabase
+    let destInventoryQuery = supabase
       .from('consumable_inventory')
       .select('*')
       .eq('tool_id', consumableId)
       .eq('organization_id', userData.organization_id)
       .eq('location_type', toLocation)
-      .eq('site_id', toSiteId)
-      .single()
+
+    // site_idの条件を追加（NULLの場合は.is()を使用）
+    if (toSiteId) {
+      destInventoryQuery = destInventoryQuery.eq('site_id', toSiteId)
+    } else {
+      destInventoryQuery = destInventoryQuery.is('site_id', null)
+    }
+
+    const { data: destInventory } = await destInventoryQuery.single()
 
     // トランザクション的に更新
     // 移動元の在庫を減らす
