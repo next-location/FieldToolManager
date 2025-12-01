@@ -56,15 +56,10 @@ export function QRScanner() {
           }
 
           console.log('道具アイテム発見:', toolItem)
-          console.log(
-            'リダイレクト先:',
-            `/tools/${(toolItem.tools as any).id}?item_id=${toolItem.id}`
-          )
+          console.log('リダイレクト先:', `/tool-items/${toolItem.id}`)
 
-          // 道具詳細ページへリダイレクト（個別アイテムIDをパラメータで渡す）
-          router.push(
-            `/tools/${(toolItem.tools as any).id}?item_id=${toolItem.id}`
-          )
+          // 個別アイテム詳細ページへリダイレクト
+          router.push(`/tool-items/${toolItem.id}`)
         },
         (errorMessage) => {
           // スキャンエラー（通常は無視）

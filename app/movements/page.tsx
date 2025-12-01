@@ -20,6 +20,11 @@ export default async function MovementsPage() {
       `
       *,
       tool:tools (id, name, model_number),
+      tool_item:tool_items (
+        id,
+        serial_number,
+        tools (name, model_number)
+      ),
       from_site:sites!tool_movements_from_site_id_fkey (name),
       to_site:sites!tool_movements_to_site_id_fkey (name),
       user:users!tool_movements_performed_by_fkey (name)
@@ -124,9 +129,6 @@ export default async function MovementsPage() {
                       移動先
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      数量
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       実施者
                     </th>
                   </tr>
@@ -142,7 +144,14 @@ export default async function MovementsPage() {
                           {movementTypeLabels[movement.movement_type] || movement.movement_type}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {movement.tool ? (
+                          {movement.tool_item ? (
+                            <Link
+                              href={`/tool-items/${movement.tool_item.id}`}
+                              className="text-blue-600 hover:text-blue-800"
+                            >
+                              {(movement.tool_item.tools as any).name} #{movement.tool_item.serial_number}
+                            </Link>
+                          ) : movement.tool ? (
                             <Link
                               href={`/tools/${movement.tool.id}`}
                               className="text-blue-600 hover:text-blue-800"
@@ -159,9 +168,6 @@ export default async function MovementsPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {movement.to_site?.name || movement.to_location === 'warehouse' ? '倉庫' : movement.to_location === 'repair' ? '修理中' : '-'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {movement.quantity}
-                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {movement.user?.name || '不明'}
                         </td>
@@ -170,7 +176,7 @@ export default async function MovementsPage() {
                   ) : (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={6}
                         className="px-6 py-12 text-center text-gray-500"
                       >
                         移動履歴がありません

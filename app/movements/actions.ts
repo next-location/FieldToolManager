@@ -7,11 +7,11 @@ import { redirect } from 'next/navigation'
 export async function createMovement(formData: FormData) {
   const supabase = await createClient()
 
-  const tool_id = formData.get('tool_id') as string
+  const tool_item_id = formData.get('tool_item_id') as string
   const movement_type = formData.get('movement_type') as string
   const from_site_id = formData.get('from_site_id') as string | null
   const to_site_id = formData.get('to_site_id') as string | null
-  const quantity = parseInt(formData.get('quantity') as string)
+  const quantity = parseInt(formData.get('quantity') as string) || 1
   const notes = formData.get('notes') as string
 
   // ユーザー情報と組織IDを取得
@@ -33,10 +33,22 @@ export async function createMovement(formData: FormData) {
     throw new Error('ユーザー情報が見つかりません')
   }
 
+  // 個別アイテム情報を取得
+  const { data: toolItem } = await supabase
+    .from('tool_items')
+    .select('tool_id')
+    .eq('id', tool_item_id)
+    .single()
+
+  if (!toolItem) {
+    throw new Error('道具アイテムが見つかりません')
+  }
+
   // 移動を登録
   const { error } = await supabase.from('tool_movements').insert({
     organization_id: userData.organization_id,
-    tool_id,
+    tool_id: toolItem.tool_id, // 道具マスタIDも保持
+    tool_item_id, // 個別アイテムID
     movement_type,
     from_location: from_site_id ? 'site' : 'warehouse',
     to_location: to_site_id ? 'site' : 'warehouse',
@@ -51,7 +63,7 @@ export async function createMovement(formData: FormData) {
     throw new Error(`移動の登録に失敗しました: ${error.message}`)
   }
 
-  // 道具の現在地を更新
+  // 個別アイテムの現在地を更新
   let updateData: any = {}
 
   if (movement_type === 'check_out' && to_site_id) {
@@ -87,9 +99,9 @@ export async function createMovement(formData: FormData) {
 
   if (Object.keys(updateData).length > 0) {
     const { error: updateError } = await supabase
-      .from('tools')
+      .from('tool_items')
       .update(updateData)
-      .eq('id', tool_id)
+      .eq('id', tool_item_id)
 
     if (updateError) {
       throw new Error(`道具の状態更新に失敗しました: ${updateError.message}`)
@@ -98,6 +110,6 @@ export async function createMovement(formData: FormData) {
 
   revalidatePath('/movements')
   revalidatePath('/tools')
-  revalidatePath(`/tools/${tool_id}`)
+  revalidatePath(`/tools/${toolItem.tool_id}`)
   redirect('/movements')
 }
