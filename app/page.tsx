@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import Link from 'next/link'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -9,6 +10,13 @@ export default async function Home() {
   if (!user) {
     redirect('/login')
   }
+
+  // ユーザー情報を取得
+  const { data: userData } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -39,16 +47,156 @@ export default async function Home() {
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          <div className="border-4 border-dashed border-gray-200 rounded-lg p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              ダッシュボード
-            </h2>
-            <p className="text-gray-600">
-              認証システムの実装が完了しました。
-            </p>
-            <p className="text-gray-600 mt-2">
-              ログインユーザー: {user.email}
-            </p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            ダッシュボード
+          </h2>
+
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {/* 道具管理 */}
+            <Link
+              href="/tools"
+              className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow"
+            >
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <span className="text-3xl">🔧</span>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-medium text-gray-500 truncate">
+                        道具管理
+                      </dt>
+                      <dd className="mt-1 text-xs text-gray-400">
+                        道具の登録・編集・削除
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </Link>
+
+            {/* 現場管理 */}
+            <Link
+              href="/sites"
+              className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow"
+            >
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <span className="text-3xl">🏗️</span>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-medium text-gray-500 truncate">
+                        現場管理
+                      </dt>
+                      <dd className="mt-1 text-xs text-gray-400">
+                        現場の登録・編集・削除
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </Link>
+
+            {/* 移動履歴 */}
+            <Link
+              href="/movements"
+              className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow"
+            >
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <span className="text-3xl">📦</span>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-medium text-gray-500 truncate">
+                        出入庫履歴
+                      </dt>
+                      <dd className="mt-1 text-xs text-gray-400">
+                        道具の移動履歴
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </Link>
+
+            {/* 道具セット */}
+            <Link
+              href="/tool-sets"
+              className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow"
+            >
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <span className="text-3xl">📋</span>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-medium text-gray-500 truncate">
+                        道具セット
+                      </dt>
+                      <dd className="mt-1 text-xs text-gray-400">
+                        よく使う道具の組み合わせ
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </Link>
+
+            {/* QRスキャン */}
+            <Link
+              href="/scan"
+              className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow"
+            >
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <span className="text-3xl">📱</span>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-medium text-gray-500 truncate">
+                        QRスキャン
+                      </dt>
+                      <dd className="mt-1 text-xs text-gray-400">
+                        QRコードで道具を検索
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </Link>
+
+            {/* 組織設定（管理者のみ） */}
+            {userData?.role === 'admin' && (
+              <Link
+                href="/settings/organization"
+                className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow border-2 border-blue-200"
+              >
+                <div className="p-5">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <span className="text-3xl">⚙️</span>
+                    </div>
+                    <div className="ml-5 w-0 flex-1">
+                      <dl>
+                        <dt className="text-sm font-medium text-gray-500 truncate">
+                          組織設定
+                        </dt>
+                        <dd className="mt-1 text-xs text-gray-400">
+                          運用方法のカスタマイズ
+                        </dd>
+                      </dl>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            )}
           </div>
         </div>
       </main>

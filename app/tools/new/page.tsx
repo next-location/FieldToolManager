@@ -192,7 +192,7 @@ export default function NewToolPage() {
                       htmlFor="quantity"
                       className="block text-sm font-medium text-gray-700"
                     >
-                      数量 <span className="text-red-500">*</span>
+                      登録する個数 <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
@@ -204,6 +204,9 @@ export default function NewToolPage() {
                       onChange={handleChange}
                       className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
+                    <p className="mt-1 text-xs text-gray-500">
+                      ※ 指定した個数分の個別アイテム（#001, #002...）とQRコードが作成されます
+                    </p>
                   </div>
 
                   <div>

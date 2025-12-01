@@ -18,7 +18,7 @@ export default async function ToolsPage() {
     .eq('email', user.email)
     .single()
 
-  // 道具一覧を取得（RLSにより自動的に組織でフィルタリングされる）
+  // 道具マスタと個別アイテム数を取得
   const { data: tools, error } = await supabase
     .from('tools')
     .select(`
@@ -27,7 +27,40 @@ export default async function ToolsPage() {
         name
       )
     `)
+    .is('deleted_at', null)
     .order('created_at', { ascending: false })
+
+  // 各道具の個別アイテム情報を取得
+  const toolsWithItems = await Promise.all(
+    (tools || []).map(async (tool) => {
+      const { data: items } = await supabase
+        .from('tool_items')
+        .select('id, serial_number, current_location, current_site_id, status')
+        .eq('tool_id', tool.id)
+        .is('deleted_at', null)
+        .order('serial_number')
+
+      // 位置別の集計
+      const locationCounts = (items || []).reduce((acc, item) => {
+        acc[item.current_location] = (acc[item.current_location] || 0) + 1
+        return acc
+      }, {} as Record<string, number>)
+
+      // ステータス別の集計
+      const statusCounts = (items || []).reduce((acc, item) => {
+        acc[item.status] = (acc[item.status] || 0) + 1
+        return acc
+      }, {} as Record<string, number>)
+
+      return {
+        ...tool,
+        items: items || [],
+        itemCount: items?.length || 0,
+        locationCounts,
+        statusCounts,
+      }
+    })
+  )
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -89,9 +122,9 @@ export default async function ToolsPage() {
           )}
 
           <div className="bg-white shadow overflow-hidden sm:rounded-md">
-            {tools && tools.length > 0 ? (
+            {toolsWithItems && toolsWithItems.length > 0 ? (
               <ul className="divide-y divide-gray-200">
-                {tools.map((tool) => (
+                {toolsWithItems.map((tool) => (
                   <li key={tool.id}>
                     <Link
                       href={`/tools/${tool.id}`}
@@ -110,38 +143,51 @@ export default async function ToolsPage() {
                               <span className="mr-4">
                                 メーカー: {tool.manufacturer || '未設定'}
                               </span>
-                              <span>
-                                数量: {tool.quantity}
+                              <span className="mr-4">
+                                合計: {tool.itemCount}台
                               </span>
+                            </div>
+                            <div className="mt-1 flex items-center text-xs text-gray-400">
+                              {tool.locationCounts.warehouse && (
+                                <span className="mr-3">
+                                  📦 倉庫: {tool.locationCounts.warehouse}
+                                </span>
+                              )}
+                              {tool.locationCounts.site && (
+                                <span className="mr-3">
+                                  🏗️ 現場: {tool.locationCounts.site}
+                                </span>
+                              )}
+                              {tool.locationCounts.repair && (
+                                <span className="mr-3">
+                                  🔧 修理中: {tool.locationCounts.repair}
+                                </span>
+                              )}
+                              {tool.locationCounts.lost && (
+                                <span className="mr-3 text-red-500">
+                                  ❌ 紛失: {tool.locationCounts.lost}
+                                </span>
+                              )}
                             </div>
                           </div>
                           <div className="flex items-center space-x-4">
-                            <span
-                              className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                tool.status === 'available'
-                                  ? 'bg-green-100 text-green-800'
-                                  : tool.status === 'in_use'
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : tool.status === 'maintenance'
-                                  ? 'bg-yellow-100 text-yellow-800'
-                                  : 'bg-gray-100 text-gray-800'
-                              }`}
-                            >
-                              {tool.status === 'available'
-                                ? '利用可能'
-                                : tool.status === 'in_use'
-                                ? '使用中'
-                                : tool.status === 'maintenance'
-                                ? 'メンテナンス中'
-                                : tool.status}
-                            </span>
-                            <span className="text-sm text-gray-500">
-                              {tool.current_location === 'warehouse'
-                                ? '倉庫'
-                                : tool.current_location === 'site'
-                                ? '現場'
-                                : tool.current_location}
-                            </span>
+                            <div className="text-right">
+                              {tool.statusCounts.available > 0 && (
+                                <div className="text-xs text-green-600">
+                                  利用可能: {tool.statusCounts.available}
+                                </div>
+                              )}
+                              {tool.statusCounts.in_use > 0 && (
+                                <div className="text-xs text-blue-600">
+                                  使用中: {tool.statusCounts.in_use}
+                                </div>
+                              )}
+                              {tool.statusCounts.maintenance > 0 && (
+                                <div className="text-xs text-yellow-600">
+                                  メンテ: {tool.statusCounts.maintenance}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>

@@ -27,6 +27,11 @@ Organization (組織・企業)
 ├── max_users 20
 ├── max_tools 500
 ├── is_active true
+├── require_qr_scan_on_movement BOOLEAN ← QRスキャン必須設定
+├── require_qr_scan_on_return BOOLEAN ← 返却時QRスキャン必須
+├── require_approval_for_loss BOOLEAN ← 紛失承認フロー
+├── enable_monthly_inventory_reminder BOOLEAN ← 月次棚卸し通知
+├── enable_site_closure_checklist BOOLEAN ← 現場終了チェックリスト
 └── created_at
 
     ↓ 1:N
@@ -40,38 +45,53 @@ User (ユーザー)
 ├── deleted_at (論理削除)
 └── created_at
 
-Tool (道具) ✨UUID主キー化
-├── id (PK, UUID) ← QRコードに使用
+Tool (道具マスタ - 種類) ✨個別管理対応
+├── id (PK, UUID)
 ├── organization_id (FK) ← 重要！
-├── tool_code TEXT ← 表示用（A-0123）
-├── category_id (FK)
-├── name
-├── model_number
-├── manufacturer
+├── name "電動ドリル"
+├── model_number "DRL-5000"
+├── manufacturer "マキタ"
 ├── purchase_date
 ├── purchase_price
-├── status "normal" | "repair" | "broken" | "disposed"
-├── current_location_id (FK)
-├── management_type "individual" | "quantity"
-├── current_quantity INTEGER
-├── unit TEXT
+├── quantity INTEGER ← 全体の個数（表示用）
+├── minimum_stock ← 最小在庫数
+├── category_id (FK)
 ├── custom_fields JSONB
 ├── deleted_at (論理削除)
 └── created_at
 
-ToolMovement (移動履歴)
+    ↓ 1:N
+
+ToolItem (個別アイテム - 物理的な道具) ✨新規追加
+├── id (PK, UUID)
+├── tool_id (FK → Tool.id) ← 道具マスタへの参照
+├── organization_id (FK) ← 重要！
+├── serial_number "001" | "002" | "003" ... ← 個別識別番号
+├── qr_code UUID (UQ) ← 個別QRコード
+├── current_location "warehouse" | "site" | "repair" | "lost"
+├── current_site_id (FK → sites)
+├── status "available" | "in_use" | "maintenance" | "lost"
+├── notes TEXT ← 個別メモ
+├── deleted_at (論理削除)
+├── created_at
+└── updated_at
+
+ToolMovement (移動履歴) ✨tool_item_id対応
 ├── id (PK, UUID)
 ├── organization_id (FK) ← 重要！
-├── tool_id (FK → Tool.id UUID)
+├── tool_id (FK → Tool.id) ← DEPRECATED
+├── tool_item_id (FK → ToolItem.id) ← 個別アイテムIDを使用
 ├── user_id (FK)
-├── from_location_id (FK)
-├── to_location_id (FK)
-├── movement_type "checkout" | "checkin" | "transfer"
+├── from_location TEXT
+├── to_location TEXT
+├── from_site_id (FK)
+├── to_site_id (FK)
+├── movement_type "check_out" | "check_in" | "transfer" | "repair" | "return_from_repair"
 ├── quantity INTEGER DEFAULT 1
-├── note
-├── moved_at
-├── deleted_at (論理削除)
-└── created_at
+├── performed_by (FK → User.id) ← 実行者
+├── notes TEXT
+├── created_at
+└── deleted_at (論理削除)
 
 Location (場所)
 ├── id (PK, UUID)
@@ -92,6 +112,29 @@ ToolCategory (道具カテゴリ)
 ├── display_order INTEGER
 ├── is_active BOOLEAN
 └── created_at
+
+ToolSet (道具セット - テンプレート) ✨新規追加
+├── id (PK, UUID)
+├── organization_id (FK) ← 重要！
+├── name "基本工具セット" | "電動工具セット" | ...
+├── description TEXT
+├── created_by (FK → User.id)
+├── created_at
+├── updated_at
+└── deleted_at (論理削除)
+
+    ↓ 1:N
+
+ToolSetItem (道具セット内容) ✨tool_item_id対応
+├── id (PK, UUID)
+├── tool_set_id (FK → ToolSet.id)
+├── tool_id (FK → Tool.id) ← DEPRECATED: 種類単位での登録用
+├── tool_item_id (FK → ToolItem.id) ← 個別アイテムを明示的に指定
+├── quantity INTEGER ← DEPRECATED (tool_item_idを使う場合は不要)
+└── created_at
+
+**運用方針**: セットは「よく使う道具の組み合わせ」のテンプレート。
+個別アイテム（#001, #002）を明示的に登録し、移動時に間違いを防ぐ。
 
 AuditLog (監査ログ)
 ├── id (PK, UUID)
@@ -1020,3 +1063,6 @@ UNIQUE (subdomain);
 | 日付 | バージョン | 変更内容 |
 |------|-----------|---------|
 | 2025-12-01 | 1.0.0 | 初版作成（SPECIFICATION_SAAS_FINAL.mdから分離） |
+| 2025-12-02 | 1.1.0 | **個別アイテム管理対応**: tool_itemsテーブル追加、各物理道具に個別QRコード割り当て |
+| 2025-12-02 | 1.1.0 | **組織設定機能追加**: QRスキャン必須モード、紛失承認フロー等の運用カスタマイズ設定 |
+| 2025-12-02 | 1.1.0 | **道具セット更新**: tool_item_id対応、テンプレート方式での運用 |

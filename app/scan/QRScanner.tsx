@@ -31,24 +31,40 @@ export function QRScanner() {
           // スキャンを停止
           await stopScanning()
 
-          // QRコードから道具を検索
-          const { data: tool, error: toolError } = await supabase
-            .from('tools')
-            .select('id, name')
+          // QRコードから個別アイテムを検索
+          const { data: toolItem, error: itemError } = await supabase
+            .from('tool_items')
+            .select(
+              `
+              id,
+              serial_number,
+              tool_id,
+              tools (
+                id,
+                name
+              )
+            `
+            )
             .eq('qr_code', decodedText)
+            .is('deleted_at', null)
             .single()
 
-          if (toolError || !tool) {
-            console.error('道具が見つかりません:', toolError)
+          if (itemError || !toolItem) {
+            console.error('道具アイテムが見つかりません:', itemError)
             setError('QRコードに対応する道具が見つかりませんでした')
             return
           }
 
-          console.log('道具発見:', tool)
-          console.log('リダイレクト先:', `/tools/${tool.id}`)
+          console.log('道具アイテム発見:', toolItem)
+          console.log(
+            'リダイレクト先:',
+            `/tools/${(toolItem.tools as any).id}?item_id=${toolItem.id}`
+          )
 
-          // 道具詳細ページへリダイレクト
-          router.push(`/tools/${tool.id}`)
+          // 道具詳細ページへリダイレクト（個別アイテムIDをパラメータで渡す）
+          router.push(
+            `/tools/${(toolItem.tools as any).id}?item_id=${toolItem.id}`
+          )
         },
         (errorMessage) => {
           // スキャンエラー（通常は無視）

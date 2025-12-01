@@ -36,26 +36,57 @@ export async function createTool(formData: {
     return { error: '組織情報が見つかりません: ' + (userError?.message || 'データなし') }
   }
 
-  // 道具を登録
-  const { error: insertError } = await supabase.from('tools').insert({
-    organization_id: userData.organization_id,
-    name: formData.name,
-    model_number: formData.model_number || null,
-    manufacturer: formData.manufacturer || null,
-    purchase_date: formData.purchase_date || null,
-    purchase_price: formData.purchase_price
-      ? parseFloat(formData.purchase_price)
-      : null,
-    quantity: parseInt(formData.quantity),
-    minimum_stock: parseInt(formData.minimum_stock),
-    notes: formData.notes || null,
-    current_location: 'warehouse',
-    status: 'available',
-  })
+  // 道具マスタを登録
+  const { data: toolData, error: insertError } = await supabase
+    .from('tools')
+    .insert({
+      organization_id: userData.organization_id,
+      name: formData.name,
+      model_number: formData.model_number || null,
+      manufacturer: formData.manufacturer || null,
+      purchase_date: formData.purchase_date || null,
+      purchase_price: formData.purchase_price
+        ? parseFloat(formData.purchase_price)
+        : null,
+      quantity: parseInt(formData.quantity),
+      minimum_stock: parseInt(formData.minimum_stock),
+      notes: formData.notes || null,
+      current_location: 'warehouse',
+      status: 'available',
+    })
+    .select()
+    .single()
 
-  if (insertError) {
+  if (insertError || !toolData) {
     console.error('Insert error:', insertError)
     return { error: '登録に失敗しました: ' + insertError.message }
+  }
+
+  // 指定された数量分の個別アイテムを作成
+  const quantity = parseInt(formData.quantity)
+  const toolItems = []
+
+  for (let i = 1; i <= quantity; i++) {
+    toolItems.push({
+      tool_id: toolData.id,
+      organization_id: userData.organization_id,
+      serial_number: String(i).padStart(3, '0'), // "001", "002", "003"...
+      current_location: 'warehouse',
+      status: 'available',
+      notes: null,
+    })
+  }
+
+  const { error: itemsError } = await supabase
+    .from('tool_items')
+    .insert(toolItems)
+
+  if (itemsError) {
+    console.error('Tool items insert error:', itemsError)
+    // 道具マスタは既に作成されているので、エラーを返すが続行
+    return {
+      error: '個別アイテムの作成に失敗しました: ' + itemsError.message,
+    }
   }
 
   revalidatePath('/tools')
