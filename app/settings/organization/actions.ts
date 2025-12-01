@@ -11,6 +11,7 @@ export async function updateOrganizationSettings(
     require_approval_for_loss: boolean
     enable_monthly_inventory_reminder: boolean
     enable_site_closure_checklist: boolean
+    consumable_movement_tracking: 'quantity' | 'simple' | 'none'
   }
 ) {
   const supabase = await createClient()
@@ -48,6 +49,7 @@ export async function updateOrganizationSettings(
       enable_monthly_inventory_reminder:
         settings.enable_monthly_inventory_reminder,
       enable_site_closure_checklist: settings.enable_site_closure_checklist,
+      consumable_movement_tracking: settings.consumable_movement_tracking,
       updated_at: new Date().toISOString(),
     })
     .eq('id', organizationId)

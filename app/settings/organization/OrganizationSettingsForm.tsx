@@ -13,6 +13,7 @@ type Organization = {
   require_approval_for_loss: boolean
   enable_monthly_inventory_reminder: boolean
   enable_site_closure_checklist: boolean
+  consumable_movement_tracking: 'quantity' | 'simple' | 'none'
 }
 
 type WarehouseTemplate = {
@@ -37,6 +38,7 @@ export function OrganizationSettingsForm({
     enable_monthly_inventory_reminder:
       organization.enable_monthly_inventory_reminder,
     enable_site_closure_checklist: organization.enable_site_closure_checklist,
+    consumable_movement_tracking: organization.consumable_movement_tracking,
   })
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{
@@ -245,6 +247,109 @@ export function OrganizationSettingsForm({
               <p className="text-gray-500">
                 現場が完了になる際、その現場に残っている道具の返却チェックリストを表示します。
               </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 消耗品管理設定 */}
+      <div className="border-t border-gray-200 pt-6">
+        <h3 className="text-base font-medium text-gray-900 mb-4">
+          消耗品管理設定
+        </h3>
+        <div>
+          <label className="text-sm font-medium text-gray-700 mb-3 block">
+            消耗品の移動記録方式
+          </label>
+          <p className="text-sm text-gray-500 mb-4">
+            軍手、テープなどの消耗品を移動する際の記録方法を選択します。個別管理の道具（電動ドリルなど）には適用されません。
+          </p>
+          <div className="space-y-3">
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="consumable_tracking_quantity"
+                  name="consumable_movement_tracking"
+                  type="radio"
+                  checked={settings.consumable_movement_tracking === 'quantity'}
+                  onChange={() =>
+                    setSettings({
+                      ...settings,
+                      consumable_movement_tracking: 'quantity',
+                    })
+                  }
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label
+                  htmlFor="consumable_tracking_quantity"
+                  className="font-medium text-gray-700"
+                >
+                  パターンA: 数量を記録する（推奨）
+                </label>
+                <p className="text-gray-500">
+                  例：「軍手10個を持ち出し」と記録。在庫管理が正確になります。
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="consumable_tracking_simple"
+                  name="consumable_movement_tracking"
+                  type="radio"
+                  checked={settings.consumable_movement_tracking === 'simple'}
+                  onChange={() =>
+                    setSettings({
+                      ...settings,
+                      consumable_movement_tracking: 'simple',
+                    })
+                  }
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label
+                  htmlFor="consumable_tracking_simple"
+                  className="font-medium text-gray-700"
+                >
+                  パターンB: 移動のみ記録（数量なし）
+                </label>
+                <p className="text-gray-500">
+                  例：「軍手を持ち出した」と記録。数量は記録しません。
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="consumable_tracking_none"
+                  name="consumable_movement_tracking"
+                  type="radio"
+                  checked={settings.consumable_movement_tracking === 'none'}
+                  onChange={() =>
+                    setSettings({
+                      ...settings,
+                      consumable_movement_tracking: 'none',
+                    })
+                  }
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label
+                  htmlFor="consumable_tracking_none"
+                  className="font-medium text-gray-700"
+                >
+                  パターンC: 移動記録なし（在庫のみ管理）
+                </label>
+                <p className="text-gray-500">
+                  移動履歴は記録せず、在庫数だけを管理します。
+                </p>
+              </div>
             </div>
           </div>
         </div>
