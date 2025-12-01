@@ -14,9 +14,39 @@ export default async function Home() {
   // ユーザー情報を取得
   const { data: userData } = await supabase
     .from('users')
-    .select('role')
+    .select('role, organization_id')
     .eq('id', user.id)
     .single()
+
+  // 在庫アラート対象の消耗品を取得
+  const { data: consumables } = await supabase
+    .from('tools')
+    .select('id, name, unit, minimum_stock')
+    .eq('organization_id', userData?.organization_id)
+    .eq('management_type', 'consumable')
+    .gt('minimum_stock', 0)
+
+  // 各消耗品の在庫を集計して低在庫をチェック
+  const lowStockConsumables = await Promise.all(
+    (consumables || []).map(async (consumable) => {
+      const { data: inventories } = await supabase
+        .from('consumable_inventory')
+        .select('quantity')
+        .eq('tool_id', consumable.id)
+        .eq('organization_id', userData?.organization_id)
+
+      const totalQty =
+        inventories?.reduce((sum, inv) => sum + inv.quantity, 0) || 0
+
+      if (totalQty < consumable.minimum_stock) {
+        return {
+          ...consumable,
+          current_stock: totalQty,
+        }
+      }
+      return null
+    })
+  ).then((results) => results.filter(Boolean))
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -50,6 +80,45 @@ export default async function Home() {
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
             ダッシュボード
           </h2>
+
+          {/* 在庫アラート */}
+          {lowStockConsumables.length > 0 && (
+            <div className="mb-6 bg-red-50 border-l-4 border-red-400 p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <span className="text-2xl">⚠️</span>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">
+                    消耗品の在庫が不足しています
+                  </h3>
+                  <div className="mt-2 text-sm text-red-700">
+                    <ul className="list-disc pl-5 space-y-1">
+                      {lowStockConsumables.map((item) => (
+                        <li key={item.id}>
+                          <Link
+                            href="/consumables"
+                            className="hover:underline font-medium"
+                          >
+                            {item.name}
+                          </Link>
+                          : 現在 {item.current_stock} {item.unit} (最低在庫: {item.minimum_stock} {item.unit})
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="mt-4">
+                    <Link
+                      href="/consumables"
+                      className="text-sm font-medium text-red-800 hover:text-red-900"
+                    >
+                      消耗品管理ページへ →
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {/* 道具管理 */}
