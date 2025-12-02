@@ -17,6 +17,7 @@ export default function EditToolPage({ params }: { params: Promise<{ id: string 
     quantity: '1',
     minimum_stock: '1',
     enable_low_stock_alert: true,
+    warranty_expiration_date: '',
     notes: '',
   })
   const [enableLowStockAlert, setEnableLowStockAlert] = useState(true)
@@ -76,6 +77,7 @@ export default function EditToolPage({ params }: { params: Promise<{ id: string 
         quantity: tool.quantity.toString(),
         minimum_stock: tool.minimum_stock.toString(),
         enable_low_stock_alert: tool.enable_low_stock_alert ?? true,
+        warranty_expiration_date: tool.warranty_expiration_date || '',
         notes: tool.notes || '',
       })
       setLoading(false)
@@ -310,6 +312,26 @@ export default function EditToolPage({ params }: { params: Promise<{ id: string 
                     </div>
                   </div>
                 )}
+
+                <div>
+                  <label
+                    htmlFor="warranty_expiration_date"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    保証期限
+                  </label>
+                  <input
+                    type="date"
+                    name="warranty_expiration_date"
+                    id="warranty_expiration_date"
+                    value={formData.warranty_expiration_date}
+                    onChange={handleChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    保証期限を設定すると、期限前にメール通知を受け取ることができます
+                  </p>
+                </div>
 
                 <div>
                   <label

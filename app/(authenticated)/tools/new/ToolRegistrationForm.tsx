@@ -36,6 +36,7 @@ export function ToolRegistrationForm({
     quantity: '1',
     purchase_date: '',
     purchase_price: '',
+    warranty_expiration_date: '',
     notes: '',
   })
   const [imageUrl, setImageUrl] = useState<string | null>(null)
@@ -74,6 +75,7 @@ export function ToolRegistrationForm({
           quantity: formData.quantity,
           purchase_date: formData.purchase_date,
           purchase_price: formData.purchase_price,
+          warranty_expiration_date: formData.warranty_expiration_date,
           notes: formData.notes,
           image_url: imageUrl,
         })
@@ -287,6 +289,23 @@ export function ToolRegistrationForm({
             />
             <p className="mt-1 text-xs text-gray-500">
               この数を下回ると低在庫アラートが表示されます
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="warranty_expiration_date" className="block text-sm font-medium text-gray-700">
+              保証期限
+            </label>
+            <input
+              type="date"
+              name="warranty_expiration_date"
+              id="warranty_expiration_date"
+              value={formData.warranty_expiration_date}
+              onChange={handleChange}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              保証期限を設定すると、期限前にメール通知を受け取ることができます
             </p>
           </div>
 

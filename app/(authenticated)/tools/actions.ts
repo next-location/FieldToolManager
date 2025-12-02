@@ -128,6 +128,7 @@ export async function updateTool(
     quantity: string
     minimum_stock: string
     enable_low_stock_alert?: boolean
+    warranty_expiration_date?: string
     notes?: string
   }
 ) {
@@ -161,6 +162,7 @@ export async function updateTool(
       quantity: parseInt(formData.quantity),
       minimum_stock: parseInt(formData.minimum_stock),
       enable_low_stock_alert: formData.enable_low_stock_alert !== undefined ? formData.enable_low_stock_alert : true,
+      warranty_expiration_date: formData.warranty_expiration_date || null,
       notes: formData.notes || null,
       updated_at: new Date().toISOString(),
     })
@@ -181,6 +183,7 @@ export async function updateTool(
     quantity: parseInt(formData.quantity),
     minimum_stock: parseInt(formData.minimum_stock),
     enable_low_stock_alert: formData.enable_low_stock_alert !== undefined ? formData.enable_low_stock_alert : true,
+    warranty_expiration_date: formData.warranty_expiration_date || null,
     notes: formData.notes || null,
   }
 
@@ -272,6 +275,7 @@ export async function createToolWithItems(formData: {
   minimum_stock?: string
   enable_low_stock_alert?: boolean
   image_url?: string | null
+  warranty_expiration_date?: string
   // 共通（個別アイテム登録情報）
   quantity: string
   purchase_date?: string
@@ -357,6 +361,7 @@ export async function createToolWithItems(formData: {
         minimum_stock: formData.minimum_stock ? parseInt(formData.minimum_stock) : 1,
         enable_low_stock_alert: formData.enable_low_stock_alert !== undefined ? formData.enable_low_stock_alert : true,
         image_url: formData.image_url || null,
+        warranty_expiration_date: formData.warranty_expiration_date || null,
       })
       .select()
       .single()
