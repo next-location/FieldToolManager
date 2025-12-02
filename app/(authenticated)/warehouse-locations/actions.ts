@@ -12,7 +12,7 @@ export async function createWarehouseLocation(formData: FormData) {
   const description = formData.get('description') as string
   const generateQR = formData.get('generate_qr') === 'on'
 
-  // �����1hDTID�֗
+  // ユーザー情報を取得
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -28,21 +28,21 @@ export async function createWarehouseLocation(formData: FormData) {
     .single()
 
   if (!userData) {
-    throw new Error('�����1L�dK�~[�')
+    throw new Error('ユーザー情報が見つかりません')
   }
 
-  // �)P��ï
+  // 管理者権限チェック
   if (!['admin', 'super_admin'].includes(userData.role)) {
-    throw new Error(')PLB�~[�')
+    throw new Error('権限がありません')
   }
 
-  // �d�������nϤ��p+1	
+  // 階層レベルを計算（コードの'-'の数から）
   const level = code.split('-').length
 
-  // QR��ɒ
+  // QRコード生成
   const qrCode = generateQR ? crypto.randomUUID() : null
 
-  // 	�Mn�\
+  // 登録処理
   const { error } = await supabase.from('warehouse_locations').insert({
     organization_id: userData.organization_id,
     code,
@@ -54,9 +54,9 @@ export async function createWarehouseLocation(formData: FormData) {
 
   if (error) {
     if (error.code === '23505') {
-      throw new Error('XMn���LYgkX(W~Y')
+      throw new Error('この位置コードは既に登録されています')
     }
-    throw new Error(`{2k1WW~W_: ${error.message}`)
+    throw new Error(`登録に失敗しました: ${error.message}`)
   }
 
   revalidatePath('/warehouse-locations')
@@ -71,7 +71,7 @@ export async function deleteWarehouseLocation(id: string) {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    throw new Error('�<LŁgY')
+    throw new Error('認証が必要です')
   }
 
   const { data: userData } = await supabase
@@ -81,10 +81,10 @@ export async function deleteWarehouseLocation(id: string) {
     .single()
 
   if (!userData || !['admin', 'super_admin'].includes(userData.role)) {
-    throw new Error(')PLB�~[�')
+    throw new Error('権限がありません')
   }
 
-  // �Jd
+  // 論理削除
   const { error } = await supabase
     .from('warehouse_locations')
     .update({
@@ -93,7 +93,7 @@ export async function deleteWarehouseLocation(id: string) {
     .eq('id', id)
 
   if (error) {
-    throw new Error(`Jdk1WW~W_: ${error.message}`)
+    throw new Error(`削除に失敗しました: ${error.message}`)
   }
 
   revalidatePath('/warehouse-locations')
