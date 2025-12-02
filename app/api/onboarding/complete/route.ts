@@ -86,13 +86,13 @@ export async function POST(request: NextRequest) {
     if (formData.selectedCategories.length > 0) {
       const categoryData = formData.selectedCategories.map((cat, index) => {
         // デフォルトカテゴリー
-        const defaultCategoryMap: Record<string, { name: string; icon: string }> = {
-          'electric-tools': { name: '電動工具', icon: '⚡' },
-          measuring: { name: '測定機器', icon: '📏' },
-          safety: { name: '安全装備', icon: '🦺' },
-          painting: { name: '塗装用具', icon: '🎨' },
-          'hand-tools': { name: '手工具', icon: '🔧' },
-          consumables: { name: '消耗品', icon: '📦' },
+        const defaultCategoryMap: Record<string, string> = {
+          'electric-tools': '電動工具',
+          measuring: '測定機器',
+          safety: '安全装備',
+          painting: '塗装用具',
+          'hand-tools': '手工具',
+          consumables: '消耗品',
         }
 
         if (cat.startsWith('custom-')) {
@@ -101,17 +101,13 @@ export async function POST(request: NextRequest) {
           return {
             organization_id: organizationId,
             name,
-            icon: '📁',
-            sort_order: index,
           }
         } else {
           // デフォルトカテゴリー
-          const catInfo = defaultCategoryMap[cat]
+          const name = defaultCategoryMap[cat]
           return {
             organization_id: organizationId,
-            name: catInfo.name,
-            icon: catInfo.icon,
-            sort_order: index,
+            name,
           }
         }
       })
