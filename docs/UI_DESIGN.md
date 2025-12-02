@@ -1905,17 +1905,21 @@ const searchAddress = async () => {
 **UI構成:**
 ```
 ┌──────────────────────────────────┐
-│ 業種 * （複数選択可）            │
+│ 業種 *                           │
+│ 貴社の主要業種分類を1つ選択し、  │
+│ 該当する詳細業種を複数選択できます│
 │                                  │
 │ 大分類: [土木・基礎 ▼]          │
 │                                  │
-│ 詳細業種を選択                   │
+│ 詳細業種を選択        [全選択]   │
 │ ┌──────────────────────────┐    │
 │ │ ☑ 土工事                  │    │
 │ │ ☑ 基礎工事                │    │
 │ │ ☐ 杭工事                  │    │
 │ │ ☑ 鉄筋工事                │    │
 │ │ ☐ コンクリート工事        │    │
+│ │ ...                       │    │
+│ │ ☐ その他                  │    │
 │ └──────────────────────────┘    │
 │                                  │
 │ 選択中: 3件                      │
@@ -1923,11 +1927,18 @@ const searchAddress = async () => {
 ```
 
 **動作フロー:**
-1. 大分類をドロップダウンから選択
-2. 中分類がチェックボックスで表示される
-3. 複数の業種をチェック可能
-4. 選択数がリアルタイムで表示される
-5. 大分類を変更すると、中分類の選択はリセットされる
+1. 大分類をドロップダウンから1つ選択
+2. 中分類がチェックボックスで表示される（各大分類に「その他」業種を含む）
+3. 「全選択」ボタンで全業種を一括選択可能（全選択後は「全解除」に変化）
+4. 複数の業種をチェック可能
+5. 選択数がリアルタイムで表示される
+6. 大分類を変更すると、中分類の選択はリセットされる
+
+> **📝 2025-12-02 更新**:
+> - 各大分類に「その他」業種を追加（マイグレーション`20250102000017`）
+> - 全選択/全解除ボタンを追加
+> - 大分類は1つのみ選択可能（ドロップダウン方式）
+> - 説明文を追加して仕様を明確化
 
 **実装:**
 ```typescript
@@ -1944,6 +1955,28 @@ const toggleIndustryCategory = (categoryId: string) => {
     })
   }
 }
+
+// 全選択/全解除ボタン ⭐ NEW
+<div className="mb-3 flex items-center justify-between">
+  <p className="text-sm font-medium text-gray-700">詳細業種を選択</p>
+  <button
+    type="button"
+    onClick={() => {
+      const allIds = industries.children[selectedParentId].map((c) => c.id)
+      const allSelected = allIds.every((id) => formData.industryCategoryIds.includes(id))
+      if (allSelected) {
+        updateFormData({ industryCategoryIds: [] })  // 全解除
+      } else {
+        updateFormData({ industryCategoryIds: allIds })  // 全選択
+      }
+    }}
+    className="text-xs text-blue-600 hover:text-blue-700 hover:underline"
+  >
+    {industries.children[selectedParentId].every((c) => formData.industryCategoryIds.includes(c.id))
+      ? '全解除'
+      : '全選択'}
+  </button>
+</div>
 
 // チェックボックスUI
 <label className="flex cursor-pointer items-center rounded-md border border-gray-200 p-3 transition-colors hover:bg-gray-50">
@@ -1974,58 +2007,15 @@ const toggleIndustryCategory = (categoryId: string) => {
 │ ☑ 低在庫アラートを有効にする     │
 │   在庫が最小レベルを下回った場合に通知します
 │                                  │
-│   デフォルト最小在庫レベル       │
-│   [10___] [L (リットル) ▼]      │
-│   消耗品の在庫単位を選択してください。
+│   ℹ️ 低在庫アラートの閾値と単位は、
+│      道具・消耗品を登録する際に個別に設定します。
+│      （例：手袋は5個、ペンキは2L、接着剤は500ml など）
 └──────────────────────────────────┘
 ```
 
-#### 2-2. 在庫単位の選択 ⭐ NEW
+> **📝 2025-12-02 更新**: デフォルト在庫単位と最小レベルの設定を削除。品目ごとに異なる単位（個/L/ml/kg等）に対応するため、道具・消耗品マスタで個別設定する方式に変更。
 
-**選択可能な単位（13種類）:**
-
-| 表示名 | 値 | 用途 |
-|--------|---|------|
-| 個 | `個` | 一般的な道具 |
-| 本 | `本` | 棒状の物 |
-| 枚 | `枚` | 板状の物 |
-| セット | `セット` | 組み合わせ |
-| 箱 | `箱` | 箱単位 |
-| 袋 | `袋` | 袋単位 |
-| 缶 | `缶` | 塗料など |
-| L（リットル） | `L` | 液体 |
-| ml（ミリリットル） | `ml` | 液体（少量） |
-| kg（キログラム） | `kg` | 重量 |
-| g（グラム） | `g` | 重量（少量） |
-| m（メートル） | `m` | 長さ |
-| cm（センチメートル） | `cm` | 長さ（短い） |
-
-**実装:**
-```typescript
-<div className="flex gap-2">
-  <input
-    type="number"
-    min="1"
-    value={formData.defaultMinimumStockLevel}
-    className="w-32 rounded-md border..."
-  />
-  <select
-    value={formData.defaultStockUnit}
-    onChange={(e) => updateFormData({ defaultStockUnit: e.target.value })}
-    className="rounded-md border..."
-  >
-    <option value="個">個</option>
-    <option value="本">本</option>
-    <option value="L">L（リットル）</option>
-    {/* ... */}
-  </select>
-</div>
-```
-
-**注記テキスト:**
-> 消耗品の在庫単位を選択してください。道具ごとに個別設定も可能です。
-
-#### 2-3. 承認フロー設定
+#### 2-2. 承認フロー設定
 
 **UI構成:**
 ```

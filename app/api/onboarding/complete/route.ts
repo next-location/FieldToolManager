@@ -55,22 +55,27 @@ export async function POST(request: NextRequest) {
       throw orgError
     }
 
-    // 2. 組織設定を作成（単位情報も保存）
+    // 2. 組織設定を作成（業種情報を保存）
     const customSettings = {
-      default_stock_unit: formData.defaultStockUnit,
       selected_industries: formData.industryCategoryIds,  // 全ての業種IDを保存
     }
 
-    const { error: settingsError } = await supabase.from('organization_settings').upsert({
-      organization_id: organizationId,
-      enable_low_stock_alert: formData.enableLowStockAlert,
-      default_minimum_stock_level: formData.defaultMinimumStockLevel,
-      require_checkout_approval: formData.requireCheckoutApproval,
-      require_return_approval: formData.requireReturnApproval,
-      enable_email_notifications: true,
-      theme: 'light',
-      custom_settings: customSettings,
-    })
+    const { error: settingsError } = await supabase.from('organization_settings').upsert(
+      {
+        organization_id: organizationId,
+        enable_low_stock_alert: formData.enableLowStockAlert,
+        default_minimum_stock_level: 5,  // デフォルト値（実際は道具ごとに設定）
+        require_checkout_approval: formData.requireCheckoutApproval,
+        require_return_approval: formData.requireReturnApproval,
+        enable_email_notifications: true,
+        theme: 'light',
+        custom_settings: customSettings,
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onConflict: 'organization_id',  // 既存レコードがあれば更新
+      }
+    )
 
     if (settingsError) {
       console.error('Settings insert error:', settingsError)

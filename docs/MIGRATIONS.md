@@ -935,3 +935,143 @@ WHERE id = 'organization_id';
 - [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) - データベース設計詳細
 - [UI_DESIGN.md](./UI_DESIGN.md) - UI設計仕様
 
+
+---
+
+## 20250102000017_add_other_industry_categories.sql
+
+### ファイル名
+`20250102000017_add_other_industry_categories.sql`
+
+### 適用日
+2025-12-02
+
+### 目的
+- 各大分類に「その他」業種を追加
+- 業種選択UIで予期しない業種に対応できるようにする
+
+### 変更内容
+
+```sql
+-- 各大分類に「その他」業種を追加
+-- 土木・基礎 > その他
+INSERT INTO industry_categories (parent_id, name, name_en, sort_order, is_active)
+VALUES ('11111111-1111-1111-1111-111111111111', 'その他', 'Other', 99, true);
+
+-- 建築・構造 > その他
+INSERT INTO industry_categories (parent_id, name, name_en, sort_order, is_active)
+VALUES ('22222222-2222-2222-2222-222222222222', 'その他', 'Other', 99, true);
+
+-- 内装・仕上 > その他
+INSERT INTO industry_categories (parent_id, name, name_en, sort_order, is_active)
+VALUES ('33333333-3333-3333-3333-333333333333', 'その他', 'Other', 99, true);
+
+-- 設備・インフラ > その他
+INSERT INTO industry_categories (parent_id, name, name_en, sort_order, is_active)
+VALUES ('44444444-4444-4444-4444-444444444444', 'その他', 'Other', 99, true);
+```
+
+### ロールバック手順
+
+```sql
+-- 「その他」業種を削除
+DELETE FROM industry_categories 
+WHERE name = 'その他' AND name_en = 'Other';
+```
+
+### 影響範囲
+
+- 業種選択UI: 各大分類で「その他」が選択可能になる
+- sort_order=99で最後尾に表示される
+
+---
+
+## オンボーディングUI改善（2025-12-02）
+
+### 変更内容サマリー
+
+#### 1. 業種選択UIの改善
+
+**全選択ボタン追加:**
+- 詳細業種エリアに「全選択/全解除」ボタンを実装
+- 全業種を一括選択・解除可能
+
+**「その他」業種追加:**
+- マイグレーション`20250102000017`で各大分類に追加済み
+
+**大分類の制限:**
+- ドロップダウンで1つのみ選択可能（既存仕様維持）
+- 説明文追加: 「貴社の主要業種分類を1つ選択し、該当する詳細業種を複数選択できます」
+
+#### 2. 在庫単位設計の変更
+
+**削除した機能:**
+- ステップ2の「デフォルト在庫単位」設定
+- ステップ2の「デフォルト最小在庫レベル」入力
+- `OnboardingFormData.defaultStockUnit`フィールド
+- `OnboardingFormData.defaultMinimumStockLevel`フィールド
+
+**理由:**
+組織全体のデフォルト単位では、品目ごとに異なる単位に対応できない
+- 手袋 → 5個
+- ペンキ → 2L
+- 接着剤 → 500ml
+- セメント → 25kg
+
+**新しい設計方針:**
+道具・消耗品マスタに`stock_unit`と`minimum_stock`カラムを追加し、品目ごとに設定
+
+#### 3. エラー修正
+
+**organization_settings重複エラー:**
+```typescript
+// Before
+await supabase.from('organization_settings').upsert({ ... })
+
+// After
+await supabase.from('organization_settings').upsert(
+  { ... },
+  { onConflict: 'organization_id' }  // 既存レコードがあれば更新
+)
+```
+
+**リダイレクト先修正:**
+```typescript
+// app/onboarding/page.tsx
+// Before: redirect('/dashboard')  ← 404エラー
+// After: redirect('/')  ← ホームページ
+```
+
+### 更新ファイル
+
+- `types/organization.ts` - defaultStockUnit, defaultMinimumStockLevel削除
+- `components/onboarding/OnboardingWizard.tsx` - 初期値から削除
+- `components/onboarding/Step1OrganizationInfo.tsx` - 全選択ボタン追加
+- `components/onboarding/Step2OperationSettings.tsx` - 単位設定削除、説明文追加
+- `app/api/onboarding/complete/route.ts` - upsert修正、default_stock_unit削除
+- `app/onboarding/page.tsx` - リダイレクト先を`/`に変更
+
+### テスト確認項目（更新版）
+
+- [ ] 業種選択で「全選択」ボタンをクリック → 全業種が選択される
+- [ ] 「全解除」ボタンをクリック → 全解除される
+- [ ] 各大分類に「その他」業種が表示される
+- [ ] ステップ2に在庫単位設定がない（削除済み）
+- [ ] セットアップ完了ボタン → エラーなく完了
+- [ ] 完了後、`/`にリダイレクトされる（404にならない）
+- [ ] `custom_settings.selected_industries`に業種ID配列が保存される
+- [ ] `custom_settings.default_stock_unit`が保存されない（削除済み）
+
+### custom_settingsスキーマ（更新版）
+
+```json
+{
+  "selected_industries": [
+    "uuid-1",
+    "uuid-2",
+    "uuid-3"
+  ]
+  // default_stock_unitは削除済み
+}
+```
+

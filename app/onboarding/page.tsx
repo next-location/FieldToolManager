@@ -27,7 +27,7 @@ export default async function OnboardingPage() {
 
   // admin権限チェック
   if (userData.role !== 'admin') {
-    redirect('/dashboard')
+    redirect('/')
   }
 
   // organizationが既にセットアップ済みかチェック
@@ -38,8 +38,8 @@ export default async function OnboardingPage() {
     .single()
 
   if (organization?.setup_completed_at) {
-    // 既にセットアップ済みの場合はダッシュボードへ
-    redirect('/dashboard')
+    // 既にセットアップ済みの場合はホームへ
+    redirect('/')
   }
 
   return (

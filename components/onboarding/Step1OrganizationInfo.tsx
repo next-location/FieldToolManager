@@ -195,8 +195,10 @@ export default function Step1OrganizationInfo({ formData, updateFormData, onNext
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">
             業種 <span className="text-red-500">*</span>
-            <span className="ml-2 text-xs text-gray-500">（複数選択可）</span>
           </label>
+          <p className="mb-2 text-xs text-gray-500">
+            貴社の主要業種分類を1つ選択し、該当する詳細業種を複数選択できます
+          </p>
 
           {/* 大分類 */}
           <select
@@ -216,7 +218,32 @@ export default function Step1OrganizationInfo({ formData, updateFormData, onNext
           {/* 中分類（チェックボックス） */}
           {selectedParentId && industries.children[selectedParentId] && (
             <div className="rounded-lg border border-gray-200 p-4">
-              <p className="mb-2 text-sm font-medium text-gray-700">詳細業種を選択</p>
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-sm font-medium text-gray-700">詳細業種を選択</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const allIds = industries.children[selectedParentId].map((c) => c.id)
+                    const allSelected = allIds.every((id) =>
+                      formData.industryCategoryIds.includes(id)
+                    )
+                    if (allSelected) {
+                      // 全て選択済みなら全解除
+                      updateFormData({ industryCategoryIds: [] })
+                    } else {
+                      // 未選択があれば全選択
+                      updateFormData({ industryCategoryIds: allIds })
+                    }
+                  }}
+                  className="text-xs text-blue-600 hover:text-blue-700 hover:underline"
+                >
+                  {industries.children[selectedParentId].every((c) =>
+                    formData.industryCategoryIds.includes(c.id)
+                  )
+                    ? '全解除'
+                    : '全選択'}
+                </button>
+              </div>
               <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                 {industries.children[selectedParentId].map((category) => (
                   <label

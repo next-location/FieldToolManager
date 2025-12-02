@@ -24,8 +24,6 @@ export default function OnboardingWizard({ organizationId }: OnboardingWizardPro
     address: '',
     industryCategoryIds: [],
     enableLowStockAlert: true,
-    defaultMinimumStockLevel: 5,
-    defaultStockUnit: '個',
     requireCheckoutApproval: false,
     requireReturnApproval: false,
     selectedCategories: [],

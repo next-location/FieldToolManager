@@ -51,8 +51,6 @@ export interface OnboardingFormData {
 
   // Step 2: 運用設定
   enableLowStockAlert: boolean
-  defaultMinimumStockLevel: number
-  defaultStockUnit: string  // 単位を追加
   requireCheckoutApproval: boolean
   requireReturnApproval: boolean
 

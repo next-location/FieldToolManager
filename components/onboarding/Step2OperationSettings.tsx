@@ -46,45 +46,11 @@ export default function Step2OperationSettings({
           </div>
 
           {formData.enableLowStockAlert && (
-            <div className="ml-7 space-y-3">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  デフォルト最小在庫レベル
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.defaultMinimumStockLevel}
-                    onChange={(e) =>
-                      updateFormData({ defaultMinimumStockLevel: parseInt(e.target.value) })
-                    }
-                    className="w-32 rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none"
-                  />
-                  <select
-                    value={formData.defaultStockUnit}
-                    onChange={(e) => updateFormData({ defaultStockUnit: e.target.value })}
-                    className="rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none"
-                  >
-                    <option value="個">個</option>
-                    <option value="本">本</option>
-                    <option value="枚">枚</option>
-                    <option value="セット">セット</option>
-                    <option value="箱">箱</option>
-                    <option value="袋">袋</option>
-                    <option value="缶">缶</option>
-                    <option value="L">L（リットル）</option>
-                    <option value="ml">ml（ミリリットル）</option>
-                    <option value="kg">kg（キログラム）</option>
-                    <option value="g">g（グラム）</option>
-                    <option value="m">m（メートル）</option>
-                    <option value="cm">cm（センチメートル）</option>
-                  </select>
-                </div>
-                <p className="mt-1 text-xs text-gray-500">
-                  消耗品の在庫単位を選択してください。道具ごとに個別設定も可能です。
-                </p>
-              </div>
+            <div className="ml-7">
+              <p className="text-xs text-gray-500">
+                ℹ️ 低在庫アラートの閾値と単位は、道具・消耗品を登録する際に個別に設定します。<br />
+                （例：手袋は5個、ペンキは2L、接着剤は500ml など）
+              </p>
             </div>
           )}
         </div>
