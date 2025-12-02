@@ -2,6 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { logToolCreated, logToolUpdated, logToolDeleted } from '@/lib/audit-log'
+import { notifyToolCreated, notifyLowStock } from '@/lib/notification'
 
 export async function createTool(formData: {
   name: string
@@ -89,6 +91,28 @@ export async function createTool(formData: {
     }
   }
 
+  // 監査ログを記録
+  await logToolCreated(toolData.id, {
+    name: toolData.name,
+    model_number: toolData.model_number,
+    manufacturer: toolData.manufacturer,
+    quantity: toolData.quantity,
+    minimum_stock: toolData.minimum_stock,
+  })
+
+  // 通知を作成
+  await notifyToolCreated(toolData.id, toolData.name)
+
+  // 低在庫チェック
+  if (toolData.quantity < toolData.minimum_stock) {
+    await notifyLowStock(
+      toolData.id,
+      toolData.name,
+      toolData.quantity,
+      toolData.minimum_stock
+    )
+  }
+
   revalidatePath('/tools')
   return { success: true }
 }
@@ -117,6 +141,13 @@ export async function updateTool(
     return { error: 'ユーザーが見つかりません' }
   }
 
+  // 更新前のデータを取得（監査ログ用）
+  const { data: oldData } = await supabase
+    .from('tools')
+    .select('*')
+    .eq('id', toolId)
+    .single()
+
   const { error: updateError } = await supabase
     .from('tools')
     .update({
@@ -138,6 +169,33 @@ export async function updateTool(
   if (updateError) {
     console.error('Update error:', updateError)
     return { error: '更新に失敗しました: ' + updateError.message }
+  }
+
+  // 新しいデータを構築
+  const newData = {
+    name: formData.name,
+    model_number: formData.model_number || null,
+    manufacturer: formData.manufacturer || null,
+    purchase_date: formData.purchase_date || null,
+    purchase_price: formData.purchase_price ? parseFloat(formData.purchase_price) : null,
+    quantity: parseInt(formData.quantity),
+    minimum_stock: parseInt(formData.minimum_stock),
+    enable_low_stock_alert: formData.enable_low_stock_alert !== undefined ? formData.enable_low_stock_alert : true,
+    notes: formData.notes || null,
+  }
+
+  // 監査ログを記録
+  if (oldData) {
+    await logToolUpdated(toolId, oldData, newData)
+  }
+
+  // 低在庫チェック（組織設定と個別設定の両方がONの場合のみ）
+  const quantity = parseInt(formData.quantity)
+  const minimumStock = parseInt(formData.minimum_stock)
+  const enableAlert = formData.enable_low_stock_alert !== undefined ? formData.enable_low_stock_alert : true
+
+  if (enableAlert && quantity < minimumStock) {
+    await notifyLowStock(toolId, formData.name, quantity, minimumStock)
   }
 
   revalidatePath('/tools')

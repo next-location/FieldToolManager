@@ -413,6 +413,66 @@ ALTER TABLE tools DROP COLUMN enable_low_stock_alert;
 
 ---
 
+#### 20250102000019_create_notifications.sql
+```sql
+-- 通知履歴テーブルの作成
+CREATE TABLE IF NOT EXISTS notifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+
+  -- 通知内容
+  type TEXT NOT NULL CHECK (type IN (
+    'low_stock', 'unreturned_tool', 'monthly_inventory', 'maintenance_due',
+    'tool_created', 'tool_updated', 'tool_deleted', 'user_invited',
+    'contract_expiring', 'system_announcement'
+  )),
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  severity TEXT DEFAULT 'info' CHECK (severity IN ('info', 'warning', 'error', 'success')),
+
+  -- 関連データ
+  related_tool_id UUID REFERENCES tools(id),
+  related_user_id UUID REFERENCES users(id),
+  metadata JSONB DEFAULT '{}',
+
+  -- ステータス
+  is_read BOOLEAN DEFAULT false,
+  read_at TIMESTAMP,
+  read_by UUID REFERENCES users(id),
+
+  -- 送信情報
+  sent_via TEXT[] DEFAULT ARRAY['in_app'],
+  sent_at TIMESTAMP DEFAULT NOW(),
+
+  -- タイムスタンプ
+  created_at TIMESTAMP DEFAULT NOW(),
+  deleted_at TIMESTAMP
+);
+
+-- インデックス、RLSポリシー作成（省略）
+```
+
+**適用日**: 2025-12-02
+**ステータス**: ✅ 適用済み
+**ロールバック**:
+```sql
+DROP TABLE notifications;
+```
+
+**説明**:
+- 通知履歴機能を追加（監査ログ Issue #10 の一部として実装）
+- 低在庫アラート、道具登録、月次棚卸しなど10種類の通知タイプに対応
+- アプリ内通知・メール通知・Slack通知の記録
+- 既読/未読管理機能
+- 通知一覧画面とヘッダー通知アイコンで利用
+
+**目的**:
+- ユーザーが見逃した通知を後から確認可能に
+- 業務フローの追跡（低在庫→発注、未返却→回収）
+- 監査・コンプライアンス対応
+
+---
+
 ### Phase 2: 機能拡張（未定）
 
 #### 20251215000000_create_contracts_table.sql

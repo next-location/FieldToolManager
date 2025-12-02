@@ -534,6 +534,66 @@ CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at DESC);
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 ```
 
+#### notifications (通知履歴) ✨NEW
+```sql
+CREATE TABLE notifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+
+  -- 通知内容
+  type TEXT NOT NULL CHECK (type IN (
+    'low_stock',           -- 低在庫アラート
+    'unreturned_tool',     -- 道具未返却
+    'monthly_inventory',   -- 月次棚卸しリマインダー
+    'maintenance_due',     -- 保守期限
+    'tool_created',        -- 道具登録
+    'tool_updated',        -- 道具更新
+    'tool_deleted',        -- 道具削除
+    'user_invited',        -- ユーザー招待
+    'contract_expiring',   -- 契約期限
+    'system_announcement'  -- システムお知らせ
+  )),
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  severity TEXT DEFAULT 'info' CHECK (severity IN ('info', 'warning', 'error', 'success')),
+
+  -- 関連データ
+  related_tool_id UUID REFERENCES tools(id),
+  related_user_id UUID REFERENCES users(id),
+  metadata JSONB DEFAULT '{}',
+
+  -- ステータス
+  is_read BOOLEAN DEFAULT false,
+  read_at TIMESTAMP,
+  read_by UUID REFERENCES users(id),
+
+  -- 送信情報
+  sent_via TEXT[] DEFAULT ARRAY['in_app'], -- 'in_app', 'email', 'slack'
+  sent_at TIMESTAMP DEFAULT NOW(),
+
+  -- タイムスタンプ
+  created_at TIMESTAMP DEFAULT NOW(),
+  deleted_at TIMESTAMP
+);
+
+CREATE INDEX idx_notifications_organization_id ON notifications(organization_id);
+CREATE INDEX idx_notifications_type ON notifications(type);
+CREATE INDEX idx_notifications_severity ON notifications(severity);
+CREATE INDEX idx_notifications_is_read ON notifications(is_read);
+CREATE INDEX idx_notifications_related_tool_id ON notifications(related_tool_id);
+CREATE INDEX idx_notifications_created_at ON notifications(created_at DESC);
+CREATE INDEX idx_notifications_deleted_at ON notifications(deleted_at) WHERE deleted_at IS NULL;
+
+-- RLS有効化
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+
+COMMENT ON TABLE notifications IS '通知履歴: アプリ内通知・メール通知の記録';
+COMMENT ON COLUMN notifications.type IS '通知の種類';
+COMMENT ON COLUMN notifications.severity IS '重要度（info/warning/error/success）';
+COMMENT ON COLUMN notifications.sent_via IS '送信チャネル（アプリ内/メール/Slack）';
+COMMENT ON COLUMN notifications.is_read IS '既読フラグ';
+```
+
 ### 2.3 機能管理テーブル
 
 #### organization_features (機能フラグ)
@@ -799,6 +859,28 @@ export interface AuditLog {
   user_agent?: string;
   reason?: string;
   created_at: Date;
+}
+```
+
+#### Notification ✨NEW
+```typescript
+export interface Notification {
+  id: string
+  organization_id: string
+  type: 'low_stock' | 'unreturned_tool' | 'monthly_inventory' | 'maintenance_due' | 'tool_created' | 'tool_updated' | 'tool_deleted' | 'user_invited' | 'contract_expiring' | 'system_announcement'
+  title: string
+  message: string
+  severity: 'info' | 'warning' | 'error' | 'success'
+  related_tool_id: string | null
+  related_user_id: string | null
+  metadata: Record<string, any>
+  is_read: boolean
+  read_at: string | null
+  read_by: string | null
+  sent_via: ('in_app' | 'email' | 'slack')[]
+  sent_at: string
+  created_at: string
+  deleted_at: string | null
 }
 ```
 
