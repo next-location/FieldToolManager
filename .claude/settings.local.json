@@ -48,7 +48,10 @@
       "Bash(sudo sh -c 'echo \"\"127.0.0.1 a-kensetsu.localhost\"\" >> /etc/hosts')",
       "Bash(npx tsx:*)",
       "Bash(source .env.local)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(file:*)",
+      "Bash(head:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []
