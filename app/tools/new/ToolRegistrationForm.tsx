@@ -189,11 +189,16 @@ export function ToolRegistrationForm({ toolMasters }: { toolMasters: ToolMaster[
                 <option value="個">個</option>
                 <option value="本">本</option>
                 <option value="枚">枚</option>
-                <option value="箱">箱</option>
-                <option value="kg">kg</option>
-                <option value="L">L</option>
-                <option value="m">m</option>
                 <option value="セット">セット</option>
+                <option value="箱">箱</option>
+                <option value="袋">袋</option>
+                <option value="缶">缶</option>
+                <option value="L">L（リットル）</option>
+                <option value="ml">ml（ミリリットル）</option>
+                <option value="kg">kg（キログラム）</option>
+                <option value="g">g（グラム）</option>
+                <option value="m">m（メートル）</option>
+                <option value="cm">cm（センチメートル）</option>
               </select>
               <p className="mt-1 text-xs text-gray-500">
                 消耗品を数える単位を選択してください
@@ -244,6 +249,9 @@ export function ToolRegistrationForm({ toolMasters }: { toolMasters: ToolMaster[
               onChange={handleChange}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
+            <p className="mt-1 text-xs text-gray-500">
+              この数を下回ると低在庫アラートが表示されます
+            </p>
           </div>
         </div>
       )}
