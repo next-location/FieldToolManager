@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import { NotificationBell } from '@/components/NotificationBell'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -72,8 +73,9 @@ export default async function Home() {
                 Field Tool Manager
               </h1>
             </div>
-            <div className="flex items-center">
-              <span className="text-sm text-gray-700 mr-4">
+            <div className="flex items-center space-x-4">
+              <NotificationBell organizationId={userData?.organization_id || ''} />
+              <span className="text-sm text-gray-700">
                 {user.email}
               </span>
               <form action="/auth/signout" method="post">
