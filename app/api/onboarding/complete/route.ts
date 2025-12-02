@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      const { error: categoriesError } = await supabase.from('categories').insert(categoryData)
+      const { error: categoriesError } = await supabase.from('tool_categories').insert(categoryData)
 
       if (categoriesError) throw categoriesError
     }
