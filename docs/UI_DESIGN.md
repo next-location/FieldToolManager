@@ -294,41 +294,130 @@ export const DynamicNavigation: React.FC = () => {
 
 ## 4. レイアウト構造
 
-### 4.1 基本レイアウト
+### 4.1 基本レイアウト（実装済み）✅
+
+**実装日**: 2025-12-02
+
+Field Tool Managerは、デバイスに最適化された3層レイアウトシステムを採用しています。
+
+#### レイアウトコンポーネント構成
+
+```
+app/
+├── (authenticated)/          # 認証済みルートグループ
+│   ├── layout.tsx           # 認証チェック + AppLayout適用
+│   ├── page.tsx             # ダッシュボード
+│   ├── tools/
+│   ├── sites/
+│   └── ...                  # 全ての認証済みページ
+│
+components/
+├── AppLayout.tsx            # メインレイアウトコンポーネント
+├── SimpleHeader.tsx         # シングルヘッダー（組織名、通知、ユーザー）
+├── Sidebar.tsx              # 階層型サイドバー（PC/タブレット）
+└── MobileBottomNav.tsx      # モバイル固定下部ナビ
+```
+
+#### 実装コード
 
 ```typescript
-// app/layout.tsx
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+// app/(authenticated)/layout.tsx - 認証レイアウト
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import { AppLayout } from '@/components/AppLayout'
+
+export default async function AuthenticatedLayout({
+  children
+}: {
+  children: React.ReactNode
+}) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) redirect('/login')
+
+  const { data: userData } = await supabase
+    .from('users')
+    .select('role, organization_id')
+    .eq('id', user.id)
+    .single()
+
+  if (!userData) redirect('/login')
+
+  const { data: organization } = await supabase
+    .from('organizations')
+    .select('name')
+    .eq('id', userData.organization_id)
+    .single()
+
   return (
-    <html lang="ja">
-      <body className={`${notoSansJP.className} antialiased`}>
-        <FeatureFlagProvider>
-          <OrganizationProvider>
-            <AuthProvider>
-              <div className="flex h-screen bg-gray-50">
-                {/* サイドバー */}
-                <Sidebar className="w-64 bg-white border-r" />
+    <AppLayout
+      user={{ email: user.email, id: user.id }}
+      userRole={userData.role}
+      organizationId={userData.organization_id}
+      organizationName={organization?.name}
+    >
+      {children}
+    </AppLayout>
+  )
+}
+```
 
-                {/* メインコンテンツエリア */}
-                <div className="flex-1 flex flex-col">
-                  {/* ヘッダー */}
-                  <Header className="h-16 bg-white border-b" />
+```typescript
+// components/AppLayout.tsx - メインレイアウトラッパー
+'use client'
 
-                  {/* 機能制限通知バー（条件付き表示） */}
-                  <FeatureLimitNotification />
+import { useState } from 'react'
+import { SimpleHeader } from './SimpleHeader'
+import { Sidebar } from './Sidebar'
+import { MobileBottomNav } from './MobileBottomNav'
 
-                  {/* メインコンテンツ */}
-                  <main className="flex-1 overflow-auto p-6">
-                    {children}
-                  </main>
-                </div>
-              </div>
-            </AuthProvider>
-          </OrganizationProvider>
-        </FeatureFlagProvider>
-      </body>
-    </html>
-  );
+interface AppLayoutProps {
+  user: { email: string | null; id: string }
+  userRole: 'staff' | 'leader' | 'admin' | 'super_admin'
+  organizationId: string
+  organizationName?: string
+  children: React.ReactNode
+}
+
+export function AppLayout({
+  user,
+  userRole,
+  organizationId,
+  organizationName,
+  children
+}: AppLayoutProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* 固定ヘッダー */}
+      <SimpleHeader
+        user={user}
+        userRole={userRole}
+        organizationId={organizationId}
+        organizationName={organizationName}
+        onMenuClick={() => setSidebarOpen(!sidebarOpen)}
+      />
+
+      {/* サイドバー（PC: 常時表示、モバイル: ドロワー） */}
+      <Sidebar
+        userRole={userRole}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
+
+      {/* メインコンテンツエリア */}
+      <div className="pt-16 lg:pl-64 pb-16 lg:pb-0">
+        <main className="min-h-[calc(100vh-4rem)]">
+          {children}
+        </main>
+      </div>
+
+      {/* モバイル下部ナビ（lg未満で表示） */}
+      <MobileBottomNav onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+    </div>
+  )
 }
 ```
 
@@ -645,7 +734,72 @@ Field Tool Managerは、セキュリティと運用効率のために2つの完�
 | **タブレット** | 簡易サイドバー | 折りたたみサイドバー | 階層サイドバー |
 | **PC** | 固定サイドバー | カスタマイズ可能サイドバー | フル機能サイドバー |
 
-### 7.3 スマートフォン向けメニュー（顧客向けアプリ）
+### 7.3 実装済みレイアウトシステム ✅
+
+**実装日**: 2025-12-02
+
+#### ヘッダー（SimpleHeader.tsx）
+
+```typescript
+// 組織名、通知ベル、ユーザーメニューを含むシングルヘッダー
+export function SimpleHeader({
+  user,
+  userRole,
+  organizationId,
+  organizationName,
+  onMenuClick
+}: SimpleHeaderProps) {
+  // 主要機能:
+  // - 組織名表示（左上）
+  // - ハンバーガーメニュー（モバイルのみ）
+  // - 通知ベル（未読数バッジ付き）
+  // - ユーザードロップダウン（ロールバッジ、プロフィール、設定、ログアウト）
+}
+```
+
+#### サイドバー（Sidebar.tsx）
+
+```typescript
+// 階層型ナビゲーション、QRスキャンは道具管理配下に配置
+export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
+  // 主要機能:
+  // - ダッシュボード
+  // - 道具管理（展開可能）
+  //   - 個別管理道具
+  //   - 消耗品管理
+  //   - 道具セット
+  //   - QRスキャン ← 階層内に配置
+  //   - 移動履歴
+  //   - 消耗品移動履歴
+  // - 現場管理
+  // - 設定・管理（admin専用、展開可能）
+  //   - 組織設定
+  //   - 倉庫位置管理
+  //   - 監査ログ
+}
+```
+
+#### モバイル下部ナビ（MobileBottomNav.tsx）
+
+```typescript
+// 固定下部ナビ、QRスキャンを中央の浮遊ボタンとして配置
+export function MobileBottomNav({ unreadCount, onMenuClick }: MobileBottomNavProps) {
+  // 主要機能:
+  // - ホーム（ダッシュボード）
+  // - QR（スキャン） ← 常に表示、アクセスしやすい中央配置
+  // - 移動（+ FAB）
+  // - 通知（未読バッジ付き）
+  // - メニュー（ドロワー開閉）
+}
+```
+
+#### ハイブリッドQR配置戦略（Pattern C）
+
+- **PC/タブレット（サイドバー）**: QRスキャンは道具管理配下（論理的な位置）
+- **モバイル（下部ナビ）**: QRスキャンは中央の浮遊ボタン（アクセシビリティ優先）
+- **機能フラグ制御**: 道具管理機能が無効の組織では、QRスキャンボタンにアップグレードプロンプトを表示
+
+### 7.4 スマートフォン向けメニュー（顧客向けアプリ）
 
 #### 現場作業者用（ボトムナビゲーション＋FAB）
 

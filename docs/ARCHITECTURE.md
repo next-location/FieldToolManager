@@ -519,12 +519,12 @@ graph LR
 ```
 field-tool-manager/
 ├── app/                          # Next.js App Router
-│   ├── (auth)/                   # 認証関連ルート
+│   ├── (auth)/                   # 認証関連ルート（未認証）
 │   │   ├── login/
 │   │   ├── reset-password/
 │   │   └── layout.tsx
-│   ├── (dashboard)/              # メインアプリケーション
-│   │   ├── layout.tsx           # 共通レイアウト（ヘッダー、サイドバー）
+│   ├── (authenticated)/          # メインアプリケーション（認証済み）✅
+│   │   ├── layout.tsx           # 認証チェック + AppLayout適用
 │   │   ├── page.tsx             # ダッシュボード
 │   │   ├── tools/               # 道具管理
 │   │   │   ├── page.tsx        # 一覧
@@ -532,13 +532,18 @@ field-tool-manager/
 │   │   │   └── new/            # 新規登録
 │   │   ├── scan/                # QRスキャン
 │   │   ├── movements/           # 移動履歴
-│   │   ├── reports/             # レポート
-│   │   ├── users/               # ユーザー管理
+│   │   ├── consumables/         # 消耗品管理
+│   │   ├── consumable-movements/ # 消耗品移動履歴
+│   │   ├── tool-sets/           # 道具セット
+│   │   ├── sites/               # 現場管理
+│   │   ├── warehouse-locations/ # 倉庫位置管理
+│   │   ├── notifications/       # 通知
+│   │   ├── admin/               # システム管理者
+│   │   │   └── audit-logs/     # 監査ログ
 │   │   └── settings/            # 設定
-│   ├── admin/                    # システム管理者
-│   │   ├── organizations/       # 顧客管理
-│   │   ├── features/            # 機能フラグ
-│   │   └── billing/             # 請求管理
+│   │       ├── organization/   # 組織設定
+│   │       └── account/        # アカウント設定
+│   ├── onboarding/              # 初回セットアップ
 │   ├── api/                      # API Routes
 │   │   ├── auth/
 │   │   ├── tools/
@@ -552,14 +557,21 @@ field-tool-manager/
 │   │   ├── input.tsx
 │   │   ├── table.tsx
 │   │   └── ...
+│   ├── AppLayout.tsx             # メインレイアウトラッパー ✅
+│   ├── SimpleHeader.tsx          # シングルヘッダー ✅
+│   ├── Sidebar.tsx               # 階層型サイドバー ✅
+│   ├── MobileBottomNav.tsx       # モバイル下部ナビ ✅
+│   ├── NotificationBell.tsx      # 通知ベル ✅
 │   ├── features/                 # 機能別コンポーネント
 │   │   ├── tool-list/
 │   │   ├── qr-scanner/
 │   │   └── movement-form/
-│   └── layouts/                  # レイアウトコンポーネント
-│       ├── header.tsx
-│       ├── sidebar.tsx
-│       └── footer.tsx
+│   └── onboarding/               # オンボーディング ✅
+│       ├── OnboardingWizard.tsx
+│       ├── Step1OrganizationInfo.tsx
+│       ├── Step2OperationSettings.tsx
+│       ├── Step3CategorySetup.tsx
+│       └── Step4UserInvitation.tsx
 │
 ├── lib/                          # ライブラリ・ユーティリティ
 │   ├── supabase/                # Supabase設定
