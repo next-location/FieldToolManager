@@ -61,6 +61,7 @@ export default async function NewToolPage() {
               <ToolRegistrationForm
                 toolMasters={toolMasters || []}
                 enableLowStockAlert={organizationSettings?.enable_low_stock_alert ?? true}
+                organizationId={userData.organization_id}
               />
             </div>
           </div>

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createToolWithItems } from '@/app/tools/actions'
+import { ImageUpload } from '@/components/ImageUpload'
 
 type ToolMaster = {
   id: string
@@ -16,9 +17,11 @@ type ToolMaster = {
 export function ToolRegistrationForm({
   toolMasters,
   enableLowStockAlert,
+  organizationId,
 }: {
   toolMasters: ToolMaster[]
   enableLowStockAlert: boolean
+  organizationId: string
 }) {
   const [mode, setMode] = useState<'select' | 'new'>('select')
   const [selectedMasterId, setSelectedMasterId] = useState('')
@@ -35,6 +38,7 @@ export function ToolRegistrationForm({
     purchase_price: '',
     notes: '',
   })
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -71,6 +75,7 @@ export function ToolRegistrationForm({
           purchase_date: formData.purchase_date,
           purchase_price: formData.purchase_price,
           notes: formData.notes,
+          image_url: imageUrl,
         })
       }
 
@@ -93,6 +98,14 @@ export function ToolRegistrationForm({
       ...formData,
       [e.target.name]: e.target.value,
     })
+  }
+
+  const handleImageUploaded = (url: string) => {
+    setImageUrl(url)
+  }
+
+  const handleImageRemoved = () => {
+    setImageUrl(null)
   }
 
   return (
@@ -242,6 +255,21 @@ export function ToolRegistrationForm({
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              道具の画像
+            </label>
+            <ImageUpload
+              organizationId={organizationId}
+              onImageUploaded={handleImageUploaded}
+              onImageRemoved={handleImageRemoved}
+              currentImageUrl={imageUrl}
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              道具の画像をアップロードすると、一覧表示やQRコード印刷時に表示されます
+            </p>
           </div>
 
           <div>

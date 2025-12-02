@@ -271,6 +271,7 @@ export async function createToolWithItems(formData: {
   unit?: string
   minimum_stock?: string
   enable_low_stock_alert?: boolean
+  image_url?: string | null
   // 共通（個別アイテム登録情報）
   quantity: string
   purchase_date?: string
@@ -355,6 +356,7 @@ export async function createToolWithItems(formData: {
         quantity: parseInt(formData.quantity),
         minimum_stock: formData.minimum_stock ? parseInt(formData.minimum_stock) : 1,
         enable_low_stock_alert: formData.enable_low_stock_alert !== undefined ? formData.enable_low_stock_alert : true,
+        image_url: formData.image_url || null,
       })
       .select()
       .single()

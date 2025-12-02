@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import Image from 'next/image'
 import { DeleteToolButton } from './DeleteToolButton'
 import { QRCodeDisplay } from './QRCodeDisplay'
 
@@ -88,6 +89,22 @@ export default async function ToolDetailPage({
                 <DeleteToolButton toolId={tool.id} toolName={tool.name} />
               </div>
             </div>
+
+            {/* 道具画像 */}
+            {tool.image_url && (
+              <div className="px-4 py-5 sm:px-6 border-t border-gray-200 bg-gray-50">
+                <div className="relative w-full h-64 rounded-lg overflow-hidden bg-white">
+                  <Image
+                    src={tool.image_url}
+                    alt={tool.name}
+                    fill
+                    className="object-contain"
+                    unoptimized
+                  />
+                </div>
+              </div>
+            )}
+
             <div className="border-t border-gray-200">
               <dl>
                 <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
