@@ -22,6 +22,7 @@ Organization (組織・企業)
 ├── id (PK, UUID)
 ├── name "A建設株式会社"
 ├── subdomain "a-kensetsu" (UQ)
+├── subdomain_security_mode "standard" | "secure" ← サブドメインセキュリティモード ✨Phase 3
 ├── plan "basic" | "premium" | "enterprise"
 ├── payment_method "invoice" | "bank_transfer"
 ├── max_users 20
@@ -55,6 +56,7 @@ Tool (道具マスタ - 種類) ✨個別管理対応
 ├── purchase_price
 ├── quantity INTEGER ← 全体の個数（表示用）
 ├── minimum_stock ← 最小在庫数
+├── enable_low_stock_alert BOOLEAN ← 個別の低在庫アラートON/OFF
 ├── category_id (FK)
 ├── custom_fields JSONB
 ├── deleted_at (論理削除)
@@ -355,6 +357,7 @@ CREATE TABLE organizations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL,
   subdomain TEXT UNIQUE NOT NULL,
+  subdomain_security_mode TEXT DEFAULT 'standard' CHECK (subdomain_security_mode IN ('standard', 'secure')),
   plan TEXT NOT NULL CHECK (plan IN ('basic', 'premium', 'enterprise')),
   payment_method TEXT DEFAULT 'invoice' CHECK (payment_method IN ('invoice', 'bank_transfer')),
   max_users INTEGER DEFAULT 20,
@@ -363,6 +366,8 @@ CREATE TABLE organizations (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
+
+COMMENT ON COLUMN organizations.subdomain_security_mode IS 'サブドメインセキュリティモード: standard=会社名のみ(a-kensetsu), secure=ランダム文字列追加(a-kensetsu-x7k2)';
 
 CREATE INDEX idx_organizations_subdomain ON organizations(subdomain);
 CREATE INDEX idx_organizations_is_active ON organizations(is_active);
@@ -408,6 +413,7 @@ CREATE TABLE tools (
   unit TEXT,
   custom_fields JSONB DEFAULT '{}',
   min_stock_alert INTEGER,
+  enable_low_stock_alert BOOLEAN DEFAULT true,
   photo_url TEXT,
   manual_url TEXT,
   deleted_at TIMESTAMP,
@@ -673,6 +679,7 @@ export interface Organization {
   id: string;
   name: string;
   subdomain: string;
+  subdomain_security_mode: 'standard' | 'secure'; // Phase 3で追加予定
   plan: 'basic' | 'premium' | 'enterprise';
   payment_method: 'invoice' | 'bank_transfer';
   max_users: number;
@@ -718,6 +725,7 @@ export interface Tool {
     [key: string]: any;
   };
   min_stock_alert?: number;
+  enable_low_stock_alert?: boolean; // 個別の低在庫アラートON/OFF
   photo_url?: string;
   manual_url?: string;
   deleted_at?: Date;

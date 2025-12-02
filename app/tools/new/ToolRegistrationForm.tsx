@@ -13,7 +13,13 @@ type ToolMaster = {
   minimum_stock: number
 }
 
-export function ToolRegistrationForm({ toolMasters }: { toolMasters: ToolMaster[] }) {
+export function ToolRegistrationForm({
+  toolMasters,
+  enableLowStockAlert,
+}: {
+  toolMasters: ToolMaster[]
+  enableLowStockAlert: boolean
+}) {
   const [mode, setMode] = useState<'select' | 'new'>('select')
   const [selectedMasterId, setSelectedMasterId] = useState('')
   const [formData, setFormData] = useState({
@@ -23,6 +29,7 @@ export function ToolRegistrationForm({ toolMasters }: { toolMasters: ToolMaster[
     management_type: 'individual' as 'individual' | 'consumable',
     unit: '個',
     minimum_stock: '1',
+    enable_low_stock_alert: true,
     quantity: '1',
     purchase_date: '',
     purchase_price: '',
@@ -59,6 +66,7 @@ export function ToolRegistrationForm({ toolMasters }: { toolMasters: ToolMaster[
           management_type: formData.management_type,
           unit: formData.unit,
           minimum_stock: formData.minimum_stock,
+          enable_low_stock_alert: formData.enable_low_stock_alert,
           quantity: formData.quantity,
           purchase_date: formData.purchase_date,
           purchase_price: formData.purchase_price,
@@ -253,6 +261,37 @@ export function ToolRegistrationForm({ toolMasters }: { toolMasters: ToolMaster[
               この数を下回ると低在庫アラートが表示されます
             </p>
           </div>
+
+          {enableLowStockAlert && (
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="enable_low_stock_alert"
+                  name="enable_low_stock_alert"
+                  type="checkbox"
+                  checked={formData.enable_low_stock_alert}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      enable_low_stock_alert: e.target.checked,
+                    })
+                  }
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label
+                  htmlFor="enable_low_stock_alert"
+                  className="font-medium text-gray-700"
+                >
+                  この道具の低在庫アラートを有効にする
+                </label>
+                <p className="text-gray-500">
+                  チェックを外すと、組織の低在庫アラート設定がONでも、この道具のアラートは表示されません。
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

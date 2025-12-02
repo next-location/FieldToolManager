@@ -221,6 +221,57 @@ SELECT subdomain FROM organizations;
 npx supabase db reset
 ```
 
+### 2.1 未認証でサブドメインアクセスできない（✅ 修正済み: 2025-12-02）
+
+**症状:**
+- ログインしていない状態で `http://a-kensetsu.localhost:3000` にアクセスすると「Invalid organization」エラーが表示される
+- 組織は実際にデータベースに存在する
+
+**原因:**
+- middleware が `createClient()` を使用して認証済みクライアントを作成していた
+- 未認証の状態では RLS (Row Level Security) によって `organizations` テーブルへのクエリがブロックされる
+- 結果として、組織が存在してもクエリが空の結果を返していた
+
+**修正内容:**
+```typescript
+// middleware.ts - 修正前（問題あり）
+const supabase = await createClient()  // 認証済みクライアント
+const { data: organization } = await supabase
+  .from('organizations')
+  .select('id, is_active')
+  .eq('subdomain', subdomain)
+  .single()  // RLSによりnullが返される
+
+// middleware.ts - 修正後（正常動作）
+// サービスロールキーを使用してRLSをバイパス
+const { createClient: createServiceClient } = await import('@supabase/supabase-js')
+const supabaseService = createServiceClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  }
+)
+
+const { data: organization } = await supabaseService
+  .from('organizations')
+  .select('id, is_active')
+  .eq('subdomain', subdomain)
+  .single()  // 正常に組織データが取得できる
+
+// ログイン済みユーザーの組織確認には認証済みクライアントを使用
+const supabase = await createClient()
+const { data: { user } } = await supabase.auth.getUser()
+```
+
+**ポイント:**
+- **組織の存在確認**: サービスロールキーを使用してRLSをバイパス
+- **ユーザーの組織確認**: 認証済みクライアントを使用して適切に権限チェック
+- これにより、未認証ユーザーでもサブドメインでログインページにアクセス可能になる
+
 ### 3. RLSで他組織のデータが見える
 
 **症状:**

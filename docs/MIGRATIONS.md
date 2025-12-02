@@ -390,6 +390,29 @@ USING (
 
 ---
 
+#### 20250102_add_enable_low_stock_alert_to_tools.sql
+```sql
+-- toolsテーブルに個別の低在庫アラート設定を追加
+ALTER TABLE tools
+ADD COLUMN enable_low_stock_alert BOOLEAN DEFAULT true;
+
+COMMENT ON COLUMN tools.enable_low_stock_alert IS '低在庫アラートの有効/無効（組織設定でアラートがONの場合にのみ有効）';
+```
+
+**適用日**: 2025-12-02
+**ステータス**: ✅ 適用済み
+**ロールバック**:
+```sql
+ALTER TABLE tools DROP COLUMN enable_low_stock_alert;
+```
+
+**説明**:
+- 組織設定の`enable_low_stock_alert`がONの場合、各道具個別にアラートのON/OFFを切り替えられる機能を追加
+- 新規登録時・編集時の両方で設定可能
+- デフォルト値は`true`（アラート有効）
+
+---
+
 ### Phase 2: 機能拡張（未定）
 
 #### 20251215000000_create_contracts_table.sql

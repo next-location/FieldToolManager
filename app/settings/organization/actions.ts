@@ -12,6 +12,7 @@ export async function updateOrganizationSettings(
     enable_monthly_inventory_reminder: boolean
     enable_site_closure_checklist: boolean
     consumable_movement_tracking: 'quantity' | 'simple' | 'none'
+    enable_low_stock_alert: boolean
   }
 ) {
   const supabase = await createClient()
@@ -39,7 +40,7 @@ export async function updateOrganizationSettings(
     return { error: '他の組織の設定は変更できません' }
   }
 
-  // 設定を更新
+  // organizationsテーブルの設定を更新
   const { error: updateError } = await supabase
     .from('organizations')
     .update({
@@ -57,6 +58,25 @@ export async function updateOrganizationSettings(
   if (updateError) {
     console.error('Update error:', updateError)
     return { error: '更新に失敗しました: ' + updateError.message }
+  }
+
+  // organization_settingsテーブルの設定を更新（upsert）
+  const { error: settingsError } = await supabase
+    .from('organization_settings')
+    .upsert(
+      {
+        organization_id: organizationId,
+        enable_low_stock_alert: settings.enable_low_stock_alert,
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onConflict: 'organization_id',
+      }
+    )
+
+  if (settingsError) {
+    console.error('Settings update error:', settingsError)
+    return { error: '在庫アラート設定の更新に失敗しました: ' + settingsError.message }
   }
 
   revalidatePath('/settings/organization')

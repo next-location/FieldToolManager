@@ -1981,6 +1981,11 @@ interface AdminNotifications {
 **エンタープライズ機能**
 - 🔌 API公開
 - 📊 高度な分析
+- 🔒 サブドメインセキュアモード（オプション）
+  - 標準モード: `a-kensetsu.tool-manager.com`
+  - セキュアモード: `a-kensetsu-x7k2.tool-manager.com`
+  - Enterprise プラン向けに標準提供
+  - Basic/Premium プランでもオプション選択可能
 
 **目標**: 50社（多業種展開）
 
@@ -2069,7 +2074,7 @@ const CORE_FEATURES = {
 |------------|--------|------|-----------|
 | email_notifications | メール通知 | 重要イベントをメールで通知 | Basic以上 |
 | slack_integration | Slack連携 | Slackチャンネルへ通知 | Enterprise |
-| low_stock_alerts | 低在庫アラート | 在庫不足を自動検知 | Basic以上 |
+| low_stock_alerts | 低在庫アラート | 在庫不足を自動検知（組織設定でON/OFF、各道具でも個別ON/OFF可能） | Basic以上 |
 
 ##### メンテナンス機能
 | feature_key | 機能名 | 説明 | 推奨プラン |
@@ -3757,6 +3762,12 @@ Week 9:
     * Cloudflare設定（DDoS対策、CDN、WAF）
     * レート制限の有効化
     * CORS設定の確認
+    * サブドメインセキュアモード実装（オプション機能）
+      - organizations.subdomain_security_mode カラム追加
+      - 標準モード: "a-kensetsu" （デフォルト）
+      - セキュアモード: "a-kensetsu-x7k2" （8桁ランダム文字列追加）
+      - オンボーディング画面でモード選択UI追加
+      - Enterprise プラン向けに標準提供
   - 動作確認:
     * 複数組織でのログインテスト
     * サブドメイン検証の動作確認

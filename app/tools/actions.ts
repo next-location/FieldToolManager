@@ -103,6 +103,7 @@ export async function updateTool(
     purchase_price?: string
     quantity: string
     minimum_stock: string
+    enable_low_stock_alert?: boolean
     notes?: string
   }
 ) {
@@ -128,6 +129,7 @@ export async function updateTool(
         : null,
       quantity: parseInt(formData.quantity),
       minimum_stock: parseInt(formData.minimum_stock),
+      enable_low_stock_alert: formData.enable_low_stock_alert !== undefined ? formData.enable_low_stock_alert : true,
       notes: formData.notes || null,
       updated_at: new Date().toISOString(),
     })
@@ -210,6 +212,7 @@ export async function createToolWithItems(formData: {
   management_type?: 'individual' | 'consumable'
   unit?: string
   minimum_stock?: string
+  enable_low_stock_alert?: boolean
   // 共通（個別アイテム登録情報）
   quantity: string
   purchase_date?: string
@@ -293,6 +296,7 @@ export async function createToolWithItems(formData: {
         unit: formData.unit || '個',
         quantity: parseInt(formData.quantity),
         minimum_stock: formData.minimum_stock ? parseInt(formData.minimum_stock) : 1,
+        enable_low_stock_alert: formData.enable_low_stock_alert !== undefined ? formData.enable_low_stock_alert : true,
       })
       .select()
       .single()

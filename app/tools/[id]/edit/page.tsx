@@ -16,8 +16,10 @@ export default function EditToolPage({ params }: { params: Promise<{ id: string 
     purchase_price: '',
     quantity: '1',
     minimum_stock: '1',
+    enable_low_stock_alert: true,
     notes: '',
   })
+  const [enableLowStockAlert, setEnableLowStockAlert] = useState(true)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -26,6 +28,34 @@ export default function EditToolPage({ params }: { params: Promise<{ id: string 
 
   useEffect(() => {
     async function loadTool() {
+      // ユーザー情報を取得
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/login')
+        return
+      }
+
+      const { data: userData } = await supabase
+        .from('users')
+        .select('organization_id')
+        .eq('id', user.id)
+        .single()
+
+      if (!userData) {
+        router.push('/login')
+        return
+      }
+
+      // 組織設定を取得
+      const { data: organizationSettings } = await supabase
+        .from('organization_settings')
+        .select('enable_low_stock_alert')
+        .eq('organization_id', userData.organization_id)
+        .single()
+
+      setEnableLowStockAlert(organizationSettings?.enable_low_stock_alert ?? true)
+
+      // 道具情報を取得
       const { data: tool, error } = await supabase
         .from('tools')
         .select('*')
@@ -45,6 +75,7 @@ export default function EditToolPage({ params }: { params: Promise<{ id: string 
         purchase_price: tool.purchase_price?.toString() || '',
         quantity: tool.quantity.toString(),
         minimum_stock: tool.minimum_stock.toString(),
+        enable_low_stock_alert: tool.enable_low_stock_alert ?? true,
         notes: tool.notes || '',
       })
       setLoading(false)
@@ -262,8 +293,42 @@ export default function EditToolPage({ params }: { params: Promise<{ id: string 
                       onChange={handleChange}
                       className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
+                    <p className="mt-1 text-xs text-gray-500">
+                      この数を下回ると低在庫アラートが表示されます
+                    </p>
                   </div>
                 </div>
+
+                {enableLowStockAlert && (
+                  <div className="flex items-start">
+                    <div className="flex items-center h-5">
+                      <input
+                        id="enable_low_stock_alert"
+                        name="enable_low_stock_alert"
+                        type="checkbox"
+                        checked={formData.enable_low_stock_alert}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            enable_low_stock_alert: e.target.checked,
+                          })
+                        }
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                    </div>
+                    <div className="ml-3 text-sm">
+                      <label
+                        htmlFor="enable_low_stock_alert"
+                        className="font-medium text-gray-700"
+                      >
+                        この道具の低在庫アラートを有効にする
+                      </label>
+                      <p className="text-gray-500">
+                        チェックを外すと、組織の低在庫アラート設定がONでも、この道具のアラートは表示されません。
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <label

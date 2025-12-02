@@ -16,6 +16,11 @@ type Organization = {
   consumable_movement_tracking: 'quantity' | 'simple' | 'none'
 }
 
+type OrganizationSettings = {
+  organization_id: string
+  enable_low_stock_alert: boolean
+} | null
+
 type WarehouseTemplate = {
   id: string
   level: number
@@ -26,9 +31,11 @@ type WarehouseTemplate = {
 
 export function OrganizationSettingsForm({
   organization,
+  organizationSettings,
   warehouseTemplates,
 }: {
   organization: Organization
+  organizationSettings: OrganizationSettings
   warehouseTemplates: WarehouseTemplate[]
 }) {
   const [settings, setSettings] = useState({
@@ -39,6 +46,7 @@ export function OrganizationSettingsForm({
       organization.enable_monthly_inventory_reminder,
     enable_site_closure_checklist: organization.enable_site_closure_checklist,
     consumable_movement_tracking: organization.consumable_movement_tracking,
+    enable_low_stock_alert: organizationSettings?.enable_low_stock_alert ?? true,
   })
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{
@@ -192,6 +200,35 @@ export function OrganizationSettingsForm({
           通知・リマインド設定
         </h3>
         <div className="space-y-4">
+          <div className="flex items-start">
+            <div className="flex items-center h-5">
+              <input
+                id="enable_low_stock_alert"
+                name="enable_low_stock_alert"
+                type="checkbox"
+                checked={settings.enable_low_stock_alert}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    enable_low_stock_alert: e.target.checked,
+                  })
+                }
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+            </div>
+            <div className="ml-3 text-sm">
+              <label
+                htmlFor="enable_low_stock_alert"
+                className="font-medium text-gray-700"
+              >
+                低在庫アラート通知
+              </label>
+              <p className="text-gray-500">
+                道具・消耗品の在庫が最小在庫数を下回った場合に通知します。各道具の最小在庫数は個別に設定できます。
+              </p>
+            </div>
+          </div>
+
           <div className="flex items-start">
             <div className="flex items-center h-5">
               <input

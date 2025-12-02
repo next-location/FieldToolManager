@@ -37,6 +37,13 @@ export default async function OrganizationSettingsPage() {
     redirect('/')
   }
 
+  // 組織設定（organization_settings）を取得
+  const { data: organizationSettings } = await supabase
+    .from('organization_settings')
+    .select('*')
+    .eq('organization_id', userData.organization_id)
+    .single()
+
   // 倉庫階層テンプレートを取得
   const { data: warehouseTemplates } = await supabase
     .from('warehouse_location_templates')
@@ -96,6 +103,7 @@ export default async function OrganizationSettingsPage() {
 
             <OrganizationSettingsForm
               organization={organization}
+              organizationSettings={organizationSettings}
               warehouseTemplates={warehouseTemplates || []}
             />
           </div>

@@ -44,7 +44,10 @@
       "Bash(curl:*)",
       "Bash(git checkout:*)",
       "Read(//dev/**)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(sudo sh -c 'echo \"\"127.0.0.1 a-kensetsu.localhost\"\" >> /etc/hosts')",
+      "Bash(npx tsx:*)",
+      "Bash(source .env.local)"
     ],
     "deny": [],
     "ask": []

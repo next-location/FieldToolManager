@@ -12,23 +12,42 @@ export async function middleware(request: NextRequest) {
   // サブドメインを抽出
   const subdomain = extractSubdomain(hostname)
 
+  console.log('[Middleware] hostname:', hostname)
+  console.log('[Middleware] subdomain:', subdomain)
+
   // サブドメインが存在する場合、組織の検証
   if (subdomain) {
-    const supabase = await createClient()
+    // サービスロールキーを使用してRLSをバイパス（組織の存在確認のみ）
+    const { createClient: createServiceClient } = await import('@supabase/supabase-js')
+    const supabaseService = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    )
 
     // 組織が存在するか確認
-    const { data: organization } = await supabase
+    const { data: organization, error: orgError } = await supabaseService
       .from('organizations')
       .select('id, is_active')
       .eq('subdomain', subdomain)
       .single()
 
+    console.log('[Middleware] organization:', organization)
+    console.log('[Middleware] orgError:', orgError)
+
     // 組織が見つからないか、非アクティブの場合
     if (!organization || !organization.is_active) {
+      console.log('[Middleware] Redirecting to /error/invalid-organization')
       return NextResponse.redirect(new URL('/error/invalid-organization', request.url))
     }
 
     // ログイン済みユーザーの場合、組織の一致を確認
+    const supabase = await createClient()
     const {
       data: { user },
     } = await supabase.auth.getUser()

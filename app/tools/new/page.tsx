@@ -33,6 +33,13 @@ export default async function NewToolPage() {
     .is('deleted_at', null)
     .order('name')
 
+  // 組織設定を取得（低在庫アラートの有効/無効を確認）
+  const { data: organizationSettings } = await supabase
+    .from('organization_settings')
+    .select('enable_low_stock_alert')
+    .eq('organization_id', userData.organization_id)
+    .single()
+
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white shadow-sm">
@@ -70,7 +77,10 @@ export default async function NewToolPage() {
                 道具の新規登録
               </h2>
 
-              <ToolRegistrationForm toolMasters={toolMasters || []} />
+              <ToolRegistrationForm
+                toolMasters={toolMasters || []}
+                enableLowStockAlert={organizationSettings?.enable_low_stock_alert ?? true}
+              />
             </div>
           </div>
         </div>
