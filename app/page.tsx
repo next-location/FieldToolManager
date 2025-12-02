@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { NotificationBell } from '@/components/NotificationBell'
+import { AppLayout } from '@/components/AppLayout'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -19,14 +19,19 @@ export default async function Home() {
     .eq('id', user.id)
     .single()
 
+  if (!userData) {
+    redirect('/login')
+  }
+
+  // 組織情報を取得
+  const { data: organization } = await supabase
+    .from('organizations')
+    .select('name, setup_completed_at')
+    .eq('id', userData.organization_id)
+    .single()
+
   // 組織のセットアップ状態をチェック
   if (userData?.role === 'admin') {
-    const { data: organization } = await supabase
-      .from('organizations')
-      .select('setup_completed_at')
-      .eq('id', userData.organization_id)
-      .single()
-
     // セットアップ未完了の場合、onboardingページにリダイレクト
     if (!organization?.setup_completed_at) {
       redirect('/onboarding')
@@ -64,34 +69,13 @@ export default async function Home() {
   ).then((results) => results.filter(Boolean))
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">
-                Field Tool Manager
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <NotificationBell organizationId={userData?.organization_id || ''} />
-              <span className="text-sm text-gray-700">
-                {user.email}
-              </span>
-              <form action="/auth/signout" method="post">
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
-                >
-                  ログアウト
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <AppLayout
+      user={{ email: user.email, id: user.id }}
+      userRole={userData.role}
+      organizationId={userData.organization_id}
+      organizationName={organization?.name}
+    >
+      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
             ダッシュボード
@@ -358,7 +342,7 @@ export default async function Home() {
             )}
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </AppLayout>
   )
 }
