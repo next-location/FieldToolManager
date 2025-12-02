@@ -58,35 +58,8 @@ export default async function AuditLogsPage() {
     .limit(100)
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center space-x-8">
-              <a href="/" className="text-xl font-bold text-gray-900">
-                Field Tool Manager
-              </a>
-              <a
-                href="/admin/audit-logs"
-                className="text-sm font-medium text-blue-600 hover:text-blue-700"
-              >
-                監査ログ
-              </a>
-            </div>
-            <div className="flex items-center">
-              <a
-                href="/admin/settings"
-                className="text-sm font-medium text-gray-700 hover:text-gray-900"
-              >
-                組織設定に戻る
-              </a>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900">監査ログ</h1>
             <p className="mt-2 text-sm text-gray-600">
@@ -94,9 +67,8 @@ export default async function AuditLogsPage() {
             </p>
           </div>
 
-          <AuditLogList initialAuditLogs={auditLogs || []} />
-        </div>
-      </main>
+        <AuditLogList initialAuditLogs={auditLogs || []} />
+      </div>
     </div>
   )
 }

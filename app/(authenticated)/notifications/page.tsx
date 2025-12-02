@@ -35,27 +35,8 @@ export default async function NotificationsPage() {
     .limit(30)
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center space-x-8">
-              <a href="/" className="text-xl font-bold text-gray-900">
-                Field Tool Manager
-              </a>
-              <a
-                href="/notifications"
-                className="text-sm font-medium text-blue-600 hover:text-blue-700"
-              >
-                通知
-              </a>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
+    <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900">通知一覧</h1>
             <p className="mt-2 text-sm text-gray-600">
@@ -63,9 +44,8 @@ export default async function NotificationsPage() {
             </p>
           </div>
 
-          <NotificationList initialNotifications={notifications || []} />
-        </div>
-      </main>
+        <NotificationList initialNotifications={notifications || []} />
+      </div>
     </div>
   )
 }

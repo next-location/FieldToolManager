@@ -122,27 +122,8 @@ export default function EditToolPage({ params }: { params: Promise<{ id: string 
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center space-x-8">
-              <Link href="/" className="text-xl font-bold text-gray-900">
-                Field Tool Manager
-              </Link>
-              <Link
-                href="/tools"
-                className="text-sm font-medium text-blue-600 hover:text-blue-700"
-              >
-                道具管理
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
+    <div className="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
           <div className="mb-6">
             <Link
               href={`/tools/${id}`}
@@ -366,7 +347,7 @@ export default function EditToolPage({ params }: { params: Promise<{ id: string 
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   )
 }
