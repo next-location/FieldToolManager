@@ -18,6 +18,20 @@ export default async function Home() {
     .eq('id', user.id)
     .single()
 
+  // 組織のセットアップ状態をチェック
+  if (userData?.role === 'admin') {
+    const { data: organization } = await supabase
+      .from('organizations')
+      .select('setup_completed_at')
+      .eq('id', userData.organization_id)
+      .single()
+
+    // セットアップ未完了の場合、onboardingページにリダイレクト
+    if (!organization?.setup_completed_at) {
+      redirect('/onboarding')
+    }
+  }
+
   // 在庫アラート対象の消耗品を取得
   const { data: consumables } = await supabase
     .from('tools')

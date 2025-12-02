@@ -1774,3 +1774,461 @@ describe('FeatureGate', () => {
 5. **アクセシビリティ**: WCAG準拠による幅広いユーザー対応
 
 このアーキテクチャにより、初期リリースから将来の機能拡張まで、一貫性のあるユーザー体験を提供できます。
+---
+
+## 実装済み機能：初回セットアップウィザード
+
+### 実装日時
+2025-01-02
+
+---
+
+## 初回セットアップウィザード（4ステップ）
+
+### 概要
+
+新規組織の管理者が初回ログイン時に表示される、組織情報・運用設定を行うウィザード形式のUI。
+
+**ルート:** `/onboarding`
+
+**アクセス制御:**
+- 管理者（admin）のみアクセス可能
+- `setup_completed_at` がNULLの組織のみ表示
+- セットアップ完了後は自動的にダッシュボード（`/`）にリダイレクト
+
+---
+
+### プログレスバー
+
+**表示位置:** 画面上部
+
+**デザイン:**
+```
+┌────────────────────────────────────┐
+│  1 ━━━ 2 ━━━ 3 ━━━ 4             │
+│  組織情報  運用設定  カテゴリー  ユーザー招待
+└────────────────────────────────────┘
+```
+
+**状態表示:**
+- 現在のステップ: 青色（`bg-blue-600`）
+- 完了したステップ: 緑色（`bg-green-600`）+ チェックマーク
+- 未完了のステップ: グレー（`bg-gray-300`）
+
+**実装:**
+```typescript
+{[1, 2, 3, 4].map((step) => (
+  <div
+    className={`flex h-10 w-10 items-center justify-center rounded-full font-semibold ${
+      step === currentStep
+        ? 'bg-blue-600 text-white'
+        : step < currentStep
+          ? 'bg-green-600 text-white'
+          : 'bg-gray-300 text-gray-600'
+    }`}
+  >
+    {step < currentStep ? '✓' : step}
+  </div>
+))}
+```
+
+---
+
+### ステップ 1: 組織情報
+
+#### 1-1. 基本情報入力
+
+**必須項目:**
+- 組織名（`organizationName`）
+- 代表者名（`representativeName`）
+- 電話番号（`phone`）
+
+**任意項目:**
+- 郵便番号（`postalCode`）
+- 住所（`address`）
+
+**フィールドデザイン:**
+```
+┌──────────────────────────────────┐
+│ 組織名 *                         │
+│ [A建設株式会社_______________]   │
+└──────────────────────────────────┘
+```
+
+#### 1-2. 郵便番号から住所検索機能 ⭐ NEW
+
+**UI構成:**
+```
+┌──────────────────────────────────┐
+│ 郵便番号                         │
+│ [100-0001__________] [住所検索]  │
+└──────────────────────────────────┘
+```
+
+**動作:**
+1. 郵便番号を入力（7桁、ハイフンあり・なし両対応）
+2. 「住所検索」ボタンをクリック
+3. zipcloud APIにリクエスト
+4. 取得した住所を自動入力
+
+**実装詳細:**
+```typescript
+// 郵便番号の入力制御（数字とハイフンのみ）
+onChange={(e) => {
+  const value = e.target.value.replace(/[^\d-]/g, '')
+  updateFormData({ postalCode: value })
+}}
+
+// 住所検索API
+const searchAddress = async () => {
+  const postalCode = formData.postalCode.replace(/-/g, '')
+  const res = await fetch(`https://zipcloud.ibsnet.co.jp/api/search?zipcode=${postalCode}`)
+  const data = await res.json()
+  if (data.results) {
+    const address = `${result.address1}${result.address2}${result.address3}`
+    updateFormData({ address })
+  }
+}
+```
+
+**エラー処理:**
+- 7桁未満の場合: 「7桁の郵便番号を入力してください」
+- 住所が見つからない場合: 「住所が見つかりませんでした」
+- API接続失敗: 「住所検索に失敗しました」
+
+**ローディング状態:**
+- 検索中は「検索中...」と表示
+- ボタンを無効化（`disabled={isSearching}`）
+
+#### 1-3. 業種選択（複数選択対応） ⭐ NEW
+
+**UI構成:**
+```
+┌──────────────────────────────────┐
+│ 業種 * （複数選択可）            │
+│                                  │
+│ 大分類: [土木・基礎 ▼]          │
+│                                  │
+│ 詳細業種を選択                   │
+│ ┌──────────────────────────┐    │
+│ │ ☑ 土工事                  │    │
+│ │ ☑ 基礎工事                │    │
+│ │ ☐ 杭工事                  │    │
+│ │ ☑ 鉄筋工事                │    │
+│ │ ☐ コンクリート工事        │    │
+│ └──────────────────────────┘    │
+│                                  │
+│ 選択中: 3件                      │
+└──────────────────────────────────┘
+```
+
+**動作フロー:**
+1. 大分類をドロップダウンから選択
+2. 中分類がチェックボックスで表示される
+3. 複数の業種をチェック可能
+4. 選択数がリアルタイムで表示される
+5. 大分類を変更すると、中分類の選択はリセットされる
+
+**実装:**
+```typescript
+// 業種トグル処理
+const toggleIndustryCategory = (categoryId: string) => {
+  const currentIds = formData.industryCategoryIds || []
+  if (currentIds.includes(categoryId)) {
+    updateFormData({
+      industryCategoryIds: currentIds.filter((id) => id !== categoryId),
+    })
+  } else {
+    updateFormData({
+      industryCategoryIds: [...currentIds, categoryId],
+    })
+  }
+}
+
+// チェックボックスUI
+<label className="flex cursor-pointer items-center rounded-md border border-gray-200 p-3 transition-colors hover:bg-gray-50">
+  <input
+    type="checkbox"
+    checked={formData.industryCategoryIds.includes(category.id)}
+    onChange={() => toggleIndustryCategory(category.id)}
+  />
+  <span>{category.name}</span>
+</label>
+```
+
+**バリデーション:**
+- 最低1つの業種選択が必須
+- 未選択の場合: 「業種は最低1つ選択してください」
+
+---
+
+### ステップ 2: 運用設定
+
+#### 2-1. 在庫管理設定
+
+**UI構成:**
+```
+┌──────────────────────────────────┐
+│ 在庫管理設定                     │
+│                                  │
+│ ☑ 低在庫アラートを有効にする     │
+│   在庫が最小レベルを下回った場合に通知します
+│                                  │
+│   デフォルト最小在庫レベル       │
+│   [10___] [L (リットル) ▼]      │
+│   消耗品の在庫単位を選択してください。
+└──────────────────────────────────┘
+```
+
+#### 2-2. 在庫単位の選択 ⭐ NEW
+
+**選択可能な単位（13種類）:**
+
+| 表示名 | 値 | 用途 |
+|--------|---|------|
+| 個 | `個` | 一般的な道具 |
+| 本 | `本` | 棒状の物 |
+| 枚 | `枚` | 板状の物 |
+| セット | `セット` | 組み合わせ |
+| 箱 | `箱` | 箱単位 |
+| 袋 | `袋` | 袋単位 |
+| 缶 | `缶` | 塗料など |
+| L（リットル） | `L` | 液体 |
+| ml（ミリリットル） | `ml` | 液体（少量） |
+| kg（キログラム） | `kg` | 重量 |
+| g（グラム） | `g` | 重量（少量） |
+| m（メートル） | `m` | 長さ |
+| cm（センチメートル） | `cm` | 長さ（短い） |
+
+**実装:**
+```typescript
+<div className="flex gap-2">
+  <input
+    type="number"
+    min="1"
+    value={formData.defaultMinimumStockLevel}
+    className="w-32 rounded-md border..."
+  />
+  <select
+    value={formData.defaultStockUnit}
+    onChange={(e) => updateFormData({ defaultStockUnit: e.target.value })}
+    className="rounded-md border..."
+  >
+    <option value="個">個</option>
+    <option value="本">本</option>
+    <option value="L">L（リットル）</option>
+    {/* ... */}
+  </select>
+</div>
+```
+
+**注記テキスト:**
+> 消耗品の在庫単位を選択してください。道具ごとに個別設定も可能です。
+
+#### 2-3. 承認フロー設定
+
+**UI構成:**
+```
+┌──────────────────────────────────┐
+│ 承認フロー設定                   │
+│                                  │
+│ ☐ 道具の貸出時に承認を必要とする │
+│   リーダーまたは管理者の承認が必要になります
+│                                  │
+│ ☐ 道具の返却時に承認を必要とする │
+│   返却時の状態確認を強制できます │
+└──────────────────────────────────┘
+```
+
+**情報パネル:**
+```
+┌──────────────────────────────────┐
+│ 💡 これらの設定は後から変更可能です。
+│    まずは基本的な設定で開始し、
+│    運用しながら最適化することをお勧めします。
+└──────────────────────────────────┘
+```
+
+---
+
+### ステップ 3: カテゴリー設定
+
+**デフォルトカテゴリー:**
+- 電動工具 ⚡
+- 測定機器 📏
+- 安全装備 🦺
+- 塗装用具 🎨
+- 手工具 🔧
+- 消耗品 📦
+
+**カスタムカテゴリー追加:**
+```
+┌──────────────────────────────────┐
+│ カスタムカテゴリー追加           │
+│ [足場用品_______] [追加]         │
+└──────────────────────────────────┘
+```
+
+---
+
+### ステップ 4: ユーザー招待
+
+**UI構成:**
+```
+┌──────────────────────────────────┐
+│ メンバーを追加                   │
+│ [tanaka@example.com] [リーダー▼] [追加]
+│                                  │
+│ 招待するメンバー (2名)           │
+│ ┌──────────────────────────┐    │
+│ │ tanaka@example.com        │    │
+│ │ 権限: リーダー    [削除]  │    │
+│ │                          │    │
+│ │ sato@example.com          │    │
+│ │ 権限: スタッフ    [削除]  │    │
+│ └──────────────────────────┘    │
+└──────────────────────────────────┘
+```
+
+**権限説明:**
+- **スタッフ:** 道具の貸出・返却、在庫確認
+- **リーダー:** スタッフ権限 + 承認、レポート閲覧
+- **管理者:** 全権限（設定変更、ユーザー管理など）
+
+---
+
+### ボタンレイアウト
+
+**共通パターン:**
+```
+┌──────────────────────────────────┐
+│                                  │
+│          [戻る]    [次へ →]      │
+└──────────────────────────────────┘
+```
+
+**最終ステップ（ステップ4）:**
+```
+┌──────────────────────────────────┐
+│                                  │
+│    [戻る]  [セットアップ完了]    │
+└──────────────────────────────────┘
+```
+
+**ローディング状態:**
+- セットアップ中: 「セットアップ中...」
+- ボタン無効化（`disabled={isLoading}`）
+
+---
+
+### レスポンシブデザイン
+
+#### モバイル表示（< 768px）
+
+**プログレスバー:**
+- ステップ間の線を短く（`w-16`）
+- ラベルを小さく（`text-xs`）
+
+**フォーム:**
+- 1カラムレイアウト
+- 業種チェックボックス: `grid-cols-1`
+
+#### タブレット・PC表示（≥ 768px）
+
+**フォーム:**
+- 2カラムレイアウト（業種選択など）
+- `grid-cols-2`
+
+---
+
+### エラー表示
+
+**クライアント側バリデーション:**
+```javascript
+if (!formData.organizationName) {
+  alert('必須項目を入力してください')
+  return
+}
+```
+
+**サーバー側エラー:**
+```javascript
+try {
+  const response = await fetch('/api/onboarding/complete', {...})
+  if (!response.ok) {
+    const errorData = await response.json()
+    throw new Error(errorData.details || 'Setup failed')
+  }
+} catch (error) {
+  alert('セットアップ中にエラーが発生しました')
+}
+```
+
+**エラーログ:**
+- ブラウザコンソールに詳細を出力
+- サーバーログに認証エラー、DB エラーを出力
+
+---
+
+### アクセシビリティ
+
+**キーボード操作:**
+- Tabキーでフォーカス移動
+- Enterキーで送信（フォーム内）
+
+**スクリーンリーダー対応:**
+- 必須項目に `*` マークと `required` 属性
+- エラーメッセージは `alert` で通知
+
+**色覚異常対応:**
+- 青・緑・グレーで状態を区別
+- アイコン（✓）も併用
+
+---
+
+### データフロー
+
+```
+1. ユーザーが各ステップで情報入力
+   ↓
+2. formDataにローカル保存（useState）
+   ↓
+3. Step 4で「セットアップ完了」クリック
+   ↓
+4. POST /api/onboarding/complete
+   ↓
+5. organizationsテーブル更新
+   - name, representative_name, phone, etc.
+   - industry_category_id（最初の業種）
+   - setup_completed_at = NOW()
+   ↓
+6. organization_settingsテーブル作成
+   - enable_low_stock_alert, default_minimum_stock_level
+   - custom_settings: { default_stock_unit, selected_industries }
+   ↓
+7. categoriesテーブルに選択カテゴリー挿入
+   ↓
+8. リダイレクト: router.push('/')
+   ↓
+9. ダッシュボード表示
+```
+
+---
+
+### 関連ファイル
+
+**UIコンポーネント:**
+- `app/onboarding/page.tsx` - ページエントリー
+- `components/onboarding/OnboardingWizard.tsx` - ウィザード本体
+- `components/onboarding/Step1OrganizationInfo.tsx` - ステップ1
+- `components/onboarding/Step2OperationSettings.tsx` - ステップ2
+- `components/onboarding/Step3CategorySetup.tsx` - ステップ3
+- `components/onboarding/Step4UserInvitation.tsx` - ステップ4
+
+**API:**
+- `app/api/onboarding/complete/route.ts` - セットアップ完了API
+- `app/api/industries/route.ts` - 業種マスタ取得API
+
+**型定義:**
+- `types/organization.ts` - OnboardingFormData, IndustryCategory
+

@@ -605,3 +605,333 @@ CREATE INDEX CONCURRENTLY idx_name ON table_name(column_name);
 | 日付 | バージョン | 変更内容 |
 |------|-----------|---------|
 | 2025-12-01 | 1.0.0 | 初版作成（マイグレーション管理体制確立） |
+
+---
+
+## マイグレーション #17: 組織セットアップ機能（業種マスタ・組織設定）
+
+### 実行日時
+2025-01-02
+
+### ファイル名
+`20250102_add_organization_settings_and_industry.sql`
+
+### 目的
+- 組織の初回セットアップ機能を実装
+- 建設業の業種分類マスタテーブルを追加
+- 組織ごとの運用設定を管理するテーブルを追加
+- organizationsテーブルに組織情報カラムを追加
+
+### 変更内容
+
+#### 1. industry_categoriesテーブル作成
+
+```sql
+CREATE TABLE industry_categories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  parent_id UUID REFERENCES industry_categories(id) ON DELETE CASCADE,
+  name VARCHAR(100) NOT NULL,
+  name_en VARCHAR(100),
+  description TEXT,
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_industry_categories_parent ON industry_categories(parent_id);
+CREATE INDEX idx_industry_categories_sort ON industry_categories(sort_order);
+```
+
+**初期データ:**
+- 大分類4種（土木・基礎、建築・構造、内装・仕上、設備・インフラ）
+- 中分類22種（各大分類配下に5〜7業種）
+
+#### 2. organization_settingsテーブル作成
+
+```sql
+CREATE TABLE organization_settings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  enable_low_stock_alert BOOLEAN DEFAULT true,
+  default_minimum_stock_level INTEGER DEFAULT 5,
+  require_checkout_approval BOOLEAN DEFAULT false,
+  require_return_approval BOOLEAN DEFAULT false,
+  enable_email_notifications BOOLEAN DEFAULT true,
+  notification_email TEXT,
+  theme VARCHAR(20) DEFAULT 'light',
+  custom_settings JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(organization_id)
+);
+
+CREATE INDEX idx_organization_settings_org ON organization_settings(organization_id);
+```
+
+#### 3. organizationsテーブルにカラム追加
+
+```sql
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS representative_name VARCHAR(100);
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS phone VARCHAR(20);
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS postal_code VARCHAR(10);
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS address TEXT;
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS industry_category_id UUID REFERENCES industry_categories(id);
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS setup_completed_at TIMESTAMPTZ;
+
+CREATE INDEX IF NOT EXISTS idx_organizations_industry ON organizations(industry_category_id);
+CREATE INDEX IF NOT EXISTS idx_organizations_setup ON organizations(setup_completed_at);
+```
+
+#### 4. RLSポリシー設定
+
+```sql
+-- industry_categories: 全認証ユーザーが参照可能
+ALTER TABLE industry_categories ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Industry categories are viewable by all authenticated users"
+  ON industry_categories FOR SELECT TO authenticated USING (true);
+
+-- organization_settings: 自組織のみアクセス、管理者のみ変更可能
+ALTER TABLE organization_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view their own organization settings"
+  ON organization_settings FOR SELECT TO authenticated
+  USING (organization_id = get_organization_id());
+
+CREATE POLICY "Admins can insert their organization settings"
+  ON organization_settings FOR INSERT TO authenticated
+  WITH CHECK (
+    organization_id = get_organization_id() AND
+    EXISTS (SELECT 1 FROM users WHERE users.id = auth.uid() AND users.organization_id = get_organization_id() AND users.role = 'admin')
+  );
+
+CREATE POLICY "Admins can update their organization settings"
+  ON organization_settings FOR UPDATE TO authenticated
+  USING (organization_id = get_organization_id() AND EXISTS (SELECT 1 FROM users WHERE users.id = auth.uid() AND users.organization_id = get_organization_id() AND users.role = 'admin'))
+  WITH CHECK (organization_id = get_organization_id());
+```
+
+#### 5. 更新日時トリガー
+
+```sql
+CREATE OR REPLACE FUNCTION update_organization_settings_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_update_organization_settings_updated_at
+  BEFORE UPDATE ON organization_settings
+  FOR EACH ROW
+  EXECUTE FUNCTION update_organization_settings_updated_at();
+
+CREATE TRIGGER trigger_update_industry_categories_updated_at
+  BEFORE UPDATE ON industry_categories
+  FOR EACH ROW
+  EXECUTE FUNCTION update_organization_settings_updated_at();
+```
+
+### 影響範囲
+- 既存の組織データ: `setup_completed_at`がNULLなので初回セットアップが必要
+- 既存ユーザー: 管理者が初回ログイン時に`/onboarding`にリダイレクトされる
+- 新規組織: セットアップウィザードで組織情報・運用設定を入力
+
+### ロールバック手順
+
+```sql
+-- トリガー削除
+DROP TRIGGER IF EXISTS trigger_update_organization_settings_updated_at ON organization_settings;
+DROP TRIGGER IF EXISTS trigger_update_industry_categories_updated_at ON industry_categories;
+DROP FUNCTION IF EXISTS update_organization_settings_updated_at();
+
+-- テーブル削除
+DROP TABLE IF EXISTS organization_settings CASCADE;
+DROP TABLE IF EXISTS industry_categories CASCADE;
+
+-- organizationsテーブルのカラム削除
+ALTER TABLE organizations DROP COLUMN IF EXISTS representative_name;
+ALTER TABLE organizations DROP COLUMN IF EXISTS phone;
+ALTER TABLE organizations DROP COLUMN IF EXISTS postal_code;
+ALTER TABLE organizations DROP COLUMN IF EXISTS address;
+ALTER TABLE organizations DROP COLUMN IF EXISTS industry_category_id;
+ALTER TABLE organizations DROP COLUMN IF EXISTS setup_completed_at;
+```
+
+### テスト確認項目
+- [ ] industry_categoriesテーブルに大分類4種・中分類22種が登録されている
+- [ ] 業種の親子関係が正しく設定されている
+- [ ] 管理者が初回ログイン時に`/onboarding`にリダイレクトされる
+- [ ] 4ステップウィザードで組織情報を入力できる
+- [ ] セットアップ完了後、`organizations.setup_completed_at`が設定される
+- [ ] セットアップ完了後、`organization_settings`が作成される
+- [ ] 選択したカテゴリーが`categories`テーブルに登録される
+- [ ] RLSポリシーが正しく動作（他組織の設定は見えない）
+- [ ] 管理者以外はorganization_settingsを変更できない
+
+### 関連Issue
+- GitHub Issue #35: 🚀 本番環境移行タスク
+
+### 関連ドキュメント
+- `docs/DATABASE_SCHEMA.md` - テーブル定義詳細
+- `docs/DEVELOPMENT_MULTITENANT.md` - 開発環境でのマルチテナント機能テスト手順
+- `docs/SPECIFICATION_SAAS_FINAL.md` - Phase 5本番移行タスク
+
+
+---
+
+## 実装履歴：初回セットアップ機能の改善
+
+### 実施日時
+2025-01-02 (機能拡張)
+
+### 変更内容
+
+既存の初回セットアップ機能に以下の改善を実施しました。
+
+#### 1. 業種複数選択への対応
+
+**データベース変更:** なし（既存構造を活用）
+
+**保存方法の変更:**
+```sql
+-- organizations.industry_category_id には最初の業種のみ保存（既存カラム）
+UPDATE organizations 
+SET industry_category_id = '選択された業種の最初のID'
+WHERE id = 'organization_id';
+
+-- organization_settings.custom_settings に全業種を保存
+UPDATE organization_settings
+SET custom_settings = jsonb_set(
+  custom_settings,
+  '{selected_industries}',
+  '["uuid1", "uuid2", "uuid3"]'::jsonb
+)
+WHERE organization_id = 'organization_id';
+```
+
+**データ取得例:**
+```sql
+-- 組織の全選択業種を取得
+SELECT 
+  o.name,
+  o.industry_category_id,  -- 代表業種
+  os.custom_settings->>'selected_industries' as all_industries  -- 全業種
+FROM organizations o
+LEFT JOIN organization_settings os ON os.organization_id = o.id
+WHERE o.id = 'organization_id';
+```
+
+#### 2. 在庫単位のデフォルト値保存
+
+**データベース変更:** なし（custom_settingsのJSONBを活用）
+
+**保存方法:**
+```sql
+-- デフォルト在庫単位をcustom_settingsに保存
+UPDATE organization_settings
+SET custom_settings = jsonb_set(
+  custom_settings,
+  '{default_stock_unit}',
+  '"L"'::jsonb
+)
+WHERE organization_id = 'organization_id';
+```
+
+**データ取得例:**
+```sql
+-- 組織のデフォルト在庫単位を取得
+SELECT 
+  custom_settings->>'default_stock_unit' as default_unit
+FROM organization_settings
+WHERE organization_id = 'organization_id';
+
+-- 結果: "L"
+```
+
+#### 3. custom_settingsのスキーマ定義
+
+**推奨JSON構造:**
+```json
+{
+  "default_stock_unit": "L",
+  "selected_industries": [
+    "uuid-industry-1",
+    "uuid-industry-2",
+    "uuid-industry-3"
+  ],
+  "future_extensions": {
+    "custom_feature": "value"
+  }
+}
+```
+
+#### 4. API実装の変更
+
+**ファイル:** `app/api/onboarding/complete/route.ts`
+
+**変更点:**
+- 複数業種IDの保存ロジック追加
+- エラーハンドリングの詳細化
+- custom_settingsへの単位情報保存
+
+```typescript
+// 変更後のコード
+const customSettings = {
+  default_stock_unit: formData.defaultStockUnit,
+  selected_industries: formData.industryCategoryIds,
+}
+
+await supabase.from('organization_settings').upsert({
+  organization_id: organizationId,
+  custom_settings: customSettings,
+  // ...
+})
+```
+
+### ロールバック手順
+
+**custom_settingsの初期化:**
+```sql
+-- デフォルト値に戻す
+UPDATE organization_settings
+SET custom_settings = '{}'::jsonb
+WHERE organization_id = 'organization_id';
+```
+
+**organizationsテーブルの初期化:**
+```sql
+-- セットアップ完了フラグをリセット
+UPDATE organizations
+SET setup_completed_at = NULL
+WHERE id = 'organization_id';
+```
+
+### テスト確認項目
+
+- [ ] 郵便番号検索で正しい住所が取得できる
+- [ ] 業種を複数選択できる（チェックボックス）
+- [ ] 選択した業種数が表示される
+- [ ] 在庫単位を選択できる（13種類）
+- [ ] セットアップ完了後、custom_settingsに正しく保存される
+- [ ] セットアップ完了後、ダッシュボード（/）にリダイレクトされる
+- [ ] エラー発生時に詳細なログが出力される
+
+### 影響範囲
+
+**UIコンポーネント:**
+- `components/onboarding/Step1OrganizationInfo.tsx` - 郵便番号検索、業種複数選択
+- `components/onboarding/Step2OperationSettings.tsx` - 単位選択
+- `components/onboarding/OnboardingWizard.tsx` - リダイレクト先修正
+
+**API:**
+- `app/api/onboarding/complete/route.ts` - 保存ロジック改善
+
+**型定義:**
+- `types/organization.ts` - OnboardingFormData更新
+
+### 関連ドキュメント
+
+- [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) - データベース設計詳細
+- [UI_DESIGN.md](./UI_DESIGN.md) - UI設計仕様
+

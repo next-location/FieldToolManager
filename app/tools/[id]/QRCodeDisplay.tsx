@@ -21,6 +21,7 @@ export function QRCodeDisplay({ value, size = 200 }: QRCodeDisplayProps) {
       {
         width: size,
         margin: 2,
+        errorCorrectionLevel: 'H', // 最高の訂正レベル（30%復元可能）
         color: {
           dark: '#000000',
           light: '#FFFFFF',

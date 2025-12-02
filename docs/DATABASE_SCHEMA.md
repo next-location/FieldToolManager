@@ -1881,3 +1881,795 @@ ORDER BY wl.code;
 ```
 
 ---
+
+## 📝 実装履歴
+
+### 2025-12-02: QRコードセキュリティとマルチテナント認証の実装
+
+#### Issue #9 - UUIDベースのQRコードセキュリティ
+
+**実装内容**:
+- QRコード生成機能（訂正レベルH、30%復元可能）
+- QRコードスキャン機能（HTML5 QRコード）
+- UUID検証とアクセス制御
+
+**セキュリティ特性**:
+```typescript
+// QRコードの内容例
+UUID直接: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+URL形式: "https://app.fieldtool.com/scan?id=a1b2c3d4-..."
+
+// 訂正レベル
+errorCorrectionLevel: 'H'  // 30%復元可能（最高レベル）
+```
+
+**関連ファイル**:
+- `components/qr/QRCodeGenerator.tsx` - QRコード生成コンポーネント
+- `components/qr/QRCodeScanner.tsx` - QRコードスキャナー
+- `app/api/tools/by-qr/[qrCode]/route.ts` - QRコード検索API
+- `app/tools/[id]/QRCodeDisplay.tsx` - QRコード表示（訂正レベルH対応）
+
+**データベース対応**:
+```sql
+-- tools テーブル
+qr_code UUID NOT NULL DEFAULT uuid_generate_v4()
+
+-- tool_items テーブル
+qr_code UUID NOT NULL DEFAULT uuid_generate_v4()
+
+-- UNIQUEインデックス
+CREATE UNIQUE INDEX idx_tools_qr_code ON tools(qr_code);
+CREATE UNIQUE INDEX idx_tool_items_qr_code ON tool_items(qr_code);
+```
+
+#### Issue #13 - マルチテナント認証システム
+
+**実装内容**:
+- 組織別データ分離（RLS使用）
+- サブドメインベースの組織識別
+- 組織間アクセス制御
+
+**アーキテクチャ**:
+```
+データベースレベル:
+├── RLS (Row Level Security) ポリシー
+│   └── get_organization_id() 関数で自動フィルタリング
+│
+アプリケーションレベル:
+├── middleware.ts
+│   ├── サブドメイン検証（本番環境のみ）
+│   ├── 組織の存在確認
+│   └── ユーザー組織一致確認
+│
+└── lib/multi-tenant.ts
+    ├── getCurrentOrganizationId()
+    ├── getCurrentOrganization()
+    ├── checkOrganizationAccess()
+    ├── getUserRole()
+    └── checkRole()
+```
+
+**RLSポリシー例**:
+```sql
+-- toolsテーブルのRLSポリシー
+CREATE POLICY "Users can view organization tools" 
+ON tools FOR SELECT
+USING (
+  organization_id = get_organization_id() 
+  AND deleted_at IS NULL
+);
+
+CREATE POLICY "Users can insert tools"
+ON tools FOR INSERT
+WITH CHECK (
+  organization_id = get_organization_id()
+);
+
+CREATE POLICY "Users can update tools"
+ON tools FOR UPDATE
+USING (
+  organization_id = get_organization_id()
+);
+```
+
+**get_organization_id() 関数**:
+```sql
+CREATE OR REPLACE FUNCTION get_organization_id()
+RETURNS UUID AS $$
+DECLARE
+    org_id UUID;
+BEGIN
+    -- usersテーブルから現在のユーザーの組織IDを取得
+    SELECT organization_id INTO org_id
+    FROM public.users
+    WHERE id = auth.uid();
+
+    RETURN org_id;
+END;
+$$ LANGUAGE plpgsql VOLATILE;
+```
+
+**環境別動作**:
+```typescript
+// 開発環境（localhost）
+- サブドメイン検証: スキップ
+- RLS: 有効（データベースレベル）
+- 理由: 開発の利便性のため
+
+// 本番環境（*.tool-manager.com）
+- サブドメイン検証: 有効
+- RLS: 有効
+- 組織分離: 完全分離
+```
+
+**セキュリティチェックフロー**:
+```
+1. ミドルウェア（middleware.ts）
+   ↓
+2. サブドメイン抽出
+   例: a-kensetsu.tool-manager.com → "a-kensetsu"
+   ↓
+3. 組織の存在・アクティブ確認
+   SELECT * FROM organizations WHERE subdomain = 'a-kensetsu'
+   ↓
+4. ユーザー組織一致確認
+   user.organization_id === organization.id
+   ↓
+5. RLSポリシー適用
+   自動的に organization_id でフィルタリング
+```
+
+**マルチテナント機能の説明**:
+
+開発環境と本番環境で動作が異なる理由：
+
+1. **開発環境（localhost）**:
+   - すべての組織のデータにアクセス可能
+   - サブドメインなしでも動作
+   - 開発・テストが簡単
+
+2. **本番環境（a-kensetsu.tool-manager.com）**:
+   - サブドメインで組織を識別
+   - A建設のユーザーはA建設のデータのみ
+   - B塗装のユーザーはB塗装のデータのみ
+   - 完全に分離され、他社データは見えない
+
+**データ分離の仕組み**:
+```
+例: A建設とB塗装が同じシステムを使用
+
+┌─────────────────────────────────────┐
+│ a-kensetsu.tool-manager.com         │
+│ (A建設専用サブドメイン)              │
+├─────────────────────────────────────┤
+│ ユーザー: 田中さん                   │
+│ organization_id: org-a-001          │
+│                                     │
+│ 見えるデータ:                        │
+│ ✅ A建設の道具                       │
+│ ✅ A建設のユーザー                   │
+│ ✅ A建設の現場                       │
+│ ❌ B塗装のデータは一切見えない       │
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ b-tosou.tool-manager.com            │
+│ (B塗装専用サブドメイン)              │
+├─────────────────────────────────────┤
+│ ユーザー: 佐藤さん                   │
+│ organization_id: org-b-002          │
+│                                     │
+│ 見えるデータ:                        │
+│ ✅ B塗装の道具                       │
+│ ✅ B塗装のユーザー                   │
+│ ✅ B塗装の現場                       │
+│ ❌ A建設のデータは一切見えない       │
+└─────────────────────────────────────┘
+```
+
+**実装ファイル**:
+- `middleware.ts` - マルチテナント検証ミドルウェア
+- `lib/multi-tenant.ts` - マルチテナントヘルパー関数
+- `app/api/tools/by-qr/[qrCode]/route.ts` - 組織別QRコード検索
+
+---
+
+
+## 実装履歴（追加：組織セットアップ機能）
+
+### 実装日時
+2025-01-02
+
+### 実装内容
+組織の初回セットアップ機能と業種マスタシステム、組織設定テーブルを実装。
+
+---
+
+## 新規追加テーブル
+
+### 1. industry_categories（業種マスタ）
+
+建設業の業種分類を管理するマスタテーブル。親子関係を持ち、大分類と中分類を表現。
+
+```sql
+CREATE TABLE industry_categories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  parent_id UUID REFERENCES industry_categories(id) ON DELETE CASCADE,
+  name VARCHAR(100) NOT NULL,
+  name_en VARCHAR(100),
+  description TEXT,
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+#### TypeScript型定義
+```typescript
+interface IndustryCategory {
+  id: string
+  parent_id: string | null
+  name: string
+  name_en: string | null
+  description: string | null
+  sort_order: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+```
+
+#### 初期データ
+
+**大分類（parent_id = NULL）:**
+1. 土木・基礎（7業種）
+2. 建築・構造（5業種）
+3. 内装・仕上（5業種）
+4. 設備・インフラ（5業種）
+
+**中分類（例）:**
+- 土木・基礎配下: 土工事、基礎工事、杭工事、鉄筋工事、コンクリート工事、舗装工事、解体工事
+- 建築・構造配下: 大工工事、鉄骨工事、屋根工事、板金工事、防水工事
+- 内装・仕上配下: 左官工事、塗装工事、内装仕上工事、タイル工事、ガラス工事
+- 設備・インフラ配下: 電気工事、管工事（配管）、空調設備工事、通信設備工事、造園工事
+
+#### RLSポリシー
+```sql
+-- 全ての認証済みユーザーが参照可能（読み取り専用）
+CREATE POLICY "Industry categories are viewable by all authenticated users"
+  ON industry_categories FOR SELECT
+  TO authenticated
+  USING (true);
+```
+
+---
+
+### 2. organization_settings（組織設定）
+
+各組織の運用ルールや設定をカスタマイズするためのテーブル。
+
+```sql
+CREATE TABLE organization_settings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+
+  -- 在庫管理設定
+  enable_low_stock_alert BOOLEAN DEFAULT true,
+  default_minimum_stock_level INTEGER DEFAULT 5,
+
+  -- 承認フロー設定
+  require_checkout_approval BOOLEAN DEFAULT false,
+  require_return_approval BOOLEAN DEFAULT false,
+
+  -- 通知設定
+  enable_email_notifications BOOLEAN DEFAULT true,
+  notification_email TEXT,
+
+  -- UI設定
+  theme VARCHAR(20) DEFAULT 'light',
+
+  -- その他の設定（JSON形式で柔軟に拡張可能）
+  custom_settings JSONB DEFAULT '{}'::jsonb,
+
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+
+  UNIQUE(organization_id)
+);
+```
+
+#### TypeScript型定義
+```typescript
+interface OrganizationSettings {
+  id: string
+  organization_id: string
+  enable_low_stock_alert: boolean
+  default_minimum_stock_level: number
+  require_checkout_approval: boolean
+  require_return_approval: boolean
+  enable_email_notifications: boolean
+  notification_email: string | null
+  theme: 'light' | 'dark'
+  custom_settings: Record<string, any>
+  created_at: string
+  updated_at: string
+}
+```
+
+#### RLSポリシー
+```sql
+-- 自組織の設定のみ参照可能
+CREATE POLICY "Users can view their own organization settings"
+  ON organization_settings FOR SELECT
+  TO authenticated
+  USING (organization_id = get_organization_id());
+
+-- 管理者のみ設定を作成可能
+CREATE POLICY "Admins can insert their organization settings"
+  ON organization_settings FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    organization_id = get_organization_id() AND
+    EXISTS (
+      SELECT 1 FROM users
+      WHERE users.id = auth.uid()
+      AND users.organization_id = get_organization_id()
+      AND users.role = 'admin'
+    )
+  );
+
+-- 管理者のみ設定を更新可能
+CREATE POLICY "Admins can update their organization settings"
+  ON organization_settings FOR UPDATE
+  TO authenticated
+  USING (
+    organization_id = get_organization_id() AND
+    EXISTS (
+      SELECT 1 FROM users
+      WHERE users.id = auth.uid()
+      AND users.organization_id = get_organization_id()
+      AND users.role = 'admin'
+    )
+  )
+  WITH CHECK (organization_id = get_organization_id());
+```
+
+---
+
+## organizations テーブルへの追加カラム
+
+```sql
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS representative_name VARCHAR(100);
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS phone VARCHAR(20);
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS postal_code VARCHAR(10);
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS address TEXT;
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS industry_category_id UUID REFERENCES industry_categories(id);
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS setup_completed_at TIMESTAMPTZ;
+```
+
+### 追加カラムの説明
+
+| カラム名 | 型 | 説明 |
+|---------|---|------|
+| representative_name | VARCHAR(100) | 代表者名 |
+| phone | VARCHAR(20) | 電話番号 |
+| postal_code | VARCHAR(10) | 郵便番号 |
+| address | TEXT | 住所 |
+| industry_category_id | UUID | 業種ID（industry_categories参照） |
+| setup_completed_at | TIMESTAMPTZ | 初回セットアップ完了日時 |
+
+---
+
+## 初回セットアップフロー
+
+### 1. 管理者が初回ログイン
+```
+app/page.tsx → セットアップ未完了チェック → /onboarding にリダイレクト
+```
+
+### 2. 4ステップウィザード
+
+**Step 1: 組織情報入力**
+- 組織名（必須）
+- 代表者名（必須）
+- 電話番号（必須）
+- 郵便番号
+- 住所
+- 業種選択（大分類 → 中分類、必須）
+
+**Step 2: 運用設定**
+- 低在庫アラート有効化
+- デフォルト最小在庫レベル
+- 貸出時承認必須
+- 返却時承認必須
+
+**Step 3: カテゴリー設定**
+- デフォルトカテゴリーから選択（電動工具、測定機器など）
+- カスタムカテゴリーの追加
+
+**Step 4: ユーザー招待**
+- メールアドレスと権限（admin/leader/staff）を入力
+- 複数ユーザーを一括招待可能
+
+### 3. セットアップ完了時の処理
+
+**API: `/api/onboarding/complete`**
+
+```typescript
+// 1. organizations テーブル更新
+UPDATE organizations SET
+  name = '入力された組織名',
+  representative_name = '入力された代表者名',
+  phone = '電話番号',
+  postal_code = '郵便番号',
+  address = '住所',
+  industry_category_id = '選択された業種ID',
+  setup_completed_at = NOW()
+WHERE id = 'organization_id';
+
+// 2. organization_settings テーブル作成
+INSERT INTO organization_settings (
+  organization_id,
+  enable_low_stock_alert,
+  default_minimum_stock_level,
+  require_checkout_approval,
+  require_return_approval
+) VALUES (...);
+
+// 3. categories テーブルに選択されたカテゴリーを作成
+INSERT INTO categories (organization_id, name, icon, sort_order)
+VALUES
+  ('org-id', '電動工具', '⚡', 1),
+  ('org-id', '測定機器', '📏', 2),
+  ...;
+
+// 4. ユーザー招待（Phase 2で実装予定）
+// メール送信とトークン生成
+```
+
+---
+
+## 業種マスタの拡張性
+
+### 今後の活用方法
+
+1. **道具テンプレート機能**
+   - 業種ごとによく使う道具のテンプレートを提供
+   - 「塗装工事」を選択 → スプレーガン、養生シート、ハケなどを自動提案
+
+2. **在庫レベルの推奨値**
+   - 業種ごとに最適な在庫レベルを提案
+   - 「電気工事」→ テスター最小在庫3個など
+
+3. **レポート機能**
+   - 業種別の道具使用傾向分析
+   - 同業他社との比較データ提供
+
+4. **カスタムフィールド**
+   - 業種特有の管理項目を追加
+   - 例: 電気工事 → 絶縁耐圧試験日、校正有効期限
+
+---
+
+## 関連ファイル
+
+### 実装ファイル
+- `supabase/migrations/20250102_add_organization_settings_and_industry.sql`
+- `app/onboarding/page.tsx`
+- `components/onboarding/OnboardingWizard.tsx`
+- `components/onboarding/Step1OrganizationInfo.tsx`
+- `components/onboarding/Step2OperationSettings.tsx`
+- `components/onboarding/Step3CategorySetup.tsx`
+- `components/onboarding/Step4UserInvitation.tsx`
+- `app/api/industries/route.ts`
+- `app/api/onboarding/complete/route.ts`
+- `types/organization.ts`
+
+### ドキュメント
+- `docs/DEVELOPMENT_MULTITENANT.md` - 開発環境でのマルチテナント機能テスト手順
+- `docs/SPECIFICATION_SAAS_FINAL.md` - Phase 5本番移行タスク追加
+
+### GitHub Issue
+- Issue #35: 🚀 本番環境移行タスク
+
+
+---
+
+## 実装履歴（更新：初回セットアップ機能の改善）
+
+### 実装日時
+2025-01-02 (更新)
+
+### 実装内容
+初回セットアップウィザードに以下の機能を追加・改善しました。
+
+---
+
+### 1. 郵便番号から住所自動入力機能
+
+**実装場所:** `components/onboarding/Step1OrganizationInfo.tsx`
+
+**API使用:** [zipcloud API](https://zipcloud.ibsnet.co.jp/doc/api)
+
+**機能:**
+- 郵便番号（7桁）を入力後、「住所検索」ボタンをクリック
+- 外部APIから住所情報を取得し、自動的に住所フィールドに入力
+- エラーハンドリング（住所が見つからない場合、API接続失敗時）
+
+**実装例:**
+```typescript
+const searchAddress = async () => {
+  const postalCode = formData.postalCode.replace(/-/g, '')
+  if (postalCode.length !== 7) {
+    alert('7桁の郵便番号を入力してください')
+    return
+  }
+
+  setIsSearching(true)
+  try {
+    const res = await fetch(`https://zipcloud.ibsnet.co.jp/api/search?zipcode=${postalCode}`)
+    const data = await res.json()
+    if (data.results && data.results.length > 0) {
+      const result = data.results[0]
+      const address = `${result.address1}${result.address2}${result.address3}`
+      updateFormData({ address })
+    } else {
+      alert('住所が見つかりませんでした')
+    }
+  } catch (error) {
+    alert('住所検索に失敗しました')
+  } finally {
+    setIsSearching(false)
+  }
+}
+```
+
+---
+
+### 2. 業種の複数選択機能
+
+**変更点:**
+- **旧:** 単一選択（ドロップダウン）
+- **新:** 複数選択（チェックボックス）
+
+**型定義の変更:**
+```typescript
+// Before
+industryCategoryId: string
+
+// After
+industryCategoryIds: string[]
+```
+
+**データベース保存方法:**
+- `organizations.industry_category_id`: 最初に選択された業種を代表として保存（既存カラム）
+- `organization_settings.custom_settings.selected_industries`: 全ての選択された業種IDを配列で保存
+
+**UI実装:**
+```typescript
+// 大分類選択（ドロップダウン）
+<select value={selectedParentId} onChange={(e) => handleParentChange(e.target.value)}>
+  <option value="">大分類を選択してください</option>
+  {industries.parent.map((category) => (
+    <option key={category.id} value={category.id}>{category.name}</option>
+  ))}
+</select>
+
+// 中分類選択（チェックボックス）
+{industries.children[selectedParentId].map((category) => (
+  <label key={category.id}>
+    <input
+      type="checkbox"
+      checked={formData.industryCategoryIds.includes(category.id)}
+      onChange={() => toggleIndustryCategory(category.id)}
+    />
+    {category.name}
+  </label>
+))}
+```
+
+**選択状態の表示:**
+- 選択中の業種数をリアルタイムで表示: 「選択中: 3件」
+
+---
+
+### 3. 在庫管理単位の選択機能
+
+**実装場所:** `components/onboarding/Step2OperationSettings.tsx`
+
+**型定義の追加:**
+```typescript
+export interface OnboardingFormData {
+  // ...
+  defaultStockUnit: string  // 追加
+  // ...
+}
+```
+
+**選択可能な単位（13種類）:**
+| 単位 | 用途 |
+|-----|------|
+| 個 | 一般的な道具・部品 |
+| 本 | 棒状の物（配管、木材など） |
+| 枚 | 板状の物（合板、シートなど） |
+| セット | 複数アイテムの組み合わせ |
+| 箱 | 箱単位の管理 |
+| 袋 | 袋単位の管理 |
+| 缶 | 塗料など |
+| L（リットル） | 液体 |
+| ml（ミリリットル） | 液体（少量） |
+| kg（キログラム） | 重量単位 |
+| g（グラム） | 重量単位（少量） |
+| m（メートル） | 長さ単位 |
+| cm（センチメートル） | 長さ単位（短い） |
+
+**データベース保存:**
+```json
+// organization_settings.custom_settings
+{
+  "default_stock_unit": "L",
+  "selected_industries": ["uuid1", "uuid2", "uuid3"]
+}
+```
+
+**UI実装:**
+```typescript
+<div className="flex gap-2">
+  <input
+    type="number"
+    min="1"
+    value={formData.defaultMinimumStockLevel}
+    onChange={(e) => updateFormData({ defaultMinimumStockLevel: parseInt(e.target.value) })}
+  />
+  <select
+    value={formData.defaultStockUnit}
+    onChange={(e) => updateFormData({ defaultStockUnit: e.target.value })}
+  >
+    <option value="個">個</option>
+    <option value="本">本</option>
+    <option value="L">L（リットル）</option>
+    {/* ... */}
+  </select>
+</div>
+```
+
+---
+
+### 4. APIエラーハンドリングの改善
+
+**実装場所:** `app/api/onboarding/complete/route.ts`
+
+**改善点:**
+
+#### エラーログの詳細化
+```typescript
+try {
+  const supabase = await createClient()
+  
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  
+  if (authError || !user) {
+    console.error('Auth error:', authError)  // 詳細ログ
+    return NextResponse.json({ 
+      error: 'Unauthorized', 
+      details: authError?.message  // クライアントへの詳細情報
+    }, { status: 401 })
+  }
+  // ...
+} catch (error: any) {
+  console.error('Onboarding error:', error)
+  return NextResponse.json({
+    error: 'Internal server error',
+    details: error?.message || 'Unknown error',
+    hint: error?.hint  // Supabaseのヒント情報
+  }, { status: 500 })
+}
+```
+
+#### 複数業種IDの保存ロジック
+```typescript
+// 1. 組織情報を更新（最初の業種IDのみ保存）
+await supabase
+  .from('organizations')
+  .update({
+    industry_category_id: formData.industryCategoryIds[0] || null,
+    // ...
+  })
+
+// 2. 全ての業種IDをcustom_settingsに保存
+const customSettings = {
+  default_stock_unit: formData.defaultStockUnit,
+  selected_industries: formData.industryCategoryIds,
+}
+
+await supabase.from('organization_settings').upsert({
+  custom_settings: customSettings,
+  // ...
+})
+```
+
+---
+
+### 5. organization_settings.custom_settingsの拡張
+
+**JSONBカラムの活用:**
+
+`organization_settings.custom_settings` に以下の情報を保存:
+
+```json
+{
+  "default_stock_unit": "L",
+  "selected_industries": [
+    "industry-uuid-1",
+    "industry-uuid-2",
+    "industry-uuid-3"
+  ],
+  "future_settings": {
+    // 将来的な拡張用
+  }
+}
+```
+
+**TypeScript型定義:**
+```typescript
+interface OrganizationCustomSettings {
+  default_stock_unit: string
+  selected_industries: string[]
+  [key: string]: any  // 柔軟な拡張性
+}
+```
+
+---
+
+### 今後の活用例
+
+#### 業種情報を活用した機能
+
+1. **業種別道具テンプレート:**
+```typescript
+async function getRecommendedTools(organizationId: string) {
+  const settings = await getOrganizationSettings(organizationId)
+  const industries = settings.custom_settings.selected_industries
+  
+  if (industries.includes('塗装工事')) {
+    return ['スプレーガン', '養生シート', 'ハケ', 'ローラー']
+  }
+  // ...
+}
+```
+
+2. **業種別デフォルト単位:**
+```typescript
+const industryDefaultUnits = {
+  '塗装工事': 'L',      // 塗料はリットル
+  '電気工事': 'm',      // ケーブルはメートル
+  '基礎工事': 'kg',     // セメントはキログラム
+}
+```
+
+3. **業種別カスタムフィールド:**
+```typescript
+if (industries.includes('電気工事')) {
+  // 絶縁耐圧試験日、校正有効期限などのフィールドを自動追加
+  addCustomField('insulation_test_date')
+  addCustomField('calibration_expiry')
+}
+```
+
+---
+
+### 関連ファイル
+
+**更新したファイル:**
+- `types/organization.ts` - 型定義更新
+- `components/onboarding/OnboardingWizard.tsx` - 初期値とリダイレクト先修正
+- `components/onboarding/Step1OrganizationInfo.tsx` - 郵便番号検索・業種複数選択
+- `components/onboarding/Step2OperationSettings.tsx` - 単位選択追加
+- `app/api/onboarding/complete/route.ts` - API改善
+
+**ドキュメント:**
+- `docs/DATABASE_SCHEMA.md` - このファイル
+- `docs/MIGRATIONS.md` - マイグレーション履歴
+- `docs/UI_DESIGN.md` - UI設計書
+
