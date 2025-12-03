@@ -1966,10 +1966,10 @@ FieldToolManagerAdmin/  ← 新規プロジェクト（admin.fieldtool.com用）
 2. **認証システム構築**
    - [x] 管理者ログイン画面作成
    - [x] 2FA用テーブル作成（admin_2fa_secrets）
-   - [ ] 2FA認証実装（TOTP: speakeasy/otpauth）
-     - [ ] QRコード生成（Google Authenticator連携）
-     - [ ] 6桁コード検証
-     - [ ] バックアップコード生成
+   - [x] 2FA認証実装（TOTP: speakeasy/otpauth）
+     - [x] QRコード生成（Google Authenticator連携）
+     - [x] 6桁コード検証
+     - [x] バックアップコード生成
    - [x] セッション管理
      - [x] セッションタイムアウト: 2時間
      - [x] アイドルタイムアウト: 10分
@@ -1979,9 +1979,9 @@ FieldToolManagerAdmin/  ← 新規プロジェクト（admin.fieldtool.com用）
      - [ ] アクセス拒否時のログ記録
 
 3. **Middleware実装**
-   - [ ] super_admin専用チェック
-   - [ ] 2FA未完了時のリダイレクト
-   - [ ] セッション有効性チェック
+   - [x] super_admin専用チェック
+   - [x] 2FA未完了時のリダイレクト
+   - [x] セッション有効性チェック
    - [ ] 監査ログ自動記録
 
 4. **監査ログ基盤**

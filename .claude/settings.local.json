@@ -65,7 +65,10 @@
       "Read(//Users/youichiakashi/**)",
       "Bash(npm run seed:dev:*)",
       "Bash(PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -c \"\\d users\")",
-      "Bash(PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -c \"ALTER TABLE users ADD COLUMN IF NOT EXISTS department TEXT;\")"
+      "Bash(PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -c \"ALTER TABLE users ADD COLUMN IF NOT EXISTS department TEXT;\")",
+      "Bash(PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -c \"\\d tool_items\")",
+      "Bash(git init:*)",
+      "Bash(npm run create:users:*)"
     ],
     "deny": [],
     "ask": []
