@@ -26,6 +26,8 @@ export default function UsageAnalyticsView({ tools, movements, sites, users }: P
 
   // フィルタリングとソート
   const filteredAndSorted = useMemo(() => {
+    if (!report || !report.usage_analyses) return []
+
     let filtered = report.usage_analyses
 
     // ステータスフィルタ
@@ -157,7 +159,7 @@ export default function UsageAnalyticsView({ tools, movements, sites, users }: P
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">総移動回数</dt>
                   <dd className="text-lg font-semibold text-gray-900">
-                    {report.total_movements}回
+                    {(report?.total_movements || 0)}回
                   </dd>
                 </dl>
               </div>
@@ -177,7 +179,7 @@ export default function UsageAnalyticsView({ tools, movements, sites, users }: P
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">活発</dt>
                   <dd className="text-lg font-semibold text-gray-900">
-                    {report.active_tools}件
+                    {(report?.active_tools || 0)}件
                   </dd>
                 </dl>
               </div>
@@ -197,7 +199,7 @@ export default function UsageAnalyticsView({ tools, movements, sites, users }: P
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">非活発</dt>
                   <dd className="text-lg font-semibold text-gray-900">
-                    {report.inactive_tools}件
+                    {(report?.inactive_tools || 0)}件
                   </dd>
                 </dl>
               </div>
@@ -217,7 +219,7 @@ export default function UsageAnalyticsView({ tools, movements, sites, users }: P
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">ほとんど未使用</dt>
                   <dd className="text-lg font-semibold text-gray-900">
-                    {report.rarely_used_tools}件
+                    {(report?.rarely_used_tools || 0)}件
                   </dd>
                 </dl>
               </div>

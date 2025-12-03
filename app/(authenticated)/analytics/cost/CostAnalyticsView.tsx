@@ -46,6 +46,8 @@ export default function CostAnalyticsView({
 
   // フィルタリングとソート
   const filteredAndSorted = useMemo(() => {
+    if (!report || !report.tool_analyses) return []
+
     let filtered = report.tool_analyses
 
     // タイプフィルタ
@@ -147,7 +149,7 @@ export default function CostAnalyticsView({
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">総コスト</dt>
                   <dd className="text-lg font-semibold text-gray-900">
-                    ¥{report.total_cost.toLocaleString()}
+                    ¥{(report?.total_cost || 0).toLocaleString()}
                   </dd>
                 </dl>
               </div>
@@ -172,7 +174,7 @@ export default function CostAnalyticsView({
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">道具コスト</dt>
                   <dd className="text-lg font-semibold text-gray-900">
-                    ¥{report.tool_cost.toLocaleString()}
+                    ¥{(report?.tool_cost || 0).toLocaleString()}
                   </dd>
                 </dl>
               </div>
@@ -197,7 +199,7 @@ export default function CostAnalyticsView({
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">消耗品コスト</dt>
                   <dd className="text-lg font-semibold text-gray-900">
-                    ¥{report.consumable_cost.toLocaleString()}
+                    ¥{(report?.consumable_cost || 0).toLocaleString()}
                   </dd>
                 </dl>
               </div>
@@ -222,7 +224,7 @@ export default function CostAnalyticsView({
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">分析対象</dt>
                   <dd className="text-lg font-semibold text-gray-900">
-                    {report.total_tools + report.total_consumables}件
+                    {((report?.total_tools || 0) + (report?.total_consumables || 0))}件
                   </dd>
                 </dl>
               </div>
