@@ -236,7 +236,7 @@ export function BulkMovementForm({
     return (
       item.serial_number.toLowerCase().includes(query) ||
       item.tools.name.toLowerCase().includes(query) ||
-      item.tools.model_number.toLowerCase().includes(query)
+      (item.tools.model_number?.toLowerCase() || '').includes(query)
     )
   })
 
