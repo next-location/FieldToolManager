@@ -158,7 +158,7 @@ export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
                   href="/movements"
                   onClick={onClose}
                   className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-colors ${
-                    isActive('/movements')
+                    pathname === '/movements'
                       ? 'bg-blue-50 text-blue-700 font-medium'
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}

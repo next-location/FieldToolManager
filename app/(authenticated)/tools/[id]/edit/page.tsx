@@ -370,6 +370,5 @@ export default function EditToolPage({ params }: { params: Promise<{ id: string 
           </div>
         </div>
       </div>
-    </div>
   )
 }
