@@ -51,7 +51,10 @@
       "Bash(npm uninstall:*)",
       "Bash(file:*)",
       "Bash(head:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(while read f)",
+      "Bash(do file \"$f\")",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []
