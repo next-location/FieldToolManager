@@ -13,19 +13,21 @@ export default async function MovementsPage() {
     redirect('/login')
   }
 
+
   // 移動履歴を取得
   const { data: movements, error} = await supabase
-    .from('movements')
+    .from('tool_movements')
     .select(
       `
       *,
-      tool_items (
+      tool_items!inner (
         id,
         serial_number,
-        tools (name, model_number)
+        tools!inner (name, model_number)
       ),
-      sites (name),
-      users (name)
+      from_site:sites!tool_movements_from_site_id_fkey (name),
+      to_site:sites!tool_movements_to_site_id_fkey (name),
+      users!inner (name)
     `
     )
     .order('created_at', { ascending: false })

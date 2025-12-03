@@ -15,9 +15,10 @@ export default async function ProfilePage() {
 
   const { data: userData } = await supabase
     .from('users')
-    .select('*, organizations(name)')
+    .select('id, email, name, role, department, organization_id, created_at')
     .eq('id', user.id)
     .single()
+
 
   return (
     <div className="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -78,20 +79,6 @@ export default async function ProfilePage() {
               </div>
 
               <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">所属組織</dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  {(userData?.organizations as any)?.name || '未設定'}
-                </dd>
-              </div>
-
-              <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">アカウントID</dt>
-                <dd className="mt-1 text-xs text-gray-500 font-mono sm:mt-0 sm:col-span-2">
-                  {user.id}
-                </dd>
-              </div>
-
-              <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                 <dt className="text-sm font-medium text-gray-500">登録日</dt>
                 <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                   {new Date(userData?.created_at || '').toLocaleString('ja-JP')}
