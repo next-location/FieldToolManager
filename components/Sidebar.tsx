@@ -212,17 +212,30 @@ export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
                   </Link>
                 )}
                 {isLeaderOrAdmin && (
-                  <Link
-                    href="/equipment/cost-report"
-                    onClick={onClose}
-                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                      isActive('/equipment/cost-report')
-                        ? 'bg-blue-50 text-blue-700 font-medium'
-                        : 'text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    コストレポート
-                  </Link>
+                  <>
+                    <Link
+                      href="/equipment/cost-report"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive('/equipment/cost-report')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      コストレポート
+                    </Link>
+                    <Link
+                      href="/equipment/analytics"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive('/equipment/analytics')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      稼働率分析
+                    </Link>
+                  </>
                 )}
               </div>
             )}

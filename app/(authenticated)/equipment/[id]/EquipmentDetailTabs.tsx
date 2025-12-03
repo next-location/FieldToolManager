@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import type { HeavyEquipment } from '@/types/heavy-equipment'
+import type { HeavyEquipment, HeavyEquipmentMaintenance } from '@/types/heavy-equipment'
 import { QRCodeDisplay } from './QRCodeDisplay'
 import {
   generateEquipmentCostSummary,
@@ -37,20 +37,10 @@ interface UsageRecord {
   to_site: { name: string } | null
 }
 
-interface MaintenanceRecord {
-  id: string
-  maintenance_type: string
-  maintenance_date: string
-  performed_by: string | null
-  cost: number | null
-  next_date: string | null
-  notes: string | null
-}
-
 interface EquipmentDetailTabsProps {
   equipment: EquipmentWithRelations
   usageRecords: UsageRecord[]
-  maintenanceRecords: MaintenanceRecord[]
+  maintenanceRecords: HeavyEquipmentMaintenance[]
   organizationSettings: any
   isLeaderOrAdmin: boolean
 }

@@ -46,6 +46,48 @@ export default function CostReportView({
     return a.equipment_code.localeCompare(b.equipment_code)
   })
 
+  // CSVエクスポート
+  const exportToCSV = () => {
+    const headers = [
+      '重機コード',
+      '重機名',
+      '所有形態',
+      '月額/簿価',
+      selectedPeriod === 'year' ? '年間点検費' : '今月点検費',
+      selectedPeriod === 'year' ? '年間総コスト' : '今月総コスト',
+    ]
+
+    const rows = sortedDetails.map((detail) => {
+      const costValue = selectedPeriod === 'year' ? detail.total_cost_this_year : detail.total_cost_this_month
+      const maintenanceCost = selectedPeriod === 'year' ? detail.maintenance_cost_this_year : detail.maintenance_cost_this_month
+      const monthlyOrBookValue = detail.ownership_type === 'owned' ? detail.book_value : detail.monthly_cost
+
+      return [
+        detail.equipment_code,
+        detail.equipment_name,
+        getOwnershipTypeLabel(detail.ownership_type),
+        monthlyOrBookValue || 0,
+        maintenanceCost,
+        costValue,
+      ]
+    })
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map((row) => row.join(',')),
+    ].join('\n')
+
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `重機コストレポート_${periodStart}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
@@ -58,12 +100,23 @@ export default function CostReportView({
                 期間: {new Date(periodStart).getFullYear()}年
               </p>
             </div>
-            <Link
-              href="/equipment"
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-            >
-              ← 重機一覧に戻る
-            </Link>
+            <div className="flex space-x-3">
+              <button
+                onClick={exportToCSV}
+                className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 flex items-center"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                CSVエクスポート
+              </button>
+              <Link
+                href="/equipment"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                ← 重機一覧に戻る
+              </Link>
+            </div>
           </div>
         </div>
       </div>

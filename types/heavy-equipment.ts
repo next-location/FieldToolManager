@@ -306,6 +306,55 @@ export interface DepreciationCalculation {
 }
 
 // ==========================================
+// 稼働率分析用
+// ==========================================
+
+export interface OperationAnalysis {
+  equipment_id: string;
+  equipment_code: string;
+  equipment_name: string;
+  ownership_type: OwnershipType;
+
+  // 稼働日数
+  total_days: number;  // 分析期間の総日数
+  operation_days: number;  // 実稼働日数
+  operation_rate: number;  // 稼働率 (%)
+
+  // 使用回数
+  checkout_count: number;  // 持出回数
+  total_usage_count: number;  // 総使用回数
+
+  // メーター情報（オプション）
+  total_hour_meter: number | null;  // 総稼働時間
+  average_daily_hours: number | null;  // 1日平均稼働時間
+
+  // コスト効率
+  monthly_cost: number | null;  // 月額コスト
+  cost_per_operation_day: number | null;  // 稼働日あたりコスト
+  cost_efficiency_score: number;  // コスト効率スコア（0-100）
+}
+
+export interface AnalyticsReport {
+  period_start: string;
+  period_end: string;
+  total_days: number;
+
+  // 全体サマリー
+  total_equipment_count: number;
+  average_operation_rate: number;
+  high_performers_count: number;  // 稼働率80%以上
+  low_performers_count: number;  // 稼働率30%以下
+
+  // 所有形態別分析
+  owned_avg_operation_rate: number;
+  leased_avg_operation_rate: number;
+  rented_avg_operation_rate: number;
+
+  // 詳細データ
+  equipment_analytics: OperationAnalysis[];
+}
+
+// ==========================================
 // リスト表示用（JOIN後のデータ）
 // ==========================================
 

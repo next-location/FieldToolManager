@@ -77,7 +77,8 @@
       "Bash(PGPASSWORD=postgres psql:*)",
       "Read(//private/tmp/**)",
       "Bash(timeout 120 npx supabase start)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []
