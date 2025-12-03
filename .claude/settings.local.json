@@ -57,7 +57,8 @@
       "Bash(grep:*)",
       "Bash(find:*)",
       "Bash(pkill:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(open /tmp/generate_qr_codes.html)"
     ],
     "deny": [],
     "ask": []

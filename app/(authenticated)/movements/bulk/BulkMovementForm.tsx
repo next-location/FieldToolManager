@@ -63,6 +63,7 @@ export function BulkMovementForm({
   const [error, setError] = useState<string | null>(null)
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null)
   const [scanSuccess, setScanSuccess] = useState(false)
+  const [lastScannedTool, setLastScannedTool] = useState<string | null>(null)
 
   // QRコードスキャン処理（カメラ or 入力欄）
   const handleQrScan = async (qrCode: string) => {
@@ -74,10 +75,14 @@ export function BulkMovementForm({
 
     if (tool) {
       if (!selectedToolIds.includes(tool.id)) {
-        setSelectedToolIds([...selectedToolIds, tool.id])
+        setSelectedToolIds((prev) => [...prev, tool.id])
+        setLastScannedTool(`${tool.tools.name} (${tool.serial_number})`)
         setScanSuccess(true)
         setSearchQuery('') // 検索欄をクリア
-        setTimeout(() => setScanSuccess(false), 1500) // 1.5秒後に成功表示を消す
+        setTimeout(() => {
+          setScanSuccess(false)
+          setLastScannedTool(null)
+        }, 2000) // 2秒後に成功表示を消す
       } else {
         setError('この道具は既に選択されています')
         setTimeout(() => setError(null), 3000)
@@ -355,10 +360,13 @@ export function BulkMovementForm({
         </div>
 
         {/* 成功メッセージ */}
-        {scanSuccess && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded flex items-center gap-2">
-            <span className="text-xl">✓</span>
-            <span>道具を追加しました！</span>
+        {scanSuccess && lastScannedTool && (
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded flex items-center gap-2 animate-pulse">
+            <span className="text-2xl">✓</span>
+            <div>
+              <div className="font-semibold">読み取り成功！</div>
+              <div className="text-sm">{lastScannedTool}</div>
+            </div>
           </div>
         )}
 

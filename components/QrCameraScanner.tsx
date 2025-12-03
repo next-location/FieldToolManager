@@ -12,6 +12,8 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isScanning, setIsScanning] = useState(false)
+  const [scanFlash, setScanFlash] = useState(false)
+  const [scanCount, setScanCount] = useState(0)
 
   useEffect(() => {
     const startScanner = async () => {
@@ -26,6 +28,10 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
             qrbox: { width: 250, height: 250 },
           },
           (decodedText) => {
+            // スキャン成功時の視覚的フィードバック
+            setScanFlash(true)
+            setScanCount((prev) => prev + 1)
+            setTimeout(() => setScanFlash(false), 300)
             onScan(decodedText)
           },
           () => {
@@ -68,24 +74,44 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
           </button>
         </div>
 
+        {/* スキャン成功フラッシュ */}
+        {scanFlash && (
+          <div className="absolute inset-0 bg-green-400 opacity-50 animate-pulse rounded-lg pointer-events-none"></div>
+        )}
+
         {error ? (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
             {error}
           </div>
         ) : (
           <>
-            <div id="qr-reader" className="w-full rounded-lg overflow-hidden"></div>
-            <p className="text-sm text-gray-600 mt-4 text-center">
-              QRコードをカメラに向けてください
-            </p>
+            <div className="relative">
+              <div id="qr-reader" className="w-full rounded-lg overflow-hidden"></div>
+              {scanFlash && (
+                <div className="absolute inset-0 border-4 border-green-500 rounded-lg animate-ping"></div>
+              )}
+            </div>
+            <div className="mt-4 space-y-2">
+              <p className="text-sm text-gray-600 text-center">
+                QRコードをカメラに向けてください
+              </p>
+              {scanCount > 0 && (
+                <div className="bg-blue-50 border border-blue-200 text-blue-700 px-3 py-2 rounded text-center">
+                  <span className="font-semibold">{scanCount}個</span>のQRコードを読み取りました
+                </div>
+              )}
+              <p className="text-xs text-gray-500 text-center">
+                連続でスキャンできます。完了したら「閉じる」をクリック
+              </p>
+            </div>
           </>
         )}
 
         <button
           onClick={onClose}
-          className="mt-4 w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+          className="mt-4 w-full px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium"
         >
-          閉じる
+          閉じる {scanCount > 0 && `(${scanCount}個追加済み)`}
         </button>
       </div>
     </div>
