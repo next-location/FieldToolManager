@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { QrCameraScanner } from '@/components/QrCameraScanner'
 
 interface ToolItem {
   id: string
@@ -55,6 +56,7 @@ export function BulkMovementForm({
   const [selectedToolIds, setSelectedToolIds] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [qrScanMode, setQrScanMode] = useState(false)
+  const [showCamera, setShowCamera] = useState(false)
 
   // UI状態
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -62,7 +64,7 @@ export function BulkMovementForm({
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null)
   const [scanSuccess, setScanSuccess] = useState(false)
 
-  // QRコードスキャン処理
+  // QRコードスキャン処理（カメラ or 入力欄）
   const handleQrScan = async (qrCode: string) => {
     const trimmedQr = qrCode.trim()
     if (!trimmedQr) return
@@ -75,7 +77,7 @@ export function BulkMovementForm({
         setSelectedToolIds([...selectedToolIds, tool.id])
         setScanSuccess(true)
         setSearchQuery('') // 検索欄をクリア
-        setTimeout(() => setScanSuccess(false), 1000) // 1秒後に成功表示を消す
+        setTimeout(() => setScanSuccess(false), 1500) // 1.5秒後に成功表示を消す
       } else {
         setError('この道具は既に選択されています')
         setTimeout(() => setError(null), 3000)
@@ -330,17 +332,26 @@ export function BulkMovementForm({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-semibold text-gray-900">2. 道具を選択</h3>
-          <button
-            type="button"
-            onClick={() => setQrScanMode(!qrScanMode)}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              qrScanMode
-                ? 'bg-green-600 text-white hover:bg-green-700'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            📱 QRスキャン{qrScanMode ? ' ON' : ' OFF'}
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setShowCamera(true)}
+              className="px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center gap-2"
+            >
+              📷 カメラでスキャン
+            </button>
+            <button
+              type="button"
+              onClick={() => setQrScanMode(!qrScanMode)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                qrScanMode
+                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              ⌨️ 手動入力{qrScanMode ? ' ON' : ''}
+            </button>
+          </div>
         </div>
 
         {/* 成功メッセージ */}
@@ -504,6 +515,16 @@ export function BulkMovementForm({
           キャンセル
         </a>
       </div>
+
+      {/* QRカメラスキャナー */}
+      {showCamera && (
+        <QrCameraScanner
+          onScan={(qrCode) => {
+            handleQrScan(qrCode)
+          }}
+          onClose={() => setShowCamera(false)}
+        />
+      )}
     </form>
   )
 }
