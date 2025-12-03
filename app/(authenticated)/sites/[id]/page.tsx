@@ -256,6 +256,5 @@ export default async function SiteDetailPage({
           </div>
         </div>
       </div>
-    </div>
   )
 }

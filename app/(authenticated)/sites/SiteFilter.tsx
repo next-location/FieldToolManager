@@ -156,15 +156,26 @@ export function SiteFilter({ cities }: SiteFilterProps) {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
               <option value="">すべて</option>
-              {filteredCities.map((city) => (
-                <option key={city} value={city}>
-                  {city}
-                </option>
-              ))}
+              {filteredCities.map((city) => {
+                // 都道府県部分を除いて表示（東京都新宿区 → 新宿区）
+                const displayName = selectedPrefecture
+                  ? city.replace(selectedPrefecture, '')
+                  : city
+                return (
+                  <option key={city} value={city}>
+                    {displayName}
+                  </option>
+                )
+              })}
             </select>
             {!selectedPrefecture && (
               <p className="mt-1 text-xs text-gray-500">
                 都道府県を選択してください
+              </p>
+            )}
+            {selectedPrefecture && filteredCities.length === 0 && (
+              <p className="mt-1 text-xs text-gray-500">
+                該当する市区町村がありません
               </p>
             )}
           </div>
@@ -224,7 +235,7 @@ export function SiteFilter({ cities }: SiteFilterProps) {
             )}
             {selectedCity && (
               <span className="inline-flex items-center px-2 py-1 rounded-md bg-blue-100 text-blue-800 text-xs font-medium">
-                {selectedCity}
+                {selectedPrefecture ? selectedCity.replace(selectedPrefecture, '') : selectedCity}
                 <button
                   onClick={() => {
                     setSelectedCity('')

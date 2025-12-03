@@ -67,7 +67,7 @@ export function extractPrefecture(address: string): Prefecture | null {
 }
 
 /**
- * 住所から市区町村を抽出する（都道府県以降の部分）
+ * 住所から市区町村を抽出する（都道府県＋市区町村の形式で返す）
  */
 export function extractCity(address: string): string | null {
   if (!address) return null
@@ -80,10 +80,16 @@ export function extractCity(address: string): string | null {
   // 市区町村の後の番地などは除外
   const match = cityPart.match(/^([^\d]+(?:市|区|町|村))/)
   if (match) {
-    return match[1]
+    // 都道府県+市区町村の形式で返す（フィルタリング用）
+    return `${prefecture}${match[1]}`
   }
 
-  return cityPart.split(/[\s\d]/)[0] || null
+  const cityName = cityPart.split(/[\s\d]/)[0]
+  if (cityName) {
+    return `${prefecture}${cityName}`
+  }
+
+  return null
 }
 
 /**

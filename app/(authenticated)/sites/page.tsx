@@ -92,6 +92,11 @@ export default async function SitesPage({
     )
   ).sort()
 
+  // デバッグ用（開発時のみ）
+  if (process.env.NODE_ENV === 'development') {
+    console.log('抽出された市区町村リスト:', cities)
+  }
+
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
