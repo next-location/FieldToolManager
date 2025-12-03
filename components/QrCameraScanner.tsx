@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
 
 interface QrCameraScannerProps {
-  onScan: (qrCode: string) => void
+  onScan: (qrCode: string) => Promise<{ success: boolean; message?: string }>
   onClose: () => void
 }
 
@@ -16,6 +16,7 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
   const [isScanning, setIsScanning] = useState(false)
   const [scanFlash, setScanFlash] = useState(false)
   const [scanCount, setScanCount] = useState(0)
+  const [lastErrorMessage, setLastErrorMessage] = useState<string | null>(null)
 
   useEffect(() => {
     const startScanner = async () => {
@@ -29,7 +30,7 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
             fps: 10,
             qrbox: { width: 250, height: 250 },
           },
-          (decodedText) => {
+          async (decodedText) => {
             // クールダウン中は無視
             if (scanCooldownRef.current) {
               return
@@ -40,14 +41,28 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
               return
             }
 
-            // スキャン成功時の処理
+            // スキャン処理を実行
             lastScannedRef.current = decodedText
             scanCooldownRef.current = true
 
-            setScanFlash(true)
-            setScanCount((prev) => prev + 1)
-            setTimeout(() => setScanFlash(false), 300)
-            onScan(decodedText)
+            try {
+              const result = await onScan(decodedText)
+
+              if (result.success) {
+                // 成功時: カウント増加 + 緑フラッシュ
+                setScanFlash(true)
+                setScanCount((prev) => prev + 1)
+                setTimeout(() => setScanFlash(false), 300)
+                setLastErrorMessage(null)
+              } else {
+                // 失敗時: エラーメッセージ表示
+                setLastErrorMessage(result.message || 'エラーが発生しました')
+                setTimeout(() => setLastErrorMessage(null), 3000)
+              }
+            } catch (err) {
+              setLastErrorMessage('エラーが発生しました')
+              setTimeout(() => setLastErrorMessage(null), 3000)
+            }
 
             // 1秒後にクールダウン解除（次のQRコードをスキャン可能に）
             setTimeout(() => {
@@ -119,6 +134,11 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
               {scanCount > 0 && (
                 <div className="bg-blue-50 border border-blue-200 text-blue-700 px-3 py-2 rounded text-center">
                   <span className="font-semibold">{scanCount}個</span>のQRコードを読み取りました
+                </div>
+              )}
+              {lastErrorMessage && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-center text-sm">
+                  {lastErrorMessage}
                 </div>
               )}
               <p className="text-xs text-gray-500 text-center">

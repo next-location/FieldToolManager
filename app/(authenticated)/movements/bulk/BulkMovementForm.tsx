@@ -67,37 +67,42 @@ export function BulkMovementForm({
   const [lastScannedTool, setLastScannedTool] = useState<string | null>(null)
 
   // QRコードスキャン処理（カメラ or 入力欄）
-  const handleQrScan = async (qrCode: string) => {
+  const handleQrScan = async (qrCode: string): Promise<{ success: boolean; message?: string }> => {
     const trimmedQr = qrCode.trim()
-    if (!trimmedQr) return
+    if (!trimmedQr) {
+      return { success: false, message: 'QRコードが空です' }
+    }
 
     // QRコードで道具を検索
     const tool = toolItems.find((item) => item.qr_code === trimmedQr)
 
-    if (tool) {
-      // Setを使って重複チェック（即座に反映）
-      if (selectedToolIdsRef.current.has(tool.id)) {
-        setError('この道具は既に選択されています')
-        setTimeout(() => setError(null), 3000)
-        return
-      }
-
-      // Setに追加（即座に反映）
-      selectedToolIdsRef.current.add(tool.id)
-
-      // 状態を更新
-      setSelectedToolIds((prev) => [...prev, tool.id])
-      setLastScannedTool(`${tool.tools.name} (${tool.serial_number})`)
-      setScanSuccess(true)
-      setSearchQuery('') // 検索欄をクリア
-      setTimeout(() => {
-        setScanSuccess(false)
-        setLastScannedTool(null)
-      }, 2000) // 2秒後に成功表示を消す
-    } else {
+    if (!tool) {
       setError('QRコードが見つかりません')
       setTimeout(() => setError(null), 3000)
+      return { success: false, message: 'QRコードが見つかりません' }
     }
+
+    // Setを使って重複チェック（即座に反映）
+    if (selectedToolIdsRef.current.has(tool.id)) {
+      setError('この道具は既に選択されています')
+      setTimeout(() => setError(null), 3000)
+      return { success: false, message: 'この道具は既に選択されています' }
+    }
+
+    // Setに追加（即座に反映）
+    selectedToolIdsRef.current.add(tool.id)
+
+    // 状態を更新
+    setSelectedToolIds((prev) => [...prev, tool.id])
+    setLastScannedTool(`${tool.tools.name} (${tool.serial_number})`)
+    setScanSuccess(true)
+    setSearchQuery('') // 検索欄をクリア
+    setTimeout(() => {
+      setScanSuccess(false)
+      setLastScannedTool(null)
+    }, 2000) // 2秒後に成功表示を消す
+
+    return { success: true }
   }
 
   // 検索欄でEnterキー押下時の処理

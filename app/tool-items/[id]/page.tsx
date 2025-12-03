@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { QRCodeDisplay } from '@/app/tools/[id]/QRCodeDisplay'
+import { QRCodeDisplay } from '@/app/(authenticated)/tools/[id]/QRCodeDisplay'
 import { StatusChangeButton } from './StatusChangeButton'
 
 export default async function ToolItemDetailPage({
