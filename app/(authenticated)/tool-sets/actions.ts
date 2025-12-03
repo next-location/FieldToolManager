@@ -54,10 +54,22 @@ export async function createToolSet(formData: FormData) {
     throw new Error(`道具セットの作成に失敗しました: ${setError.message}`)
   }
 
-  // 選択された個別アイテムをセットに追加
-  const items = toolItemIds.map((toolItemId) => ({
+  // 選択された個別アイテムの情報を取得（tool_idが必要）
+  const { data: toolItems, error: fetchError } = await supabase
+    .from('tool_items')
+    .select('id, tool_id')
+    .in('id', toolItemIds)
+
+  if (fetchError || !toolItems) {
+    await supabase.from('tool_sets').delete().eq('id', toolSet.id)
+    throw new Error(`道具情報の取得に失敗しました: ${fetchError?.message}`)
+  }
+
+  // tool_idとtool_item_idの両方を含むデータを作成
+  const items = toolItems.map((item) => ({
     tool_set_id: toolSet.id,
-    tool_item_id: toolItemId,
+    tool_id: item.tool_id,
+    tool_item_id: item.id,
   }))
 
   const { error: itemsError } = await supabase.from('tool_set_items').insert(items)

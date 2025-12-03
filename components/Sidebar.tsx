@@ -140,6 +140,17 @@ export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
                   消耗品一覧
                 </Link>
                 <Link
+                  href="/consumables/orders"
+                  onClick={onClose}
+                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                    isActive('/consumables/orders')
+                      ? 'bg-blue-50 text-blue-700 font-medium'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  消耗品発注管理
+                </Link>
+                <Link
                   href="/tool-sets"
                   onClick={onClose}
                   className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
