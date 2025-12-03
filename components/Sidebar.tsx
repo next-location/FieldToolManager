@@ -143,6 +143,18 @@ export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
                 </Link>
                 <div className="border-t border-gray-100 my-2"></div>
                 <Link
+                  href="/movements/bulk"
+                  onClick={onClose}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                    isActive('/movements/bulk')
+                      ? 'bg-blue-50 text-blue-700 font-medium'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <span>📦</span>
+                  <span>一括移動</span>
+                </Link>
+                <Link
                   href="/movements"
                   onClick={onClose}
                   className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-colors ${
@@ -151,7 +163,7 @@ export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
-                  <span>📦</span>
+                  <span>📋</span>
                   <span>移動履歴</span>
                 </Link>
                 <Link

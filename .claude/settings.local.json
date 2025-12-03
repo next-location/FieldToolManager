@@ -54,7 +54,10 @@
       "Bash(ls:*)",
       "Bash(while read f)",
       "Bash(do file \"$f\")",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(pkill:*)",
+      "Bash(wc:*)"
     ],
     "deny": [],
     "ask": []

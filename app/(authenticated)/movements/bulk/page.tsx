@@ -31,6 +31,7 @@ export default async function BulkMovementPage() {
     .select(`
       id,
       serial_number,
+      qr_code,
       current_location,
       current_site_id,
       warehouse_location_id,

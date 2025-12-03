@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 interface ToolItem {
   id: string
   serial_number: string
+  qr_code: string
   current_location: string
   current_site_id: string | null
   warehouse_location_id: string | null
@@ -53,11 +54,48 @@ export function BulkMovementForm({
   // 選択された道具の状態
   const [selectedToolIds, setSelectedToolIds] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [qrScanMode, setQrScanMode] = useState(false)
 
   // UI状態
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null)
+  const [scanSuccess, setScanSuccess] = useState(false)
+
+  // QRコードスキャン処理
+  const handleQrScan = async (qrCode: string) => {
+    const trimmedQr = qrCode.trim()
+    if (!trimmedQr) return
+
+    // QRコードで道具を検索
+    const tool = toolItems.find((item) => item.qr_code === trimmedQr)
+
+    if (tool) {
+      if (!selectedToolIds.includes(tool.id)) {
+        setSelectedToolIds([...selectedToolIds, tool.id])
+        setScanSuccess(true)
+        setSearchQuery('') // 検索欄をクリア
+        setTimeout(() => setScanSuccess(false), 1000) // 1秒後に成功表示を消す
+      } else {
+        setError('この道具は既に選択されています')
+        setTimeout(() => setError(null), 3000)
+      }
+    } else {
+      setError('QRコードが見つかりません')
+      setTimeout(() => setError(null), 3000)
+    }
+  }
+
+  // 検索欄でEnterキー押下時の処理
+  const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      if (qrScanMode) {
+        // QRスキャンモード: Enterで即座にスキャン
+        handleQrScan(searchQuery)
+      }
+    }
+  }
 
   // 道具を追加
   const handleAddTool = (toolItemId: string) => {
@@ -290,25 +328,52 @@ export function BulkMovementForm({
 
       {/* 2. 道具選択 */}
       <div className="space-y-4">
-        <h3 className="text-base font-semibold text-gray-900">2. 道具を選択</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-semibold text-gray-900">2. 道具を選択</h3>
+          <button
+            type="button"
+            onClick={() => setQrScanMode(!qrScanMode)}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              qrScanMode
+                ? 'bg-green-600 text-white hover:bg-green-700'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            📱 QRスキャン{qrScanMode ? ' ON' : ' OFF'}
+          </button>
+        </div>
 
-        {/* 検索 */}
+        {/* 成功メッセージ */}
+        {scanSuccess && (
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded flex items-center gap-2">
+            <span className="text-xl">✓</span>
+            <span>道具を追加しました！</span>
+          </div>
+        )}
+
+        {/* 検索・スキャン入力欄 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            道具を検索して追加
+            {qrScanMode ? 'QRコードをスキャン（Enterで確定）' : '道具を検索して追加'}
           </label>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={handleSearchKeyPress}
             disabled={isSubmitting}
-            placeholder="シリアル番号、道具名、型番で検索..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder={qrScanMode ? 'QRコードをスキャンしてEnterキーを押してください' : 'シリアル番号、道具名、型番で検索...'}
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+              qrScanMode
+                ? 'border-green-500 focus:ring-green-500 bg-green-50'
+                : 'border-gray-300 focus:ring-blue-500'
+            }`}
+            autoFocus={qrScanMode}
           />
         </div>
 
-        {/* 検索結果 */}
-        {searchQuery && (
+        {/* 検索結果（QRスキャンモード時は非表示） */}
+        {searchQuery && !qrScanMode && (
           <div className="border border-gray-300 rounded-md max-h-60 overflow-y-auto">
             {filteredTools.length === 0 ? (
               <div className="p-4 text-center text-gray-500">該当する道具がありません</div>
