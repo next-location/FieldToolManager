@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { QrCameraScanner } from '@/components/QrCameraScanner'
@@ -54,6 +54,7 @@ export function BulkMovementForm({
 
   // 選択された道具の状態
   const [selectedToolIds, setSelectedToolIds] = useState<string[]>([])
+  const selectedToolIdsRef = useRef<Set<string>>(new Set())
   const [searchQuery, setSearchQuery] = useState('')
   const [qrScanMode, setQrScanMode] = useState(false)
   const [showCamera, setShowCamera] = useState(false)
@@ -74,19 +75,25 @@ export function BulkMovementForm({
     const tool = toolItems.find((item) => item.qr_code === trimmedQr)
 
     if (tool) {
-      if (!selectedToolIds.includes(tool.id)) {
-        setSelectedToolIds((prev) => [...prev, tool.id])
-        setLastScannedTool(`${tool.tools.name} (${tool.serial_number})`)
-        setScanSuccess(true)
-        setSearchQuery('') // 検索欄をクリア
-        setTimeout(() => {
-          setScanSuccess(false)
-          setLastScannedTool(null)
-        }, 2000) // 2秒後に成功表示を消す
-      } else {
+      // Setを使って重複チェック（即座に反映）
+      if (selectedToolIdsRef.current.has(tool.id)) {
         setError('この道具は既に選択されています')
         setTimeout(() => setError(null), 3000)
+        return
       }
+
+      // Setに追加（即座に反映）
+      selectedToolIdsRef.current.add(tool.id)
+
+      // 状態を更新
+      setSelectedToolIds((prev) => [...prev, tool.id])
+      setLastScannedTool(`${tool.tools.name} (${tool.serial_number})`)
+      setScanSuccess(true)
+      setSearchQuery('') // 検索欄をクリア
+      setTimeout(() => {
+        setScanSuccess(false)
+        setLastScannedTool(null)
+      }, 2000) // 2秒後に成功表示を消す
     } else {
       setError('QRコードが見つかりません')
       setTimeout(() => setError(null), 3000)
@@ -106,7 +113,8 @@ export function BulkMovementForm({
 
   // 道具を追加
   const handleAddTool = (toolItemId: string) => {
-    if (!selectedToolIds.includes(toolItemId)) {
+    if (!selectedToolIdsRef.current.has(toolItemId)) {
+      selectedToolIdsRef.current.add(toolItemId)
       setSelectedToolIds([...selectedToolIds, toolItemId])
       setSearchQuery('') // 検索をクリア
     }
@@ -114,11 +122,13 @@ export function BulkMovementForm({
 
   // 道具を削除
   const handleRemoveTool = (toolItemId: string) => {
+    selectedToolIdsRef.current.delete(toolItemId)
     setSelectedToolIds(selectedToolIds.filter((id) => id !== toolItemId))
   }
 
   // すべてクリア
   const handleClearAll = () => {
+    selectedToolIdsRef.current.clear()
     setSelectedToolIds([])
     setError(null)
   }
