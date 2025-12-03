@@ -14,6 +14,7 @@ interface AppLayoutProps {
   userRole: 'staff' | 'leader' | 'admin' | 'super_admin'
   organizationId: string
   organizationName?: string
+  heavyEquipmentEnabled?: boolean
   children: React.ReactNode
 }
 
@@ -22,6 +23,7 @@ export function AppLayout({
   userRole,
   organizationId,
   organizationName,
+  heavyEquipmentEnabled = false,
   children,
 }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -42,6 +44,7 @@ export function AppLayout({
         userRole={userRole}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        heavyEquipmentEnabled={heavyEquipmentEnabled}
       />
 
       {/* メインコンテンツエリア */}
