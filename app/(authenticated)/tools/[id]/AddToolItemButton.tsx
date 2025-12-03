@@ -71,6 +71,22 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
         throw insertError
       }
 
+      // 在庫調整履歴を記録
+      const { error: movementError } = await supabase
+        .from('tool_movements')
+        .insert({
+          organization_id: userData.organization_id,
+          tool_id: toolId,
+          movement_type: 'adjustment',
+          quantity: 1,
+          performed_by: user.id,
+          notes: `個別アイテム追加: ${serialNumber}`,
+        })
+
+      if (movementError) {
+        console.error('Failed to record movement:', movementError)
+      }
+
       // 成功したらモーダルを閉じてページをリフレッシュ
       setIsModalOpen(false)
       setSerialNumber('')

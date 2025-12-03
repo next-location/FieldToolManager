@@ -91,22 +91,27 @@ export async function adjustConsumableInventory({
     }
   }
 
-  // 調整履歴を記録（tool_movementsに記録）
+  // 調整履歴を記録（consumable_movementsに記録）
+  const adjustmentTypeText =
+    adjustmentType === 'add'
+      ? '追加'
+      : adjustmentType === 'remove'
+        ? '削減'
+        : '設定'
+
   const { error: movementError } = await supabase
-    .from('tool_movements')
+    .from('consumable_movements')
     .insert({
       organization_id: userData.organization_id,
       tool_id: consumableId,
-      tool_item_id: null,
-      movement_type: 'adjustment',
-      from_location: 'warehouse',
-      to_location: 'warehouse',
+      movement_type: '調整',
+      from_location_type: 'warehouse',
       from_site_id: null,
+      to_location_type: 'warehouse',
       to_site_id: null,
-      quantity: 1,
-      consumable_quantity: quantity,
+      quantity: quantity,
       performed_by: user.id,
-      notes: `[在庫調整: ${adjustmentType}] ${reason}`,
+      notes: `[${adjustmentTypeText}] ${reason}`,
     })
 
   if (movementError) {

@@ -1,8 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { ToolRegistrationForm } from './ToolRegistrationForm'
+import { CategoryForm } from '../../CategoryForm'
 
-export default async function NewToolPage() {
+export default async function EditCategoryPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
   const supabase = await createClient()
 
   // 認証チェック
@@ -17,7 +22,7 @@ export default async function NewToolPage() {
   // ユーザー情報取得
   const { data: userData } = await supabase
     .from('users')
-    .select('organization_id')
+    .select('organization_id, role')
     .eq('id', user.id)
     .single()
 
@@ -25,44 +30,44 @@ export default async function NewToolPage() {
     redirect('/login')
   }
 
-  // 既存の道具マスタを取得（個別管理のみ）
-  const { data: toolMasters } = await supabase
-    .from('tools')
-    .select('id, name, model_number, manufacturer, minimum_stock')
-    .eq('organization_id', userData.organization_id)
-    .eq('management_type', 'individual')
-    .is('deleted_at', null)
-    .order('name')
+  // 管理者権限チェック
+  if (userData.role !== 'admin') {
+    redirect('/')
+  }
 
-  // 組織設定を取得（低在庫アラートの有効/無効を確認）
-  const { data: organizationSettings } = await supabase
-    .from('organization_settings')
-    .select('enable_low_stock_alert')
+  // カテゴリ情報取得
+  const { data: category } = await supabase
+    .from('tool_categories')
+    .select('*')
+    .eq('id', id)
     .eq('organization_id', userData.organization_id)
     .single()
+
+  if (!category) {
+    redirect('/categories')
+  }
 
   return (
     <div className="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
         <div className="mb-6">
           <a
-            href="/tools"
+            href="/categories"
             className="text-sm font-medium text-gray-600 hover:text-gray-900"
           >
-            ← 道具一覧に戻る
+            ← カテゴリ一覧に戻る
           </a>
         </div>
 
         <div className="bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <h2 className="text-lg font-medium text-gray-900 mb-6">
-              道具の新規登録
+              カテゴリの編集
             </h2>
 
-            <ToolRegistrationForm
-              toolMasters={toolMasters || []}
-              enableLowStockAlert={organizationSettings?.enable_low_stock_alert ?? true}
+            <CategoryForm
               organizationId={userData.organization_id}
+              initialData={category}
             />
           </div>
         </div>

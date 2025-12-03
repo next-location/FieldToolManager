@@ -74,7 +74,10 @@
       "Bash(npm run seed:all:*)",
       "Bash(PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -c \"\\d auth.identities\")",
       "Bash(PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -c \"SELECT email FROM auth.users LIMIT 5;\")",
-      "Bash(PGPASSWORD=postgres psql:*)"
+      "Bash(PGPASSWORD=postgres psql:*)",
+      "Read(//private/tmp/**)",
+      "Bash(timeout 120 npx supabase start)",
+      "Bash(tee:*)"
     ],
     "deny": [],
     "ask": []

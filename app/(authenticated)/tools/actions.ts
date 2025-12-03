@@ -161,7 +161,6 @@ export async function updateTool(
         : null,
       quantity: parseInt(formData.quantity),
       minimum_stock: parseInt(formData.minimum_stock),
-      enable_low_stock_alert: formData.enable_low_stock_alert !== undefined ? formData.enable_low_stock_alert : true,
       warranty_expiration_date: formData.warranty_expiration_date || null,
       notes: formData.notes || null,
       updated_at: new Date().toISOString(),
@@ -182,7 +181,6 @@ export async function updateTool(
     purchase_price: formData.purchase_price ? parseFloat(formData.purchase_price) : null,
     quantity: parseInt(formData.quantity),
     minimum_stock: parseInt(formData.minimum_stock),
-    enable_low_stock_alert: formData.enable_low_stock_alert !== undefined ? formData.enable_low_stock_alert : true,
     warranty_expiration_date: formData.warranty_expiration_date || null,
     notes: formData.notes || null,
   }
@@ -192,12 +190,11 @@ export async function updateTool(
     await logToolUpdated(toolId, oldData, newData)
   }
 
-  // 低在庫チェック（組織設定と個別設定の両方がONの場合のみ）
+  // 低在庫チェック
   const quantity = parseInt(formData.quantity)
   const minimumStock = parseInt(formData.minimum_stock)
-  const enableAlert = formData.enable_low_stock_alert !== undefined ? formData.enable_low_stock_alert : true
 
-  if (enableAlert && quantity < minimumStock) {
+  if (quantity < minimumStock) {
     await notifyLowStock(toolId, formData.name, quantity, minimumStock)
   }
 
@@ -359,7 +356,6 @@ export async function createToolWithItems(formData: {
         unit: formData.unit || '個',
         quantity: parseInt(formData.quantity),
         minimum_stock: formData.minimum_stock ? parseInt(formData.minimum_stock) : 1,
-        enable_low_stock_alert: formData.enable_low_stock_alert !== undefined ? formData.enable_low_stock_alert : true,
         image_url: formData.image_url || null,
         warranty_expiration_date: formData.warranty_expiration_date || null,
       })
@@ -436,6 +432,22 @@ export async function createToolWithItems(formData: {
       return {
         error: '個別アイテムの作成に失敗しました: ' + itemsError.message,
       }
+    }
+
+    // 在庫調整履歴を記録
+    const { error: movementError } = await supabase
+      .from('tool_movements')
+      .insert({
+        organization_id: userData.organization_id,
+        tool_id: toolId,
+        movement_type: 'adjustment',
+        quantity: quantity,
+        performed_by: user.id,
+        notes: `個別アイテム追加: ${quantity}台登録`,
+      })
+
+    if (movementError) {
+      console.error('Failed to record movement:', movementError)
     }
   }
 

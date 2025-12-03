@@ -19,7 +19,7 @@ export default async function ToolsPage() {
     .eq('email', user.email)
     .single()
 
-  // 道具マスタと個別アイテム数を取得
+  // 道具マスタと個別アイテム数を取得（個別管理のみ）
   const { data: tools, error } = await supabase
     .from('tools')
     .select(`
@@ -28,6 +28,7 @@ export default async function ToolsPage() {
         name
       )
     `)
+    .eq('management_type', 'individual')
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
 

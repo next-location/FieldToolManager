@@ -1158,3 +1158,257 @@ await supabase.from('organization_settings').upsert(
 }
 ```
 
+---
+
+### Phase 7: 重機管理機能（2025-12-03 〜）
+
+#### 20251203000001_create_heavy_equipment_tables.sql
+
+重機管理機能の基盤となる4つのテーブルを作成。
+
+**作成テーブル:**
+1. `heavy_equipment_categories` - 重機カテゴリマスタ
+2. `heavy_equipment` - 重機マスタ
+3. `heavy_equipment_usage_records` - 使用記録
+4. `heavy_equipment_maintenance` - 点検記録
+
+```sql
+-- 1. 重機カテゴリテーブル
+CREATE TABLE IF NOT EXISTS heavy_equipment_categories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  code_prefix TEXT,
+  icon TEXT,
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- システム標準カテゴリ8種類を投入
+INSERT INTO heavy_equipment_categories (name, code_prefix, icon, sort_order) VALUES
+('バックホウ・油圧ショベル', 'BH', 'excavator', 10),
+('ホイールローダー', 'WL', 'loader', 20),
+('ダンプトラック', 'DT', 'truck', 30),
+('クレーン車', 'CR', 'crane', 40),
+('高所作業車', 'AW', 'aerial', 50),
+('フォークリフト', 'FL', 'forklift', 60),
+('ローラー・締固め機械', 'RL', 'roller', 70),
+('その他', 'OT', 'other', 99);
+
+-- 2. 重機マスタテーブル（最重要: 所有形態管理）
+CREATE TABLE IF NOT EXISTS heavy_equipment (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+
+  -- 基本情報
+  equipment_code TEXT NOT NULL,
+  name TEXT NOT NULL,
+  category_id UUID REFERENCES heavy_equipment_categories(id),
+  manufacturer TEXT,
+  model_number TEXT,
+  serial_number TEXT,
+  registration_number TEXT,
+
+  -- 所有形態（最重要）
+  ownership_type TEXT NOT NULL CHECK (ownership_type IN ('owned', 'leased', 'rented')),
+  supplier_company TEXT,
+  contract_number TEXT,
+  contract_start_date DATE,
+  contract_end_date DATE,
+  monthly_cost DECIMAL(10, 2),
+  purchase_date DATE,
+  purchase_price DECIMAL(12, 2),
+
+  -- ステータス
+  status TEXT DEFAULT 'available' CHECK (status IN ('available', 'in_use', 'maintenance', 'out_of_service')),
+  current_location_id UUID REFERENCES sites(id),
+  current_user_id UUID REFERENCES users(id),
+
+  -- 車検管理（必須）
+  requires_vehicle_inspection BOOLEAN DEFAULT false,
+  vehicle_inspection_date DATE,
+  vehicle_inspection_reminder_days INTEGER DEFAULT 60,
+
+  -- 保険管理（必須）
+  insurance_company TEXT,
+  insurance_policy_number TEXT,
+  insurance_start_date DATE,
+  insurance_end_date DATE,
+  insurance_reminder_days INTEGER DEFAULT 60,
+
+  -- メーター管理（オプション）
+  enable_hour_meter BOOLEAN DEFAULT false,
+  current_hour_meter DECIMAL(10, 1),
+
+  -- 添付・メタ
+  photo_url TEXT,
+  qr_code TEXT UNIQUE,
+  notes TEXT,
+  custom_fields JSONB DEFAULT '{}',
+  deleted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+
+  UNIQUE(organization_id, equipment_code)
+);
+
+-- 3. 使用記録テーブル
+CREATE TABLE IF NOT EXISTS heavy_equipment_usage_records (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  equipment_id UUID NOT NULL REFERENCES heavy_equipment(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id),
+  action_type TEXT NOT NULL CHECK (action_type IN ('checkout', 'checkin', 'transfer')),
+  from_location_id UUID REFERENCES sites(id),
+  to_location_id UUID REFERENCES sites(id),
+  hour_meter_reading DECIMAL(10, 1),
+  action_at TIMESTAMPTZ DEFAULT NOW(),
+  notes TEXT,
+  photo_urls TEXT[],
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4. 点検記録テーブル
+CREATE TABLE IF NOT EXISTS heavy_equipment_maintenance (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  equipment_id UUID NOT NULL REFERENCES heavy_equipment(id) ON DELETE CASCADE,
+  maintenance_type TEXT NOT NULL CHECK (maintenance_type IN ('vehicle_inspection', 'insurance_renewal', 'repair', 'other')),
+  maintenance_date DATE NOT NULL,
+  performed_by TEXT,
+  cost DECIMAL(10, 2),
+  next_date DATE,
+  receipt_url TEXT,
+  report_url TEXT,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- RLSポリシー設定（4テーブルすべて）
+ALTER TABLE heavy_equipment ENABLE ROW LEVEL SECURITY;
+ALTER TABLE heavy_equipment_usage_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE heavy_equipment_maintenance ENABLE ROW LEVEL SECURITY;
+
+-- 各テーブルにSELECT/INSERT/UPDATE/DELETEポリシーを設定
+-- 詳細はマイグレーションファイル参照
+```
+
+**インデックス作成:**
+- `idx_heavy_equipment_org` - 組織ID
+- `idx_heavy_equipment_code` - 組織ID + コード
+- `idx_heavy_equipment_qr` - QRコード
+- `idx_heavy_equipment_status` - ステータス
+- `idx_heavy_equipment_ownership` - 所有形態
+- `idx_heavy_equipment_vehicle_inspection` - 車検期日
+- `idx_heavy_equipment_insurance_expiry` - 保険期限
+
+**トリガー:**
+- `trigger_update_heavy_equipment_updated_at` - updated_at自動更新
+
+**適用日**: 2025-12-03
+**ステータス**: ✅ 完了
+**環境**: ローカル開発環境（Supabase Local）
+
+**ロールバック手順:**
+```sql
+DROP TABLE IF EXISTS heavy_equipment_maintenance CASCADE;
+DROP TABLE IF EXISTS heavy_equipment_usage_records CASCADE;
+DROP TABLE IF EXISTS heavy_equipment CASCADE;
+DROP TABLE IF EXISTS heavy_equipment_categories CASCADE;
+DROP FUNCTION IF EXISTS update_heavy_equipment_updated_at();
+```
+
+---
+
+#### 20251203000002_add_heavy_equipment_settings.sql
+
+組織設定に重機管理機能のON/OFF設定とオプション設定を追加。
+
+```sql
+-- organizationsテーブルに重機管理設定を追加
+ALTER TABLE organizations
+ADD COLUMN IF NOT EXISTS heavy_equipment_enabled BOOLEAN DEFAULT false;
+
+ALTER TABLE organizations
+ADD COLUMN IF NOT EXISTS heavy_equipment_settings JSONB DEFAULT '{
+  "enable_hour_meter": false,
+  "enable_fuel_tracking": false,
+  "vehicle_inspection_alert_days": 60,
+  "insurance_alert_days": 60,
+  "enable_operator_license_check": false
+}'::jsonb;
+
+COMMENT ON COLUMN organizations.heavy_equipment_enabled
+IS '重機管理機能の有効/無効';
+
+COMMENT ON COLUMN organizations.heavy_equipment_settings
+IS '重機管理のオプション設定（メーター管理、燃料管理等）';
+```
+
+**追加カラム:**
+- `heavy_equipment_enabled` - 機能の有効/無効フラグ
+- `heavy_equipment_settings` - JSONB形式のオプション設定
+  - `enable_hour_meter` - メーター管理ON/OFF
+  - `enable_fuel_tracking` - 燃料管理ON/OFF（将来拡張）
+  - `vehicle_inspection_alert_days` - 車検アラート日数（デフォルト60日）
+  - `insurance_alert_days` - 保険アラート日数（デフォルト60日）
+  - `enable_operator_license_check` - オペレーター資格確認（将来拡張）
+
+**適用日**: 2025-12-03
+**ステータス**: ✅ 完了
+**環境**: ローカル開発環境（Supabase Local）
+
+**ロールバック手順:**
+```sql
+ALTER TABLE organizations DROP COLUMN IF EXISTS heavy_equipment_enabled;
+ALTER TABLE organizations DROP COLUMN IF EXISTS heavy_equipment_settings;
+```
+
+---
+
+### Phase 7.1 実装チェックリスト（Week 1-2: データベース構築）
+
+- [x] heavy_equipment_categoriesテーブル作成
+- [x] heavy_equipmentテーブル作成（30+カラム）
+- [x] heavy_equipment_usage_recordsテーブル作成
+- [x] heavy_equipment_maintenanceテーブル作成
+- [x] 全テーブルにRLSポリシー設定
+- [x] インデックス作成（7個）
+- [x] トリガー作成（updated_at自動更新）
+- [x] organizationsテーブルに設定カラム追加
+- [x] システム標準カテゴリ8種類投入
+- [x] TypeScript型定義作成（types/heavy-equipment.ts）
+- [x] マイグレーション実行確認
+- [x] DATABASE_SCHEMA.md更新
+- [x] SPECIFICATION_SAAS_FINAL.md更新
+- [x] GitHub Issues作成（#43, #44, #45, #46）
+
+### 重機管理機能の核心ポイント
+
+1. **所有形態管理（最重要）**
+   - owned（自社所有）
+   - leased（リース）
+   - rented（レンタル）
+
+2. **法令順守（必須）**
+   - 車検管理（requires_vehicle_inspection, vehicle_inspection_date）
+   - 保険管理（insurance_end_date, insurance_reminder_days）
+   - アラート機能（60日前通知）
+
+3. **オプション機能（顧客選択）**
+   - メーター管理（enable_hour_meter）
+   - 燃料管理（将来拡張）
+   - オペレーター資格確認（将来拡張）
+
+4. **移動・使用記録（必須）**
+   - checkout（持出）
+   - checkin（返却）
+   - transfer（現場間移動）
+   - 誰がいつ使ったかを記録
+
+5. **将来の拡張計画**
+   - 作業報告書機能との統合（稼働日報）
+   - コスト分析（購入/リース/レンタルのROI比較）
+   - 詳細な点検記録管理
+

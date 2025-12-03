@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import ConsumablesList from '@/components/consumables/ConsumablesList'
 
 export default async function ConsumablesPage() {
   const supabase = await createClient()
@@ -25,9 +26,14 @@ export default async function ConsumablesPage() {
   }
 
   // 消耗品マスタを取得
-  const { data: consumables } = await supabase
+  const { data: consumables, error } = await supabase
     .from('tools')
-    .select('id, name, unit, minimum_stock')
+    .select(`
+      *,
+      tool_categories (
+        name
+      )
+    `)
     .eq('organization_id', userData.organization_id)
     .eq('management_type', 'consumable')
     .is('deleted_at', null)
@@ -72,130 +78,25 @@ export default async function ConsumablesPage() {
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
-          <div className="mb-6 flex justify-between items-center">
-            <Link
-              href="/"
-              className="text-sm font-medium text-gray-600 hover:text-gray-900"
-            >
-              ← ダッシュボードに戻る
-            </Link>
-          </div>
-
-          <div className="bg-white shadow sm:rounded-lg">
-            <div className="px-4 py-5 sm:p-6 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-gray-900">
-                消耗品一覧
-              </h2>
-              <p className="mt-1 text-sm text-gray-500">
-                軍手、テープなどの消耗品の在庫を管理します
-              </p>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      消耗品名
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      倉庫在庫
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      現場在庫
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      合計
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      最小在庫
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      操作
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {consumablesWithInventory.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="px-6 py-4 text-center text-sm text-gray-500"
-                      >
-                        消耗品が登録されていません。
-                        <br />
-                        道具管理から「消耗品管理」タイプで新規登録してください。
-                      </td>
-                    </tr>
-                  ) : (
-                    consumablesWithInventory.map((consumable) => (
-                      <tr
-                        key={consumable.id}
-                        className={
-                          consumable.is_low_stock ? 'bg-red-50' : ''
-                        }
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {consumable.name}
-                            {consumable.is_low_stock && (
-                              <span className="ml-2 text-xs text-red-600">
-                                ⚠️ 在庫不足
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {consumable.warehouse_quantity} {consumable.unit}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {consumable.site_quantity} {consumable.unit}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {consumable.total_quantity} {consumable.unit}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {consumable.minimum_stock} {consumable.unit}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                          <Link
-                            href={`/consumables/${consumable.id}/adjust`}
-                            className="text-blue-600 hover:text-blue-900"
-                          >
-                            在庫調整
-                          </Link>
-                          <Link
-                            href={`/consumables/${consumable.id}/move`}
-                            className="text-green-600 hover:text-green-900"
-                          >
-                            移動
-                          </Link>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">消耗品一覧</h1>
+          <Link
+            href="/consumables/new"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            + 新規登録
+          </Link>
         </div>
+
+        {error && (
+          <div className="rounded-md bg-red-50 p-4 mb-4">
+            <p className="text-sm text-red-800">
+              エラーが発生しました: {error.message}
+            </p>
+          </div>
+        )}
+
+        <ConsumablesList initialConsumables={consumablesWithInventory || []} />
       </div>
     </div>
   )

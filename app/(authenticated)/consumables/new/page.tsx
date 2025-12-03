@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { ToolRegistrationForm } from './ToolRegistrationForm'
+import { ConsumableRegistrationForm } from './ConsumableRegistrationForm'
 
-export default async function NewToolPage() {
+export default async function NewConsumablePage() {
   const supabase = await createClient()
 
   // 認証チェック
@@ -25,20 +25,12 @@ export default async function NewToolPage() {
     redirect('/login')
   }
 
-  // 既存の道具マスタを取得（個別管理のみ）
-  const { data: toolMasters } = await supabase
-    .from('tools')
-    .select('id, name, model_number, manufacturer, minimum_stock')
+  // 「消耗品」カテゴリのIDを取得
+  const { data: consumableCategory } = await supabase
+    .from('tool_categories')
+    .select('id')
     .eq('organization_id', userData.organization_id)
-    .eq('management_type', 'individual')
-    .is('deleted_at', null)
-    .order('name')
-
-  // 組織設定を取得（低在庫アラートの有効/無効を確認）
-  const { data: organizationSettings } = await supabase
-    .from('organization_settings')
-    .select('enable_low_stock_alert')
-    .eq('organization_id', userData.organization_id)
+    .eq('name', '消耗品')
     .single()
 
   return (
@@ -46,23 +38,22 @@ export default async function NewToolPage() {
       <div className="px-4 py-6 sm:px-0">
         <div className="mb-6">
           <a
-            href="/tools"
+            href="/consumables"
             className="text-sm font-medium text-gray-600 hover:text-gray-900"
           >
-            ← 道具一覧に戻る
+            ← 消耗品一覧に戻る
           </a>
         </div>
 
         <div className="bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <h2 className="text-lg font-medium text-gray-900 mb-6">
-              道具の新規登録
+              消耗品の新規登録
             </h2>
 
-            <ToolRegistrationForm
-              toolMasters={toolMasters || []}
-              enableLowStockAlert={organizationSettings?.enable_low_stock_alert ?? true}
+            <ConsumableRegistrationForm
               organizationId={userData.organization_id}
+              consumableCategoryId={consumableCategory?.id || null}
             />
           </div>
         </div>

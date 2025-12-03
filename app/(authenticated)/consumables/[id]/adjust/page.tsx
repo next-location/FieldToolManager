@@ -54,34 +54,33 @@ export default async function ConsumableAdjustPage({
   return (
     <div className="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
-          <div className="mb-6">
-            <Link
-              href="/consumables"
-              className="text-sm font-medium text-gray-600 hover:text-gray-900"
-            >
-              ← 消耗品一覧に戻る
-            </Link>
+        <div className="mb-6">
+          <Link
+            href={`/consumables/${id}`}
+            className="text-sm font-medium text-gray-600 hover:text-gray-900"
+          >
+            ← 消耗品詳細に戻る
+          </Link>
+        </div>
+
+        <div className="bg-white shadow sm:rounded-lg">
+          <div className="px-4 py-5 sm:p-6 border-b border-gray-200">
+            <h2 className="text-lg font-medium text-gray-900">
+              在庫調整：{consumable.name}
+            </h2>
+            <p className="mt-1 text-sm text-gray-500">
+              現在の倉庫在庫：
+              {warehouseInventory?.quantity || 0} {consumable.unit}
+            </p>
           </div>
 
-          <div className="bg-white shadow sm:rounded-lg">
-            <div className="px-4 py-5 sm:p-6 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-gray-900">
-                在庫調整：{consumable.name}
-              </h2>
-              <p className="mt-1 text-sm text-gray-500">
-                現在の倉庫在庫：
-                {warehouseInventory?.quantity || 0} {consumable.unit}
-              </p>
-            </div>
-
-            <div className="px-4 py-5 sm:p-6">
-              <AdjustmentForm
-                consumableId={id}
-                consumableName={consumable.name}
-                unit={consumable.unit}
-                currentQuantity={warehouseInventory?.quantity || 0}
-              />
-            </div>
+          <div className="px-4 py-5 sm:p-6">
+            <AdjustmentForm
+              consumableId={id}
+              consumableName={consumable.name}
+              unit={consumable.unit}
+              currentQuantity={warehouseInventory?.quantity || 0}
+            />
           </div>
         </div>
       </div>

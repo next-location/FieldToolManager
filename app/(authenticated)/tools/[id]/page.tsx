@@ -41,6 +41,18 @@ export default async function ToolDetailPage({
     .is('deleted_at', null)
     .order('serial_number')
 
+  // 在庫調整履歴を取得
+  const { data: adjustments } = await supabase
+    .from('tool_movements')
+    .select(`
+      *,
+      performed_by_user:users!tool_movements_performed_by_fkey(name)
+    `)
+    .eq('tool_id', id)
+    .eq('movement_type', 'adjustment')
+    .order('created_at', { ascending: false })
+    .limit(10)
+
   return (
     <div className="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
@@ -157,6 +169,47 @@ export default async function ToolDetailPage({
               </ul>
             ) : (
               <div className="px-4 py-6 text-center text-sm text-gray-500">個別アイテムが登録されていません</div>
+            )}
+          </div>
+        </div>
+
+        {/* 在庫調整履歴 */}
+        <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
+          <div className="px-4 py-5 sm:px-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">在庫調整履歴</h3>
+            <p className="mt-1 max-w-2xl text-sm text-gray-500">最新10件の在庫調整履歴</p>
+          </div>
+          <div className="border-t border-gray-200">
+            {adjustments && adjustments.length > 0 ? (
+              <ul className="divide-y divide-gray-200">
+                {adjustments.map((adjustment) => {
+                  const date = new Date(adjustment.created_at)
+                  const formattedDate = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+                  return (
+                    <li key={adjustment.id} className="px-4 py-4 sm:px-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center">
+                            <span className="text-sm font-medium text-gray-900">{formattedDate}</span>
+                            <span className="ml-3 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                              在庫調整
+                            </span>
+                          </div>
+                          <div className="mt-2 text-sm text-gray-700">
+                            <p>数量: {adjustment.quantity > 0 ? '+' : ''}{adjustment.quantity}台</p>
+                            {adjustment.notes && <p className="mt-1 text-gray-500">📝 {adjustment.notes}</p>}
+                          </div>
+                          <div className="mt-1 text-xs text-gray-500">
+                            実施者: {(adjustment.performed_by_user as any)?.name || '不明'}
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            ) : (
+              <div className="px-4 py-6 text-center text-sm text-gray-500">在庫調整履歴がありません</div>
             )}
           </div>
         </div>

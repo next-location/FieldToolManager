@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { BulkMovementForm } from './BulkMovementForm'
+import { ConsumableBulkMovementForm } from './ConsumableBulkMovementForm'
 
-export default async function BulkMovementPage() {
+export default async function ConsumableBulkMovementPage() {
   const supabase = await createClient()
 
   // 認証チェック
@@ -25,26 +25,13 @@ export default async function BulkMovementPage() {
     redirect('/login')
   }
 
-  // 道具個別アイテムを取得（削除されていないもの）
-  const { data: toolItems } = await supabase
-    .from('tool_items')
-    .select(`
-      id,
-      serial_number,
-      qr_code,
-      current_location,
-      current_site_id,
-      warehouse_location_id,
-      status,
-      tools (
-        id,
-        name,
-        model_number
-      )
-    `)
+  // 消耗品マスターを取得
+  const { data: consumables } = await supabase
+    .from('tools')
+    .select('id, name, model_number, unit')
     .eq('organization_id', userData.organization_id)
-    .is('deleted_at', null)
-    .order('serial_number')
+    .eq('management_type', 'consumable')
+    .order('name')
 
   // 現場一覧を取得
   const { data: sites } = await supabase
@@ -55,30 +42,20 @@ export default async function BulkMovementPage() {
     .is('deleted_at', null)
     .order('name')
 
-  // 倉庫位置一覧を取得
-  const { data: warehouseLocations } = await supabase
-    .from('warehouse_locations')
-    .select('id, code, display_name')
-    .eq('organization_id', userData.organization_id)
-    .eq('is_active', true)
-    .is('deleted_at', null)
-    .order('code')
-
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">道具一括移動</h1>
+          <h1 className="text-2xl font-bold text-gray-900">消耗品一括移動</h1>
           <p className="mt-1 text-sm text-gray-600">
-            移動先を選択してから、道具を連続でスキャンまたは選択して一括移動できます。
+            複数の消耗品を選択して、まとめて移動できます。
           </p>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          <BulkMovementForm
-            toolItems={toolItems || []}
+          <ConsumableBulkMovementForm
+            consumables={consumables || []}
             sites={sites || []}
-            warehouseLocations={warehouseLocations || []}
           />
         </div>
       </div>

@@ -1,0 +1,169 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import ConsumablesFilters from './ConsumablesFilters'
+
+interface FilterState {
+  searchQuery: string
+  stockStatus: string
+}
+
+interface Consumable {
+  id: string
+  name: string
+  model_number: string | null
+  unit: string
+  minimum_stock: number
+  warehouse_quantity: number
+  site_quantity: number
+  total_quantity: number
+  is_low_stock: boolean
+  tool_categories?: {
+    name: string
+  }
+}
+
+interface ConsumablesListProps {
+  initialConsumables: Consumable[]
+}
+
+export default function ConsumablesList({ initialConsumables }: ConsumablesListProps) {
+  const [consumables, setConsumables] = useState<Consumable[]>(initialConsumables)
+  const [filteredConsumables, setFilteredConsumables] = useState<Consumable[]>(initialConsumables)
+  const [filters, setFilters] = useState<FilterState>({
+    searchQuery: '',
+    stockStatus: '',
+  })
+
+  useEffect(() => {
+    // フィルター適用
+    let result = [...consumables]
+
+    // 消耗品名検索
+    if (filters.searchQuery) {
+      const query = filters.searchQuery.toLowerCase()
+      result = result.filter((consumable) =>
+        consumable.name.toLowerCase().includes(query) ||
+        consumable.model_number?.toLowerCase().includes(query)
+      )
+    }
+
+    // 在庫状況フィルター
+    if (filters.stockStatus) {
+      if (filters.stockStatus === 'in_stock') {
+        result = result.filter((consumable) => !consumable.is_low_stock)
+      } else if (filters.stockStatus === 'low_stock') {
+        result = result.filter((consumable) => consumable.is_low_stock)
+      }
+    }
+
+    setFilteredConsumables(result)
+  }, [consumables, filters])
+
+  const handleFilterChange = (newFilters: FilterState) => {
+    setFilters(newFilters)
+  }
+
+  return (
+    <>
+      <ConsumablesFilters onFilterChange={handleFilterChange} />
+
+      {/* 結果件数表示 */}
+      <div className="mb-4 text-sm text-gray-600">
+        {filteredConsumables.length}件の消耗品
+        {filteredConsumables.length !== consumables.length && (
+          <span className="ml-2">
+            (全{consumables.length}件中)
+          </span>
+        )}
+      </div>
+
+      <div className="bg-white shadow overflow-hidden sm:rounded-md">
+        {filteredConsumables && filteredConsumables.length > 0 ? (
+          <ul className="divide-y divide-gray-200">
+            {filteredConsumables.map((consumable) => (
+              <li key={consumable.id}>
+                <div className="px-4 py-4 sm:px-6">
+                  <div className="flex items-center justify-between">
+                    <Link
+                      href={`/consumables/${consumable.id}`}
+                      className="flex-1 hover:text-blue-700"
+                    >
+                      <div className="flex items-center">
+                        <p className="text-sm font-medium text-blue-600 truncate">
+                          {consumable.name}
+                        </p>
+                        {consumable.is_low_stock && (
+                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                            在庫不足
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-2 flex items-center text-sm text-gray-500 flex-wrap gap-x-4 gap-y-1">
+                        {consumable.model_number && (
+                          <span>型番: {consumable.model_number}</span>
+                        )}
+                        <span>単位: {consumable.unit}</span>
+                        <span>最小在庫: {consumable.minimum_stock}{consumable.unit}</span>
+                      </div>
+                      <div className="mt-2 flex items-center text-sm text-gray-700 flex-wrap gap-x-4 gap-y-1">
+                        <span className="font-medium">
+                          合計在庫: {consumable.total_quantity}{consumable.unit}
+                        </span>
+                        <span>
+                          倉庫: {consumable.warehouse_quantity}{consumable.unit}
+                        </span>
+                        <span>
+                          現場: {consumable.site_quantity}{consumable.unit}
+                        </span>
+                      </div>
+                    </Link>
+                    <div className="ml-4 flex space-x-2">
+                      <Link
+                        href={`/consumables/${consumable.id}/adjust`}
+                        className="inline-flex items-center px-3 py-1 border border-blue-600 rounded text-xs font-medium text-blue-600 bg-white hover:bg-blue-50"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        📦 在庫調整
+                      </Link>
+                      <Link
+                        href={`/consumables/${consumable.id}/move`}
+                        className="inline-flex items-center px-3 py-1 border border-green-600 rounded text-xs font-medium text-green-600 bg-white hover:bg-green-50"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        🚚 移動
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="px-4 py-12 text-center">
+            <svg
+              className="mx-auto h-12 w-12 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">
+              消耗品が見つかりません
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              検索条件を変更するか、新しい消耗品を登録してください
+            </p>
+          </div>
+        )}
+      </div>
+    </>
+  )
+}

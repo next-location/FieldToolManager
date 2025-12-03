@@ -2816,3 +2816,455 @@ if (industries.includes('電気工事')) {
 - `docs/MIGRATIONS.md` - マイグレーション履歴
 - `docs/UI_DESIGN.md` - UI設計書
 
+---
+
+## 7. 重機管理テーブル
+
+### 7.1 概要
+
+建設現場で使用される重機（バックホウ、ダンプトラック、クレーン車等）の管理機能。道具管理とは別系統で管理し、所有形態（購入/リース/レンタル）、車検・保険、使用記録を一元管理します。
+
+### 7.2 重機管理の特性
+
+| 項目 | 道具管理 | 重機管理 |
+|------|---------|---------|
+| **価格帯** | 数千円〜数十万円 | 数百万円〜数億円 |
+| **管理単位** | 個品 or 数量 | **個品のみ** |
+| **法定管理** | 任意 | **必須**（車検、保険） |
+| **所有形態** | 購入のみ | 購入/リース/レンタル |
+| **メーター管理** | なし | オプション（稼働時間） |
+
+### 7.3 テーブル定義
+
+#### heavy_equipment (重機マスタ)
+
+```sql
+-- 重機マスタテーブル
+CREATE TABLE heavy_equipment (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+
+  -- 基本情報
+  equipment_code TEXT NOT NULL,  -- 重機コード（例: HE-001）
+  name TEXT NOT NULL,  -- 機械名（例: バックホウ 0.25m³）
+  category_id UUID REFERENCES heavy_equipment_categories(id),
+  manufacturer TEXT,  -- メーカー（例: コマツ、日立建機）
+  model_number TEXT,  -- 型番（例: PC30MR-5）
+
+  -- 識別情報
+  serial_number TEXT,  -- 製造番号（車体番号）
+  registration_number TEXT,  -- ナンバープレート（公道走行車両のみ）
+
+  -- 所有形態（最重要）
+  ownership_type TEXT NOT NULL CHECK (ownership_type IN (
+    'owned',   -- 自社所有
+    'leased',  -- 長期リース（ファイナンスリース）
+    'rented'   -- 短期レンタル
+  )),
+
+  -- リース・レンタル情報
+  supplier_company TEXT,  -- リース会社・レンタル会社名
+  contract_number TEXT,  -- 契約番号
+  contract_start_date DATE,
+  contract_end_date DATE,
+  monthly_cost DECIMAL(10, 2),  -- 月額費用
+
+  -- 購入情報（自社所有のみ）
+  purchase_date DATE,
+  purchase_price DECIMAL(12, 2),
+
+  -- ステータス管理
+  status TEXT DEFAULT 'available' CHECK (status IN (
+    'available',      -- 利用可能（倉庫保管中）
+    'in_use',        -- 使用中（現場配置中）
+    'maintenance',   -- 点検・整備中
+    'out_of_service' -- 使用不可（故障、廃車予定）
+  )),
+
+  -- 現在地
+  current_location_id UUID REFERENCES locations(id),  -- 倉庫 or 現場
+  current_user_id UUID REFERENCES users(id),  -- 現在の使用者（持出中の場合）
+
+  -- 車検管理（必須）
+  requires_vehicle_inspection BOOLEAN DEFAULT false,  -- 車検対象か
+  vehicle_inspection_date DATE,  -- 次回車検日
+  vehicle_inspection_reminder_days INTEGER DEFAULT 60,  -- アラート日数
+
+  -- 保険管理（必須）
+  insurance_company TEXT,  -- 保険会社
+  insurance_policy_number TEXT,  -- 証券番号
+  insurance_start_date DATE,
+  insurance_end_date DATE,
+  insurance_reminder_days INTEGER DEFAULT 60,
+
+  -- メーター管理（オプション）
+  enable_hour_meter BOOLEAN DEFAULT false,  -- メーター管理ON/OFF
+  current_hour_meter DECIMAL(10, 1),  -- 現在のメーター値
+
+  -- 添付ファイル
+  photo_url TEXT,
+  qr_code TEXT UNIQUE,  -- QRコード（例: HE-001-UUID）
+
+  -- メタデータ
+  notes TEXT,
+  custom_fields JSONB DEFAULT '{}',
+  deleted_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+
+  UNIQUE(organization_id, equipment_code)
+);
+
+-- インデックス
+CREATE INDEX idx_heavy_equipment_org ON heavy_equipment(organization_id);
+CREATE INDEX idx_heavy_equipment_code ON heavy_equipment(organization_id, equipment_code);
+CREATE INDEX idx_heavy_equipment_qr ON heavy_equipment(qr_code);
+CREATE INDEX idx_heavy_equipment_status ON heavy_equipment(status);
+CREATE INDEX idx_heavy_equipment_ownership ON heavy_equipment(ownership_type);
+CREATE INDEX idx_heavy_equipment_vehicle_inspection ON heavy_equipment(vehicle_inspection_date)
+  WHERE requires_vehicle_inspection = true;
+CREATE INDEX idx_heavy_equipment_insurance_expiry ON heavy_equipment(insurance_end_date);
+CREATE INDEX idx_heavy_equipment_deleted ON heavy_equipment(deleted_at) WHERE deleted_at IS NULL;
+
+-- RLS
+ALTER TABLE heavy_equipment ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "heavy_equipment_select_own_org" ON heavy_equipment FOR SELECT
+USING (organization_id = (SELECT organization_id FROM users WHERE id = auth.uid()) AND deleted_at IS NULL);
+
+CREATE POLICY "heavy_equipment_insert_leader_admin" ON heavy_equipment FOR INSERT
+WITH CHECK (
+  organization_id = (SELECT organization_id FROM users WHERE id = auth.uid())
+  AND EXISTS (
+    SELECT 1 FROM users
+    WHERE id = auth.uid()
+    AND role IN ('leader', 'admin')
+  )
+);
+
+CREATE POLICY "heavy_equipment_update_leader_admin" ON heavy_equipment FOR UPDATE
+USING (
+  organization_id = (SELECT organization_id FROM users WHERE id = auth.uid())
+  AND EXISTS (
+    SELECT 1 FROM users
+    WHERE id = auth.uid()
+    AND role IN ('leader', 'admin')
+  )
+);
+
+COMMENT ON TABLE heavy_equipment IS '重機マスタ - 建設機械の基本情報・所有形態・車検保険管理';
+COMMENT ON COLUMN heavy_equipment.ownership_type IS '所有形態: owned=自社所有, leased=リース, rented=レンタル';
+COMMENT ON COLUMN heavy_equipment.enable_hour_meter IS 'メーター管理ON/OFF（顧客選択可能）';
+```
+
+#### heavy_equipment_categories (重機カテゴリ)
+
+```sql
+-- 重機カテゴリテーブル
+CREATE TABLE heavy_equipment_categories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,  -- NULL = システム標準
+  name TEXT NOT NULL,
+  code_prefix TEXT,  -- コード接頭辞（例: BH = バックホウ）
+  icon TEXT,  -- アイコン名（UI用）
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_heavy_equipment_categories_org ON heavy_equipment_categories(organization_id);
+CREATE INDEX idx_heavy_equipment_categories_sort ON heavy_equipment_categories(sort_order);
+
+-- 標準カテゴリ（初期データ）
+INSERT INTO heavy_equipment_categories (id, name, code_prefix, icon, sort_order) VALUES
+('he-cat-001', 'バックホウ・油圧ショベル', 'BH', 'excavator', 10),
+('he-cat-002', 'ホイールローダー', 'WL', 'loader', 20),
+('he-cat-003', 'ダンプトラック', 'DT', 'truck', 30),
+('he-cat-004', 'クレーン車', 'CR', 'crane', 40),
+('he-cat-005', '高所作業車', 'AW', 'aerial', 50),
+('he-cat-006', 'フォークリフト', 'FL', 'forklift', 60),
+('he-cat-007', 'ローラー・締固め機械', 'RL', 'roller', 70),
+('he-cat-008', 'その他', 'OT', 'other', 99);
+
+COMMENT ON TABLE heavy_equipment_categories IS '重機カテゴリマスタ';
+```
+
+#### heavy_equipment_usage_records (使用記録)
+
+```sql
+-- 重機使用記録（持出・返却）
+CREATE TABLE heavy_equipment_usage_records (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  equipment_id UUID NOT NULL REFERENCES heavy_equipment(id) ON DELETE CASCADE,
+
+  -- 使用者
+  user_id UUID NOT NULL REFERENCES users(id),
+
+  -- 移動情報
+  action_type TEXT NOT NULL CHECK (action_type IN (
+    'checkout',  -- 持出（会社→現場）
+    'checkin',   -- 返却（現場→会社）
+    'transfer'   -- 現場間移動
+  )),
+
+  from_location_id UUID REFERENCES locations(id),
+  to_location_id UUID REFERENCES locations(id),
+
+  -- メーター記録（enable_hour_meterがtrueの場合のみ）
+  hour_meter_reading DECIMAL(10, 1),
+
+  -- タイムスタンプ
+  action_at TIMESTAMP DEFAULT NOW(),
+
+  -- 備考
+  notes TEXT,
+  photo_urls TEXT[],  -- 持出時・返却時の写真
+
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- インデックス
+CREATE INDEX idx_usage_records_org ON heavy_equipment_usage_records(organization_id);
+CREATE INDEX idx_usage_records_equipment ON heavy_equipment_usage_records(equipment_id);
+CREATE INDEX idx_usage_records_user ON heavy_equipment_usage_records(user_id);
+CREATE INDEX idx_usage_records_action_at ON heavy_equipment_usage_records(action_at DESC);
+
+-- RLS
+ALTER TABLE heavy_equipment_usage_records ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "usage_records_select_own_org" ON heavy_equipment_usage_records FOR SELECT
+USING (organization_id = (SELECT organization_id FROM users WHERE id = auth.uid()));
+
+CREATE POLICY "usage_records_insert_authenticated" ON heavy_equipment_usage_records FOR INSERT
+WITH CHECK (
+  organization_id = (SELECT organization_id FROM users WHERE id = auth.uid())
+  AND user_id = auth.uid()
+);
+
+COMMENT ON TABLE heavy_equipment_usage_records IS '重機使用記録 - 持出・返却・移動の履歴';
+```
+
+#### heavy_equipment_maintenance (点検記録)
+
+```sql
+-- 簡易点検記録（車検・保険更新記録）
+CREATE TABLE heavy_equipment_maintenance (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  equipment_id UUID NOT NULL REFERENCES heavy_equipment(id) ON DELETE CASCADE,
+
+  -- 点検タイプ
+  maintenance_type TEXT NOT NULL CHECK (maintenance_type IN (
+    'vehicle_inspection',  -- 車検
+    'insurance_renewal',   -- 保険更新
+    'repair',             -- 修理
+    'other'               -- その他
+  )),
+
+  -- 実施情報
+  maintenance_date DATE NOT NULL,
+  performed_by TEXT,  -- 実施業者
+
+  -- コスト
+  cost DECIMAL(10, 2),
+
+  -- 次回予定
+  next_date DATE,
+
+  -- 添付
+  receipt_url TEXT,  -- 領収書
+  report_url TEXT,   -- 点検記録票
+
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_maintenance_org ON heavy_equipment_maintenance(organization_id);
+CREATE INDEX idx_maintenance_equipment ON heavy_equipment_maintenance(equipment_id);
+CREATE INDEX idx_maintenance_date ON heavy_equipment_maintenance(maintenance_date DESC);
+
+ALTER TABLE heavy_equipment_maintenance ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "maintenance_select_own_org" ON heavy_equipment_maintenance FOR SELECT
+USING (organization_id = (SELECT organization_id FROM users WHERE id = auth.uid()));
+
+CREATE POLICY "maintenance_insert_leader_admin" ON heavy_equipment_maintenance FOR INSERT
+WITH CHECK (
+  organization_id = (SELECT organization_id FROM users WHERE id = auth.uid())
+  AND EXISTS (
+    SELECT 1 FROM users
+    WHERE id = auth.uid()
+    AND role IN ('leader', 'admin')
+  )
+);
+
+COMMENT ON TABLE heavy_equipment_maintenance IS '重機点検記録 - 車検・保険更新・修理履歴';
+```
+
+### 7.4 組織設定への追加
+
+```sql
+-- organization_settingsテーブルに重機管理設定を追加
+ALTER TABLE organization_settings
+ADD COLUMN IF NOT EXISTS heavy_equipment_enabled BOOLEAN DEFAULT false,
+ADD COLUMN IF NOT EXISTS heavy_equipment_settings JSONB DEFAULT '{
+  "enable_hour_meter": false,
+  "enable_fuel_tracking": false,
+  "vehicle_inspection_alert_days": 60,
+  "insurance_alert_days": 60,
+  "enable_operator_license_check": false
+}'::jsonb;
+
+COMMENT ON COLUMN organization_settings.heavy_equipment_enabled
+IS '重機管理機能の有効/無効';
+
+COMMENT ON COLUMN organization_settings.heavy_equipment_settings
+IS '重機管理のオプション設定（メーター管理、燃料管理等）';
+```
+
+### 7.5 TypeScript型定義
+
+```typescript
+// types/heavy-equipment.ts
+
+export type OwnershipType = 'owned' | 'leased' | 'rented';
+export type HeavyEquipmentStatus = 'available' | 'in_use' | 'maintenance' | 'out_of_service';
+export type UsageActionType = 'checkout' | 'checkin' | 'transfer';
+export type MaintenanceType = 'vehicle_inspection' | 'insurance_renewal' | 'repair' | 'other';
+
+export interface HeavyEquipment {
+  id: string;
+  organization_id: string;
+
+  // 基本情報
+  equipment_code: string;
+  name: string;
+  category_id: string | null;
+  manufacturer: string | null;
+  model_number: string | null;
+
+  // 識別情報
+  serial_number: string | null;
+  registration_number: string | null;
+
+  // 所有形態
+  ownership_type: OwnershipType;
+  supplier_company: string | null;
+  contract_number: string | null;
+  contract_start_date: string | null;
+  contract_end_date: string | null;
+  monthly_cost: number | null;
+
+  // 購入情報
+  purchase_date: string | null;
+  purchase_price: number | null;
+
+  // ステータス
+  status: HeavyEquipmentStatus;
+  current_location_id: string | null;
+  current_user_id: string | null;
+
+  // 車検
+  requires_vehicle_inspection: boolean;
+  vehicle_inspection_date: string | null;
+  vehicle_inspection_reminder_days: number;
+
+  // 保険
+  insurance_company: string | null;
+  insurance_policy_number: string | null;
+  insurance_start_date: string | null;
+  insurance_end_date: string | null;
+  insurance_reminder_days: number;
+
+  // メーター
+  enable_hour_meter: boolean;
+  current_hour_meter: number | null;
+
+  // 添付
+  photo_url: string | null;
+  qr_code: string | null;
+
+  // メタデータ
+  notes: string | null;
+  custom_fields: Record<string, any>;
+  deleted_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HeavyEquipmentCategory {
+  id: string;
+  organization_id: string | null;
+  name: string;
+  code_prefix: string | null;
+  icon: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface HeavyEquipmentUsageRecord {
+  id: string;
+  organization_id: string;
+  equipment_id: string;
+  user_id: string;
+  action_type: UsageActionType;
+  from_location_id: string | null;
+  to_location_id: string | null;
+  hour_meter_reading: number | null;
+  action_at: string;
+  notes: string | null;
+  photo_urls: string[] | null;
+  created_at: string;
+}
+
+export interface HeavyEquipmentMaintenance {
+  id: string;
+  organization_id: string;
+  equipment_id: string;
+  maintenance_type: MaintenanceType;
+  maintenance_date: string;
+  performed_by: string | null;
+  cost: number | null;
+  next_date: string | null;
+  receipt_url: string | null;
+  report_url: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface HeavyEquipmentAlert {
+  equipment_id: string;
+  equipment_name: string;
+  alert_type: 'vehicle_inspection' | 'insurance_expiry' | 'lease_end';
+  severity: 'info' | 'warning' | 'error';
+  days_remaining: number;
+  message: string;
+  due_date: Date;
+}
+```
+
+### 7.6 ER図（重機管理部分）
+
+```
+organizations (組織)
+    ↓ 1:N
+heavy_equipment (重機マスタ)
+├── ownership_type: owned/leased/rented
+├── vehicle_inspection_date (車検日)
+├── insurance_end_date (保険満期)
+└── enable_hour_meter (メーター管理ON/OFF)
+    ↓ 1:N
+    ├── heavy_equipment_usage_records (使用記録)
+    │   ├── action_type: checkout/checkin/transfer
+    │   ├── user_id → users
+    │   └── hour_meter_reading (メーター値)
+    │
+    └── heavy_equipment_maintenance (点検記録)
+        ├── maintenance_type: vehicle_inspection/insurance_renewal/repair
+        └── cost (費用)
+```
+
+---
+

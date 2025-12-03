@@ -13,6 +13,8 @@ interface SidebarProps {
 export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname()
   const [toolsExpanded, setToolsExpanded] = useState(false)
+  const [equipmentExpanded, setEquipmentExpanded] = useState(false)
+  const [movementExpanded, setMovementExpanded] = useState(false)
   const [masterExpanded, setMasterExpanded] = useState(false)
   const [settingsExpanded, setSettingsExpanded] = useState(false)
 
@@ -87,7 +89,7 @@ export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
             <button
               onClick={() => setToolsExpanded(!toolsExpanded)}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                isActive('/tools') || isActive('/consumables') || isActive('/tool-sets') || isActive('/movements')
+                isActive('/tools') || isActive('/consumables') || isActive('/tool-sets')
                   ? 'bg-blue-50 text-blue-700 font-medium'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
@@ -118,75 +120,177 @@ export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
                 <Link
                   href="/tools"
                   onClick={onClose}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
                     isActive('/tools')
                       ? 'bg-blue-50 text-blue-700 font-medium'
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
-                  <span>🔧</span>
-                  <span>個別管理道具</span>
+                  道具一覧
                 </Link>
                 <Link
                   href="/consumables"
                   onClick={onClose}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
                     isActive('/consumables')
                       ? 'bg-blue-50 text-blue-700 font-medium'
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
-                  <span>🧰</span>
-                  <span>消耗品管理</span>
+                  消耗品一覧
                 </Link>
                 <Link
                   href="/tool-sets"
                   onClick={onClose}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
                     isActive('/tool-sets')
                       ? 'bg-blue-50 text-blue-700 font-medium'
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
-                  <span>📋</span>
-                  <span>道具セット</span>
+                  道具セット登録
                 </Link>
-                <div className="border-t border-gray-100 my-2"></div>
+              </div>
+            )}
+          </div>
+
+          {/* 重機管理 */}
+          <div>
+            <button
+              onClick={() => setEquipmentExpanded(!equipmentExpanded)}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
+                isActive('/equipment')
+                  ? 'bg-blue-50 text-blue-700 font-medium'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                  />
+                </svg>
+                <span>重機管理</span>
+              </div>
+              <svg
+                className={`w-4 h-4 transition-transform ${equipmentExpanded ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {equipmentExpanded && (
+              <div className="ml-8 mt-1 space-y-1">
+                <Link
+                  href="/equipment"
+                  onClick={onClose}
+                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                    isActive('/equipment')
+                      ? 'bg-blue-50 text-blue-700 font-medium'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  重機一覧
+                </Link>
+                {isLeaderOrAdmin && (
+                  <Link
+                    href="/equipment/new"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive('/equipment/new')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    重機登録
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* 移動管理 */}
+          <div>
+            <button
+              onClick={() => setMovementExpanded(!movementExpanded)}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
+                isActive('/movements')
+                  ? 'bg-blue-50 text-blue-700 font-medium'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                  />
+                </svg>
+                <span>移動管理</span>
+              </div>
+              <svg
+                className={`w-4 h-4 transition-transform ${movementExpanded ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {movementExpanded && (
+              <div className="ml-8 mt-1 space-y-1">
                 <Link
                   href="/movements/bulk"
                   onClick={onClose}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
                     isActive('/movements/bulk')
                       ? 'bg-blue-50 text-blue-700 font-medium'
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
-                  <span>📦</span>
-                  <span>一括移動</span>
+                  道具一括移動
+                </Link>
+                <Link
+                  href="/consumables/bulk-movement"
+                  onClick={onClose}
+                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                    isActive('/consumables/bulk-movement')
+                      ? 'bg-blue-50 text-blue-700 font-medium'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  消耗品一括移動
+                </Link>
+                <Link
+                  href="/tool-sets/movement"
+                  onClick={onClose}
+                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                    isActive('/tool-sets/movement')
+                      ? 'bg-blue-50 text-blue-700 font-medium'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  道具セット移動
                 </Link>
                 <Link
                   href="/movements"
                   onClick={onClose}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
                     pathname === '/movements'
                       ? 'bg-blue-50 text-blue-700 font-medium'
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
-                  <span>📋</span>
-                  <span>移動履歴</span>
-                </Link>
-                <Link
-                  href="/consumable-movements"
-                  onClick={onClose}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-colors ${
-                    isActive('/consumable-movements')
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  <span>📊</span>
-                  <span>消耗品移動履歴</span>
+                  移動履歴
                 </Link>
               </div>
             )}
@@ -198,7 +302,7 @@ export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
               <button
                 onClick={() => setMasterExpanded(!masterExpanded)}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                  isActive('/sites') || isActive('/warehouse-locations')
+                  isActive('/sites') || isActive('/warehouse-locations') || isActive('/categories')
                     ? 'bg-blue-50 text-blue-700 font-medium'
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
@@ -229,28 +333,39 @@ export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
                   <Link
                     href="/sites"
                     onClick={onClose}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
                       isActive('/sites')
                         ? 'bg-blue-50 text-blue-700 font-medium'
                         : 'text-gray-600 hover:bg-gray-50'
                     }`}
                   >
-                    <span>🏗️</span>
-                    <span>現場マスタ</span>
+                    現場マスタ
                   </Link>
                   {isAdmin && (
-                    <Link
-                      href="/warehouse-locations"
-                      onClick={onClose}
-                      className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive('/warehouse-locations')
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span>📍</span>
-                      <span>倉庫位置管理</span>
-                    </Link>
+                    <>
+                      <Link
+                        href="/warehouse-locations"
+                        onClick={onClose}
+                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                          isActive('/warehouse-locations')
+                            ? 'bg-blue-50 text-blue-700 font-medium'
+                            : 'text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        倉庫位置管理
+                      </Link>
+                      <Link
+                        href="/categories"
+                        onClick={onClose}
+                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                          isActive('/categories')
+                            ? 'bg-blue-50 text-blue-700 font-medium'
+                            : 'text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        カテゴリ管理
+                      </Link>
+                    </>
                   )}
                 </div>
               )}
@@ -320,40 +435,37 @@ export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
                 <Link
                   href="/settings"
                   onClick={onClose}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
                     pathname === '/settings'
                       ? 'bg-blue-50 text-blue-700 font-medium'
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
-                  <span>👤</span>
-                  <span>アカウント設定</span>
+                  アカウント設定
                 </Link>
                 {isAdmin && (
                   <>
                     <Link
                       href="/settings/organization"
                       onClick={onClose}
-                      className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
                         isActive('/settings/organization')
                           ? 'bg-blue-50 text-blue-700 font-medium'
                           : 'text-gray-600 hover:bg-gray-50'
                       }`}
                     >
-                      <span>⚙️</span>
-                      <span>組織設定</span>
+                      運用設定
                     </Link>
                     <Link
                       href="/admin/audit-logs"
                       onClick={onClose}
-                      className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
                         isActive('/admin/audit-logs')
                           ? 'bg-blue-50 text-blue-700 font-medium'
                           : 'text-gray-600 hover:bg-gray-50'
                       }`}
                     >
-                      <span>📝</span>
-                      <span>監査ログ</span>
+                      監査ログ
                     </Link>
                   </>
                 )}

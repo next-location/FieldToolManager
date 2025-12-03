@@ -104,57 +104,36 @@ export function MovementForm({
         <label className="text-sm font-medium text-gray-700 mb-3 block">
           移動方向
         </label>
-        <div className="space-y-3">
-          <div className="flex items-start">
-            <div className="flex items-center h-5">
-              <input
-                id="direction_to_site"
-                name="direction"
-                type="radio"
-                value="to_site"
-                checked={direction === 'to_site'}
-                onChange={(e) => setDirection(e.target.value as 'to_site')}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-              />
-            </div>
-            <div className="ml-3 text-sm">
-              <label
-                htmlFor="direction_to_site"
-                className="font-medium text-gray-700"
-              >
-                倉庫 → 現場（持ち出し）
-              </label>
-              <p className="text-gray-500">
-                倉庫から現場に消耗品を持ち出します
-              </p>
-            </div>
-          </div>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => setDirection('to_site')}
+            className={`p-4 border-2 rounded-lg text-center transition-colors ${
+              direction === 'to_site'
+                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                : 'border-gray-300 hover:border-gray-400'
+            }`}
+          >
+            <div className="text-2xl mb-1">🏢 → 🏗️</div>
+            <div className="font-medium">倉庫 → 現場</div>
+            <div className="text-xs text-gray-500 mt-1">持ち出し</div>
+          </button>
 
-          <div className="flex items-start">
-            <div className="flex items-center h-5">
-              <input
-                id="direction_from_site"
-                name="direction"
-                type="radio"
-                value="from_site"
-                checked={direction === 'from_site'}
-                onChange={(e) => setDirection(e.target.value as 'from_site')}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-              />
-            </div>
-            <div className="ml-3 text-sm">
-              <label
-                htmlFor="direction_from_site"
-                className="font-medium text-gray-700"
-              >
-                現場 → 倉庫（返却）
-              </label>
-              <p className="text-gray-500">
-                現場から倉庫に消耗品を返却します
-              </p>
-            </div>
-          </div>
+          <button
+            type="button"
+            onClick={() => setDirection('from_site')}
+            className={`p-4 border-2 rounded-lg text-center transition-colors ${
+              direction === 'from_site'
+                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                : 'border-gray-300 hover:border-gray-400'
+            }`}
+          >
+            <div className="text-2xl mb-1">🏗️ → 🏢</div>
+            <div className="font-medium">現場 → 倉庫</div>
+            <div className="text-xs text-gray-500 mt-1">返却</div>
+          </button>
         </div>
+        <input type="hidden" name="direction" value={direction} />
       </div>
 
       {/* 現場選択 */}
