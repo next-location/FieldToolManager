@@ -10,6 +10,8 @@ interface QrCameraScannerProps {
 
 export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
   const scannerRef = useRef<Html5Qrcode | null>(null)
+  const lastScannedRef = useRef<string | null>(null)
+  const scanCooldownRef = useRef<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [isScanning, setIsScanning] = useState(false)
   const [scanFlash, setScanFlash] = useState(false)
@@ -28,11 +30,30 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
             qrbox: { width: 250, height: 250 },
           },
           (decodedText) => {
-            // スキャン成功時の視覚的フィードバック
+            // クールダウン中は無視
+            if (scanCooldownRef.current) {
+              return
+            }
+
+            // 同じQRコードの連続読み取りを防止（1秒以内）
+            if (lastScannedRef.current === decodedText) {
+              return
+            }
+
+            // スキャン成功時の処理
+            lastScannedRef.current = decodedText
+            scanCooldownRef.current = true
+
             setScanFlash(true)
             setScanCount((prev) => prev + 1)
             setTimeout(() => setScanFlash(false), 300)
             onScan(decodedText)
+
+            // 1秒後にクールダウン解除（次のQRコードをスキャン可能に）
+            setTimeout(() => {
+              scanCooldownRef.current = false
+              lastScannedRef.current = null
+            }, 1000)
           },
           () => {
             // エラーは無視（スキャン失敗は正常）
