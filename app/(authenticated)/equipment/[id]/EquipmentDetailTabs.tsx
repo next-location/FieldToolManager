@@ -5,6 +5,12 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { HeavyEquipment } from '@/types/heavy-equipment'
 import { QRCodeDisplay } from './QRCodeDisplay'
+import {
+  generateEquipmentCostSummary,
+  calculateDepreciation,
+  formatCurrency,
+  formatPercentage,
+} from '@/lib/equipment-cost'
 
 interface EquipmentWithRelations extends HeavyEquipment {
   heavy_equipment_categories?: {
@@ -56,7 +62,11 @@ export default function EquipmentDetailTabs({
   organizationSettings,
   isLeaderOrAdmin,
 }: EquipmentDetailTabsProps) {
-  const [activeTab, setActiveTab] = useState<'basic' | 'usage' | 'maintenance' | 'qr'>('basic')
+  const [activeTab, setActiveTab] = useState<'basic' | 'usage' | 'maintenance' | 'cost' | 'qr'>('basic')
+
+  // コストサマリー計算
+  const costSummary = generateEquipmentCostSummary(equipment, maintenanceRecords)
+  const depreciation = calculateDepreciation(equipment)
 
   // 所有形態ラベル
   const getOwnershipLabel = (type: string) => {
@@ -298,6 +308,18 @@ export default function EquipmentDetailTabs({
           >
             点検記録 ({maintenanceRecords.length})
           </button>
+          {isLeaderOrAdmin && (
+            <button
+              onClick={() => setActiveTab('cost')}
+              className={`${
+                activeTab === 'cost'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              } flex-1 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+            >
+              コスト
+            </button>
+          )}
           <button
             onClick={() => setActiveTab('qr')}
             className={`${
@@ -537,6 +559,196 @@ export default function EquipmentDetailTabs({
             ) : (
               <p className="text-sm text-gray-500 text-center py-8">点検記録はまだありません</p>
             )}
+          </div>
+        )}
+
+        {activeTab === 'cost' && isLeaderOrAdmin && (
+          <div className="px-4 py-5 sm:px-6">
+            <div className="space-y-6">
+              {/* コストサマリー */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <p className="text-sm text-gray-600 mb-1">所有形態</p>
+                  <p className="text-xl font-bold text-gray-900">{getOwnershipLabel(equipment.ownership_type)}</p>
+                </div>
+                {equipment.ownership_type === 'owned' ? (
+                  <>
+                    <div className="bg-green-50 rounded-lg p-4">
+                      <p className="text-sm text-gray-600 mb-1">現在の簿価</p>
+                      <p className="text-xl font-bold text-gray-900">{formatCurrency(costSummary.book_value)}</p>
+                    </div>
+                    <div className="bg-purple-50 rounded-lg p-4">
+                      <p className="text-sm text-gray-600 mb-1">減価償却累計額</p>
+                      <p className="text-xl font-bold text-gray-900">{formatCurrency(costSummary.depreciation)}</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="bg-green-50 rounded-lg p-4">
+                      <p className="text-sm text-gray-600 mb-1">月額コスト</p>
+                      <p className="text-xl font-bold text-gray-900">{formatCurrency(equipment.monthly_cost)}</p>
+                    </div>
+                    <div className="bg-purple-50 rounded-lg p-4">
+                      <p className="text-sm text-gray-600 mb-1">契約残月数</p>
+                      <p className="text-xl font-bold text-gray-900">{costSummary.months_remaining || 0}ヶ月</p>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* 減価償却詳細（自社所有の場合） */}
+              {equipment.ownership_type === 'owned' && depreciation && (
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">減価償却詳細</h4>
+                  <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">購入日</dt>
+                      <dd className="mt-1 text-sm text-gray-900">{formatDate(equipment.purchase_date!)}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">購入価格</dt>
+                      <dd className="mt-1 text-sm text-gray-900">{formatCurrency(equipment.purchase_price)}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">耐用年数</dt>
+                      <dd className="mt-1 text-sm text-gray-900">{depreciation.useful_life_years}年</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">償却方法</dt>
+                      <dd className="mt-1 text-sm text-gray-900">定額法</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">年間償却額</dt>
+                      <dd className="mt-1 text-sm text-gray-900">{formatCurrency(depreciation.annual_depreciation)}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">償却率</dt>
+                      <dd className="mt-1 text-sm text-gray-900">{formatPercentage(costSummary.depreciation_rate)}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">償却完了</dt>
+                      <dd className="mt-1 text-sm text-gray-900">
+                        {depreciation.depreciation_complete ? (
+                          <span className="text-green-600 font-semibold">完了</span>
+                        ) : (
+                          <span className="text-blue-600 font-semibold">償却中</span>
+                        )}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              )}
+
+              {/* リース・レンタル詳細 */}
+              {(equipment.ownership_type === 'leased' || equipment.ownership_type === 'rented') && (
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">契約詳細</h4>
+                  <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">契約会社</dt>
+                      <dd className="mt-1 text-sm text-gray-900">{equipment.supplier_company || '未設定'}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">契約番号</dt>
+                      <dd className="mt-1 text-sm text-gray-900">{equipment.contract_number || '未設定'}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">契約開始日</dt>
+                      <dd className="mt-1 text-sm text-gray-900">
+                        {equipment.contract_start_date ? formatDate(equipment.contract_start_date) : '未設定'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">契約終了日</dt>
+                      <dd className="mt-1 text-sm text-gray-900">
+                        {equipment.contract_end_date ? formatDate(equipment.contract_end_date) : '未設定'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">契約期間全体のコスト</dt>
+                      <dd className="mt-1 text-sm text-gray-900">{formatCurrency(costSummary.total_lease_cost)}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">年間コスト</dt>
+                      <dd className="mt-1 text-sm text-gray-900">
+                        {formatCurrency((equipment.monthly_cost || 0) * 12)}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              )}
+
+              {/* 点検・修理コスト */}
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">点検・修理コスト</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-sm text-gray-600 mb-1">今月の点検費</p>
+                    <p className="text-xl font-bold text-gray-900">
+                      {formatCurrency(costSummary.maintenance_cost_this_month)}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-sm text-gray-600 mb-1">今年の点検費</p>
+                    <p className="text-xl font-bold text-gray-900">
+                      {formatCurrency(costSummary.maintenance_cost_this_year)}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-sm text-gray-600 mb-1">累計点検費</p>
+                    <p className="text-xl font-bold text-gray-900">
+                      {formatCurrency(costSummary.maintenance_cost_total)}
+                    </p>
+                  </div>
+                </div>
+
+                {maintenanceRecords.length > 0 && (
+                  <div className="mt-4">
+                    <h5 className="text-sm font-medium text-gray-700 mb-2">最近の点検記録（費用あり）</h5>
+                    <div className="space-y-2">
+                      {maintenanceRecords
+                        .filter((r) => r.cost && r.cost > 0)
+                        .slice(0, 5)
+                        .map((record) => (
+                          <div
+                            key={record.id}
+                            className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded"
+                          >
+                            <div>
+                              <span className="text-sm font-medium text-gray-900">
+                                {getMaintenanceTypeLabel(record.maintenance_type)}
+                              </span>
+                              <span className="ml-2 text-xs text-gray-500">{formatDate(record.maintenance_date)}</span>
+                            </div>
+                            <span className="text-sm font-semibold text-gray-900">
+                              {formatCurrency(record.cost)}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 総コスト */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">総コスト</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">今月の総コスト</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {formatCurrency(costSummary.total_cost_this_month)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">今年の総コスト</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {formatCurrency(costSummary.total_cost_this_year)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

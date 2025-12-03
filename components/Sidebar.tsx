@@ -211,6 +211,19 @@ export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
                     重機登録
                   </Link>
                 )}
+                {isLeaderOrAdmin && (
+                  <Link
+                    href="/equipment/cost-report"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive('/equipment/cost-report')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    コストレポート
+                  </Link>
+                )}
               </div>
             )}
           </div>

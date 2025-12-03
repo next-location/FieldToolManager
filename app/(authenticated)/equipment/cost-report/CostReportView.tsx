@@ -1,0 +1,356 @@
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import type { HeavyEquipment, HeavyEquipmentMaintenance, CostReport } from '@/types/heavy-equipment'
+import {
+  generateCostReport,
+  formatCurrency,
+  getOwnershipTypeLabel,
+} from '@/lib/equipment-cost'
+
+interface CostReportViewProps {
+  equipment: HeavyEquipment[]
+  maintenanceMap: Record<string, HeavyEquipmentMaintenance[]>
+  periodStart: string
+  periodEnd: string
+  userRole: string
+}
+
+export default function CostReportView({
+  equipment,
+  maintenanceMap,
+  periodStart,
+  periodEnd,
+  userRole,
+}: CostReportViewProps) {
+  const [selectedPeriod, setSelectedPeriod] = useState<'month' | 'year'>('year')
+  const [sortBy, setSortBy] = useState<'code' | 'cost'>('cost')
+
+  // コストレポート生成
+  const report: CostReport = generateCostReport(
+    equipment,
+    maintenanceMap,
+    periodStart,
+    periodEnd
+  )
+
+  // ソート
+  const sortedDetails = [...report.equipment_details].sort((a, b) => {
+    if (sortBy === 'cost') {
+      return (
+        (selectedPeriod === 'year' ? b.total_cost_this_year : b.total_cost_this_month) -
+        (selectedPeriod === 'year' ? a.total_cost_this_year : a.total_cost_this_month)
+      )
+    }
+    return a.equipment_code.localeCompare(b.equipment_code)
+  })
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* ヘッダー */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">重機コストレポート</h1>
+              <p className="mt-1 text-sm text-gray-500">
+                期間: {new Date(periodStart).getFullYear()}年
+              </p>
+            </div>
+            <Link
+              href="/equipment"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              ← 重機一覧に戻る
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* サマリーカード */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* 総重機数 */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
+                <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">総重機数</p>
+                <p className="text-2xl font-bold text-gray-900">{report.total_equipment_count}台</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 月額コスト */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 bg-green-100 rounded-md p-3">
+                <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">月額コスト</p>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrency(report.total_monthly_cost)}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 年間コスト */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
+                <svg className="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">年間コスト</p>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrency(report.total_annual_cost)}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 点検・修理費 */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 bg-purple-100 rounded-md p-3">
+                <svg className="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">年間点検・修理費</p>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrency(report.total_maintenance_cost)}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 所有形態別サマリー */}
+        <div className="bg-white rounded-lg shadow mb-8">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">所有形態別コスト</h2>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* 自社所有 */}
+              <div className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-gray-700">自社所有</h3>
+                  <span className="px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded">
+                    {report.owned_equipment_count}台
+                  </span>
+                </div>
+                <dl className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <dt className="text-gray-500">資産価値（簿価）</dt>
+                    <dd className="font-medium text-gray-900">{formatCurrency(report.owned_equipment_value)}</dd>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <dt className="text-gray-500">年間点検費</dt>
+                    <dd className="font-medium text-gray-900">{formatCurrency(report.owned_maintenance_cost)}</dd>
+                  </div>
+                </dl>
+              </div>
+
+              {/* リース */}
+              <div className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-gray-700">リース</h3>
+                  <span className="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded">
+                    {report.leased_equipment_count}台
+                  </span>
+                </div>
+                <dl className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <dt className="text-gray-500">月額合計</dt>
+                    <dd className="font-medium text-gray-900">{formatCurrency(report.leased_monthly_cost)}</dd>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <dt className="text-gray-500">年間コスト</dt>
+                    <dd className="font-medium text-gray-900">{formatCurrency(report.leased_annual_cost)}</dd>
+                  </div>
+                </dl>
+              </div>
+
+              {/* レンタル */}
+              <div className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-gray-700">レンタル</h3>
+                  <span className="px-2 py-1 text-xs font-semibold bg-orange-100 text-orange-800 rounded">
+                    {report.rented_equipment_count}台
+                  </span>
+                </div>
+                <dl className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <dt className="text-gray-500">月額合計</dt>
+                    <dd className="font-medium text-gray-900">{formatCurrency(report.rented_monthly_cost)}</dd>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <dt className="text-gray-500">年間コスト</dt>
+                    <dd className="font-medium text-gray-900">{formatCurrency(report.rented_annual_cost)}</dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 詳細テーブル */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">重機別コスト詳細</h2>
+            <div className="flex space-x-4">
+              {/* 期間切り替え */}
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setSelectedPeriod('month')}
+                  className={`px-3 py-1 text-sm font-medium rounded ${
+                    selectedPeriod === 'month'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  今月
+                </button>
+                <button
+                  onClick={() => setSelectedPeriod('year')}
+                  className={`px-3 py-1 text-sm font-medium rounded ${
+                    selectedPeriod === 'year'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  今年
+                </button>
+              </div>
+
+              {/* ソート切り替え */}
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setSortBy('cost')}
+                  className={`px-3 py-1 text-sm font-medium rounded ${
+                    sortBy === 'cost'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  コスト順
+                </button>
+                <button
+                  onClick={() => setSortBy('code')}
+                  className={`px-3 py-1 text-sm font-medium rounded ${
+                    sortBy === 'code'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  コード順
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    重機コード
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    重機名
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    所有形態
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    月額/簿価
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    点検費
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    合計コスト
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    アクション
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {sortedDetails.map((detail) => {
+                  const costValue =
+                    selectedPeriod === 'year'
+                      ? detail.total_cost_this_year
+                      : detail.total_cost_this_month
+
+                  const maintenanceCost =
+                    selectedPeriod === 'year'
+                      ? detail.maintenance_cost_this_year
+                      : detail.maintenance_cost_this_month
+
+                  return (
+                    <tr key={detail.equipment_id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {detail.equipment_code}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {detail.equipment_name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span
+                          className={`px-2 py-1 text-xs font-semibold rounded ${
+                            detail.ownership_type === 'owned'
+                              ? 'bg-blue-100 text-blue-800'
+                              : detail.ownership_type === 'leased'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-orange-100 text-orange-800'
+                          }`}
+                        >
+                          {getOwnershipTypeLabel(detail.ownership_type)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                        {detail.ownership_type === 'owned'
+                          ? formatCurrency(detail.book_value)
+                          : formatCurrency(detail.monthly_cost)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                        {formatCurrency(maintenanceCost)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
+                        {formatCurrency(costValue)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <Link
+                          href={`/equipment/${detail.equipment_id}`}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          詳細
+                        </Link>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {sortedDetails.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-500">コストデータがありません</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}

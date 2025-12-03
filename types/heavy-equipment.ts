@@ -234,6 +234,78 @@ export interface HeavyEquipmentStats {
 }
 
 // ==========================================
+// コスト管理用
+// ==========================================
+
+export interface EquipmentCostSummary {
+  equipment_id: string;
+  equipment_code: string;
+  equipment_name: string;
+  ownership_type: OwnershipType;
+
+  // リース・レンタルコスト
+  monthly_cost: number | null;
+  total_lease_cost: number;  // 契約期間全体のコスト
+  months_remaining: number | null;  // 残り月数
+
+  // 購入資産（自社所有）
+  purchase_price: number | null;
+  purchase_date: string | null;
+  book_value: number | null;  // 簿価（減価償却後）
+  depreciation: number | null;  // 減価償却累計額
+  depreciation_rate: number;  // 償却率（定額法）
+
+  // 点検・修理コスト
+  maintenance_cost_total: number;
+  maintenance_cost_this_year: number;
+  maintenance_cost_this_month: number;
+
+  // 総コスト
+  total_cost_this_year: number;
+  total_cost_this_month: number;
+}
+
+export interface CostReport {
+  period_start: string;
+  period_end: string;
+
+  // 所有形態別集計
+  owned_equipment_count: number;
+  owned_equipment_value: number;
+  owned_maintenance_cost: number;
+
+  leased_equipment_count: number;
+  leased_monthly_cost: number;
+  leased_annual_cost: number;
+
+  rented_equipment_count: number;
+  rented_monthly_cost: number;
+  rented_annual_cost: number;
+
+  // 全体サマリー
+  total_equipment_count: number;
+  total_monthly_cost: number;
+  total_annual_cost: number;
+  total_maintenance_cost: number;
+  grand_total_cost: number;
+
+  // 詳細データ
+  equipment_details: EquipmentCostSummary[];
+}
+
+export interface DepreciationCalculation {
+  equipment_id: string;
+  purchase_price: number;
+  purchase_date: string;
+  useful_life_years: number;  // 耐用年数
+  depreciation_method: 'straight_line' | 'declining_balance';  // 定額法 | 定率法
+  annual_depreciation: number;
+  accumulated_depreciation: number;
+  book_value: number;  // 簿価
+  depreciation_complete: boolean;
+}
+
+// ==========================================
 // リスト表示用（JOIN後のデータ）
 // ==========================================
 
