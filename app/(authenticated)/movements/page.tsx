@@ -94,35 +94,35 @@ export default async function MovementsPage() {
                           {new Date(movement.created_at).toLocaleString('ja-JP')}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          {movementTypeLabels[movement.movement_type] || movement.movement_type}
+                          {movement.to_location === 'site' ? '🏗️ 現場へ' :
+                           movement.to_location === 'warehouse' ? '🏢 倉庫へ' :
+                           movement.to_location === 'repair' ? '🔧 修理へ' : movement.to_location}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {movement.tool_item ? (
+                          {movement.tool_items ? (
                             <Link
-                              href={`/tool-items/${movement.tool_item.id}`}
+                              href={`/tools/${movement.tool_items.tools.id}`}
                               className="text-blue-600 hover:text-blue-800"
                             >
-                              {(movement.tool_item.tools as any).name} #{movement.tool_item.serial_number}
-                            </Link>
-                          ) : movement.tool ? (
-                            <Link
-                              href={`/tools/${movement.tool.id}`}
-                              className="text-blue-600 hover:text-blue-800"
-                            >
-                              {movement.tool.name}
+                              {movement.tool_items.tools.name} #{movement.tool_items.serial_number}
                             </Link>
                           ) : (
                             <span className="text-gray-500">削除済み</span>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {movement.from_site?.name || movement.from_location === 'warehouse' ? '倉庫' : '-'}
+                          {movement.from_location === 'warehouse' ? '倉庫' :
+                           movement.from_location === 'site' ? '現場' :
+                           movement.from_location === 'repair' ? '修理中' : movement.from_location}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {movement.to_site?.name || movement.to_location === 'warehouse' ? '倉庫' : movement.to_location === 'repair' ? '修理中' : '-'}
+                          {movement.to_location === 'site' && movement.sites ?
+                            movement.sites.name :
+                           movement.to_location === 'warehouse' ? '倉庫' :
+                           movement.to_location === 'repair' ? '修理中' : '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {movement.user?.name || '不明'}
+                          -
                         </td>
                       </tr>
                     ))

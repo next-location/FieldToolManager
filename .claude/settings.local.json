@@ -58,7 +58,8 @@
       "Bash(find:*)",
       "Bash(pkill:*)",
       "Bash(wc:*)",
-      "Bash(open /tmp/generate_qr_codes.html)"
+      "Bash(open /tmp/generate_qr_codes.html)",
+      "Read(//Users/youichiakashi/Desktop/**)"
     ],
     "deny": [],
     "ask": []
