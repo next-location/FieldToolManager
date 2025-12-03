@@ -229,16 +229,40 @@ export default function EquipmentDetailTabs({
           )}
         </div>
 
-        {isLeaderOrAdmin && (
-          <div className="flex space-x-3">
+        <div className="flex flex-wrap gap-3">
+          {/* 持出・返却ボタン */}
+          {equipment.status === 'available' && (
+            <Link
+              href="/equipment/movement"
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
+            >
+              <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+              持出
+            </Link>
+          )}
+          {equipment.status === 'in_use' && (
+            <Link
+              href="/equipment/movement"
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700"
+            >
+              <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+              </svg>
+              返却
+            </Link>
+          )}
+
+          {isLeaderOrAdmin && (
             <Link
               href={`/equipment/${equipment.id}/edit`}
               className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
             >
               編集
             </Link>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* タブナビゲーション */}

@@ -282,6 +282,17 @@ export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
                   道具セット移動
                 </Link>
                 <Link
+                  href="/equipment/movement"
+                  onClick={onClose}
+                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                    isActive('/equipment/movement')
+                      ? 'bg-blue-50 text-blue-700 font-medium'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  重機移動
+                </Link>
+                <Link
                   href="/movements"
                   onClick={onClose}
                   className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
