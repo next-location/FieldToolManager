@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
-type TabType = 'tool' | 'consumable'
+type TabType = 'tool' | 'consumable' | 'equipment'
 
 interface ToolMovement {
   id: string
@@ -40,12 +40,34 @@ interface ConsumableMovement {
   users: { name: string } | null
 }
 
+interface EquipmentMovement {
+  id: string
+  action_type: string
+  action_at: string
+  hour_meter_reading: number | null
+  notes: string | null
+  heavy_equipment: {
+    equipment_code: string
+    name: string
+  } | null
+  from_site: { name: string } | null
+  to_site: { name: string } | null
+  users: { name: string } | null
+}
+
 interface MovementTabsProps {
   toolMovements: ToolMovement[]
   consumableMovements: ConsumableMovement[]
+  equipmentMovements: EquipmentMovement[]
+  heavyEquipmentEnabled: boolean
 }
 
-export function MovementTabs({ toolMovements, consumableMovements }: MovementTabsProps) {
+export function MovementTabs({
+  toolMovements,
+  consumableMovements,
+  equipmentMovements,
+  heavyEquipmentEnabled
+}: MovementTabsProps) {
   const [activeTab, setActiveTab] = useState<TabType>('tool')
 
   return (
@@ -76,11 +98,95 @@ export function MovementTabs({ toolMovements, consumableMovements }: MovementTab
             >
               消耗品移動履歴
             </button>
+            {heavyEquipmentEnabled && (
+              <button
+                onClick={() => setActiveTab('equipment')}
+                className={`${
+                  activeTab === 'equipment'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+              >
+                重機移動履歴
+              </button>
+            )}
           </nav>
         </div>
 
         {/* タブコンテンツ */}
-        {activeTab === 'tool' ? (
+        {activeTab === 'equipment' ? (
+          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      日時
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      種別
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      重機
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      移動元
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      移動先
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      実施者
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {equipmentMovements && equipmentMovements.length > 0 ? (
+                    equipmentMovements.map((movement) => (
+                      <tr key={movement.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {new Date(movement.action_at).toLocaleString('ja-JP')}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          {movement.action_type === 'checkout' ? '🏗️ 持出' :
+                           movement.action_type === 'checkin' ? '🏢 返却' :
+                           movement.action_type === 'transfer' ? '🔄 移動' : movement.action_type}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          {movement.heavy_equipment ? (
+                            <span className="text-gray-900">
+                              {movement.heavy_equipment.equipment_code} - {movement.heavy_equipment.name}
+                            </span>
+                          ) : (
+                            <span className="text-gray-500">削除済み</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {movement.from_site?.name || '倉庫'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {movement.to_site?.name || '倉庫'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {movement.users?.name || '-'}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        className="px-6 py-12 text-center text-gray-500"
+                      >
+                        重機の移動履歴がありません
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : activeTab === 'tool' ? (
           <div className="bg-white shadow overflow-hidden sm:rounded-lg">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">

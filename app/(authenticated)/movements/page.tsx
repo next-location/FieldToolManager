@@ -75,10 +75,40 @@ export default async function MovementsPage() {
     .order('created_at', { ascending: false })
     .limit(100)
 
+  // 重機管理機能が有効かチェック
+  const { data: orgData } = await supabase
+    .from('organizations')
+    .select('heavy_equipment_enabled')
+    .eq('id', userData.organization_id)
+    .single()
+
+  // 重機移動履歴を取得（重機管理が有効な場合のみ）
+  let equipmentMovements = []
+  if (orgData?.heavy_equipment_enabled) {
+    const { data } = await supabase
+      .from('heavy_equipment_usage_records')
+      .select(
+        `
+        *,
+        heavy_equipment!inner (equipment_code, name),
+        from_site:from_location_id (name),
+        to_site:to_location_id (name),
+        users!inner (name)
+      `
+      )
+      .eq('organization_id', userData.organization_id)
+      .order('action_at', { ascending: false })
+      .limit(100)
+
+    equipmentMovements = data || []
+  }
+
   return (
     <MovementTabs
       toolMovements={toolMovements || []}
       consumableMovements={consumableMovements || []}
+      equipmentMovements={equipmentMovements}
+      heavyEquipmentEnabled={orgData?.heavy_equipment_enabled || false}
     />
   )
 }

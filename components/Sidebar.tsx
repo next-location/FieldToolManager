@@ -199,19 +199,6 @@ export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
                   重機一覧
                 </Link>
                 {isLeaderOrAdmin && (
-                  <Link
-                    href="/equipment/new"
-                    onClick={onClose}
-                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                      isActive('/equipment/new')
-                        ? 'bg-blue-50 text-blue-700 font-medium'
-                        : 'text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    重機登録
-                  </Link>
-                )}
-                {isLeaderOrAdmin && (
                   <>
                     <Link
                       href="/equipment/cost-report"
@@ -402,6 +389,19 @@ export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
                       >
                         カテゴリ管理
                       </Link>
+                      {heavyEquipmentEnabled && (
+                        <Link
+                          href="/equipment/new"
+                          onClick={onClose}
+                          className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                            isActive('/equipment/new')
+                              ? 'bg-blue-50 text-blue-700 font-medium'
+                              : 'text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          重機登録
+                        </Link>
+                      )}
                     </>
                   )}
                 </div>
