@@ -133,7 +133,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                   href="/consumables"
                   onClick={onClose}
                   className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                    isActive('/consumables')
+                    pathname === '/consumables' || (pathname?.startsWith('/consumables/') && !pathname?.startsWith('/consumables/orders'))
                       ? 'bg-blue-50 text-blue-700 font-medium'
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
@@ -203,7 +203,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                   href="/equipment"
                   onClick={onClose}
                   className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                    isActive('/equipment')
+                    pathname === '/equipment' || (pathname?.startsWith('/equipment/') && !pathname?.startsWith('/equipment/cost-report') && !pathname?.startsWith('/equipment/analytics'))
                       ? 'bg-blue-50 text-blue-700 font-medium'
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}

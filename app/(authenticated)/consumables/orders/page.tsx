@@ -63,7 +63,7 @@ export default async function ConsumableOrdersPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* ヘッダー */}
       <div className="flex justify-between items-center">
         <div>

@@ -67,7 +67,7 @@ export default async function ConsumableOrderDetailPage({ params }: Props) {
   const isLeaderOrAdmin = userData.role === 'admin' || userData.role === 'leader'
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* ヘッダー */}
       <div className="flex justify-between items-start">
         <div>

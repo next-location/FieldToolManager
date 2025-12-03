@@ -56,7 +56,7 @@ export default async function NewConsumableOrderPage() {
   const suggestedOrderNumber = `ORD-${today}-${String(nextNumber).padStart(4, '0')}`
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div>
         <h1 className="text-2xl font-semibold text-gray-900">新規発注登録</h1>
         <p className="mt-1 text-sm text-gray-600">
