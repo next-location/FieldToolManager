@@ -542,8 +542,8 @@ export function BulkMovementForm({
       {/* QRカメラスキャナー */}
       {showCamera && (
         <QrCameraScanner
-          onScan={(qrCode) => {
-            handleQrScan(qrCode)
+          onScan={async (qrCode) => {
+            return await handleQrScan(qrCode)
           }}
           onClose={() => setShowCamera(false)}
         />
