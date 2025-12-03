@@ -119,6 +119,59 @@ gh issue create --repo $REPO --title "🔔 通知システム" \
 - 在庫不足アラート
 - 請求関連通知" \
   --label "notification,phase4"
+
+# フェーズ6: SaaS管理画面（admin.fieldtool.com）
+gh issue create --repo $REPO --title "🔐 SaaS管理画面: 基盤構築" \
+  --body "- プロジェクト初期化（FieldToolManagerAdmin/）
+- 管理者ログイン画面
+- 2FA認証（TOTP）実装
+- セッション管理（2時間タイムアウト）
+- IP制限機能
+- 監査ログ基盤" \
+  --label "admin,security,phase6"
+
+gh issue create --repo $REPO --title "🏢 SaaS管理画面: 顧客管理機能" \
+  --body "- KPIダッシュボード（MRR/ARR/チャーン率）
+- 顧客一覧・検索・フィルタリング
+- 新規顧客登録（サブドメイン自動生成）
+- 顧客詳細・編集（利用統計表示）
+- アカウント停止/再開
+- 機能フラグ管理" \
+  --label "admin,phase6"
+
+gh issue create --repo $REPO --title "📄 SaaS管理画面: 契約・請求管理" \
+  --body "- 契約管理（一覧・作成・編集・更新/解約）
+- 請求書発行（月次自動発行・PDF生成）
+- 未払い管理（督促メール自動送信）
+- 入金管理（銀行振込照合・自動アカウント有効化）
+- 請求書PDF生成（react-pdf）
+- メール送信（Resend）" \
+  --label "billing,admin,phase6"
+
+gh issue create --repo $REPO --title "📊 SaaS管理画面: 分析・レポート" \
+  --body "- 売上レポート（MRR/ARR推移・プラン別内訳）
+- 顧客利用統計（MAU/WAU・機能利用状況）
+- 契約状況レポート（更新予定・チャーンレート分析）
+- グラフ・チャート実装（Recharts）
+- CSV/PDF/Excelエクスポート" \
+  --label "admin,analytics,phase6"
+
+gh issue create --repo $REPO --title "🔧 SaaS管理画面: システム保守" \
+  --body "- 機能管理（顧客別機能フラグ・ベータ機能管理）
+- システムヘルス監視（リアルタイム監視・アラート設定）
+- エラーログ確認（Sentry/Datadog連携）
+- 監査ログ（操作履歴・検索・エクスポート）
+- バックアップ管理（自動/手動・リストア機能）
+- データ移行ツール" \
+  --label "admin,monitoring,phase6"
+
+gh issue create --repo $REPO --title "🧪 SaaS管理画面: テスト・デプロイ" \
+  --body "- E2Eテスト（Playwright）
+- セキュリティテスト（2FA・IP制限・監査ログ）
+- パフォーマンステスト（レスポンスタイム・稼働率）
+- 本番デプロイ（admin.fieldtool.com）
+- ドキュメント整備" \
+  --label "admin,testing,phase6"
 ```
 
 ### 3. プロジェクトビューの操作
@@ -230,6 +283,16 @@ gh api repos/next-location/FieldToolManager/milestones \
 - [ ] E2Eテスト
 - [ ] ドキュメント作成
 
+### Phase 6: SaaS管理画面（admin.fieldtool.com）✨新規
+- [ ] 🔐 認証システム構築（2FA必須）
+- [ ] 🏢 顧客管理機能
+- [ ] 📄 契約管理機能
+- [ ] 💰 請求書発行・入金管理
+- [ ] 📊 ダッシュボード・レポート機能
+- [ ] 🔧 システム保守機能（監視・ログ・バックアップ）
+- [ ] 🧪 E2Eテスト・セキュリティテスト
+※ 詳細は docs/SPECIFICATION_SAAS_FINAL.md の Section 11.3 参照
+
 ### 将来の追加開発（顧客30社到達後）
 - [ ] Stripe決済統合
 - [ ] セルフサービス課金
@@ -246,6 +309,7 @@ gh label create "phase2" --color "1D76DB" --description "Phase 2: Core Features"
 gh label create "phase3" --color "5319E7" --description "Phase 3: Contract Management"
 gh label create "phase4" --color "B60205" --description "Phase 4: Advanced Features"
 gh label create "phase5" --color "FFA500" --description "Phase 5: Security & Optimization"
+gh label create "phase6" --color "FF1493" --description "Phase 6: SaaS Admin Panel"
 gh label create "setup" --color "F9D0C4" --description "Initial Setup"
 gh label create "frontend" --color "C2E0C6" --description "Frontend Development"
 gh label create "backend" --color "FEF2C0" --description "Backend Development"

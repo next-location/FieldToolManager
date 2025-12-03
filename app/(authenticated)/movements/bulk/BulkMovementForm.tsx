@@ -157,6 +157,14 @@ export function BulkMovementForm({
     setIsSubmitting(true)
     setProgress({ current: 0, total: selectedToolIds.length })
 
+    // ログインユーザーのIDを取得
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setError('ユーザー情報が取得できませんでした')
+      setIsSubmitting(false)
+      return
+    }
+
     let successCount = 0
     const errors: string[] = []
 
@@ -172,6 +180,7 @@ export function BulkMovementForm({
             from_location: toolItems.find((t) => t.id === toolItemId)?.current_location || '',
             to_location: destinationType,
             site_id: destinationType === 'site' ? destinationSiteId : null,
+            user_id: user.id,
           })
 
           if (movementError) throw movementError

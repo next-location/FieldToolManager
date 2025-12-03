@@ -14,7 +14,7 @@ export default async function MovementsPage() {
   }
 
   // 移動履歴を取得
-  const { data: movements, error } = await supabase
+  const { data: movements, error} = await supabase
     .from('movements')
     .select(
       `
@@ -24,7 +24,8 @@ export default async function MovementsPage() {
         serial_number,
         tools (name, model_number)
       ),
-      sites (name)
+      sites (name),
+      users (name)
     `
     )
     .order('created_at', { ascending: false })
@@ -122,7 +123,7 @@ export default async function MovementsPage() {
                            movement.to_location === 'repair' ? '修理中' : '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          -
+                          {movement.users?.name || '-'}
                         </td>
                       </tr>
                     ))
