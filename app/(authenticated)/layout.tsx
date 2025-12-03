@@ -19,7 +19,7 @@ export default async function AuthenticatedLayout({ children }: AuthenticatedLay
 
   const { data: userData } = await supabase
     .from('users')
-    .select('role, organization_id')
+    .select('role, organization_id, name')
     .eq('id', user.id)
     .single()
 
@@ -35,7 +35,7 @@ export default async function AuthenticatedLayout({ children }: AuthenticatedLay
 
   return (
     <AppLayout
-      user={{ email: user.email, id: user.id }}
+      user={{ email: user.email, id: user.id, name: userData.name }}
       userRole={userData.role}
       organizationId={userData.organization_id}
       organizationName={organization?.name}

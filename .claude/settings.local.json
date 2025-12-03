@@ -59,7 +59,13 @@
       "Bash(pkill:*)",
       "Bash(wc:*)",
       "Bash(open /tmp/generate_qr_codes.html)",
-      "Read(//Users/youichiakashi/Desktop/**)"
+      "Read(//Users/youichiakashi/Desktop/**)",
+      "Bash(PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d field_tool_manager -c \"ALTER TABLE users ADD COLUMN IF NOT EXISTS department TEXT;\")",
+      "Read(//Users/youichiakashi/FieldToolManagerAdmin/**)",
+      "Read(//Users/youichiakashi/**)",
+      "Bash(npm run seed:dev:*)",
+      "Bash(PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -c \"\\d users\")",
+      "Bash(PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -c \"ALTER TABLE users ADD COLUMN IF NOT EXISTS department TEXT;\")"
     ],
     "deny": [],
     "ask": []

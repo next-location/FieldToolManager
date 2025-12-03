@@ -9,6 +9,7 @@ interface AppLayoutProps {
   user: {
     email: string | null
     id: string
+    name?: string | null
   }
   userRole: 'staff' | 'leader' | 'admin' | 'super_admin'
   organizationId: string

@@ -19,6 +19,7 @@
     "db:push": "supabase db push",
     "db:reset": "supabase db reset",
     "db:seed": "tsx supabase/seed.ts",
+    "seed:dev": "PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -f scripts/seed-dev-data.sql",
     "check:env": "tsx scripts/check-env.ts",
     "check:all": "npm run lint && npm run type-check && npm run check:env",
     "test": "jest",

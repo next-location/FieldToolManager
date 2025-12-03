@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { DeleteToolButton } from './DeleteToolButton'
 import { QRCodeDisplay } from './QRCodeDisplay'
+import { AddToolItemButton } from './AddToolItemButton'
 
 export default async function ToolDetailPage({
   params,
@@ -108,9 +109,12 @@ export default async function ToolDetailPage({
           </div>
         </div>
         <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">個別アイテム一覧（全{toolItems?.length || 0}台）</h3>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">各物理的な道具の詳細情報</p>
+          <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+            <div>
+              <h3 className="text-lg leading-6 font-medium text-gray-900">個別アイテム一覧（全{toolItems?.length || 0}台）</h3>
+              <p className="mt-1 max-w-2xl text-sm text-gray-500">各物理的な道具の詳細情報</p>
+            </div>
+            <AddToolItemButton toolId={tool.id} toolName={tool.name} />
           </div>
           <div className="border-t border-gray-200">
             {toolItems && toolItems.length > 0 ? (

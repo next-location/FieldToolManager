@@ -1958,24 +1958,25 @@ FieldToolManagerAdmin/  ← 新規プロジェクト（admin.fieldtool.com用）
 **タスク一覧:**
 
 1. **プロジェクト初期化**
-   - [ ] Next.js 14 + TypeScript セットアップ
-   - [ ] Tailwind CSS + shadcn/ui 導入
-   - [ ] 環境変数設定（`.env.admin`）
-   - [ ] Supabase接続設定（admin用）
+   - [x] Next.js 14 + TypeScript セットアップ
+   - [x] Tailwind CSS 導入
+   - [x] 環境変数設定（`.env.local`）
+   - [x] Supabase接続設定（admin用）
 
 2. **認証システム構築**
-   - [ ] 管理者ログイン画面作成
+   - [x] 管理者ログイン画面作成
+   - [x] 2FA用テーブル作成（admin_2fa_secrets）
    - [ ] 2FA認証実装（TOTP: speakeasy/otpauth）
-     - QRコード生成（Google Authenticator連携）
-     - 6桁コード検証
-     - バックアップコード生成
-   - [ ] セッション管理
-     - セッションタイムアウト: 2時間
-     - アイドルタイムアウト: 10分
-     - セッション再生成（ログイン時）
-   - [ ] IP制限機能（オプション）
-     - 環境変数でIP許可リスト設定
-     - アクセス拒否時のログ記録
+     - [ ] QRコード生成（Google Authenticator連携）
+     - [ ] 6桁コード検証
+     - [ ] バックアップコード生成
+   - [x] セッション管理
+     - [x] セッションタイムアウト: 2時間
+     - [x] アイドルタイムアウト: 10分
+     - [x] セッション再生成（ログイン時）
+   - [x] IP制限機能（オプション）
+     - [x] 環境変数でIP許可リスト設定
+     - [ ] アクセス拒否時のログ記録
 
 3. **Middleware実装**
    - [ ] super_admin専用チェック

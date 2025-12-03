@@ -1,12 +1,14 @@
 import { NotificationBell } from './NotificationBell'
+import { ProfileMenu } from './ProfileMenu'
 
 interface HeaderProps {
   organizationId: string
+  userName?: string
   currentPage?: string
   showNotificationBell?: boolean
 }
 
-export function Header({ organizationId, currentPage, showNotificationBell = true }: HeaderProps) {
+export function Header({ organizationId, userName, currentPage, showNotificationBell = true }: HeaderProps) {
   return (
     <nav className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -49,12 +51,7 @@ export function Header({ organizationId, currentPage, showNotificationBell = tru
 
           <div className="flex items-center space-x-4">
             {showNotificationBell && <NotificationBell organizationId={organizationId} />}
-            <a
-              href="/admin/settings"
-              className="text-sm font-medium text-gray-700 hover:text-gray-900"
-            >
-              設定
-            </a>
+            <ProfileMenu userName={userName} />
           </div>
         </div>
       </div>

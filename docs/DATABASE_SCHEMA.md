@@ -316,6 +316,20 @@ PaymentRecord (入金記録)
 ├── recorded_by UUID (FK → User)
 ├── notes TEXT
 └── created_at TIMESTAMP
+
+Admin2FASecrets (管理者2FA認証) ✨SaaS管理画面専用
+├── id (PK, UUID)
+├── user_id (FK → User.id) (UQ) ← super_admin専用
+├── secret TEXT ← TOTPシークレット
+├── backup_codes TEXT[] ← バックアップコード配列（ハッシュ化）
+├── enabled BOOLEAN DEFAULT false ← 2FA有効フラグ
+├── created_at TIMESTAMP
+└── updated_at TIMESTAMP
+
+**用途**: SaaS管理画面（admin.fieldtool.com）のsuper_admin専用2FA認証
+- Google Authenticator / Authy対応
+- 1ユーザー1シークレット（UNIQUE制約）
+- バックアップコード10個生成（ハッシュ化保存）
 ```
 
 ### 1.2 リレーション図
@@ -333,6 +347,10 @@ organizations
     ├─→ audit_logs
     ├─→ organization_features
     └─→ custom_field_definitions
+
+users
+    ↓ 1:1 (super_admin only)
+    └─→ admin_2fa_secrets
 
 tools
     ↓ 1:N
@@ -725,6 +743,42 @@ CREATE INDEX idx_payment_records_payment_date ON payment_records(payment_date DE
 
 -- RLS有効化
 ALTER TABLE payment_records ENABLE ROW LEVEL SECURITY;
+```
+
+#### admin_2fa_secrets (管理者2FA認証) ✨SaaS管理画面専用
+```sql
+CREATE TABLE admin_2fa_secrets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  secret TEXT NOT NULL,
+  backup_codes TEXT[], -- バックアップコード配列（ハッシュ化）
+  enabled BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id)
+);
+
+COMMENT ON TABLE admin_2fa_secrets IS '管理者用2FA認証シークレット（super_admin専用）';
+COMMENT ON COLUMN admin_2fa_secrets.secret IS 'TOTPシークレット（base32エンコード）';
+COMMENT ON COLUMN admin_2fa_secrets.backup_codes IS 'バックアップコード配列（bcryptハッシュ化）';
+COMMENT ON COLUMN admin_2fa_secrets.enabled IS '2FA有効フラグ';
+
+CREATE INDEX idx_admin_2fa_secrets_user_id ON admin_2fa_secrets(user_id);
+
+-- RLS有効化（super_adminのみアクセス可能）
+ALTER TABLE admin_2fa_secrets ENABLE ROW LEVEL SECURITY;
+
+-- RLSポリシー: super_adminのみ自分のシークレットにアクセス可能
+CREATE POLICY "super_admin_own_2fa_secrets" ON admin_2fa_secrets
+  FOR ALL
+  USING (
+    user_id = auth.uid()
+    AND EXISTS (
+      SELECT 1 FROM users
+      WHERE id = auth.uid()
+      AND role = 'super_admin'
+    )
+  );
 ```
 
 ---

@@ -99,10 +99,10 @@ export default async function MovementsPage() {
                            movement.to_location === 'warehouse' ? '🏢 倉庫へ' :
                            movement.to_location === 'repair' ? '🔧 修理へ' : movement.to_location}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
                           {movement.tool_items ? (
                             <Link
-                              href={`/tools/${movement.tool_items.tools.id}`}
+                              href={`/tool-items/${movement.tool_items.id}`}
                               className="text-blue-600 hover:text-blue-800"
                             >
                               {movement.tool_items.tools.name} #{movement.tool_items.serial_number}
