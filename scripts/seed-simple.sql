@@ -3,9 +3,9 @@
 -- ========================================
 -- 1. 組織を作成
 -- ========================================
-INSERT INTO organizations (id, name, created_at)
-VALUES ('00000000-0000-0000-0000-000000000001', 'テスト建設株式会社', NOW())
-ON CONFLICT (id) DO UPDATE SET name = 'テスト建設株式会社';
+INSERT INTO organizations (id, name, subdomain, created_at)
+VALUES ('00000000-0000-0000-0000-000000000001', 'テスト建設株式会社', 'test-kensetsu', NOW())
+ON CONFLICT (id) DO UPDATE SET name = 'テスト建設株式会社', subdomain = 'test-kensetsu';
 
 -- ========================================
 -- 2. ユーザーを作成（Supabase Auth経由）

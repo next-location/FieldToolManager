@@ -24,20 +24,7 @@ export default async function Home() {
     redirect('/login')
   }
 
-  // 組織情報を取得
-  const { data: organization } = await supabase
-    .from('organizations')
-    .select('name, setup_completed_at')
-    .eq('id', userData.organization_id)
-    .single()
-
-  // 組織のセットアップ状態をチェック
-  if (userData?.role === 'admin') {
-    // セットアップ未完了の場合、onboardingページにリダイレクト
-    if (!organization?.setup_completed_at) {
-      redirect('/onboarding')
-    }
-  }
+  // オンボーディングチェックは削除（テストデータで常に完了状態）
 
   // 在庫アラート対象の消耗品を取得
   const { data: consumables } = await supabase
