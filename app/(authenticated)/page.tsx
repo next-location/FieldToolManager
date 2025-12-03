@@ -56,12 +56,139 @@ export default async function Home() {
     })
   ).then((results) => results.filter(Boolean))
 
+  // 重機管理機能が有効かチェック
+  const { data: orgData } = await supabase
+    .from('organizations')
+    .select('heavy_equipment_enabled')
+    .eq('id', userData?.organization_id)
+    .single()
+
+  // 重機のアラートをチェック
+  let equipmentAlerts: any[] = []
+  if (orgData?.heavy_equipment_enabled) {
+    const { data: equipment } = await supabase
+      .from('heavy_equipment')
+      .select('id, equipment_code, name, vehicle_inspection_date, insurance_end_date, requires_vehicle_inspection')
+      .eq('organization_id', userData?.organization_id)
+      .is('deleted_at', null)
+
+    const today = new Date()
+    equipmentAlerts = (equipment || []).flatMap((equip) => {
+      const alerts: any[] = []
+
+      // 車検アラート
+      if (equip.requires_vehicle_inspection && equip.vehicle_inspection_date) {
+        const inspectionDate = new Date(equip.vehicle_inspection_date)
+        const daysUntil = Math.floor((inspectionDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+
+        if (daysUntil < 0) {
+          alerts.push({
+            ...equip,
+            alertType: 'vehicle_inspection',
+            severity: 'error',
+            message: `車検期限が${Math.abs(daysUntil)}日過ぎています`,
+            daysUntil,
+          })
+        } else if (daysUntil <= 30) {
+          alerts.push({
+            ...equip,
+            alertType: 'vehicle_inspection',
+            severity: daysUntil <= 7 ? 'error' : 'warning',
+            message: `車検期限まであと${daysUntil}日`,
+            daysUntil,
+          })
+        }
+      }
+
+      // 保険アラート
+      if (equip.insurance_end_date) {
+        const insuranceDate = new Date(equip.insurance_end_date)
+        const daysUntil = Math.floor((insuranceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+
+        if (daysUntil < 0) {
+          alerts.push({
+            ...equip,
+            alertType: 'insurance',
+            severity: 'error',
+            message: `保険期限が${Math.abs(daysUntil)}日過ぎています`,
+            daysUntil,
+          })
+        } else if (daysUntil <= 30) {
+          alerts.push({
+            ...equip,
+            alertType: 'insurance',
+            severity: daysUntil <= 7 ? 'error' : 'warning',
+            message: `保険期限まであと${daysUntil}日`,
+            daysUntil,
+          })
+        }
+      }
+
+      return alerts
+    })
+
+    // 重要度でソート（期限切れ→期限間近）
+    equipmentAlerts.sort((a, b) => {
+      if (a.daysUntil < 0 && b.daysUntil >= 0) return -1
+      if (a.daysUntil >= 0 && b.daysUntil < 0) return 1
+      return a.daysUntil - b.daysUntil
+    })
+  }
+
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">
           ダッシュボード
         </h2>
+
+        {/* 重機アラート */}
+        {equipmentAlerts.length > 0 && (
+          <div className="mb-6 bg-orange-50 border-l-4 border-orange-400 p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <span className="text-2xl">🚨</span>
+              </div>
+              <div className="ml-3 flex-1">
+                <h3 className="text-sm font-medium text-orange-800">
+                  重機の車検・保険期限が近づいています
+                </h3>
+                <div className="mt-2 text-sm text-orange-700">
+                  <ul className="list-disc pl-5 space-y-1">
+                    {equipmentAlerts.slice(0, 5).map((alert, idx) => (
+                      <li key={`${alert.id}-${alert.alertType}`}>
+                        <Link
+                          href={`/equipment/${alert.id}`}
+                          className="hover:underline font-medium"
+                        >
+                          {alert.equipment_code} - {alert.name}
+                        </Link>
+                        {': '}
+                        <span className={alert.severity === 'error' ? 'text-red-700 font-semibold' : ''}>
+                          {alert.alertType === 'vehicle_inspection' ? '車検' : '保険'}
+                          {alert.message}
+                        </span>
+                      </li>
+                    ))}
+                    {equipmentAlerts.length > 5 && (
+                      <li className="text-orange-600">
+                        他 {equipmentAlerts.length - 5} 件のアラートがあります
+                      </li>
+                    )}
+                  </ul>
+                </div>
+                <div className="mt-4">
+                  <Link
+                    href="/equipment"
+                    className="text-sm font-medium text-orange-800 hover:text-orange-900"
+                  >
+                    重機管理ページへ →
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 在庫アラート */}
         {lowStockConsumables.length > 0 && (
