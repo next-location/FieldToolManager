@@ -13,9 +13,11 @@ interface SidebarProps {
 export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname()
   const [toolsExpanded, setToolsExpanded] = useState(false)
+  const [masterExpanded, setMasterExpanded] = useState(false)
   const [settingsExpanded, setSettingsExpanded] = useState(false)
 
   const isAdmin = userRole === 'admin' || userRole === 'super_admin'
+  const isLeaderOrAdmin = userRole === 'leader' || userRole === 'admin' || userRole === 'super_admin'
 
   const isActive = (path: string) => pathname === path || pathname?.startsWith(path + '/')
 
@@ -43,7 +45,7 @@ export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
             href="/"
             onClick={onClose}
             className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${
-              isActive('/')
+              pathname === '/'
                 ? 'bg-blue-50 text-blue-700 font-medium'
                 : 'text-gray-700 hover:bg-gray-50'
             }`}
@@ -59,12 +61,33 @@ export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
             <span>ダッシュボード</span>
           </Link>
 
+          {/* QRスキャン */}
+          <Link
+            href="/scan"
+            onClick={onClose}
+            className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${
+              isActive('/scan')
+                ? 'bg-blue-50 text-blue-700 font-medium'
+                : 'text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
+              />
+            </svg>
+            <span>QRスキャン</span>
+          </Link>
+
           {/* 道具管理 */}
           <div>
             <button
               onClick={() => setToolsExpanded(!toolsExpanded)}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                isActive('/tools') || isActive('/consumables') || isActive('/tool-sets')
+                isActive('/tools') || isActive('/consumables') || isActive('/tool-sets') || isActive('/movements')
                   ? 'bg-blue-50 text-blue-700 font-medium'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
@@ -130,19 +153,6 @@ export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
                 </Link>
                 <div className="border-t border-gray-100 my-2"></div>
                 <Link
-                  href="/scan"
-                  onClick={onClose}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-colors ${
-                    isActive('/scan')
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  <span>📱</span>
-                  <span>QRスキャン</span>
-                </Link>
-                <div className="border-t border-gray-100 my-2"></div>
-                <Link
                   href="/movements/bulk"
                   onClick={onClose}
                   className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-colors ${
@@ -182,42 +192,70 @@ export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
             )}
           </div>
 
-          {/* 現場管理 */}
-          <Link
-            href="/sites"
-            onClick={onClose}
-            className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${
-              isActive('/sites')
-                ? 'bg-blue-50 text-blue-700 font-medium'
-                : 'text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-              />
-            </svg>
-            <span>現場管理</span>
-          </Link>
+          {/* マスタ管理（リーダー・管理者） */}
+          {isLeaderOrAdmin && (
+            <div>
+              <button
+                onClick={() => setMasterExpanded(!masterExpanded)}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
+                  isActive('/sites') || isActive('/warehouse-locations')
+                    ? 'bg-blue-50 text-blue-700 font-medium'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                    />
+                  </svg>
+                  <span>マスタ管理</span>
+                </div>
+                <svg
+                  className={`w-4 h-4 transition-transform ${masterExpanded ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
 
-          {/* 将来の機能（コメントアウト） */}
-          {/*
-          <Link href="/reports" className="...">
-            <svg>...</svg>
-            <span>作業報告書</span>
-          </Link>
-          <Link href="/staff" className="...">
-            <svg>...</svg>
-            <span>スタッフ管理</span>
-          </Link>
-          <Link href="/attendance" className="...">
-            <svg>...</svg>
-            <span>出退勤管理</span>
-          </Link>
-          */}
+              {masterExpanded && (
+                <div className="ml-8 mt-1 space-y-1">
+                  <Link
+                    href="/sites"
+                    onClick={onClose}
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive('/sites')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span>🏗️</span>
+                    <span>現場マスタ</span>
+                  </Link>
+                  {isAdmin && (
+                    <Link
+                      href="/warehouse-locations"
+                      onClick={onClose}
+                      className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive('/warehouse-locations')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span>📍</span>
+                      <span>倉庫位置管理</span>
+                    </Link>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* マニュアル */}
           <Link
@@ -245,7 +283,7 @@ export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
             <button
               onClick={() => setSettingsExpanded(!settingsExpanded)}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                isActive('/settings') || isActive('/admin') || isActive('/warehouse-locations')
+                isActive('/settings') || isActive('/admin')
                   ? 'bg-blue-50 text-blue-700 font-medium'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
@@ -304,18 +342,6 @@ export function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
                     >
                       <span>⚙️</span>
                       <span>組織設定</span>
-                    </Link>
-                    <Link
-                      href="/warehouse-locations"
-                      onClick={onClose}
-                      className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive('/warehouse-locations')
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span>📍</span>
-                      <span>倉庫位置管理</span>
                     </Link>
                     <Link
                       href="/admin/audit-logs"

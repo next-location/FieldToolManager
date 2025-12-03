@@ -5,7 +5,13 @@ import { Html5Qrcode } from 'html5-qrcode'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-export function QRScanner() {
+type ScanMode = 'single' | 'bulk' | 'info' | 'inventory' | 'location'
+
+interface QRScannerProps {
+  mode?: ScanMode
+}
+
+export function QRScanner({ mode = 'single' }: QRScannerProps) {
   const [isScanning, setIsScanning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const scannerRef = useRef<Html5Qrcode | null>(null)
