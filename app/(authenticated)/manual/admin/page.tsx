@@ -297,19 +297,144 @@ export default async function AdminManualPage() {
 
             <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">消耗品マスタを登録する</h3>
             <ol className="list-decimal list-inside space-y-2 text-gray-700 mb-4">
-              <li>「道具管理」→「個別管理道具」→「+ 新規登録」</li>
-              <li>管理タイプで「消耗品」を選択</li>
+              <li>「道具管理」→「消耗品一覧」→「+ 新規登録」</li>
               <li>消耗品名、単位（双、個、本など）を入力</li>
               <li><strong>最小在庫数</strong>を設定（この数量を下回るとアラートが出ます）</li>
               <li>「登録する」ボタンをクリック</li>
             </ol>
 
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
               <p className="font-semibold text-yellow-800 mb-2">最小在庫数の設定例</p>
               <ul className="space-y-1 text-yellow-700 text-sm">
                 <li>• 軍手: 50双（1週間で使う量を目安に）</li>
                 <li>• 養生テープ: 20個</li>
                 <li>• マスク: 30個</li>
+              </ul>
+            </div>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-8 mb-3">⚠️ 在庫調整 vs 発注管理の使い分け</h3>
+            <p className="text-gray-700 mb-4">
+              消耗品の在庫を増減させる方法は2つあります。<strong>用途に応じて正しく使い分けることが重要です。</strong>
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-900 mb-2">🔹 在庫調整機能</h4>
+                <p className="text-sm text-blue-800 mb-3"><strong>用途:</strong> 例外的な在庫変動の記録</p>
+                <p className="text-xs text-blue-700 mb-2">使用シーン:</p>
+                <ul className="text-xs text-blue-700 space-y-1">
+                  <li>✓ 棚卸による実在庫との差異修正</li>
+                  <li>✓ 紛失・破損による在庫減少</li>
+                  <li>✓ 他社からの無償提供</li>
+                  <li>✓ 試供品の入庫</li>
+                </ul>
+              </div>
+
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h4 className="font-semibold text-green-900 mb-2">🔹 消耗品発注管理</h4>
+                <p className="text-sm text-green-800 mb-3"><strong>用途:</strong> 正式な発注プロセスの管理</p>
+                <p className="text-xs text-green-700 mb-2">使用シーン:</p>
+                <ul className="text-xs text-green-700 space-y-1">
+                  <li>✓ 業者から正式に購入する場合</li>
+                  <li>✓ 発注番号を記録したい</li>
+                  <li>✓ コストを正確に管理したい</li>
+                  <li>✓ 納品予定日を追跡したい</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+              <p className="font-semibold text-red-800 mb-2">❌ よくある間違い</p>
+              <ul className="space-y-2 text-red-700 text-sm">
+                <li>
+                  <strong>× 間違い:</strong> 業者から購入したのに「在庫調整」で追加
+                  <br />
+                  <span className="text-xs">→ 発注履歴が残らず、コスト管理ができません</span>
+                </li>
+                <li>
+                  <strong>× 間違い:</strong> 棚卸の差異を「発注管理」で架空の発注を作成
+                  <br />
+                  <span className="text-xs">→ 虚偽のデータが残り、監査時に問題になります</span>
+                </li>
+              </ul>
+            </div>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-8 mb-3">消耗品発注管理の使い方</h3>
+            <ol className="list-decimal list-inside space-y-3 text-gray-700 mb-4">
+              <li>
+                <strong>発注登録:</strong> 「道具管理」→「消耗品発注管理」→「+ 新規発注」
+                <ul className="list-disc list-inside ml-6 mt-2 space-y-1 text-sm">
+                  <li>消耗品、数量、発注日、納品予定日を入力</li>
+                  <li>業者名、発注番号、単価を記録</li>
+                  <li>ステータス「発注中」で登録</li>
+                </ul>
+              </li>
+              <li>
+                <strong>発注確定:</strong> 業者に発注を送信したら「発注確定」ボタン
+                <ul className="list-disc list-inside ml-6 mt-2 space-y-1 text-sm">
+                  <li>ステータスが「発注済み」に変更</li>
+                </ul>
+              </li>
+              <li>
+                <strong>納品処理:</strong> 商品が届いたら「納品処理」ボタン
+                <ul className="list-disc list-inside ml-6 mt-2 space-y-1 text-sm">
+                  <li>実納品日と実納品数を入力</li>
+                  <li>「納品完了」で倉庫在庫に自動反映</li>
+                  <li>ステータスが「納品済み」に変更</li>
+                </ul>
+              </li>
+            </ol>
+
+            <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
+              <p className="font-semibold text-green-800 mb-2">💡 発注管理のメリット</p>
+              <ul className="space-y-1 text-green-700 text-sm">
+                <li>✓ 発注履歴が完全に記録される</li>
+                <li>✓ コストが正確に把握できる</li>
+                <li>✓ 納品遅延を追跡できる</li>
+                <li>✓ 業者ごとの発注実績を確認できる</li>
+              </ul>
+            </div>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-8 mb-3">在庫調整の使い方</h3>
+            <ol className="list-decimal list-inside space-y-3 text-gray-700 mb-4">
+              <li>
+                <strong>調整画面を開く:</strong> 「道具管理」→「消耗品一覧」→ 対象消耗品 → 「在庫調整」
+              </li>
+              <li>
+                <strong>調整種別を選択:</strong>
+                <ul className="list-disc list-inside ml-6 mt-2 space-y-1 text-sm">
+                  <li>在庫を追加: 棚卸修正、無償提供など</li>
+                  <li>在庫を減らす: 棚卸修正、紛失、破損など</li>
+                </ul>
+              </li>
+              <li>
+                <strong>数量と理由を入力:</strong>
+                <ul className="list-disc list-inside ml-6 mt-2 space-y-1 text-sm">
+                  <li>調整する数量を入力</li>
+                  <li>理由を選択（棚卸、紛失、破損、無償提供、その他）</li>
+                  <li>メモ欄に詳細を記載（推奨）</li>
+                </ul>
+              </li>
+              <li>
+                <strong>調整実行:</strong> 「調整実行」ボタンで即座に在庫反映
+              </li>
+            </ol>
+
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+              <p className="font-semibold text-yellow-800 mb-2">📋 運用のベストプラクティス</p>
+              <ul className="space-y-2 text-yellow-700 text-sm">
+                <li>
+                  <strong>月次棚卸:</strong> 月末に実地棚卸を実施し、差異は在庫調整で修正
+                </li>
+                <li>
+                  <strong>紛失・破損:</strong> 発生時は速やかに在庫調整で記録
+                </li>
+                <li>
+                  <strong>正式発注:</strong> 業者から購入する場合は必ず発注管理を使用
+                </li>
+                <li>
+                  <strong>監査対応:</strong> 在庫調整は履歴が残るため、理由を明確に記載
+                </li>
               </ul>
             </div>
           </section>

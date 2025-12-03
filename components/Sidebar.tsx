@@ -17,6 +17,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
   const [equipmentExpanded, setEquipmentExpanded] = useState(false)
   const [movementExpanded, setMovementExpanded] = useState(false)
   const [masterExpanded, setMasterExpanded] = useState(false)
+  const [analyticsExpanded, setAnalyticsExpanded] = useState(false)
   const [settingsExpanded, setSettingsExpanded] = useState(false)
 
   const isAdmin = userRole === 'admin' || userRole === 'super_admin'
@@ -203,39 +204,13 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                   href="/equipment"
                   onClick={onClose}
                   className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                    pathname === '/equipment' || (pathname?.startsWith('/equipment/') && !pathname?.startsWith('/equipment/cost-report') && !pathname?.startsWith('/equipment/analytics'))
+                    isActive('/equipment')
                       ? 'bg-blue-50 text-blue-700 font-medium'
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
                   重機一覧
                 </Link>
-                {isLeaderOrAdmin && (
-                  <>
-                    <Link
-                      href="/equipment/cost-report"
-                      onClick={onClose}
-                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive('/equipment/cost-report')
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      コストレポート
-                    </Link>
-                    <Link
-                      href="/equipment/analytics"
-                      onClick={onClose}
-                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive('/equipment/analytics')
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      稼働率分析
-                    </Link>
-                  </>
-                )}
               </div>
             )}
           </div>
@@ -423,25 +398,100 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
 
           {/* レポート・分析（リーダー・管理者） */}
           {isLeaderOrAdmin && (
-            <Link
-              href="/analytics/cost"
-              onClick={onClose}
-              className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${
-                isActive('/analytics')
-                  ? 'bg-blue-50 text-blue-700 font-medium'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                />
-              </svg>
-              <span>レポート・分析</span>
-            </Link>
+            <div>
+              <button
+                onClick={() => setAnalyticsExpanded(!analyticsExpanded)}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
+                  isActive('/analytics') || isActive('/equipment/cost-report') || isActive('/equipment/analytics')
+                    ? 'bg-blue-50 text-blue-700 font-medium'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    />
+                  </svg>
+                  <span>レポート・分析</span>
+                </div>
+                <svg
+                  className={`w-4 h-4 transition-transform ${analyticsExpanded ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {analyticsExpanded && (
+                <div className="ml-8 mt-1 space-y-1">
+                  <Link
+                    href="/analytics/cost"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive('/analytics/cost')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    コスト分析
+                  </Link>
+                  <Link
+                    href="/analytics/usage"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive('/analytics/usage')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    使用頻度分析
+                  </Link>
+                  <Link
+                    href="/analytics/inventory"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive('/analytics/inventory')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    在庫最適化
+                  </Link>
+                  {heavyEquipmentEnabled && (
+                    <>
+                      <Link
+                        href="/equipment/cost-report"
+                        onClick={onClose}
+                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                          isActive('/equipment/cost-report')
+                            ? 'bg-blue-50 text-blue-700 font-medium'
+                            : 'text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        重機コストレポート
+                      </Link>
+                      <Link
+                        href="/equipment/analytics"
+                        onClick={onClose}
+                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                          isActive('/equipment/analytics')
+                            ? 'bg-blue-50 text-blue-700 font-medium'
+                            : 'text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        重機稼働率分析
+                      </Link>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           )}
 
           {/* マニュアル */}
