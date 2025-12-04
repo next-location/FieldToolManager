@@ -3325,3 +3325,561 @@ heavy_equipment (重機マスタ)
 
 ---
 
+## 8. 出退勤管理テーブル（Phase 9）
+
+### 8.1 組織の出退勤設定テーブル
+
+```sql
+CREATE TABLE organization_attendance_settings (
+  organization_id UUID PRIMARY KEY REFERENCES organizations(id),
+
+  -- 会社出勤設定
+  office_attendance_enabled BOOLEAN DEFAULT true,
+  office_clock_methods JSONB NOT NULL DEFAULT '{"manual":true,"qr_scan":false,"qr_display":false}',
+  office_qr_rotation_days INTEGER DEFAULT 7 CHECK (office_qr_rotation_days IN (1, 3, 7, 30)),
+
+  -- 現場出勤設定
+  site_attendance_enabled BOOLEAN DEFAULT true,
+  site_clock_methods JSONB NOT NULL DEFAULT '{"manual":true,"qr_scan":false,"qr_display":false}',
+  site_qr_type TEXT DEFAULT 'leader' CHECK (site_qr_type IN ('leader', 'fixed', 'both')),
+
+  -- 休憩時間設定
+  break_time_mode TEXT DEFAULT 'simple' CHECK (break_time_mode IN ('none', 'simple', 'detailed')),
+  auto_break_deduction BOOLEAN DEFAULT false,
+  auto_break_minutes INTEGER DEFAULT 45,
+
+  -- 通知設定
+  checkin_reminder_enabled BOOLEAN DEFAULT true,
+  checkin_reminder_time TIME DEFAULT '10:00',
+  checkout_reminder_enabled BOOLEAN DEFAULT true,
+  checkout_reminder_time TIME DEFAULT '20:00',
+  admin_daily_report_enabled BOOLEAN DEFAULT true,
+  admin_daily_report_time TIME DEFAULT '10:00',
+  admin_daily_report_email BOOLEAN DEFAULT true,
+  qr_expiry_alert_enabled BOOLEAN DEFAULT true,
+  qr_expiry_alert_email BOOLEAN DEFAULT true,
+  overtime_alert_enabled BOOLEAN DEFAULT false,
+  overtime_alert_hours INTEGER DEFAULT 12,
+
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- RLS
+ALTER TABLE organization_attendance_settings ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Organizations can manage their own settings"
+  ON organization_attendance_settings
+  FOR ALL
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM users WHERE id = auth.uid()
+    )
+  );
+```
+
+### 8.2 現場ごとの出退勤設定
+
+```sql
+CREATE TABLE site_attendance_settings (
+  site_id UUID PRIMARY KEY REFERENCES sites(id),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  qr_mode TEXT NOT NULL DEFAULT 'leader' CHECK (qr_mode IN ('leader', 'fixed')),
+  has_tablet BOOLEAN DEFAULT false,
+  tablet_access_token TEXT UNIQUE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- RLS
+ALTER TABLE site_attendance_settings ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their organization's site settings"
+  ON site_attendance_settings FOR SELECT
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM users WHERE id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Admins can manage site settings"
+  ON site_attendance_settings FOR ALL
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM users
+      WHERE id = auth.uid()
+      AND role IN ('admin', 'manager')
+    )
+  );
+```
+
+### 8.3 会社QRコード
+
+```sql
+CREATE TABLE office_qr_codes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  qr_data TEXT NOT NULL UNIQUE,
+  valid_from TIMESTAMPTZ NOT NULL,
+  valid_until TIMESTAMPTZ NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+
+  -- 有効期間の重複防止
+  EXCLUDE USING gist (
+    organization_id WITH =,
+    tstzrange(valid_from, valid_until) WITH &&
+  ) WHERE (is_active = true)
+);
+
+CREATE INDEX idx_office_qr_codes_org_active ON office_qr_codes(organization_id, is_active);
+CREATE INDEX idx_office_qr_codes_qr_data ON office_qr_codes(qr_data);
+
+-- RLS
+ALTER TABLE office_qr_codes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their organization's QR codes"
+  ON office_qr_codes FOR SELECT
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM users WHERE id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Admins can manage QR codes"
+  ON office_qr_codes FOR ALL
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM users
+      WHERE id = auth.uid()
+      AND role IN ('admin', 'manager')
+    )
+  );
+```
+
+### 8.4 現場QRコード
+
+```sql
+CREATE TABLE site_qr_codes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  site_id UUID NOT NULL REFERENCES sites(id),
+  qr_type TEXT NOT NULL CHECK (qr_type IN ('leader', 'fixed')),
+
+  -- リーダー型の場合
+  leader_user_id UUID REFERENCES users(id),
+  generated_date DATE,
+
+  -- 固定型の場合
+  qr_data TEXT,
+  expires_at TIMESTAMPTZ,
+
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+
+  -- リーダー型は1日1レコード
+  UNIQUE(site_id, leader_user_id, generated_date)
+    WHERE (qr_type = 'leader'),
+
+  -- 固定型は現場ごとに1つ
+  UNIQUE(site_id)
+    WHERE (qr_type = 'fixed' AND is_active = true)
+);
+
+CREATE INDEX idx_site_qr_codes_org ON site_qr_codes(organization_id);
+CREATE INDEX idx_site_qr_codes_site ON site_qr_codes(site_id);
+CREATE INDEX idx_site_qr_codes_leader ON site_qr_codes(leader_user_id, generated_date) WHERE qr_type = 'leader';
+
+-- RLS
+ALTER TABLE site_qr_codes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their organization's site QR codes"
+  ON site_qr_codes FOR SELECT
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM users WHERE id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Leaders can generate their site QR codes"
+  ON site_qr_codes FOR INSERT
+  WITH CHECK (
+    qr_type = 'leader'
+    AND leader_user_id = auth.uid()
+    AND organization_id IN (
+      SELECT organization_id FROM users WHERE id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Admins can manage site QR codes"
+  ON site_qr_codes FOR ALL
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM users
+      WHERE id = auth.uid()
+      AND role IN ('admin', 'manager')
+    )
+  );
+```
+
+### 8.5 出退勤記録
+
+```sql
+CREATE TABLE attendance_records (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  user_id UUID NOT NULL REFERENCES users(id),
+  date DATE NOT NULL,
+
+  -- 出勤情報
+  clock_in_time TIMESTAMPTZ NOT NULL,
+  clock_in_location_type TEXT NOT NULL CHECK (clock_in_location_type IN ('office', 'site', 'remote')),
+  clock_in_site_id UUID REFERENCES sites(id),
+  clock_in_method TEXT NOT NULL CHECK (clock_in_method IN ('manual', 'qr')),
+  clock_in_device_type TEXT CHECK (clock_in_device_type IN ('mobile', 'tablet', 'desktop')),
+
+  -- 退勤予定
+  planned_checkout_location_type TEXT CHECK (planned_checkout_location_type IN ('office', 'site', 'remote', 'direct_home')),
+  planned_checkout_site_id UUID REFERENCES sites(id),
+
+  -- 退勤情報（実績）
+  clock_out_time TIMESTAMPTZ,
+  clock_out_location_type TEXT CHECK (clock_out_location_type IN ('office', 'site', 'remote', 'direct_home')),
+  clock_out_site_id UUID REFERENCES sites(id),
+  clock_out_method TEXT CHECK (clock_out_method IN ('manual', 'qr')),
+  clock_out_device_type TEXT CHECK (clock_out_device_type IN ('mobile', 'tablet', 'desktop')),
+
+  -- 休憩時間
+  break_records JSONB DEFAULT '[]',
+  -- 例: [{"start": "2025-12-04T12:00:00Z", "end": "2025-12-04T12:45:00Z"}]
+
+  auto_break_deducted_minutes INTEGER DEFAULT 0,
+
+  -- メタ情報
+  notes TEXT,
+  is_offline_sync BOOLEAN DEFAULT false,
+  synced_at TIMESTAMPTZ,
+  is_manually_edited BOOLEAN DEFAULT false,
+  edited_by UUID REFERENCES users(id),
+  edited_at TIMESTAMPTZ,
+  edited_reason TEXT,
+
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+
+  -- 1日1レコード制約
+  UNIQUE(organization_id, user_id, date)
+);
+
+CREATE INDEX idx_attendance_records_org ON attendance_records(organization_id);
+CREATE INDEX idx_attendance_records_user_date ON attendance_records(user_id, date DESC);
+CREATE INDEX idx_attendance_records_date ON attendance_records(date DESC);
+CREATE INDEX idx_attendance_records_org_date ON attendance_records(organization_id, date DESC);
+
+-- RLS
+ALTER TABLE attendance_records ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own attendance records"
+  ON attendance_records FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own attendance records"
+  ON attendance_records FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own attendance records"
+  ON attendance_records FOR UPDATE
+  USING (auth.uid() = user_id AND is_manually_edited = false);
+
+CREATE POLICY "Admins can view all attendance records"
+  ON attendance_records FOR SELECT
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM users
+      WHERE id = auth.uid()
+      AND role IN ('admin', 'manager')
+    )
+  );
+
+CREATE POLICY "Admins can manage all attendance records"
+  ON attendance_records FOR ALL
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM users
+      WHERE id = auth.uid()
+      AND role IN ('admin', 'manager')
+    )
+  );
+```
+
+### 8.6 アラート履歴
+
+```sql
+CREATE TABLE attendance_alerts (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  alert_type TEXT NOT NULL CHECK (alert_type IN ('missing_checkin', 'missing_checkout', 'qr_expiring', 'overtime')),
+  target_user_id UUID REFERENCES users(id),
+  target_date DATE,
+  message TEXT NOT NULL,
+  metadata JSONB,
+  is_resolved BOOLEAN DEFAULT false,
+  resolved_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_attendance_alerts_org ON attendance_alerts(organization_id);
+CREATE INDEX idx_attendance_alerts_user ON attendance_alerts(target_user_id);
+CREATE INDEX idx_attendance_alerts_date ON attendance_alerts(target_date DESC);
+CREATE INDEX idx_attendance_alerts_resolved ON attendance_alerts(organization_id, is_resolved);
+
+-- RLS
+ALTER TABLE attendance_alerts ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own alerts"
+  ON attendance_alerts FOR SELECT
+  USING (auth.uid() = target_user_id);
+
+CREATE POLICY "Admins can view all alerts"
+  ON attendance_alerts FOR SELECT
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM users
+      WHERE id = auth.uid()
+      AND role IN ('admin', 'manager')
+    )
+  );
+
+CREATE POLICY "System can insert alerts"
+  ON attendance_alerts FOR INSERT
+  WITH CHECK (true);
+```
+
+### 8.7 タブレット端末管理
+
+```sql
+CREATE TABLE terminal_devices (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  device_name TEXT NOT NULL,
+  device_type TEXT NOT NULL CHECK (device_type IN ('office', 'site')),
+  site_id UUID REFERENCES sites(id),
+  access_token TEXT NOT NULL UNIQUE,
+  last_accessed_at TIMESTAMPTZ,
+  is_active BOOLEAN DEFAULT true,
+  created_by UUID REFERENCES users(id),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_terminal_devices_org ON terminal_devices(organization_id);
+CREATE INDEX idx_terminal_devices_token ON terminal_devices(access_token);
+
+-- RLS
+ALTER TABLE terminal_devices ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Admins can manage terminal devices"
+  ON terminal_devices FOR ALL
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM users
+      WHERE id = auth.uid()
+      AND role IN ('admin', 'manager')
+    )
+  );
+```
+
+### 8.8 TypeScript型定義
+
+```typescript
+// 出退勤設定
+export interface OrganizationAttendanceSettings {
+  organization_id: string;
+  office_attendance_enabled: boolean;
+  office_clock_methods: {
+    manual: boolean;
+    qr_scan: boolean;
+    qr_display: boolean;
+  };
+  office_qr_rotation_days: 1 | 3 | 7 | 30;
+  site_attendance_enabled: boolean;
+  site_clock_methods: {
+    manual: boolean;
+    qr_scan: boolean;
+    qr_display: boolean;
+  };
+  site_qr_type: 'leader' | 'fixed' | 'both';
+  break_time_mode: 'none' | 'simple' | 'detailed';
+  auto_break_deduction: boolean;
+  auto_break_minutes: number;
+  checkin_reminder_enabled: boolean;
+  checkin_reminder_time: string;
+  checkout_reminder_enabled: boolean;
+  checkout_reminder_time: string;
+  admin_daily_report_enabled: boolean;
+  admin_daily_report_email: boolean;
+  qr_expiry_alert_enabled: boolean;
+  overtime_alert_hours: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// 現場設定
+export interface SiteAttendanceSettings {
+  site_id: string;
+  organization_id: string;
+  qr_mode: 'leader' | 'fixed';
+  has_tablet: boolean;
+  tablet_access_token: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// 会社QRコード
+export interface OfficeQRCode {
+  id: string;
+  organization_id: string;
+  qr_data: string;
+  valid_from: string;
+  valid_until: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+// 現場QRコード
+export interface SiteQRCode {
+  id: string;
+  organization_id: string;
+  site_id: string;
+  qr_type: 'leader' | 'fixed';
+  leader_user_id: string | null;
+  generated_date: string | null;
+  qr_data: string | null;
+  expires_at: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+// 出退勤記録
+export interface AttendanceRecord {
+  id: string;
+  organization_id: string;
+  user_id: string;
+  date: string; // YYYY-MM-DD
+  clock_in_time: string;
+  clock_in_location_type: 'office' | 'site' | 'remote';
+  clock_in_site_id: string | null;
+  clock_in_method: 'manual' | 'qr';
+  clock_in_device_type: 'mobile' | 'tablet' | 'desktop' | null;
+  planned_checkout_location_type: 'office' | 'site' | 'remote' | 'direct_home' | null;
+  planned_checkout_site_id: string | null;
+  clock_out_time: string | null;
+  clock_out_location_type: 'office' | 'site' | 'remote' | 'direct_home' | null;
+  clock_out_site_id: string | null;
+  clock_out_method: 'manual' | 'qr' | null;
+  clock_out_device_type: 'mobile' | 'tablet' | 'desktop' | null;
+  break_records: BreakRecord[];
+  auto_break_deducted_minutes: number;
+  notes: string | null;
+  is_offline_sync: boolean;
+  synced_at: string | null;
+  is_manually_edited: boolean;
+  edited_by: string | null;
+  edited_at: string | null;
+  edited_reason: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BreakRecord {
+  start: string; // ISO 8601
+  end: string; // ISO 8601
+}
+
+// アラート
+export interface AttendanceAlert {
+  id: string;
+  organization_id: string;
+  alert_type: 'missing_checkin' | 'missing_checkout' | 'qr_expiring' | 'overtime';
+  target_user_id: string | null;
+  target_date: string | null;
+  message: string;
+  metadata: Record<string, any> | null;
+  is_resolved: boolean;
+  resolved_at: string | null;
+  created_at: string;
+}
+
+// タブレット端末
+export interface TerminalDevice {
+  id: string;
+  organization_id: string;
+  device_name: string;
+  device_type: 'office' | 'site';
+  site_id: string | null;
+  access_token: string;
+  last_accessed_at: string | null;
+  is_active: boolean;
+  created_by: string | null;
+  created_at: string;
+}
+```
+
+### 8.9 ER図（出退勤管理部分）
+
+```
+organizations (組織)
+    ↓ 1:1
+organization_attendance_settings (出退勤設定)
+├── office_clock_methods (会社打刻方法)
+├── site_clock_methods (現場打刻方法)
+├── break_time_mode (休憩記録モード)
+└── 通知設定
+
+organizations (組織)
+    ↓ 1:N
+office_qr_codes (会社QRコード)
+├── qr_data (QRデータ)
+├── valid_from / valid_until (有効期間)
+└── is_active
+
+sites (現場)
+    ↓ 1:1
+site_attendance_settings (現場設定)
+├── qr_mode (leader/fixed)
+└── tablet_access_token
+
+sites (現場)
+    ↓ 1:N
+site_qr_codes (現場QRコード)
+├── qr_type: leader/fixed
+├── leader_user_id (リーダー型の場合)
+└── generated_date (毎日生成)
+
+users (ユーザー)
+    ↓ 1:N
+attendance_records (出退勤記録)
+├── date (日付 - UNIQUE制約)
+├── clock_in_time / clock_out_time
+├── clock_in_location_type / clock_out_location_type
+├── clock_in_site_id / clock_out_site_id
+├── break_records[] (休憩時間配列)
+└── is_manually_edited (手動修正フラグ)
+
+organizations (組織)
+    ↓ 1:N
+attendance_alerts (アラート履歴)
+├── alert_type: missing_checkin/missing_checkout/qr_expiring/overtime
+├── target_user_id
+└── is_resolved
+
+organizations (組織)
+    ↓ 1:N
+terminal_devices (タブレット端末)
+├── device_type: office/site
+├── access_token (認証トークン)
+└── site_id (現場の場合)
+```
+
+---
+
+**最終更新**: 2025-12-04（出退勤管理テーブル追加）

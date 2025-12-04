@@ -1412,3 +1412,476 @@ ALTER TABLE organizations DROP COLUMN IF EXISTS heavy_equipment_settings;
    - コスト分析（購入/リース/レンタルのROI比較）
    - 詳細な点検記録管理
 
+---
+
+### Phase 8: スタッフ管理機能（2025-12-04 〜）
+
+#### 20250104000001_add_staff_management_columns.sql
+```sql
+-- usersテーブルにスタッフ管理用カラムを追加
+ALTER TABLE users ADD COLUMN IF NOT EXISTS department TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS employee_id TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS invited_at TIMESTAMP;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_token TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_expires_at TIMESTAMP;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS access_expires_at TIMESTAMP;
+
+-- インデックス追加
+CREATE INDEX IF NOT EXISTS idx_users_is_active ON users(is_active);
+CREATE INDEX IF NOT EXISTS idx_users_department ON users(department) WHERE department IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_users_employee_id ON users(employee_id) WHERE employee_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_users_password_reset_token ON users(password_reset_token) WHERE password_reset_token IS NOT NULL;
+
+-- コメント追加
+COMMENT ON COLUMN users.department IS '所属部署';
+COMMENT ON COLUMN users.employee_id IS '社員番号';
+COMMENT ON COLUMN users.phone IS '電話番号';
+COMMENT ON COLUMN users.is_active IS 'アカウント有効状態';
+COMMENT ON COLUMN users.invited_at IS '招待日時';
+COMMENT ON COLUMN users.last_login_at IS '最終ログイン日時';
+COMMENT ON COLUMN users.password_reset_token IS 'パスワードリセットトークン';
+COMMENT ON COLUMN users.password_reset_expires_at IS 'トークン有効期限';
+COMMENT ON COLUMN users.access_expires_at IS '一時アクセス期限（将来拡張用）';
+```
+
+**適用日**: 2025-12-04
+**ステータス**: ✅ 完了
+**ロールバック**:
+```sql
+ALTER TABLE users DROP COLUMN IF EXISTS department;
+ALTER TABLE users DROP COLUMN IF EXISTS employee_id;
+ALTER TABLE users DROP COLUMN IF EXISTS phone;
+ALTER TABLE users DROP COLUMN IF EXISTS is_active;
+ALTER TABLE users DROP COLUMN IF EXISTS invited_at;
+ALTER TABLE users DROP COLUMN IF EXISTS last_login_at;
+ALTER TABLE users DROP COLUMN IF EXISTS password_reset_token;
+ALTER TABLE users DROP COLUMN IF EXISTS password_reset_expires_at;
+ALTER TABLE users DROP COLUMN IF EXISTS access_expires_at;
+DROP INDEX IF EXISTS idx_users_is_active;
+DROP INDEX IF EXISTS idx_users_department;
+DROP INDEX IF EXISTS idx_users_employee_id;
+DROP INDEX IF EXISTS idx_users_password_reset_token;
+```
+
+---
+
+#### 20250104000002_create_user_history_table.sql
+```sql
+-- ユーザー変更履歴テーブル作成
+CREATE TABLE IF NOT EXISTS user_history (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  changed_by UUID NOT NULL REFERENCES users(id),
+  change_type TEXT NOT NULL CHECK (change_type IN (
+    'created', 'updated', 'deleted', 'activated', 'deactivated',
+    'role_changed', 'department_changed', 'password_reset'
+  )),
+  old_values JSONB,
+  new_values JSONB,
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- インデックス作成
+CREATE INDEX IF NOT EXISTS idx_user_history_organization ON user_history(organization_id);
+CREATE INDEX IF NOT EXISTS idx_user_history_user ON user_history(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_history_changed_by ON user_history(changed_by);
+CREATE INDEX IF NOT EXISTS idx_user_history_created_at ON user_history(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_user_history_change_type ON user_history(change_type);
+
+-- RLS有効化
+ALTER TABLE user_history ENABLE ROW LEVEL SECURITY;
+
+-- コメント追加
+COMMENT ON TABLE user_history IS 'ユーザー変更履歴（監査ログ）';
+COMMENT ON COLUMN user_history.change_type IS '変更種別';
+COMMENT ON COLUMN user_history.old_values IS '変更前の値（JSONB）';
+COMMENT ON COLUMN user_history.new_values IS '変更後の値（JSONB）';
+COMMENT ON COLUMN user_history.changed_by IS '変更実行者のユーザーID';
+```
+
+**適用日**: 2025-12-04
+**ステータス**: ✅ 完了
+**ロールバック**:
+```sql
+DROP TABLE IF EXISTS user_history CASCADE;
+```
+
+---
+
+#### 20250104000003_add_staff_rls_policies.sql
+```sql
+-- user_historyテーブルのRLSポリシー
+CREATE POLICY "user_history_select_admin"
+  ON user_history FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM users
+      WHERE id = auth.uid()
+      AND organization_id = user_history.organization_id
+      AND role IN ('admin', 'super_admin')
+    )
+  );
+
+CREATE POLICY "user_history_insert_admin"
+  ON user_history FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM users
+      WHERE id = auth.uid()
+      AND organization_id = user_history.organization_id
+      AND role IN ('admin', 'super_admin')
+    )
+  );
+
+-- usersテーブルのRLSポリシー追加
+CREATE POLICY "users_select_own_organization"
+  ON users FOR SELECT
+  USING (
+    organization_id = (
+      SELECT organization_id FROM users WHERE id = auth.uid()
+    )
+  );
+
+CREATE POLICY "users_insert_admin_only"
+  ON users FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM users
+      WHERE id = auth.uid()
+      AND organization_id = users.organization_id
+      AND role = 'admin'
+    )
+  );
+
+CREATE POLICY "users_update_admin_only"
+  ON users FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM users
+      WHERE id = auth.uid()
+      AND organization_id = users.organization_id
+      AND role = 'admin'
+    )
+  );
+
+CREATE POLICY "users_delete_admin_only"
+  ON users FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM users
+      WHERE id = auth.uid()
+      AND organization_id = users.organization_id
+      AND role = 'admin'
+    )
+  );
+```
+
+**適用日**: 2025-12-04
+**ステータス**: ✅ 完了
+**ロールバック**:
+```sql
+DROP POLICY IF EXISTS "user_history_select_admin" ON user_history;
+DROP POLICY IF EXISTS "user_history_insert_admin" ON user_history;
+DROP POLICY IF EXISTS "users_select_own_organization" ON users;
+DROP POLICY IF EXISTS "users_insert_admin_only" ON users;
+DROP POLICY IF EXISTS "users_update_admin_only" ON users;
+DROP POLICY IF EXISTS "users_delete_admin_only" ON users;
+```
+
+---
+
+### Phase 8: 実装チェックリスト
+
+#### Phase 8.1: 基本機能（2週間）✅ 完了
+- [x] usersテーブルのカラム追加マイグレーション
+- [x] user_historyテーブル作成マイグレーション
+- [x] RLSポリシー設定（admin/leader/staff別）
+- [x] スタッフ一覧API（`/api/staff`）
+- [x] スタッフ追加API（`POST /api/staff`）
+- [x] スタッフ編集API（`PATCH /api/staff/[id]`）
+- [x] スタッフ削除API（`DELETE /api/staff/[id]`）
+- [x] アカウント有効化/無効化API（`POST /api/staff/[id]/toggle-active`）
+- [x] スタッフ一覧ページ（検索・フィルタリング・ソート・利用状況バー）
+- [x] スタッフ追加モーダル（バリデーション・プラン上限チェック・ランダムパスワード生成）
+- [x] スタッフ編集モーダル（変更検知・admin権限削除防止）
+- [x] 論理削除確認ダイアログ
+- [x] アカウント有効化/無効化トグル
+
+#### Phase 8.2: 管理機能（1週間）✅ 完了
+- [x] 変更履歴表示モーダル（時系列・変更者情報・日本語表示）
+- [x] 変更履歴取得API（`/api/staff/[id]/history`）
+- [x] パスワードリセット機能（トークン生成・メール送信準備）
+- [x] パスワードリセットAPI（`POST /api/staff/[id]/reset-password`）
+- [x] パスワード更新画面（`/reset-password`）
+- [x] トークン検証API（`GET /api/reset-password/validate`）
+- [x] パスワード更新API（`POST /api/reset-password/update`）
+- [x] 部署一覧取得API（`/api/departments`）
+- [x] 部署フィルタリング機能
+
+#### Phase 8.3: 効率化機能（1週間）✅ 完了
+- [x] CSV一括登録機能（テンプレート・解析・プレビュー・一括登録処理）
+- [x] CSV一括登録API（`POST /api/staff/bulk-import`）
+- [x] 権限マトリックス表示コンポーネント
+
+#### Phase 8.4: ドキュメント（完了）
+- [x] DATABASE_SCHEMA.md更新
+- [x] MIGRATIONS.md更新
+- [x] SPECIFICATION_SAAS_FINAL.md更新
+
+### スタッフ管理機能の核心ポイント
+
+1. **プラン別制限（重要）**
+   - basic: 10人まで
+   - standard: 30人まで
+   - premium: 100人まで
+   - enterprise: 要相談（個別設定）
+
+2. **権限設計（3階層）**
+   - admin: 全機能アクセス可能
+   - leader: 閲覧と実務操作のみ
+   - staff: 閲覧と基本操作のみ
+
+3. **監査ログ（必須）**
+   - すべての変更を`user_history`に記録
+   - 変更種別、変更者、変更内容をJSONBで保存
+   - RLSで組織内のadminのみ閲覧可能
+
+4. **セキュリティ機能**
+   - パスワードリセット（24時間有効なトークン）
+   - アカウント有効化/無効化
+   - 最低1人のadmin維持（削除・無効化防止）
+
+5. **効率化機能**
+   - CSV一括登録（バリデーション・プレビュー付き）
+   - 検索・フィルタリング（名前・メール・部署・権限・状態）
+   - 権限マトリックス表示（機能別アクセス権限一覧）
+
+6. **将来の拡張計画**
+   - 出退勤管理との統合（オプション機能・追加課金）
+   - メール通知機能（招待・パスワードリセット）
+   - 2段階認証（2FA）
+
+---
+
+## Phase 9: 出退勤管理機能（2025-12-04 〜）
+
+### 概要
+スタッフの出退勤を記録・管理し、勤怠データを可視化する機能。
+会社出勤・現場出勤の両方に対応し、QRコード打刻と手動打刻をサポート。
+
+### 9.1 20250104000004_create_attendance_management.sql
+
+#### 作成内容
+- organization_attendance_settings テーブル（組織の出退勤設定）
+- site_attendance_settings テーブル（現場ごとの設定）
+- office_qr_codes テーブル（会社QRコード）
+- attendance_records テーブル（出退勤記録）
+- RLSポリシー（組織分離・権限別アクセス制御）
+
+#### SQL
+```sql
+-- btree_gist拡張を有効化（EXCLUDE制約でUUIDを使うために必要）
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+
+-- 1. 組織の出退勤設定テーブル
+CREATE TABLE organization_attendance_settings (
+  organization_id UUID PRIMARY KEY REFERENCES organizations(id),
+
+  -- 会社出勤設定
+  office_attendance_enabled BOOLEAN DEFAULT true,
+  office_clock_methods JSONB NOT NULL DEFAULT '{"manual":true,"qr_scan":false,"qr_display":false}',
+  office_qr_rotation_days INTEGER DEFAULT 7 CHECK (office_qr_rotation_days IN (1, 3, 7, 30)),
+
+  -- 現場出勤設定
+  site_attendance_enabled BOOLEAN DEFAULT true,
+  site_clock_methods JSONB NOT NULL DEFAULT '{"manual":true,"qr_scan":false,"qr_display":false}',
+  site_qr_type TEXT DEFAULT 'leader' CHECK (site_qr_type IN ('leader', 'fixed', 'both')),
+
+  -- 休憩時間設定
+  break_time_mode TEXT DEFAULT 'simple' CHECK (break_time_mode IN ('none', 'simple', 'detailed')),
+  auto_break_deduction BOOLEAN DEFAULT false,
+  auto_break_minutes INTEGER DEFAULT 45,
+
+  -- 通知設定
+  checkin_reminder_enabled BOOLEAN DEFAULT true,
+  checkin_reminder_time TIME DEFAULT '10:00',
+  checkout_reminder_enabled BOOLEAN DEFAULT true,
+  checkout_reminder_time TIME DEFAULT '20:00',
+  admin_daily_report_enabled BOOLEAN DEFAULT true,
+  admin_daily_report_time TIME DEFAULT '10:00',
+  admin_daily_report_email BOOLEAN DEFAULT true,
+  qr_expiry_alert_enabled BOOLEAN DEFAULT true,
+  qr_expiry_alert_email BOOLEAN DEFAULT true,
+  overtime_alert_enabled BOOLEAN DEFAULT false,
+  overtime_alert_hours INTEGER DEFAULT 12,
+
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. 現場ごとの出退勤設定
+CREATE TABLE site_attendance_settings (
+  site_id UUID PRIMARY KEY REFERENCES sites(id),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  qr_mode TEXT NOT NULL DEFAULT 'leader' CHECK (qr_mode IN ('leader', 'fixed')),
+  has_tablet BOOLEAN DEFAULT false,
+  tablet_access_token TEXT UNIQUE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 3. 会社QRコード（自動更新型）
+CREATE TABLE office_qr_codes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  qr_data TEXT NOT NULL UNIQUE,
+  valid_from TIMESTAMPTZ NOT NULL,
+  valid_until TIMESTAMPTZ NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+
+  -- 有効期間の重複防止
+  EXCLUDE USING gist (
+    organization_id WITH =,
+    tstzrange(valid_from, valid_until) WITH &&
+  ) WHERE (is_active = true)
+);
+
+-- 4. 出退勤記録
+CREATE TABLE attendance_records (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  user_id UUID NOT NULL REFERENCES users(id),
+  date DATE NOT NULL,
+
+  -- 出勤情報
+  clock_in_time TIMESTAMPTZ NOT NULL,
+  clock_in_location_type TEXT NOT NULL CHECK (clock_in_location_type IN ('office', 'site', 'remote')),
+  clock_in_site_id UUID REFERENCES sites(id),
+  clock_in_method TEXT NOT NULL CHECK (clock_in_method IN ('manual', 'qr')),
+  clock_in_device_type TEXT CHECK (clock_in_device_type IN ('mobile', 'tablet', 'desktop')),
+
+  -- 退勤予定
+  planned_checkout_location_type TEXT CHECK (planned_checkout_location_type IN ('office', 'site', 'remote', 'direct_home')),
+  planned_checkout_site_id UUID REFERENCES sites(id),
+
+  -- 退勤情報（実績）
+  clock_out_time TIMESTAMPTZ,
+  clock_out_location_type TEXT CHECK (clock_out_location_type IN ('office', 'site', 'remote', 'direct_home')),
+  clock_out_site_id UUID REFERENCES sites(id),
+  clock_out_method TEXT CHECK (clock_out_method IN ('manual', 'qr')),
+  clock_out_device_type TEXT CHECK (clock_out_device_type IN ('mobile', 'tablet', 'desktop')),
+
+  -- 休憩時間（JSONB配列）
+  break_records JSONB DEFAULT '[]',
+  auto_break_deducted_minutes INTEGER DEFAULT 0,
+
+  -- メタ情報
+  notes TEXT,
+  is_offline_sync BOOLEAN DEFAULT false,
+  synced_at TIMESTAMPTZ,
+  is_manually_edited BOOLEAN DEFAULT false,
+  edited_by UUID REFERENCES users(id),
+  edited_at TIMESTAMPTZ,
+  edited_reason TEXT,
+
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+
+  -- 1日1レコード制約
+  UNIQUE(organization_id, user_id, date)
+);
+
+-- インデックス
+CREATE INDEX idx_office_qr_codes_org_active ON office_qr_codes(organization_id, is_active);
+CREATE INDEX idx_office_qr_codes_qr_data ON office_qr_codes(qr_data);
+CREATE INDEX idx_attendance_records_org ON attendance_records(organization_id);
+CREATE INDEX idx_attendance_records_user_date ON attendance_records(user_id, date DESC);
+CREATE INDEX idx_attendance_records_date ON attendance_records(date DESC);
+CREATE INDEX idx_attendance_records_org_date ON attendance_records(organization_id, date DESC);
+
+-- RLSポリシー
+ALTER TABLE organization_attendance_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE site_attendance_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE office_qr_codes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE attendance_records ENABLE ROW LEVEL SECURITY;
+
+-- (詳細なRLSポリシーは割愛)
+```
+
+#### 適用日
+**ローカル開発環境**: 2025-12-04
+**ステータス**: ✅ 適用完了
+
+#### ロールバック手順
+```sql
+-- RLSポリシー削除
+DROP POLICY IF EXISTS "Users can view own attendance records" ON attendance_records;
+DROP POLICY IF EXISTS "Users can insert own attendance records" ON attendance_records;
+DROP POLICY IF EXISTS "Users can update own attendance records" ON attendance_records;
+DROP POLICY IF EXISTS "Admins can view all attendance records" ON attendance_records;
+DROP POLICY IF EXISTS "Admins can manage all attendance records" ON attendance_records;
+DROP POLICY IF EXISTS "Users can view their organization's QR codes" ON office_qr_codes;
+DROP POLICY IF EXISTS "Admins can manage QR codes" ON office_qr_codes;
+DROP POLICY IF EXISTS "Users can view their organization's site settings" ON site_attendance_settings;
+DROP POLICY IF EXISTS "Admins can manage site settings" ON site_attendance_settings;
+DROP POLICY IF EXISTS "Organizations can manage their own settings" ON organization_attendance_settings;
+
+-- テーブル削除（CASCADE）
+DROP TABLE IF EXISTS attendance_records CASCADE;
+DROP TABLE IF EXISTS office_qr_codes CASCADE;
+DROP TABLE IF EXISTS site_attendance_settings CASCADE;
+DROP TABLE IF EXISTS organization_attendance_settings CASCADE;
+
+-- 拡張削除（他で使われていない場合のみ）
+-- DROP EXTENSION IF EXISTS btree_gist;
+```
+
+#### 注意事項
+1. `btree_gist`拡張が必要（EXCLUDE制約でUUID使用のため）
+2. `office_qr_codes`は有効期間の重複を自動防止（GiST EXCLUDE制約）
+3. `attendance_records`は1ユーザー1日1レコード制約（UNIQUE制約）
+4. 休憩時間は`JSONB`配列で複数回記録可能
+5. 手動修正は監査ログ付き（edited_by, edited_at, edited_reason）
+
+#### 関連ドキュメント
+- [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) - Section 8: 出退勤管理テーブル
+- [ATTENDANCE_MANAGEMENT_SPEC.md](./ATTENDANCE_MANAGEMENT_SPEC.md) - 完全仕様書
+- [SPECIFICATION_SAAS_FINAL.md](./SPECIFICATION_SAAS_FINAL.md) - Section 21: 出退勤管理機能
+
+---
+
+### Phase 9.1 実装状況
+
+#### Week 1: データベース + 設定（2025-12-04）
+- [x] データベースマイグレーション作成
+- [x] organization_attendance_settings テーブル作成
+- [x] site_attendance_settings テーブル作成
+- [x] office_qr_codes テーブル作成
+- [x] attendance_records テーブル作成
+- [x] RLSポリシー設定
+- [x] MIGRATIONS.md更新
+- [ ] 組織設定API実装（GET/PUT /api/attendance/settings）
+- [ ] 設定画面UI実装（/attendance/settings）
+
+#### Week 2: 打刻機能（予定）
+- [ ] 出勤打刻API（手動のみ）
+- [ ] 退勤打刻API（手動のみ）
+- [ ] ダッシュボードウィジェット
+- [ ] 打刻状態の取得API
+- [ ] 重複打刻防止機能
+- [ ] タイムゾーン処理（JST統一）
+
+#### Week 3: 一覧・履歴（予定）
+- [ ] 勤怠一覧API（フィルター付き）
+- [ ] 勤怠一覧ページ（デスクトップ）
+- [ ] 勤怠一覧ページ（モバイル）
+- [ ] 自分の履歴ページ（スタッフ用）
+- [ ] 休憩時間管理（simple/detailed/none）
+- [ ] 手動修正機能（管理者用）
+
