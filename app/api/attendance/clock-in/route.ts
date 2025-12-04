@@ -112,9 +112,36 @@ export async function POST(request: NextRequest) {
     }
 
     // QRコード検証（QR打刻の場合）
+    let qrValidation: any = null
     if (body.method === 'qr' && body.qr_data) {
-      // QR検証ロジックは後で実装（Phase 2）
-      // 今はスキップして手動打刻と同じ処理
+      // QR検証APIを呼び出す
+      const verifyResponse = await fetch(new URL('/api/attendance/qr/verify', request.url).toString(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: request.headers.get('cookie') || '',
+        },
+        body: JSON.stringify({ qr_data: body.qr_data }),
+      })
+
+      if (!verifyResponse.ok) {
+        const errorData = await verifyResponse.json()
+        return NextResponse.json(
+          { error: errorData.error || 'QRコードの検証に失敗しました' },
+          { status: verifyResponse.status }
+        )
+      }
+
+      qrValidation = await verifyResponse.json()
+
+      // QR検証結果に基づいて location_type と site_id を上書き
+      if (qrValidation.type === 'office') {
+        body.location_type = 'office'
+        body.site_id = null
+      } else if (qrValidation.type === 'site' || qrValidation.type === 'site_fixed') {
+        body.location_type = 'site'
+        body.site_id = qrValidation.site_id
+      }
     }
 
     // 現場IDの検証（現場出勤の場合）

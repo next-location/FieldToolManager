@@ -1228,12 +1228,23 @@ CSV形式でエクスポート。
 ### Phase 2: QR機能（2週間）
 
 #### Week 4: 会社QR
-- [ ] 会社QRコード自動生成機能
-- [ ] QRコード定期更新ジョブ
+- [x] 会社QRコード自動生成機能 ✅
+  - [x] POST /api/attendance/qr/office/generate（手動生成）
+  - [x] GET /api/attendance/qr/office/current（自動生成含む）
+  - [x] QRデータフォーマット: ATT:org_id:token:valid_until
+  - [x] 有効期限管理（1/3/7/30日）
+- [x] QRコード検証機能 ✅
+  - [x] POST /api/attendance/qr/verify
+  - [x] 会社QR検証（有効期限チェック）
+  - [x] 現場QR検証（リーダー発行・固定）
+  - [x] 組織IDチェック
+- [x] QRスキャン打刻API ✅
+  - [x] clock-in APIにQR検証統合
+  - [x] clock-out APIにQR検証統合
+  - [x] location_type自動判定
 - [ ] QR表示専用ページ（会社用）
-- [ ] QRスキャン打刻API
-- [ ] QRコード検証機能
-- [ ] アクセストークン管理
+- [ ] QRコード定期更新ジョブ
+- [ ] アクセストークン管理（タブレット端末用）
 
 #### Week 5: 現場QR
 - [ ] リーダー用QR発行API
