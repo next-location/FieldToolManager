@@ -1255,6 +1255,13 @@ CSV形式でエクスポート。
   - [x] PATCH /api/attendance/terminals/[id]（更新）
   - [x] DELETE /api/attendance/terminals/[id]（削除）
   - [x] アクセストークン生成（crypto）
+  - [x] タブレット端末管理UI
+    - [x] /attendance/terminals/page.tsx
+    - [x] TerminalsTable.tsx（一覧テーブル）
+    - [x] RegisterTerminalModal.tsx（登録モーダル）
+    - [x] URL自動生成・コピー機能
+    - [x] 有効/無効切り替え
+    - [x] Sidebarメニュー追加
 - [ ] QRコード定期更新ジョブ（将来実装）
 
 #### Week 5: 現場QR

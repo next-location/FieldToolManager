@@ -644,6 +644,17 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                       出退勤設定
                     </Link>
                     <Link
+                      href="/attendance/terminals"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive('/attendance/terminals')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      タブレット端末管理
+                    </Link>
+                    <Link
                       href="/admin/audit-logs"
                       onClick={onClose}
                       className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
