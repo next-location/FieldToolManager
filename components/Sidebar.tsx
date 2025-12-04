@@ -13,17 +13,17 @@ interface SidebarProps {
 
 export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = false }: SidebarProps) {
   const pathname = usePathname()
-  const [toolsExpanded, setToolsExpanded] = useState(false)
-  const [equipmentExpanded, setEquipmentExpanded] = useState(false)
-  const [movementExpanded, setMovementExpanded] = useState(false)
-  const [masterExpanded, setMasterExpanded] = useState(false)
-  const [analyticsExpanded, setAnalyticsExpanded] = useState(false)
-  const [settingsExpanded, setSettingsExpanded] = useState(false)
+  const [expandedMenu, setExpandedMenu] = useState<string | null>(null)
 
   const isAdmin = userRole === 'admin' || userRole === 'super_admin'
   const isLeaderOrAdmin = userRole === 'leader' || userRole === 'admin' || userRole === 'super_admin'
 
   const isActive = (path: string) => pathname === path || pathname?.startsWith(path + '/')
+
+  // アコーディオンを排他的に開く関数
+  const toggleMenu = (menuName: string) => {
+    setExpandedMenu(expandedMenu === menuName ? null : menuName)
+  }
 
   return (
     <>
@@ -89,7 +89,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
           {/* 道具管理 */}
           <div>
             <button
-              onClick={() => setToolsExpanded(!toolsExpanded)}
+              onClick={() => toggleMenu('tools')}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
                 isActive('/tools') || isActive('/consumables') || isActive('/tool-sets')
                   ? 'bg-blue-50 text-blue-700 font-medium'
@@ -108,7 +108,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                 <span>道具管理</span>
               </div>
               <svg
-                className={`w-4 h-4 transition-transform ${toolsExpanded ? 'rotate-180' : ''}`}
+                className={`w-4 h-4 transition-transform ${expandedMenu === 'tools' ? 'rotate-180' : ''}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -117,7 +117,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
               </svg>
             </button>
 
-            {toolsExpanded && (
+            {expandedMenu === 'tools' && (
               <div className="ml-8 mt-1 space-y-1">
                 <Link
                   href="/tools"
@@ -170,7 +170,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
           {/* 重機管理 */}
           <div>
             <button
-              onClick={() => setEquipmentExpanded(!equipmentExpanded)}
+              onClick={() => toggleMenu('equipment')}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
                 pathname === '/equipment' || (pathname?.startsWith('/equipment/') && !pathname?.startsWith('/equipment/cost-report') && !pathname?.startsWith('/equipment/analytics'))
                   ? 'bg-blue-50 text-blue-700 font-medium'
@@ -189,7 +189,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                 <span>重機管理</span>
               </div>
               <svg
-                className={`w-4 h-4 transition-transform ${equipmentExpanded ? 'rotate-180' : ''}`}
+                className={`w-4 h-4 transition-transform ${expandedMenu === 'equipment' ? 'rotate-180' : ''}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -198,7 +198,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
               </svg>
             </button>
 
-            {equipmentExpanded && (
+            {expandedMenu === 'equipment' && (
               <div className="ml-8 mt-1 space-y-1">
                 <Link
                   href="/equipment"
@@ -218,7 +218,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
           {/* 移動管理 */}
           <div>
             <button
-              onClick={() => setMovementExpanded(!movementExpanded)}
+              onClick={() => toggleMenu('movement')}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
                 isActive('/movements')
                   ? 'bg-blue-50 text-blue-700 font-medium'
@@ -237,7 +237,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                 <span>移動管理</span>
               </div>
               <svg
-                className={`w-4 h-4 transition-transform ${movementExpanded ? 'rotate-180' : ''}`}
+                className={`w-4 h-4 transition-transform ${expandedMenu === 'movement' ? 'rotate-180' : ''}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -246,7 +246,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
               </svg>
             </button>
 
-            {movementExpanded && (
+            {expandedMenu === 'movement' && (
               <div className="ml-8 mt-1 space-y-1">
                 <Link
                   href="/movements/bulk"
@@ -311,9 +311,9 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
           {isLeaderOrAdmin && (
             <div>
               <button
-                onClick={() => setMasterExpanded(!masterExpanded)}
+                onClick={() => toggleMenu('master')}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                  isActive('/sites') || isActive('/warehouse-locations') || isActive('/categories')
+                  isActive('/sites') || isActive('/warehouse-locations') || isActive('/categories') || isActive('/master')
                     ? 'bg-blue-50 text-blue-700 font-medium'
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
@@ -330,7 +330,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                   <span>マスタ管理</span>
                 </div>
                 <svg
-                  className={`w-4 h-4 transition-transform ${masterExpanded ? 'rotate-180' : ''}`}
+                  className={`w-4 h-4 transition-transform ${expandedMenu === 'master' ? 'rotate-180' : ''}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -339,7 +339,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                 </svg>
               </button>
 
-              {masterExpanded && (
+              {expandedMenu === 'master' && (
                 <div className="ml-8 mt-1 space-y-1">
                   <Link
                     href="/sites"
@@ -378,15 +378,15 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                       </Link>
                       {heavyEquipmentEnabled && (
                         <Link
-                          href="/equipment/new"
+                          href="/master/equipment-categories"
                           onClick={onClose}
                           className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                            isActive('/equipment/new')
+                            isActive('/master/equipment-categories')
                               ? 'bg-blue-50 text-blue-700 font-medium'
                               : 'text-gray-600 hover:bg-gray-50'
                           }`}
                         >
-                          重機登録
+                          重機カテゴリ管理
                         </Link>
                       )}
                     </>
@@ -400,7 +400,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
           {isLeaderOrAdmin && (
             <div>
               <button
-                onClick={() => setAnalyticsExpanded(!analyticsExpanded)}
+                onClick={() => toggleMenu('analytics')}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
                   isActive('/analytics') || isActive('/equipment/cost-report') || isActive('/equipment/analytics')
                     ? 'bg-blue-50 text-blue-700 font-medium'
@@ -419,7 +419,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                   <span>レポート・分析</span>
                 </div>
                 <svg
-                  className={`w-4 h-4 transition-transform ${analyticsExpanded ? 'rotate-180' : ''}`}
+                  className={`w-4 h-4 transition-transform ${expandedMenu === 'analytics' ? 'rotate-180' : ''}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -428,7 +428,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                 </svg>
               </button>
 
-              {analyticsExpanded && (
+              {expandedMenu === 'analytics' && (
                 <div className="ml-8 mt-1 space-y-1">
                   <Link
                     href="/analytics/cost"
@@ -518,7 +518,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
           {/* 設定・管理 */}
           <div className="pt-4 mt-4 border-t border-gray-200">
             <button
-              onClick={() => setSettingsExpanded(!settingsExpanded)}
+              onClick={() => toggleMenu('settings')}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
                 isActive('/settings') || isActive('/admin')
                   ? 'bg-blue-50 text-blue-700 font-medium'
@@ -543,7 +543,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                 <span>設定・管理</span>
               </div>
               <svg
-                className={`w-4 h-4 transition-transform ${settingsExpanded ? 'rotate-180' : ''}`}
+                className={`w-4 h-4 transition-transform ${expandedMenu === 'settings' ? 'rotate-180' : ''}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -552,7 +552,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
               </svg>
             </button>
 
-            {settingsExpanded && (
+            {expandedMenu === 'settings' && (
               <div className="ml-8 mt-1 space-y-1">
                 <Link
                   href="/settings"
