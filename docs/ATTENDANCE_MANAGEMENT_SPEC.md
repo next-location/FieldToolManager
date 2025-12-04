@@ -1189,10 +1189,30 @@ CSV形式でエクスポート。
 - [x] タイムゾーン処理（JST統一） ✅
 
 #### Week 3: 一覧・履歴
-- [ ] 勤怠一覧API（フィルター付き）
-- [ ] 勤怠一覧ページ（デスクトップ）
-- [ ] 勤怠一覧ページ（モバイル）
-- [ ] 自分の履歴ページ（スタッフ用）
+- [x] 勤怠一覧API（フィルター付き） ✅
+  - [x] GET /api/attendance/records
+  - [x] フィルタリング（user_id, start_date, end_date, location_type, site_id）
+  - [x] ページネーション（page, limit）
+  - [x] ソート（日付降順）
+  - [x] 権限チェック（staffは自分のみ、admin/managerは全員）
+  - [x] JOINクエリ（ユーザー名、現場名）
+- [x] 勤怠一覧ページ（デスクトップ） ✅
+  - [x] /attendance/records/page.tsx
+  - [x] AttendanceRecordsTable.tsx
+  - [x] フィルター UI（スタッフ、日付範囲、場所、現場）
+  - [x] 勤務時間計算・表示
+  - [x] ページネーション UI
+- [x] 勤怠一覧ページ（モバイル） ✅
+  - [x] レスポンシブ対応テーブル
+- [x] 自分の履歴ページ（スタッフ用） ✅
+  - [x] /attendance/my-records/page.tsx
+  - [x] MyAttendanceRecordsTable.tsx
+  - [x] 月次集計表示（出勤日数、総勤務時間、平均時間）
+  - [x] 日付フィルター
+  - [x] ページネーション
+- [x] サイドバーメニュー追加 ✅
+  - [x] 勤怠履歴（全員）
+  - [x] 勤怠一覧（admin/manager）
 - [ ] 休憩時間管理（simple/detailed/none）
 - [ ] 手動修正機能（管理者用）
 
