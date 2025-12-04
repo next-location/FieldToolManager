@@ -25,16 +25,18 @@ export default async function EquipmentBulkQRPage() {
     redirect('/login')
   }
 
-  // 組織の重機管理機能が有効かチェック
+  // 組織設定を取得（QRサイズ、重機機能）
   const { data: orgData } = await supabase
     .from('organizations')
-    .select('heavy_equipment_enabled')
+    .select('heavy_equipment_enabled, qr_print_size')
     .eq('id', userData.organization_id)
     .single()
 
   if (!orgData?.heavy_equipment_enabled) {
     redirect('/')
   }
+
+  const qrSize = orgData?.qr_print_size || 25
 
   // すべての重機を取得
   const { data: equipment } = await supabase
@@ -80,7 +82,7 @@ export default async function EquipmentBulkQRPage() {
           </p>
         </div>
 
-        <EquipmentBulkQRClient items={itemsWithDetails} />
+        <EquipmentBulkQRClient items={itemsWithDetails} qrSize={qrSize} />
       </div>
     </div>
   )

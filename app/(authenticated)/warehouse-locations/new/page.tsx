@@ -61,7 +61,7 @@ export default async function NewWarehouseLocationPage() {
               倉庫階層が未設定です
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              まず組織設定から倉庫の階層設定を行ってください
+              まず運用設定から倉庫の階層設定を行ってください
             </p>
             <div className="mt-6 flex gap-3 justify-center">
               <a

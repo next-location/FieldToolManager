@@ -16,9 +16,10 @@ interface EquipmentItem {
 
 interface EquipmentBulkQRClientProps {
   items: EquipmentItem[]
+  qrSize: number
 }
 
-export function EquipmentBulkQRClient({ items }: EquipmentBulkQRClientProps) {
+export function EquipmentBulkQRClient({ items, qrSize }: EquipmentBulkQRClientProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
@@ -251,6 +252,7 @@ export function EquipmentBulkQRClient({ items }: EquipmentBulkQRClientProps) {
                     selectedIds={selectedIds}
                     onClose={() => setIsPrintModalOpen(false)}
                     itemType="重機"
+                    qrSize={qrSize}
                   />
                 </Dialog.Panel>
               </Transition.Child>

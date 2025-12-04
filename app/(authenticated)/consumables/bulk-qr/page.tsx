@@ -25,6 +25,15 @@ export default async function ConsumablesBulkQRPage() {
     redirect('/login')
   }
 
+  // 組織設定を取得（QRサイズ）
+  const { data: organization } = await supabase
+    .from('organizations')
+    .select('qr_print_size')
+    .eq('id', userData.organization_id)
+    .single()
+
+  const qrSize = organization?.qr_print_size || 25
+
   // すべての消耗品を取得
   const { data: consumables } = await supabase
     .from('tools')
@@ -63,7 +72,7 @@ export default async function ConsumablesBulkQRPage() {
           </p>
         </div>
 
-        <ConsumableBulkQRClient items={itemsWithDetails} />
+        <ConsumableBulkQRClient items={itemsWithDetails} qrSize={qrSize} />
       </div>
     </div>
   )

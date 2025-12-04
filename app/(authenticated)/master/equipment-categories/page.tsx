@@ -51,22 +51,6 @@ export default async function EquipmentCategoriesPage() {
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
-        <div className="mb-6">
-          <Link
-            href="/"
-            className="text-sm font-medium text-gray-600 hover:text-gray-900"
-          >
-            ← ダッシュボードに戻る
-          </Link>
-        </div>
-
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">重機カテゴリ管理</h1>
-          <p className="mt-1 text-sm text-gray-600">
-            重機のカテゴリを管理します。カテゴリを追加・編集・削除できます。
-          </p>
-        </div>
-
         <EquipmentCategoriesClient
           initialCategories={categories || []}
           organizationId={userData.organization_id}

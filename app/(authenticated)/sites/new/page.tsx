@@ -31,17 +31,14 @@ export default async function NewSitePage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-2xl mx-auto px-4">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">新規現場登録</h1>
-            <Link
-              href="/sites"
-              className="text-sm text-gray-600 hover:text-gray-900"
-            >
-              ← 一覧に戻る
-            </Link>
-          </div>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">新規現場登録</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            新しい現場情報を登録します
+          </p>
+        </div>
 
+        <div className="bg-white rounded-lg shadow p-6">
           <form action={createSite}>
             <div className="space-y-6">
               {/* 現場名 */}

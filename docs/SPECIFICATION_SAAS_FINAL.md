@@ -4969,3 +4969,332 @@ organization_settings.heavy_equipment_settings = {
 
 ---
 
+## 20. スタッフ管理機能（Phase 8）
+
+### 20.1 概要
+
+**目的**: セットアップウィザード以外でスタッフの追加・編集・管理を可能にし、プラン別の人数制限と監査ログを実装する。
+
+**背景**:
+- 現在、スタッフ登録はセットアップウィザードでのみ可能
+- 運用開始後にスタッフを追加・管理する機能が存在しない
+- プラン別の人数制限が未実装
+- スタッフの変更履歴（部署移動・権限変更）が記録されていない
+
+**詳細設計書**: [STAFF_MANAGEMENT.md](./STAFF_MANAGEMENT.md)
+
+### 20.2 プラン別スタッフ数上限
+
+```typescript
+プラン別上限:
+- basic: 10人まで（小規模事業者）
+- standard: 30人まで（中規模事業者）
+- premium: 100人まで（大規模事業者）
+- enterprise: 要相談（契約時に個別設定、例: 500人）
+```
+
+**上限到達時の挙動**:
+- 「+ スタッフを追加」ボタンが無効化
+- CSV一括登録で上限を超える場合、超過分は登録されない
+- プランアップグレード誘導メッセージ表示
+
+### 20.3 権限設計
+
+#### admin（管理者）
+- ✅ スタッフの追加・編集・削除
+- ✅ 権限の変更（admin以外の権限を付与可能）
+- ✅ 部署の変更
+- ✅ アカウントの有効化/無効化
+- ✅ パスワードの強制リセット
+- ✅ スタッフの変更履歴閲覧
+- ✅ CSV一括登録
+
+#### leader（リーダー）
+- ✅ 自分の所属部署のスタッフ一覧の閲覧
+- ✅ スタッフの連絡先確認
+- ❌ スタッフの追加・編集・削除不可
+
+#### staff（一般スタッフ）
+- ✅ 組織内のスタッフ一覧の閲覧（連絡先確認用）
+- ❌ スタッフの追加・編集・削除不可
+
+### 20.4 データベース設計
+
+#### 20.4.1 usersテーブルの拡張
+
+```sql
+-- 既存のusersテーブルに追加
+ALTER TABLE users ADD COLUMN IF NOT EXISTS department TEXT; -- 部署名
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true; -- アカウント状態
+ALTER TABLE users ADD COLUMN IF NOT EXISTS invited_at TIMESTAMP; -- 招待日時
+ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP; -- 最終ログイン日時
+ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_token TEXT; -- パスワードリセットトークン
+ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_expires_at TIMESTAMP; -- トークン有効期限
+ALTER TABLE users ADD COLUMN IF NOT EXISTS access_expires_at TIMESTAMP; -- 一時アクセス用（将来拡張）
+
+-- インデックス追加
+CREATE INDEX idx_users_is_active ON users(is_active);
+CREATE INDEX idx_users_department ON users(department) WHERE department IS NOT NULL;
+CREATE INDEX idx_users_password_reset_token ON users(password_reset_token) WHERE password_reset_token IS NOT NULL;
+```
+
+#### 20.4.2 user_historyテーブル（新規作成）
+
+```sql
+CREATE TABLE user_history (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  changed_by UUID NOT NULL REFERENCES users(id), -- 変更実行者
+  change_type TEXT NOT NULL CHECK (change_type IN (
+    'created', 'updated', 'deleted', 'activated', 'deactivated',
+    'role_changed', 'department_changed', 'password_reset'
+  )),
+  old_values JSONB, -- 変更前の値
+  new_values JSONB, -- 変更後の値
+  notes TEXT, -- メモ
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_user_history_organization ON user_history(organization_id);
+CREATE INDEX idx_user_history_user ON user_history(user_id);
+CREATE INDEX idx_user_history_changed_by ON user_history(changed_by);
+CREATE INDEX idx_user_history_created_at ON user_history(created_at DESC);
+CREATE INDEX idx_user_history_change_type ON user_history(change_type);
+
+-- RLS有効化
+ALTER TABLE user_history ENABLE ROW LEVEL SECURITY;
+```
+
+### 20.5 主要機能
+
+#### 20.5.1 基本機能
+1. **スタッフ一覧表示**
+   - 検索・フィルタリング（名前、メール、部署、権限、ステータス）
+   - ソート機能
+   - ページネーション（50件/ページ）
+
+2. **スタッフ追加**
+   - 名前、メール、パスワード（初期）、権限、部署の登録
+   - プラン上限チェック
+   - メールでの招待通知
+
+3. **スタッフ編集**
+   - 基本情報の編集
+   - 権限の変更
+   - 部署の変更
+
+4. **論理削除**
+   - アカウントの論理削除（`deleted_at`設定）
+   - 過去の履歴データは保持
+
+5. **アカウント有効化/無効化**
+   - `is_active`フラグの切り替え
+   - 無効化されたスタッフはログイン不可
+   - 履歴記録
+
+6. **プラン上限チェック**
+   - 利用状況表示（8/10人など）
+   - 80%以上で警告表示
+   - 100%で追加ボタン無効化
+
+#### 20.5.2 管理機能
+7. **変更履歴記録**
+   - すべての変更を`user_history`に記録
+   - 部署移動履歴
+   - 権限変更履歴
+   - パスワードリセット履歴
+
+8. **パスワードリセット**
+   - 管理者による強制パスワードリセット
+   - トークン付きリンクをメール送信
+   - トークンの有効期限（24時間）
+
+9. **検索・フィルタリング**
+   - リアルタイム検索（名前・メール）
+   - 部署ドロップダウン（動的取得）
+   - 権限フィルタ
+   - 状態フィルタ（有効/無効）
+
+10. **部署管理との連携**
+    - 部署ごとのスタッフ数表示
+    - 部署フィルタリング
+
+#### 20.5.3 効率化機能
+11. **CSV一括登録**
+    - CSVテンプレートダウンロード
+    - パース・バリデーション
+    - プレビュー表示
+    - プラン上限を超える場合のアラート
+
+12. **利用状況アラート**
+    - 現在の利用人数/上限の表示
+    - 上限に近づいたときの警告
+    - プランアップグレード誘導
+
+13. **権限マトリックス表示**
+    - admin/leader/staffの権限比較表
+    - 機能ごとの可否を一覧表示
+
+### 20.6 出退勤管理への対応（将来拡張）
+
+**設計方針**:
+- スタッフ管理は出退勤管理の基盤となる
+- `user_id`を主キーとして、すべての機能で統一
+- 出退勤機能は**オプション機能**として追加課金（月額+5,000円）
+
+**データベース設計（将来実装）**:
+```sql
+-- 将来的に追加するテーブル（現時点では未実装）
+CREATE TABLE attendance_records (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  clock_in_at TIMESTAMP NOT NULL,
+  clock_out_at TIMESTAMP,
+  location_type TEXT CHECK (location_type IN ('site', 'warehouse', 'office', 'remote')),
+  site_id UUID REFERENCES sites(id),
+  warehouse_location_id UUID REFERENCES warehouse_locations(id),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+**組織設定への追加**:
+```sql
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS enable_attendance_tracking BOOLEAN DEFAULT false;
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS attendance_addon_enabled_at TIMESTAMP;
+```
+
+### 20.7 実装フェーズ
+
+#### Phase 8.1: 基本機能（2週間）
+
+**Week 1: データベース・API構築**
+- [ ] `users`テーブルのカラム追加マイグレーション
+- [ ] `user_history`テーブル作成マイグレーション
+- [ ] RLSポリシー設定（admin/leader/staff別）
+- [ ] スタッフ一覧API（`/api/staff`）
+- [ ] スタッフ追加API（`POST /api/staff`）
+- [ ] スタッフ編集API（`PATCH /api/staff/[id]`）
+- [ ] スタッフ削除API（`DELETE /api/staff/[id]`）
+- [ ] アカウント有効化/無効化API（`POST /api/staff/[id]/toggle-active`）
+
+**Week 2: UI実装**
+- [ ] スタッフ一覧ページ（`/staff`）
+  - [ ] 一覧表示
+  - [ ] 検索・フィルタリング
+  - [ ] ソート機能
+  - [ ] 利用状況バー（プラン上限表示）
+- [ ] スタッフ追加モーダル
+  - [ ] フォームバリデーション
+  - [ ] プラン上限チェック
+  - [ ] ランダムパスワード生成
+- [ ] スタッフ編集モーダル
+  - [ ] 変更検知
+  - [ ] admin権限削除防止
+- [ ] 論理削除確認ダイアログ
+- [ ] アカウント有効化/無効化トグル
+
+#### Phase 8.2: 管理機能（1週間）
+
+**Week 3: 履歴・管理機能**
+- [ ] 変更履歴表示モーダル
+  - [ ] 時系列表示
+  - [ ] 変更者情報
+  - [ ] 変更内容の日本語表示
+- [ ] パスワードリセット機能
+  - [ ] トークン生成
+  - [ ] リセットリンクメール送信
+  - [ ] トークン検証
+  - [ ] パスワード更新画面
+- [ ] 部署一覧取得API（`/api/departments`）
+- [ ] 部署フィルタリング機能
+
+#### Phase 8.3: 効率化機能（1週間）
+
+**Week 4: 一括登録・分析機能**
+- [ ] CSV一括登録機能
+  - [ ] CSVテンプレート生成
+  - [ ] CSV解析・バリデーション
+  - [ ] プレビュー表示
+  - [ ] 一括登録処理
+- [ ] 権限マトリックス表示コンポーネント
+- [ ] スタッフ活動サマリー（オプション）
+- [ ] 部署別ダッシュボード（オプション）
+
+#### Phase 8.4: テスト・ドキュメント（3日）
+
+**Day 1-2: テスト**
+- [ ] E2Eテスト（スタッフ追加・編集・削除フロー）
+- [ ] RLSポリシーのテスト
+- [ ] プラン上限チェックのテスト
+- [ ] 権限別アクセス制御のテスト
+
+**Day 3: ドキュメント更新**
+- [ ] ユーザーマニュアル更新（管理者向け）
+- [ ] API仕様書更新
+- [ ] MIGRATIONS.md更新
+
+### 20.8 成功基準
+
+1. **機能面**
+   - スタッフの追加・編集・削除が正常に動作
+   - プラン上限が正しく機能し、超過時に追加が拒否される
+   - すべての変更が`user_history`に記録される
+   - 権限別のアクセス制御が正しく動作
+
+2. **ユーザビリティ**
+   - 検索・フィルタリングが直感的で高速
+   - CSV一括登録が簡単に実行できる
+   - 変更履歴が見やすく、監査に使える
+
+3. **パフォーマンス**
+   - スタッフ一覧の表示が2秒以内
+   - 検索結果の表示が1秒以内
+   - CSV一括登録（100人）が30秒以内
+
+4. **セキュリティ**
+   - RLSポリシーが正しく動作
+   - 権限のないユーザーがアクセスできない
+   - パスワードリセットトークンが安全に管理される
+
+5. **ビジネス**
+   - プランアップグレード率の向上（上限到達時の誘導効果）
+   - スタッフ管理の効率化による顧客満足度向上
+
+### 20.9 実装スケジュール
+
+```
+Week 1-2: Phase 8.1（基本機能）
+├── Day 1-3: データベース設計、マイグレーション、API構築
+├── Day 4-7: スタッフ一覧ページ
+└── Day 8-10: 追加・編集・削除モーダル
+
+Week 3: Phase 8.2（管理機能）
+├── Day 1-2: 変更履歴表示
+├── Day 3-4: パスワードリセット機能
+└── Day 5: 部署管理連携
+
+Week 4: Phase 8.3（効率化機能）
+├── Day 1-3: CSV一括登録
+├── Day 4: 権限マトリックス表示
+└── Day 5: スタッフ活動サマリー（オプション）
+
+Week 5: Phase 8.4（テスト・ドキュメント）
+├── Day 1-2: E2Eテスト、RLSテスト
+└── Day 3: ドキュメント更新
+```
+
+**合計: 約1ヶ月（4-5週間）**
+
+### 20.10 関連ドキュメント
+
+- **詳細設計書**: [STAFF_MANAGEMENT.md](./STAFF_MANAGEMENT.md)
+- **データベース設計**: [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) - usersテーブル、user_historyテーブル
+- **マイグレーション管理**: [MIGRATIONS.md](./MIGRATIONS.md)
+- **権限設計**: [ROLE_BASED_ACCESS_CONTROL.md](./ROLE_BASED_ACCESS_CONTROL.md)
+
+---
+

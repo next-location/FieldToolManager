@@ -31,7 +31,6 @@ export function EquipmentCategoriesClient({
   const [formData, setFormData] = useState({
     name: '',
     code_prefix: '',
-    icon: '',
   })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -54,7 +53,7 @@ export function EquipmentCategoriesClient({
           organization_id: organizationId,
           name: formData.name.trim(),
           code_prefix: formData.code_prefix.trim() || null,
-          icon: formData.icon.trim() || null,
+          icon: null,
           sort_order: categories.length,
           is_active: true,
         })
@@ -64,7 +63,7 @@ export function EquipmentCategoriesClient({
       if (insertError) throw insertError
 
       setCategories([...categories, data])
-      setFormData({ name: '', code_prefix: '', icon: '' })
+      setFormData({ name: '', code_prefix: '' })
       setIsAdding(false)
       router.refresh()
     } catch (err: any) {
@@ -89,7 +88,6 @@ export function EquipmentCategoriesClient({
         .update({
           name: formData.name.trim(),
           code_prefix: formData.code_prefix.trim() || null,
-          icon: formData.icon.trim() || null,
         })
         .eq('id', id)
         .select()
@@ -149,7 +147,6 @@ export function EquipmentCategoriesClient({
     setFormData({
       name: category.name,
       code_prefix: category.code_prefix || '',
-      icon: category.icon || '',
     })
     setIsAdding(false)
     setError(null)
@@ -158,12 +155,30 @@ export function EquipmentCategoriesClient({
   const cancelEdit = () => {
     setEditingId(null)
     setIsAdding(false)
-    setFormData({ name: '', code_prefix: '', icon: '' })
+    setFormData({ name: '', code_prefix: '' })
     setError(null)
   }
 
   return (
     <div className="space-y-6">
+      {/* ヘッダー */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">重機カテゴリ管理</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            重機のカテゴリを管理します。カテゴリを追加・編集・削除できます。
+          </p>
+        </div>
+        {!isAdding && (
+          <button
+            onClick={() => setIsAdding(true)}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+          >
+            + カテゴリを追加
+          </button>
+        )}
+      </div>
+
       {error && (
         <div className="rounded-md bg-red-50 p-4">
           <p className="text-sm text-red-800">{error}</p>
@@ -171,16 +186,16 @@ export function EquipmentCategoriesClient({
       )}
 
       {/* 追加フォーム */}
-      <div className="bg-white shadow sm:rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          {isAdding ? (
+      {isAdding && (
+        <div className="bg-white shadow sm:rounded-lg">
+          <div className="px-4 py-5 sm:p-6">
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900">
                 新しいカテゴリを追加
               </h3>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     カテゴリ名 <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -189,12 +204,12 @@ export function EquipmentCategoriesClient({
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="例: ショベルカー"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     コード接頭辞
                   </label>
                   <input
@@ -203,22 +218,8 @@ export function EquipmentCategoriesClient({
                     onChange={(e) =>
                       setFormData({ ...formData, code_prefix: e.target.value })
                     }
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="例: SHV"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    アイコン（絵文字）
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.icon}
-                    onChange={(e) =>
-                      setFormData({ ...formData, icon: e.target.value })
-                    }
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                    placeholder="例: 🚜"
                   />
                 </div>
               </div>
@@ -238,16 +239,9 @@ export function EquipmentCategoriesClient({
                 </button>
               </div>
             </div>
-          ) : (
-            <button
-              onClick={() => setIsAdding(true)}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
-            >
-              + カテゴリを追加
-            </button>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* カテゴリ一覧 */}
       <div className="bg-white shadow sm:rounded-lg overflow-hidden">
@@ -261,10 +255,7 @@ export function EquipmentCategoriesClient({
                 コード接頭辞
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                アイコン
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                種別
+                タイプ
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 操作
@@ -304,17 +295,7 @@ export function EquipmentCategoriesClient({
                         />
                       </td>
                       <td className="px-6 py-4">
-                        <input
-                          type="text"
-                          value={formData.icon}
-                          onChange={(e) =>
-                            setFormData({ ...formData, icon: e.target.value })
-                          }
-                          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                        />
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm text-gray-500">編集中</span>
+                        <span className="text-sm text-gray-500">カスタム（編集中）</span>
                       </td>
                       <td className="px-6 py-4 text-right text-sm font-medium space-x-2">
                         <button
@@ -343,9 +324,6 @@ export function EquipmentCategoriesClient({
                         <div className="text-sm text-gray-500">
                           {category.code_prefix || '-'}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-lg">{category.icon || '-'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {isSystemCategory ? (

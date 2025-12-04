@@ -174,41 +174,42 @@ export function EquipmentRegistrationForm({
       )}
 
       {/* 基本情報 */}
-      <div className="border-b border-gray-200 pb-6">
-        <h3 className="text-base font-semibold text-gray-900 mb-4">基本情報</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="md:col-span-2">
-            <label htmlFor="equipment_code" className="block text-sm font-medium text-gray-700">
-              重機コード <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="equipment_code"
-              name="equipment_code"
-              value={formData.equipment_code}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-              placeholder="例: BH-001"
-            />
-          </div>
+      <div className="space-y-6">
+        <h3 className="text-base font-medium text-gray-900">基本情報</h3>
 
-          <div className="md:col-span-2">
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-              重機名 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-              placeholder="例: コマツ PC200-10"
-            />
-          </div>
+        <div>
+          <label htmlFor="equipment_code" className="block text-sm font-medium text-gray-700">
+            重機コード <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="equipment_code"
+            name="equipment_code"
+            value={formData.equipment_code}
+            onChange={handleChange}
+            required
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            placeholder="例: BH-001"
+          />
+        </div>
 
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+            重機名 <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            placeholder="例: コマツ PC200-10"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
             <label htmlFor="category_id" className="block text-sm font-medium text-gray-700">
               カテゴリ
@@ -218,7 +219,7 @@ export function EquipmentRegistrationForm({
               name="category_id"
               value={formData.category_id}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">未選択</option>
               {categories.map((cat) => (
@@ -239,11 +240,13 @@ export function EquipmentRegistrationForm({
               name="manufacturer"
               value={formData.manufacturer}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder="例: コマツ"
             />
           </div>
+        </div>
 
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
             <label htmlFor="model_number" className="block text-sm font-medium text-gray-700">
               型番
@@ -254,7 +257,7 @@ export function EquipmentRegistrationForm({
               name="model_number"
               value={formData.model_number}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder="例: PC200-10"
             />
           </div>
@@ -269,10 +272,12 @@ export function EquipmentRegistrationForm({
               name="serial_number"
               value={formData.serial_number}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
+        </div>
 
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
             <label htmlFor="registration_number" className="block text-sm font-medium text-gray-700">
               登録番号（ナンバープレート）
@@ -283,7 +288,7 @@ export function EquipmentRegistrationForm({
               name="registration_number"
               value={formData.registration_number}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder="例: 建 12-34"
             />
           </div>
@@ -297,7 +302,7 @@ export function EquipmentRegistrationForm({
               name="current_location_id"
               value={formData.current_location_id}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">未選択</option>
               {sites.map((site) => (
@@ -311,68 +316,71 @@ export function EquipmentRegistrationForm({
       </div>
 
       {/* 所有形態（最重要） */}
-      <div className="border-b border-gray-200 pb-6">
-        <h3 className="text-base font-semibold text-gray-900 mb-1">
-          所有形態 <span className="text-red-500">*</span>
-        </h3>
-        <p className="text-sm text-gray-500 mb-4">
-          重機の所有形態を選択してください。コスト管理に重要な情報です。
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="md:col-span-2">
-            <label htmlFor="ownership_type" className="block text-sm font-medium text-gray-700">
-              所有形態 <span className="text-red-500">*</span>
-            </label>
-            <select
-              id="ownership_type"
-              name="ownership_type"
-              value={formData.ownership_type}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm font-medium"
-            >
-              <option value="owned">自社所有（購入）</option>
-              <option value="leased">リース</option>
-              <option value="rented">レンタル</option>
-            </select>
+      <div className="border-t border-gray-200 pt-6 space-y-6">
+        <div>
+          <h3 className="text-base font-medium text-gray-900">
+            所有形態 <span className="text-red-500">*</span>
+          </h3>
+          <p className="mt-1 text-xs text-gray-500">
+            重機の所有形態を選択してください。コスト管理に重要な情報です。
+          </p>
+        </div>
+
+        <div>
+          <label htmlFor="ownership_type" className="block text-sm font-medium text-gray-700">
+            所有形態 <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="ownership_type"
+            name="ownership_type"
+            value={formData.ownership_type}
+            onChange={handleChange}
+            required
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="owned">自社所有（購入）</option>
+            <option value="leased">リース</option>
+            <option value="rented">レンタル</option>
+          </select>
+        </div>
+
+        {/* 自社所有の場合 */}
+        {formData.ownership_type === 'owned' && (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div>
+              <label htmlFor="purchase_date" className="block text-sm font-medium text-gray-700">
+                購入日
+              </label>
+              <input
+                type="date"
+                id="purchase_date"
+                name="purchase_date"
+                value={formData.purchase_date}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="purchase_price" className="block text-sm font-medium text-gray-700">
+                購入価格（円）
+              </label>
+              <input
+                type="number"
+                id="purchase_price"
+                name="purchase_price"
+                value={formData.purchase_price}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                placeholder="例: 15000000"
+              />
+            </div>
           </div>
+        )}
 
-          {/* 自社所有の場合 */}
-          {formData.ownership_type === 'owned' && (
-            <>
-              <div>
-                <label htmlFor="purchase_date" className="block text-sm font-medium text-gray-700">
-                  購入日
-                </label>
-                <input
-                  type="date"
-                  id="purchase_date"
-                  name="purchase_date"
-                  value={formData.purchase_date}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                />
-              </div>
-              <div>
-                <label htmlFor="purchase_price" className="block text-sm font-medium text-gray-700">
-                  購入価格（円）
-                </label>
-                <input
-                  type="number"
-                  id="purchase_price"
-                  name="purchase_price"
-                  value={formData.purchase_price}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  placeholder="例: 15000000"
-                />
-              </div>
-            </>
-          )}
-
-          {/* リース・レンタルの場合 */}
-          {(formData.ownership_type === 'leased' || formData.ownership_type === 'rented') && (
-            <>
+        {/* リース・レンタルの場合 */}
+        {(formData.ownership_type === 'leased' || formData.ownership_type === 'rented') && (
+          <>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <div>
                 <label htmlFor="supplier_company" className="block text-sm font-medium text-gray-700">
                   リース・レンタル会社
@@ -383,7 +391,7 @@ export function EquipmentRegistrationForm({
                   name="supplier_company"
                   value={formData.supplier_company}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   placeholder="例: ○○リース株式会社"
                 />
               </div>
@@ -397,9 +405,11 @@ export function EquipmentRegistrationForm({
                   name="contract_number"
                   value={formData.contract_number}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
+            </div>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <div>
                 <label htmlFor="contract_start_date" className="block text-sm font-medium text-gray-700">
                   契約開始日
@@ -410,7 +420,7 @@ export function EquipmentRegistrationForm({
                   name="contract_start_date"
                   value={formData.contract_start_date}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
               <div>
@@ -423,89 +433,97 @@ export function EquipmentRegistrationForm({
                   name="contract_end_date"
                   value={formData.contract_end_date}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
-              <div>
-                <label htmlFor="monthly_cost" className="block text-sm font-medium text-gray-700">
-                  月額費用（円）
-                </label>
-                <input
-                  type="number"
-                  id="monthly_cost"
-                  name="monthly_cost"
-                  value={formData.monthly_cost}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  placeholder="例: 250000"
-                />
-              </div>
-            </>
-          )}
-        </div>
+            </div>
+            <div>
+              <label htmlFor="monthly_cost" className="block text-sm font-medium text-gray-700">
+                月額費用（円）
+              </label>
+              <input
+                type="number"
+                id="monthly_cost"
+                name="monthly_cost"
+                value={formData.monthly_cost}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                placeholder="例: 250000"
+              />
+            </div>
+          </>
+        )}
       </div>
 
       {/* 車検管理（必須） */}
-      <div className="border-b border-gray-200 pb-6">
-        <h3 className="text-base font-semibold text-gray-900 mb-1">車検管理</h3>
-        <p className="text-sm text-gray-500 mb-4">
-          車検が必要な重機の場合は設定してください。期限が近づくとアラート通知されます。
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="md:col-span-2">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                name="requires_vehicle_inspection"
-                checked={formData.requires_vehicle_inspection}
-                onChange={handleChange}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="ml-2 text-sm text-gray-700">この重機は車検が必要です</span>
+      <div className="border-t border-gray-200 pt-6 space-y-6">
+        <div>
+          <h3 className="text-base font-medium text-gray-900">車検管理</h3>
+          <p className="mt-1 text-xs text-gray-500">
+            車検が必要な重機の場合は設定してください。期限が近づくとアラート通知されます。
+          </p>
+        </div>
+
+        <div className="flex items-start">
+          <div className="flex items-center h-5">
+            <input
+              type="checkbox"
+              name="requires_vehicle_inspection"
+              checked={formData.requires_vehicle_inspection}
+              onChange={handleChange}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+          </div>
+          <div className="ml-3 text-sm">
+            <label className="font-medium text-gray-700">
+              この重機は車検が必要です
             </label>
           </div>
-
-          {formData.requires_vehicle_inspection && (
-            <>
-              <div>
-                <label htmlFor="vehicle_inspection_date" className="block text-sm font-medium text-gray-700">
-                  次回車検日
-                </label>
-                <input
-                  type="date"
-                  id="vehicle_inspection_date"
-                  name="vehicle_inspection_date"
-                  value={formData.vehicle_inspection_date}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                />
-              </div>
-              <div>
-                <label htmlFor="vehicle_inspection_reminder_days" className="block text-sm font-medium text-gray-700">
-                  アラート通知（何日前）
-                </label>
-                <input
-                  type="number"
-                  id="vehicle_inspection_reminder_days"
-                  name="vehicle_inspection_reminder_days"
-                  value={formData.vehicle_inspection_reminder_days}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  placeholder="60"
-                />
-              </div>
-            </>
-          )}
         </div>
+
+        {formData.requires_vehicle_inspection && (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div>
+              <label htmlFor="vehicle_inspection_date" className="block text-sm font-medium text-gray-700">
+                次回車検日
+              </label>
+              <input
+                type="date"
+                id="vehicle_inspection_date"
+                name="vehicle_inspection_date"
+                value={formData.vehicle_inspection_date}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="vehicle_inspection_reminder_days" className="block text-sm font-medium text-gray-700">
+                アラート通知（何日前）
+              </label>
+              <input
+                type="number"
+                id="vehicle_inspection_reminder_days"
+                name="vehicle_inspection_reminder_days"
+                value={formData.vehicle_inspection_reminder_days}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                placeholder="60"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 保険管理（必須） */}
-      <div className="border-b border-gray-200 pb-6">
-        <h3 className="text-base font-semibold text-gray-900 mb-1">保険管理</h3>
-        <p className="text-sm text-gray-500 mb-4">
-          重機の保険情報を入力してください。期限が近づくとアラート通知されます。
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="border-t border-gray-200 pt-6 space-y-6">
+        <div>
+          <h3 className="text-base font-medium text-gray-900">保険管理</h3>
+          <p className="mt-1 text-xs text-gray-500">
+            重機の保険情報を入力してください。期限が近づくとアラート通知されます。
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
             <label htmlFor="insurance_company" className="block text-sm font-medium text-gray-700">
               保険会社
@@ -516,7 +534,7 @@ export function EquipmentRegistrationForm({
               name="insurance_company"
               value={formData.insurance_company}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           <div>
@@ -529,9 +547,12 @@ export function EquipmentRegistrationForm({
               name="insurance_policy_number"
               value={formData.insurance_policy_number}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
             <label htmlFor="insurance_start_date" className="block text-sm font-medium text-gray-700">
               保険開始日
@@ -542,7 +563,7 @@ export function EquipmentRegistrationForm({
               name="insurance_start_date"
               value={formData.insurance_start_date}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           <div>
@@ -555,89 +576,97 @@ export function EquipmentRegistrationForm({
               name="insurance_end_date"
               value={formData.insurance_end_date}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-          <div>
-            <label htmlFor="insurance_reminder_days" className="block text-sm font-medium text-gray-700">
-              アラート通知（何日前）
-            </label>
-            <input
-              type="number"
-              id="insurance_reminder_days"
-              name="insurance_reminder_days"
-              value={formData.insurance_reminder_days}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-              placeholder="60"
-            />
-          </div>
+        </div>
+
+        <div>
+          <label htmlFor="insurance_reminder_days" className="block text-sm font-medium text-gray-700">
+            アラート通知（何日前）
+          </label>
+          <input
+            type="number"
+            id="insurance_reminder_days"
+            name="insurance_reminder_days"
+            value={formData.insurance_reminder_days}
+            onChange={handleChange}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            placeholder="60"
+          />
         </div>
       </div>
 
       {/* メーター管理（オプション） */}
       {organizationSettings?.enable_hour_meter && (
-        <div className="border-b border-gray-200 pb-6">
-          <h3 className="text-base font-semibold text-gray-900 mb-1">メーター管理（オプション）</h3>
-          <p className="text-sm text-gray-500 mb-4">
-            アワーメーター（稼働時間）を管理する場合はチェックしてください。
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  name="enable_hour_meter"
-                  checked={formData.enable_hour_meter}
-                  onChange={handleChange}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <span className="ml-2 text-sm text-gray-700">アワーメーターを管理する</span>
+        <div className="border-t border-gray-200 pt-6 space-y-6">
+          <div>
+            <h3 className="text-base font-medium text-gray-900">メーター管理（オプション）</h3>
+            <p className="mt-1 text-xs text-gray-500">
+              アワーメーター（稼働時間）を管理する場合はチェックしてください。
+            </p>
+          </div>
+
+          <div className="flex items-start">
+            <div className="flex items-center h-5">
+              <input
+                type="checkbox"
+                name="enable_hour_meter"
+                checked={formData.enable_hour_meter}
+                onChange={handleChange}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+            </div>
+            <div className="ml-3 text-sm">
+              <label className="font-medium text-gray-700">
+                アワーメーターを管理する
               </label>
             </div>
-
-            {formData.enable_hour_meter && (
-              <div>
-                <label htmlFor="current_hour_meter" className="block text-sm font-medium text-gray-700">
-                  現在のメーター値（時間）
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  id="current_hour_meter"
-                  name="current_hour_meter"
-                  value={formData.current_hour_meter}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  placeholder="例: 1234.5"
-                />
-              </div>
-            )}
           </div>
+
+          {formData.enable_hour_meter && (
+            <div>
+              <label htmlFor="current_hour_meter" className="block text-sm font-medium text-gray-700">
+                現在のメーター値（時間）
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                id="current_hour_meter"
+                name="current_hour_meter"
+                value={formData.current_hour_meter}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                placeholder="例: 1234.5"
+              />
+            </div>
+          )}
         </div>
       )}
 
       {/* 備考 */}
-      <div>
-        <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
-          備考
-        </label>
-        <textarea
-          id="notes"
-          name="notes"
-          rows={3}
-          value={formData.notes}
-          onChange={handleChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-          placeholder="その他特記事項があれば入力してください"
-        />
+      <div className="border-t border-gray-200 pt-6 space-y-6">
+        <div>
+          <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
+            備考
+          </label>
+          <textarea
+            id="notes"
+            name="notes"
+            rows={3}
+            value={formData.notes}
+            onChange={handleChange}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            placeholder="その他特記事項があれば入力してください"
+          />
+        </div>
       </div>
 
       {/* ボタン */}
       <div className="flex justify-end space-x-3">
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={() => router.push('/equipment')}
           className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           キャンセル
@@ -647,7 +676,7 @@ export function EquipmentRegistrationForm({
           disabled={isSubmitting}
           className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? '登録中...' : '登録する'}
+          {isSubmitting ? '登録中...' : '登録'}
         </button>
       </div>
     </form>

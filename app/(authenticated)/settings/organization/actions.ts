@@ -12,6 +12,7 @@ export async function updateOrganizationSettings(
     enable_monthly_inventory_reminder: boolean
     enable_site_closure_checklist: boolean
     consumable_movement_tracking: 'quantity' | 'simple' | 'none'
+    qr_print_size: number
     enable_low_stock_alert: boolean
   }
 ) {
@@ -51,6 +52,7 @@ export async function updateOrganizationSettings(
         settings.enable_monthly_inventory_reminder,
       enable_site_closure_checklist: settings.enable_site_closure_checklist,
       consumable_movement_tracking: settings.consumable_movement_tracking,
+      qr_print_size: settings.qr_print_size,
       updated_at: new Date().toISOString(),
     })
     .eq('id', organizationId)

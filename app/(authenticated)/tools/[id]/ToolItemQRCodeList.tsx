@@ -21,13 +21,15 @@ interface ToolItemQRCodeListProps {
   toolName: string
   toolUnit: string
   item_id?: string
+  qrSize?: number
 }
 
 export function ToolItemQRCodeList({
   toolItems,
   toolName,
   toolUnit,
-  item_id
+  item_id,
+  qrSize = 25
 }: ToolItemQRCodeListProps) {
   const [selectedItem, setSelectedItem] = useState<ToolItem | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -141,6 +143,7 @@ export function ToolItemQRCodeList({
           toolName={toolName}
           serialNumber={selectedItem.serial_number}
           qrCode={selectedItem.qr_code}
+          qrSize={qrSize}
         />
       )}
     </>

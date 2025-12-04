@@ -58,29 +58,19 @@ export default async function NewEquipmentPage() {
     .order('name')
 
   return (
-    <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div className="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
         <div className="mb-6">
-          <a
-            href="/equipment"
-            className="text-sm font-medium text-gray-600 hover:text-gray-900 flex items-center"
-          >
-            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            重機一覧に戻る
-          </a>
+          <h1 className="text-2xl font-bold text-gray-900">
+            重機の新規登録
+          </h1>
+          <p className="mt-1 text-sm text-gray-500">
+            新しい重機を登録します。所有形態（自社所有・リース・レンタル）は必須項目です。
+          </p>
         </div>
 
         <div className="bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-2">
-              重機の新規登録
-            </h2>
-            <p className="text-sm text-gray-500 mb-6">
-              新しい重機を登録します。所有形態（自社所有・リース・レンタル）は必須項目です。
-            </p>
-
             <EquipmentRegistrationForm
               organizationId={userData.organization_id}
               categories={categories || []}

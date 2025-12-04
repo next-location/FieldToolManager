@@ -34,7 +34,7 @@ export default async function ConsumableDetailPage({
     redirect('/consumables')
   }
 
-  // 組織IDを取得
+  // 組織IDとQR印刷サイズを取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id')
@@ -44,6 +44,15 @@ export default async function ConsumableDetailPage({
   if (!userData) {
     redirect('/login')
   }
+
+  // 組織のQR印刷サイズ設定を取得
+  const { data: organization } = await supabase
+    .from('organizations')
+    .select('qr_print_size')
+    .eq('id', userData.organization_id)
+    .single()
+
+  const qrSize = organization?.qr_print_size || 25
 
   // 在庫情報を取得
   const { data: inventory } = await supabase
@@ -232,6 +241,7 @@ export default async function ConsumableDetailPage({
                     itemCode={`ID: ${consumable.id.substring(0, 8)}...`}
                     itemType="消耗品"
                     size={200}
+                    qrSize={qrSize}
                   />
                 </dd>
               </div>

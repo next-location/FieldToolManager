@@ -14,6 +14,7 @@ type Organization = {
   enable_monthly_inventory_reminder: boolean
   enable_site_closure_checklist: boolean
   consumable_movement_tracking: 'quantity' | 'simple' | 'none'
+  qr_print_size: number
 }
 
 type OrganizationSettings = {
@@ -46,6 +47,7 @@ export function OrganizationSettingsForm({
       organization.enable_monthly_inventory_reminder,
     enable_site_closure_checklist: organization.enable_site_closure_checklist,
     consumable_movement_tracking: organization.consumable_movement_tracking,
+    qr_print_size: organization.qr_print_size || 25,
     enable_low_stock_alert: organizationSettings?.enable_low_stock_alert ?? true,
   })
   const [loading, setLoading] = useState(false)
@@ -284,6 +286,114 @@ export function OrganizationSettingsForm({
               <p className="text-gray-500">
                 現場が完了になる際、その現場に残っている道具の返却チェックリストを表示します。
               </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* QRコード印刷設定 */}
+      <div className="border-t border-gray-200 pt-6">
+        <h3 className="text-base font-medium text-gray-900 mb-4">
+          QRコード印刷設定
+        </h3>
+        <div>
+          <label className="text-sm font-medium text-gray-700 mb-3 block">
+            QRコードの印刷サイズ
+          </label>
+          <p className="text-sm text-gray-500 mb-4">
+            一括印刷時のQRコードのサイズを選択します。道具に貼り付けるシールのサイズに合わせて選んでください。
+          </p>
+          <div className="space-y-3">
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="qr_size_20"
+                  name="qr_print_size"
+                  type="radio"
+                  checked={settings.qr_print_size === 20}
+                  onChange={() =>
+                    setSettings({ ...settings, qr_print_size: 20 })
+                  }
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label htmlFor="qr_size_20" className="font-medium text-gray-700">
+                  2cm × 2cm（小）
+                </label>
+                <p className="text-gray-500">
+                  小型の道具や限られたスペースに最適。最小推奨サイズ。
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="qr_size_25"
+                  name="qr_print_size"
+                  type="radio"
+                  checked={settings.qr_print_size === 25}
+                  onChange={() =>
+                    setSettings({ ...settings, qr_print_size: 25 })
+                  }
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label htmlFor="qr_size_25" className="font-medium text-gray-700">
+                  2.5cm × 2.5cm（推奨）
+                </label>
+                <p className="text-gray-500">
+                  読み取りやすさとサイズのバランスが良い標準サイズ。
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="qr_size_30"
+                  name="qr_print_size"
+                  type="radio"
+                  checked={settings.qr_print_size === 30}
+                  onChange={() =>
+                    setSettings({ ...settings, qr_print_size: 30 })
+                  }
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label htmlFor="qr_size_30" className="font-medium text-gray-700">
+                  3cm × 3cm（中）
+                </label>
+                <p className="text-gray-500">
+                  より読み取りやすいサイズ。
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="qr_size_50"
+                  name="qr_print_size"
+                  type="radio"
+                  checked={settings.qr_print_size === 50}
+                  onChange={() =>
+                    setSettings({ ...settings, qr_print_size: 50 })
+                  }
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label htmlFor="qr_size_50" className="font-medium text-gray-700">
+                  5cm × 5cm（大）
+                </label>
+                <p className="text-gray-500">
+                  大型の重機や目立たせたい場合に最適。
+                </p>
+              </div>
             </div>
           </div>
         </div>

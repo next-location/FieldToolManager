@@ -11,6 +11,7 @@ interface ToolItemQRCodeModalProps {
   toolName: string
   serialNumber: string
   qrCode: string
+  qrSize?: number
 }
 
 export function ToolItemQRCodeModal({
@@ -19,7 +20,8 @@ export function ToolItemQRCodeModal({
   toolItemId,
   toolName,
   serialNumber,
-  qrCode
+  qrCode,
+  qrSize = 25
 }: ToolItemQRCodeModalProps) {
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -67,6 +69,7 @@ export function ToolItemQRCodeModal({
                     itemCode={`ID: ${toolItemId.substring(0, 8)}...`}
                     itemType="道具"
                     size={200}
+                    qrSize={qrSize}
                   />
                 </div>
 

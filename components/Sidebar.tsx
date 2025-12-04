@@ -374,7 +374,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                             : 'text-gray-600 hover:bg-gray-50'
                         }`}
                       >
-                        カテゴリ管理
+                        道具カテゴリ管理
                       </Link>
                       {heavyEquipmentEnabled && (
                         <Link

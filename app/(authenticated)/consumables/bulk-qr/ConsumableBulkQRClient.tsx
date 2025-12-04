@@ -16,9 +16,10 @@ interface ConsumableItem {
 
 interface ConsumableBulkQRClientProps {
   items: ConsumableItem[]
+  qrSize: number
 }
 
-export function ConsumableBulkQRClient({ items }: ConsumableBulkQRClientProps) {
+export function ConsumableBulkQRClient({ items, qrSize }: ConsumableBulkQRClientProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
@@ -249,6 +250,7 @@ export function ConsumableBulkQRClient({ items }: ConsumableBulkQRClientProps) {
                     selectedIds={selectedIds}
                     onClose={() => setIsPrintModalOpen(false)}
                     itemType="消耗品"
+                    qrSize={qrSize}
                   />
                 </Dialog.Panel>
               </Transition.Child>

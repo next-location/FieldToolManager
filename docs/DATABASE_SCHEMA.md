@@ -399,6 +399,15 @@ CREATE TABLE users (
   email TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL,
   role TEXT NOT NULL CHECK (role IN ('staff', 'leader', 'admin', 'super_admin')),
+  department TEXT, -- 所属部署（例: 工事部、営業部）
+  employee_id TEXT, -- 社員番号（組織内で一意）
+  phone TEXT, -- 電話番号（連絡先）
+  is_active BOOLEAN DEFAULT true, -- アカウント有効状態。falseの場合ログイン不可
+  invited_at TIMESTAMP, -- スタッフ招待日時
+  last_login_at TIMESTAMP, -- 最終ログイン日時（アクティビティ追跡用）
+  password_reset_token TEXT, -- パスワードリセット用のワンタイムトークン
+  password_reset_expires_at TIMESTAMP, -- パスワードリセットトークンの有効期限
+  access_expires_at TIMESTAMP, -- 一時アクセス期限（将来の短期スタッフ機能用）
   deleted_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
@@ -407,9 +416,23 @@ CREATE TABLE users (
 CREATE INDEX idx_users_organization_id ON users(organization_id);
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_deleted_at ON users(deleted_at) WHERE deleted_at IS NULL;
+CREATE INDEX idx_users_is_active ON users(is_active);
+CREATE INDEX idx_users_department ON users(department) WHERE department IS NOT NULL;
+CREATE INDEX idx_users_employee_id ON users(employee_id) WHERE employee_id IS NOT NULL;
+CREATE INDEX idx_users_password_reset_token ON users(password_reset_token) WHERE password_reset_token IS NOT NULL;
 
 -- RLS有効化
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+
+COMMENT ON COLUMN users.department IS '所属部署（例: 工事部、営業部）';
+COMMENT ON COLUMN users.employee_id IS '社員番号（組織内で一意）';
+COMMENT ON COLUMN users.phone IS '電話番号（連絡先）';
+COMMENT ON COLUMN users.is_active IS 'アカウント有効状態。falseの場合ログイン不可';
+COMMENT ON COLUMN users.invited_at IS 'スタッフ招待日時';
+COMMENT ON COLUMN users.last_login_at IS '最終ログイン日時（アクティビティ追跡用）';
+COMMENT ON COLUMN users.password_reset_token IS 'パスワードリセット用のワンタイムトークン';
+COMMENT ON COLUMN users.password_reset_expires_at IS 'パスワードリセットトークンの有効期限';
+COMMENT ON COLUMN users.access_expires_at IS '一時アクセス期限（将来の短期スタッフ機能用）';
 ```
 
 #### tools (道具マスタ)
@@ -610,6 +633,40 @@ COMMENT ON COLUMN notifications.type IS '通知の種類';
 COMMENT ON COLUMN notifications.severity IS '重要度（info/warning/error/success）';
 COMMENT ON COLUMN notifications.sent_via IS '送信チャネル（アプリ内/メール/Slack）';
 COMMENT ON COLUMN notifications.is_read IS '既読フラグ';
+```
+
+#### user_history (スタッフ変更履歴) ✨NEW
+```sql
+CREATE TABLE user_history (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  changed_by UUID NOT NULL REFERENCES users(id), -- 変更実行者
+  change_type TEXT NOT NULL CHECK (change_type IN (
+    'created', 'updated', 'deleted', 'activated', 'deactivated',
+    'role_changed', 'department_changed', 'password_reset'
+  )),
+  old_values JSONB, -- 変更前の値
+  new_values JSONB, -- 変更後の値
+  notes TEXT, -- メモ
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_user_history_organization ON user_history(organization_id);
+CREATE INDEX idx_user_history_user ON user_history(user_id);
+CREATE INDEX idx_user_history_changed_by ON user_history(changed_by);
+CREATE INDEX idx_user_history_created_at ON user_history(created_at DESC);
+CREATE INDEX idx_user_history_change_type ON user_history(change_type);
+
+-- RLS有効化
+ALTER TABLE user_history ENABLE ROW LEVEL SECURITY;
+
+COMMENT ON TABLE user_history IS 'スタッフの変更履歴（監査ログ）';
+COMMENT ON COLUMN user_history.user_id IS '変更対象のユーザーID';
+COMMENT ON COLUMN user_history.changed_by IS '変更を実行したユーザーID';
+COMMENT ON COLUMN user_history.change_type IS '変更種別（作成/更新/削除/権限変更など）';
+COMMENT ON COLUMN user_history.old_values IS '変更前の値（JSON形式）';
+COMMENT ON COLUMN user_history.new_values IS '変更後の値（JSON形式）';
 ```
 
 ### 2.3 機能管理テーブル

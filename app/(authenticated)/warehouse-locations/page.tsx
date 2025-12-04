@@ -59,12 +59,6 @@ export default async function WarehouseLocationsPage() {
       <div className="px-4 py-6 sm:px-0">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <Link
-              href="/"
-              className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-2 inline-block"
-            >
-              ← ダッシュボードに戻る
-            </Link>
             <h1 className="text-2xl font-bold text-gray-900">倉庫位置管理</h1>
             <p className="mt-1 text-sm text-gray-600">
               倉庫内の位置情報を管理し、道具の保管場所を記録します

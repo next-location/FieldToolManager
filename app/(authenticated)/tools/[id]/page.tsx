@@ -24,6 +24,22 @@ export default async function ToolDetailPage({
     redirect('/login')
   }
 
+  // ユーザー情報を取得
+  const { data: userData } = await supabase
+    .from('users')
+    .select('organization_id')
+    .eq('id', user.id)
+    .single()
+
+  // 組織のQR印刷サイズ設定を取得
+  const { data: organization } = await supabase
+    .from('organizations')
+    .select('qr_print_size')
+    .eq('id', userData?.organization_id)
+    .single()
+
+  const qrSize = organization?.qr_print_size || 25
+
   const { data: tool, error } = await supabase
     .from('tools')
     .select('*, tool_categories (name)')
@@ -135,6 +151,7 @@ export default async function ToolDetailPage({
               toolName={tool.name}
               toolUnit="台"
               item_id={item_id}
+              qrSize={qrSize}
             />
           </div>
         </div>

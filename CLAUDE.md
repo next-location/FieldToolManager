@@ -165,6 +165,18 @@ The project will use a dedicated `docs/` folder for comprehensive documentation,
 - **Usage**: MUST reference when applying database changes
 - **Note**: THIS DOCUMENT MUST BE UPDATED whenever migrations are created or executed
 
+#### 12. **`docs/STAFF_MANAGEMENT.md`** ⭐ NEW
+- **Purpose**: Staff management feature specification (Phase 8)
+- **Content**:
+  - Plan-based staff limits (basic: 10, standard: 30, premium: 100)
+  - Role-based permissions (admin/leader/staff)
+  - Database design (users table extensions, user_history table)
+  - UI/UX design (staff list, add/edit modals, history tracking)
+  - CSV bulk import functionality
+  - Future integration with attendance tracking (time card)
+- **Usage**: MUST reference when implementing staff management features
+- **Note**: Extends existing users table with new columns and adds audit logging
+
 ### Development Priority
 
 1. **Environment Setup**: Follow `docs/ENVIRONMENT_SETUP.md` FIRST

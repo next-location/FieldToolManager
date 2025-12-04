@@ -52,25 +52,16 @@ export default async function OrganizationSettingsPage() {
     .order('level')
 
   return (
-    <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
         <div className="mb-6">
-          <Link
-            href="/"
-            className="text-sm font-medium text-gray-600 hover:text-gray-900"
-          >
-            ← ダッシュボードに戻る
-          </Link>
+          <h1 className="text-2xl font-bold text-gray-900">運用設定</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            {organization.name} の運用設定を変更できます
+          </p>
         </div>
 
         <div className="bg-white shadow sm:rounded-lg">
-          <div className="px-4 py-5 sm:p-6 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900">組織設定</h2>
-            <p className="mt-1 text-sm text-gray-500">
-              {organization.name} の運用設定を変更できます
-            </p>
-          </div>
-
           <OrganizationSettingsForm
             organization={organization}
             organizationSettings={organizationSettings}

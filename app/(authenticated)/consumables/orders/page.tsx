@@ -63,22 +63,23 @@ export default async function ConsumableOrdersPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      {/* ヘッダー */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">消耗品発注管理</h1>
-          <p className="mt-1 text-sm text-gray-600">
-            消耗品の発注を管理します
-          </p>
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0 space-y-6">
+        {/* ヘッダー */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900">消耗品発注管理</h1>
+            <p className="mt-1 text-sm text-gray-600">
+              消耗品の発注を管理します
+            </p>
+          </div>
+          <Link
+            href="/consumables/orders/new"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            + 新規発注
+          </Link>
         </div>
-        <Link
-          href="/consumables/orders/new"
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-        >
-          + 新規発注
-        </Link>
-      </div>
 
       {/* 統計情報 */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
@@ -280,6 +281,7 @@ export default async function ConsumableOrdersPage() {
             )}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   )

@@ -15,21 +15,26 @@ interface BulkQRCodePrintProps {
   selectedIds: Set<string>
   onClose: () => void
   itemType: '道具' | '消耗品' | '重機'
+  qrSize?: number // QRコードサイズ(mm): 20, 25, 30, 50
 }
 
 export function BulkQRCodePrint({
   items,
   selectedIds,
   onClose,
-  itemType
+  itemType,
+  qrSize = 25
 }: BulkQRCodePrintProps) {
   const [qrDataUrls, setQrDataUrls] = useState<Map<string, string>>(new Map())
+  const [isGenerating, setIsGenerating] = useState(false)
   const canvasRefs = useRef<Map<string, HTMLCanvasElement>>(new Map())
 
   const selectedItems = items.filter(item => selectedIds.has(item.id))
 
   useEffect(() => {
     const generateQRCodes = async () => {
+      setIsGenerating(true)
+      setQrDataUrls(new Map())
       const dataUrls = new Map<string, string>()
 
       for (const item of selectedItems) {
@@ -47,16 +52,21 @@ export function BulkQRCodePrint({
           dataUrls.set(item.id, canvas.toDataURL())
         } catch (error) {
           console.error('QRコード生成エラー:', error)
+          console.error('QRコード値:', item.qrCode)
         }
       }
 
       setQrDataUrls(dataUrls)
+      setIsGenerating(false)
     }
 
     if (selectedItems.length > 0) {
       generateQRCodes()
+    } else {
+      setQrDataUrls(new Map())
     }
-  }, [selectedItems])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedIds, items])
 
   const handlePrint = () => {
     const printWindow = window.open('', '_blank')
@@ -171,8 +181,8 @@ export function BulkQRCodePrint({
             }
 
             .qr-image {
-              width: 50mm;
-              height: 50mm;
+              width: ${qrSize}mm;
+              height: ${qrSize}mm;
               margin: 0 auto;
               display: block;
             }
@@ -313,10 +323,10 @@ export function BulkQRCodePrint({
         </button>
         <button
           onClick={handlePrint}
-          disabled={qrDataUrls.size !== selectedItems.length}
+          disabled={isGenerating || qrDataUrls.size !== selectedItems.length}
           className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          🖨️ {qrDataUrls.size === selectedItems.length ? '印刷プレビュー' : '生成中...'}
+          🖨️ {isGenerating ? '生成中...' : qrDataUrls.size === selectedItems.length ? '印刷プレビュー' : `生成中... (${qrDataUrls.size}/${selectedItems.length})`}
         </button>
       </div>
     </div>

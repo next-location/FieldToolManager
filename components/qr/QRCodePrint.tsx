@@ -9,6 +9,7 @@ interface QRCodePrintProps {
   itemCode: string
   itemType: '道具' | '消耗品' | '重機' | '倉庫位置'
   size?: number
+  qrSize?: number // 印刷サイズ(mm): 20, 25, 30, 50
 }
 
 export function QRCodePrint({
@@ -16,7 +17,8 @@ export function QRCodePrint({
   itemName,
   itemCode,
   itemType,
-  size = 200
+  size = 200,
+  qrSize = 25 // デフォルト2.5cm
 }: QRCodePrintProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [error, setError] = useState<string | null>(null)
@@ -109,8 +111,8 @@ export function QRCodePrint({
               font-weight: 600;
             }
             img {
-              width: 300px;
-              height: 300px;
+              width: ${qrSize}mm;
+              height: ${qrSize}mm;
               margin: 0 auto;
               display: block;
             }

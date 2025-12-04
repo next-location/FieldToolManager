@@ -25,6 +25,15 @@ export default async function ToolsBulkQRPage() {
     redirect('/login')
   }
 
+  // 組織設定を取得（QRサイズ）
+  const { data: organization } = await supabase
+    .from('organizations')
+    .select('qr_print_size')
+    .eq('id', userData.organization_id)
+    .single()
+
+  const qrSize = organization?.qr_print_size || 25
+
   // すべての個別管理道具を取得
   const { data: tools } = await supabase
     .from('tools')
@@ -81,7 +90,7 @@ export default async function ToolsBulkQRPage() {
           </p>
         </div>
 
-        <ToolBulkQRClient items={itemsWithDetails} />
+        <ToolBulkQRClient items={itemsWithDetails} qrSize={qrSize} />
       </div>
     </div>
   )

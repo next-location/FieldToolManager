@@ -17,9 +17,10 @@ interface ToolItem {
 
 interface ToolBulkQRClientProps {
   items: ToolItem[]
+  qrSize: number
 }
 
-export function ToolBulkQRClient({ items }: ToolBulkQRClientProps) {
+export function ToolBulkQRClient({ items, qrSize }: ToolBulkQRClientProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
@@ -253,6 +254,7 @@ export function ToolBulkQRClient({ items }: ToolBulkQRClientProps) {
                     selectedIds={selectedIds}
                     onClose={() => setIsPrintModalOpen(false)}
                     itemType="道具"
+                    qrSize={qrSize}
                   />
                 </Dialog.Panel>
               </Transition.Child>
