@@ -68,8 +68,26 @@ export default function EquipmentFilters({ onFilterChange, categories }: Equipme
     })
   }
 
+  const hasActiveFilters =
+    filters.searchQuery ||
+    filters.categoryId ||
+    filters.ownershipType ||
+    filters.status
+
   return (
-    <div className="bg-white p-4 rounded-lg shadow mb-6">
+    <div className="bg-white shadow rounded-lg p-6 mb-6">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold text-gray-900">検索・フィルター</h2>
+        {hasActiveFilters && (
+          <button
+            onClick={handleReset}
+            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+          >
+            クリア
+          </button>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* 検索 */}
         <div>
@@ -82,20 +100,20 @@ export default function EquipmentFilters({ onFilterChange, categories }: Equipme
             value={filters.searchQuery}
             onChange={handleSearchChange}
             placeholder="重機名、コード、型番..."
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
           />
         </div>
 
         {/* カテゴリー */}
         <div>
           <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-            カテゴリ
+            カテゴリー
           </label>
           <select
             id="category"
             value={filters.categoryId}
             onChange={handleCategoryChange}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
           >
             <option value="">すべて</option>
             {uniqueCategories.map((cat) => (
@@ -115,7 +133,7 @@ export default function EquipmentFilters({ onFilterChange, categories }: Equipme
             id="ownership"
             value={filters.ownershipType}
             onChange={handleOwnershipChange}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
           >
             <option value="">すべて</option>
             <option value="owned">自社所有</option>
@@ -133,7 +151,7 @@ export default function EquipmentFilters({ onFilterChange, categories }: Equipme
             id="status"
             value={filters.status}
             onChange={handleStatusChange}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
           >
             <option value="">すべて</option>
             <option value="available">利用可能</option>
@@ -144,18 +162,60 @@ export default function EquipmentFilters({ onFilterChange, categories }: Equipme
         </div>
       </div>
 
-      {/* リセットボタン */}
-      <div className="mt-4 flex justify-end">
-        <button
-          onClick={handleReset}
-          className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          リセット
-        </button>
-      </div>
+      {/* アクティブなフィルターの表示 */}
+      {hasActiveFilters && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <span className="text-sm text-gray-500">適用中:</span>
+          {filters.searchQuery && (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              検索: {filters.searchQuery}
+              <button
+                onClick={() => setFilters({ ...filters, searchQuery: '' })}
+                className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-blue-200"
+              >
+                ×
+              </button>
+            </span>
+          )}
+          {filters.categoryId && (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              カテゴリー: {uniqueCategories.find(cat =>
+                categories.find(e => e.heavy_equipment_categories?.name === cat?.name)?.category_id === filters.categoryId
+              )?.name}
+              <button
+                onClick={() => setFilters({ ...filters, categoryId: '' })}
+                className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-green-200"
+              >
+                ×
+              </button>
+            </span>
+          )}
+          {filters.ownershipType && (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+              {filters.ownershipType === 'owned' ? '自社所有' : filters.ownershipType === 'leased' ? 'リース' : 'レンタル'}
+              <button
+                onClick={() => setFilters({ ...filters, ownershipType: '' })}
+                className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-purple-200"
+              >
+                ×
+              </button>
+            </span>
+          )}
+          {filters.status && (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+              {filters.status === 'available' ? '利用可能' :
+               filters.status === 'in_use' ? '使用中' :
+               filters.status === 'maintenance' ? '点検中' : '使用不可'}
+              <button
+                onClick={() => setFilters({ ...filters, status: '' })}
+                className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-yellow-200"
+              >
+                ×
+              </button>
+            </span>
+          )}
+        </div>
+      )}
     </div>
   )
 }
