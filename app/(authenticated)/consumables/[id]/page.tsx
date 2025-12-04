@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Image from 'next/image'
 import { DeleteConsumableButton } from './DeleteConsumableButton'
+import { QRCodePrint } from '@/components/qr/QRCodePrint'
 
 export default async function ConsumableDetailPage({
   params,
@@ -221,6 +222,19 @@ export default async function ConsumableDetailPage({
                   </dd>
                 </div>
               )}
+
+              <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt className="text-sm font-medium text-gray-500">QRコード</dt>
+                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <QRCodePrint
+                    value={consumable.qr_code}
+                    itemName={consumable.name}
+                    itemCode={`ID: ${consumable.id.substring(0, 8)}...`}
+                    itemType="消耗品"
+                    size={200}
+                  />
+                </dd>
+              </div>
             </dl>
           </div>
         </div>

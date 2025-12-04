@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { DeleteToolButton } from './DeleteToolButton'
 import { QRCodeDisplay } from './QRCodeDisplay'
 import { AddToolItemButton } from './AddToolItemButton'
+import { ToolItemQRCodeList } from './ToolItemQRCodeList'
 
 export default async function ToolDetailPage({
   params,
@@ -129,47 +130,12 @@ export default async function ToolDetailPage({
             <AddToolItemButton toolId={tool.id} toolName={tool.name} />
           </div>
           <div className="border-t border-gray-200">
-            {toolItems && toolItems.length > 0 ? (
-              <ul className="divide-y divide-gray-200">
-                {toolItems.map((item) => {
-                  const statusClass = item.status === 'available' ? 'bg-green-100 text-green-800' : item.status === 'in_use' ? 'bg-blue-100 text-blue-800' : item.status === 'maintenance' ? 'bg-yellow-100 text-yellow-800' : item.status === 'lost' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
-                  const statusText = item.status === 'available' ? '利用可能' : item.status === 'in_use' ? '使用中' : item.status === 'maintenance' ? 'メンテナンス中' : item.status === 'lost' ? '紛失' : item.status
-                  const locationText = item.current_location === 'warehouse' ? (item.warehouse_location ? `倉庫 (${(item.warehouse_location as any).code} - ${(item.warehouse_location as any).display_name})` : '倉庫') : item.current_location === 'site' ? `現場: ${item.current_site ? (item.current_site as any).name : '不明'}` : item.current_location === 'repair' ? '修理中' : item.current_location === 'lost' ? '紛失' : item.current_location
-                  return (
-                    <li key={item.id} id={`item-${item.id}`} className={`px-4 py-4 sm:px-6 ${item_id === item.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''}`}>
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center">
-                            <p className="text-sm font-medium text-gray-900">#{item.serial_number}</p>
-                            <span className={`ml-3 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}`}>{statusText}</span>
-                          </div>
-                          <div className="mt-2 flex flex-col gap-1 text-sm text-gray-500">
-                            <div className="flex items-center">
-                              <span className="text-xs text-gray-400 w-24">現在地:</span>
-                              <span>📍 {locationText}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-400 w-24">QRコード:</span>
-                              <div className="flex items-center gap-2">
-                                <QRCodeDisplay value={item.qr_code} size={60} />
-                                <span className="text-xs font-mono text-gray-400">{item.qr_code.substring(0, 8)}...</span>
-                              </div>
-                            </div>
-                          </div>
-                          {item.notes && <p className="mt-1 text-xs text-gray-500">📝 {item.notes}</p>}
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Link href={`/tool-items/${item.id}`} className="inline-flex items-center px-3 py-1 border border-gray-300 rounded text-xs font-medium text-gray-700 bg-white hover:bg-gray-50">詳細</Link>
-                          <Link href={`/movements/new?tool_item_id=${item.id}`} className="inline-flex items-center px-3 py-1 border border-blue-600 rounded text-xs font-medium text-blue-600 bg-white hover:bg-blue-50">📦 移動</Link>
-                        </div>
-                      </div>
-                    </li>
-                  )
-                })}
-              </ul>
-            ) : (
-              <div className="px-4 py-6 text-center text-sm text-gray-500">個別アイテムが登録されていません</div>
-            )}
+            <ToolItemQRCodeList
+              toolItems={toolItems || []}
+              toolName={tool.name}
+              toolUnit="台"
+              item_id={item_id}
+            />
           </div>
         </div>
 
