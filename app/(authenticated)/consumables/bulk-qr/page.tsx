@@ -1,0 +1,70 @@
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import Link from 'next/link'
+import { ConsumableBulkQRClient } from './ConsumableBulkQRClient'
+
+export default async function ConsumablesBulkQRPage() {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  // ユーザー情報を取得
+  const { data: userData } = await supabase
+    .from('users')
+    .select('organization_id, role')
+    .eq('id', user.id)
+    .single()
+
+  if (!userData) {
+    redirect('/login')
+  }
+
+  // すべての消耗品を取得
+  const { data: consumables } = await supabase
+    .from('tools')
+    .select('id, name, qr_code, unit, tool_categories (name)')
+    .eq('management_type', 'consumable')
+    .is('deleted_at', null)
+    .order('name')
+
+  const itemsWithDetails = (consumables || []).map((consumable) => ({
+    id: consumable.id,
+    qrCode: consumable.qr_code,
+    name: consumable.name,
+    code: `ID: ${consumable.id.substring(0, 8)}...`,
+    unit: consumable.unit,
+    category: consumable.tool_categories?.name || '未分類',
+  }))
+
+  return (
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
+        <div className="mb-6">
+          <Link
+            href="/consumables"
+            className="text-sm font-medium text-gray-600 hover:text-gray-900"
+          >
+            ← 消耗品一覧に戻る
+          </Link>
+        </div>
+
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">
+            消耗品QRコード一括印刷
+          </h1>
+          <p className="mt-1 text-sm text-gray-600">
+            印刷したい消耗品を選択してください
+          </p>
+        </div>
+
+        <ConsumableBulkQRClient items={itemsWithDetails} />
+      </div>
+    </div>
+  )
+}
