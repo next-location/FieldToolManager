@@ -1,0 +1,46 @@
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import AlertsList from './AlertsList'
+
+/**
+ * 出退勤アラート一覧ページ
+ * ユーザーは自分のアラート、管理者は全アラートを閲覧可能
+ */
+export default async function AlertsPage() {
+  const supabase = await createClient()
+
+  // 認証確認
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  // ユーザー情報取得
+  const { data: userData } = await supabase
+    .from('users')
+    .select('id, organization_id, role, name')
+    .eq('id', user.id)
+    .single()
+
+  if (!userData) {
+    redirect('/login')
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">出退勤アラート</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            出勤・退勤忘れや日次レポートなどの通知を確認できます
+          </p>
+        </div>
+
+        <AlertsList userRole={userData.role} />
+      </div>
+    </div>
+  )
+}

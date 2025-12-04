@@ -1293,13 +1293,32 @@ CSV形式でエクスポート。
 ### Phase 3: 通知・レポート（1-2週間）
 
 #### Week 6: アラート
-- [ ] アラートテーブル作成
-- [ ] 出勤忘れ通知（10:00定期実行）
-- [ ] 退勤忘れ通知（20:00定期実行）
-- [ ] 管理者向け日次レポート
-- [ ] QR期限切れ通知
-- [ ] 長時間労働アラート
-- [ ] メール通知機能
+- [x] アラートテーブル作成 ✅
+  - [x] attendance_alertsテーブル
+  - [x] RLSポリシー設定
+  - [x] インデックス作成
+- [x] 出勤忘れ通知（10:00定期実行）✅
+  - [x] POST /api/attendance/alerts/checkin-reminder
+  - [x] Cron認証対応
+  - [x] 未出勤者検出ロジック
+- [x] 退勤忘れ通知（20:00定期実行）✅
+  - [x] POST /api/attendance/alerts/checkout-reminder
+  - [x] 退勤未完了者検出ロジック
+  - [x] 勤務時間計算
+- [x] 管理者向け日次レポート ✅
+  - [x] POST /api/attendance/alerts/daily-report
+  - [x] 前日の勤怠サマリー生成
+  - [x] 統計計算（平均勤務時間、長時間労働者）
+- [x] アラート一覧・解決機能 ✅
+  - [x] GET /api/attendance/alerts（一覧取得）
+  - [x] PATCH /api/attendance/alerts（解決処理）
+  - [x] /attendance/alerts（アラート一覧画面）
+  - [x] AlertsList.tsx（一覧コンポーネント）
+  - [x] フィルター機能（未解決/解決済み/全て）
+  - [x] 一括解決機能
+- [ ] QR期限切れ通知（将来実装）
+- [ ] 長時間労働アラート（将来実装）
+- [ ] メール通知機能（将来実装）
 
 #### Week 7: 集計・エクスポート
 - [ ] 月次集計API
