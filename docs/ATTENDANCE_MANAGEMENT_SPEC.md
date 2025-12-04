@@ -1159,7 +1159,10 @@ CSV形式でエクスポート。
   - [x] GET /api/attendance/settings（取得）
   - [x] PUT /api/attendance/settings（更新）
   - [x] TypeScript型定義（types/attendance.ts）
-- [ ] 設定画面UI実装（プリセット + カスタム）
+- [x] 設定画面UI実装 ✅
+  - [x] /attendance/settings/page.tsx（ページコンポーネント）
+  - [x] AttendanceSettingsForm.tsx（フォームコンポーネント）
+  - [x] Sidebarに「出退勤設定」リンク追加
 
 #### Week 2: 打刻機能
 - [ ] 出勤打刻API（手動のみ）

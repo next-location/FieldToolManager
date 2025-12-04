@@ -568,6 +568,17 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                 {isAdmin && (
                   <>
                     <Link
+                      href="/staff"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive('/staff')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      スタッフ管理
+                    </Link>
+                    <Link
                       href="/settings/organization"
                       onClick={onClose}
                       className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
@@ -577,6 +588,17 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                       }`}
                     >
                       運用設定
+                    </Link>
+                    <Link
+                      href="/attendance/settings"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive('/attendance/settings')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      出退勤設定
                     </Link>
                     <Link
                       href="/admin/audit-logs"
