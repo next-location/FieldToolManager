@@ -1242,9 +1242,20 @@ CSV形式でエクスポート。
   - [x] clock-in APIにQR検証統合
   - [x] clock-out APIにQR検証統合
   - [x] location_type自動判定
-- [ ] QR表示専用ページ（会社用）
-- [ ] QRコード定期更新ジョブ
-- [ ] アクセストークン管理（タブレット端末用）
+- [x] QR表示専用ページ（会社・現場共通） ✅
+  - [x] GET /api/attendance/terminal/[token]（データ取得API）
+  - [x] /attendance/terminal/[token]（表示ページ）
+  - [x] TerminalDisplay.tsx（QRコード表示コンポーネント）
+  - [x] qrcodeライブラリ統合
+  - [x] 30秒ごと自動更新
+  - [x] リアルタイム時計表示
+- [x] タブレット端末管理機能 ✅
+  - [x] GET /api/attendance/terminals（一覧取得）
+  - [x] POST /api/attendance/terminals（端末登録）
+  - [x] PATCH /api/attendance/terminals/[id]（更新）
+  - [x] DELETE /api/attendance/terminals/[id]（削除）
+  - [x] アクセストークン生成（crypto）
+- [ ] QRコード定期更新ジョブ（将来実装）
 
 #### Week 5: 現場QR
 - [ ] リーダー用QR発行API
