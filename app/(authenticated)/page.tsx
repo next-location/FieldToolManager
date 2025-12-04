@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { AttendanceWidget } from './AttendanceWidget'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -231,6 +232,9 @@ export default async function Home() {
         )}
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {/* 出退勤ウィジェット */}
+          <AttendanceWidget />
+
           {/* 道具管理 */}
           <Link
             href="/tools"
