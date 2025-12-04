@@ -1213,8 +1213,17 @@ CSV形式でエクスポート。
 - [x] サイドバーメニュー追加 ✅
   - [x] 勤怠履歴（全員）
   - [x] 勤怠一覧（admin/manager）
-- [ ] 休憩時間管理（simple/detailed/none）
-- [ ] 手動修正機能（管理者用）
+- [x] 休憩時間管理（simple/detailed/none） ✅
+  - [x] POST /api/attendance/break/start
+  - [x] POST /api/attendance/break/end
+  - [x] AttendanceWidgetに休憩ボタン追加
+  - [x] break_time_modeに応じた制限（none/simple/detailed）
+- [x] 手動修正機能（管理者用） ✅
+  - [x] PATCH /api/attendance/records/[id]
+  - [x] DELETE /api/attendance/records/[id]
+  - [x] 編集モーダルUI（EditAttendanceModal.tsx）
+  - [x] 勤怠一覧ページに編集ボタン追加
+  - [x] 編集理由の記録
 
 ### Phase 2: QR機能（2週間）
 

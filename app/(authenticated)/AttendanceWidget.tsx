@@ -94,6 +94,67 @@ export function AttendanceWidget() {
     }
   }
 
+  // 休憩開始
+  const handleBreakStart = async () => {
+    setActionLoading(true)
+    setMessage(null)
+
+    try {
+      const response = await fetch('/api/attendance/break/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || '休憩開始の記録に失敗しました')
+      }
+
+      setMessage({ type: 'success', text: '休憩を開始しました' })
+      await fetchStatus()
+      router.refresh()
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message })
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  // 休憩終了
+  const handleBreakEnd = async () => {
+    setActionLoading(true)
+    setMessage(null)
+
+    try {
+      const response = await fetch('/api/attendance/break/end', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || '休憩終了の記録に失敗しました')
+      }
+
+      setMessage({ type: 'success', text: '休憩を終了しました' })
+      await fetchStatus()
+      router.refresh()
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message })
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  // 休憩中かどうかを判定
+  const isOnBreak = () => {
+    if (!status?.today_record?.break_records) return false
+    const breakRecords = status.today_record.break_records as any[]
+    return breakRecords.some((br: any) => br.start && !br.end)
+  }
+
   // 勤務時間を計算（分単位）
   const getWorkDuration = () => {
     if (!status?.today_record?.clock_in_time) return null
@@ -201,32 +262,88 @@ export function AttendanceWidget() {
                       勤務時間: {duration.hours}時間{duration.minutes}分
                     </p>
                   )}
+                  {isOnBreak() && (
+                    <p className="text-xs text-orange-600 mt-1 font-medium">
+                      🍵 休憩中
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
 
-            <button
-              onClick={handleClockOut}
-              disabled={actionLoading}
-              className="w-full inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:bg-gray-400"
-            >
-              {actionLoading ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  処理中...
-                </>
+            {/* 休憩ボタン */}
+            <div className="grid grid-cols-2 gap-3">
+              {!isOnBreak() ? (
+                <button
+                  onClick={handleBreakStart}
+                  disabled={actionLoading}
+                  className="inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:bg-gray-400"
+                >
+                  {actionLoading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      処理中...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      休憩開始
+                    </>
+                  )}
+                </button>
               ) : (
-                <>
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  退勤する
-                </>
+                <button
+                  onClick={handleBreakEnd}
+                  disabled={actionLoading}
+                  className="inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-gray-400"
+                >
+                  {actionLoading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      処理中...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      休憩終了
+                    </>
+                  )}
+                </button>
               )}
-            </button>
+
+              <button
+                onClick={handleClockOut}
+                disabled={actionLoading}
+                className="inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:bg-gray-400"
+              >
+                {actionLoading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    処理中...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    退勤する
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         )}
       </div>

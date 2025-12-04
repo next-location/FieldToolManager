@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { AttendanceRecord } from '@/types/attendance'
+import { EditAttendanceModal } from './EditAttendanceModal'
 
 interface Staff {
   id: string
@@ -32,6 +33,10 @@ export function AttendanceRecordsTable({
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
   const router = useRouter()
+
+  // 編集モーダル状態
+  const [editingRecord, setEditingRecord] = useState<any | null>(null)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
 
   // フィルター状態
   const [filters, setFilters] = useState({
@@ -119,6 +124,21 @@ export function AttendanceRecordsTable({
       weekday: 'short',
     })
   }
+
+  // 編集モーダルを開く
+  const handleEdit = (record: any) => {
+    setEditingRecord(record)
+    setIsEditModalOpen(true)
+  }
+
+  // 編集成功後
+  const handleEditSuccess = () => {
+    fetchRecords()
+    router.refresh()
+  }
+
+  // 管理者かどうか
+  const isAdminOrManager = ['admin', 'manager'].includes(userRole)
 
   if (loading && records.length === 0) {
     return (
@@ -263,6 +283,11 @@ export function AttendanceRecordsTable({
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 場所
               </th>
+              {isAdminOrManager && (
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  操作
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -273,6 +298,11 @@ export function AttendanceRecordsTable({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {record.user_name}
+                  {record.is_manually_edited && (
+                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                      編集済
+                    </span>
+                  )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {formatTime(record.clock_in_time)}
@@ -293,6 +323,16 @@ export function AttendanceRecordsTable({
                     `現場: ${record.clock_in_site_name || '---'}`}
                   {record.clock_in_location_type === 'remote' && 'リモート'}
                 </td>
+                {isAdminOrManager && (
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <button
+                      onClick={() => handleEdit(record)}
+                      className="text-blue-600 hover:text-blue-900"
+                    >
+                      編集
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
@@ -326,6 +366,20 @@ export function AttendanceRecordsTable({
             次へ
           </button>
         </div>
+      )}
+
+      {/* 編集モーダル */}
+      {editingRecord && (
+        <EditAttendanceModal
+          record={editingRecord}
+          sitesList={sitesList}
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false)
+            setEditingRecord(null)
+          }}
+          onSuccess={handleEditSuccess}
+        />
       )}
     </div>
   )
