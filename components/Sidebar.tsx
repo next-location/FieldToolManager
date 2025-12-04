@@ -537,25 +537,46 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
           </Link>
 
           {isAdminOrLeaderOrAdmin && (
-            <Link
-              href="/attendance/records"
-              onClick={onClose}
-              className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${
-                isActive('/attendance/records')
-                  ? 'bg-blue-50 text-blue-700 font-medium'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-                />
-              </svg>
-              <span>勤怠一覧</span>
-            </Link>
+            <>
+              <Link
+                href="/attendance/records"
+                onClick={onClose}
+                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${
+                  isActive('/attendance/records')
+                    ? 'bg-blue-50 text-blue-700 font-medium'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                  />
+                </svg>
+                <span>勤怠一覧</span>
+              </Link>
+              <Link
+                href="/attendance/qr/leader"
+                onClick={onClose}
+                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${
+                  isActive('/attendance/qr/leader')
+                    ? 'bg-blue-50 text-blue-700 font-medium'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
+                  />
+                </svg>
+                <span>リーダー用QR発行</span>
+              </Link>
+            </>
           )}
 
           {/* 設定・管理 */}
@@ -642,6 +663,17 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                       }`}
                     >
                       出退勤設定
+                    </Link>
+                    <Link
+                      href="/attendance/qr/manage"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive('/attendance/qr/manage')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      現場QR管理
                     </Link>
                     <Link
                       href="/attendance/terminals"

@@ -1265,12 +1265,30 @@ CSV形式でエクスポート。
 - [ ] QRコード定期更新ジョブ（将来実装）
 
 #### Week 5: 現場QR
-- [ ] リーダー用QR発行API
-- [ ] リーダー用QR発行画面
-- [ ] 固定QR生成機能（管理者用）
-- [ ] QR表示専用ページ（現場用）
-- [ ] 現場ごとの設定管理
-- [ ] QR管理画面
+- [x] リーダー用QR発行API ✅
+  - [x] POST /api/attendance/qr/site/leader/generate
+  - [x] 当日有効なQR生成（SITE:site_id:leader_id:date）
+  - [x] site_leader_qr_logsテーブルに記録
+- [x] リーダー用QR発行画面 ✅
+  - [x] /attendance/qr/leader/page.tsx
+  - [x] LeaderQRGenerator.tsx（発行コンポーネント）
+  - [x] QRコード画像生成・表示
+  - [x] 印刷・ダウンロード機能
+  - [x] Sidebarメニュー追加（リーダー・管理者）
+- [x] 固定QR生成機能（管理者用）✅
+  - [x] POST /api/attendance/qr/site/fixed/generate
+  - [x] GET /api/attendance/qr/site/fixed/[site_id]
+  - [x] DELETE /api/attendance/qr/site/fixed/[site_id]
+  - [x] 永続的QR生成（SITE_FIXED:site_id:secret_hash）
+  - [x] 再発行機能（既存QR無効化）
+- [x] QR管理画面（管理者用）✅
+  - [x] /attendance/qr/manage/page.tsx
+  - [x] SiteQRManagement.tsx（管理コンポーネント）
+  - [x] 現場別QR一覧表示
+  - [x] 固定QR発行・表示・印刷・削除
+  - [x] Sidebarメニュー追加（管理者）
+- [x] QR表示専用ページ（現場用）✅
+  - [x] タブレット端末表示で対応済み（Week 4）
 
 ### Phase 3: 通知・レポート（1-2週間）
 
