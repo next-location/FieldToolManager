@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import type { WorkReportFilter } from '@/types/work-reports'
+import { notifyWorkReportSubmitted } from '@/lib/notifications/work-report-notifications'
 
 // GET /api/work-reports - 作業報告書一覧取得
 export async function GET(request: NextRequest) {
@@ -154,6 +155,9 @@ export async function POST(request: NextRequest) {
       })
     )
 
+    // ステータス決定（draft または submitted）
+    const status = body.status === 'submitted' ? 'submitted' : 'draft'
+
     // 作業報告書作成
     const { data, error } = await supabase
       .from('work_reports')
@@ -179,7 +183,7 @@ export async function POST(request: NextRequest) {
         client_contact_details: body.client_contact_details,
         next_tasks: body.next_tasks,
         custom_fields: body.custom_fields || {},
-        status: 'draft',
+        status: status,
         created_by: user.id,
       })
       .select(
@@ -194,6 +198,22 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Work report creation error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    // 提出された場合は通知を送信
+    if (status === 'submitted' && data) {
+      try {
+        await notifyWorkReportSubmitted({
+          organizationId: userData.organization_id,
+          workReportId: data.id,
+          reportDate: data.report_date,
+          siteName: data.site?.name || '不明な現場',
+          submitterName: userData.name,
+        })
+      } catch (notifyError) {
+        console.error('Notification error:', notifyError)
+        // 通知エラーは報告書作成の成功を妨げない
+      }
     }
 
     return NextResponse.json({ data }, { status: 201 })

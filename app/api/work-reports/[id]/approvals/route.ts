@@ -5,22 +5,22 @@ interface Params {
   params: Promise<{ id: string }>
 }
 
-// GET /api/work-reports/[id]/approvals - �et֗
+// GET /api/work-reports/[id]/approvals - 承認履歴取得
 export async function GET(request: NextRequest, { params }: Params) {
   try {
     const { id } = await params
     const supabase = await createClient()
 
-    // �<��ï
+    // 認証チェック
     const {
       data: { user },
     } = await supabase.auth.getUser()
 
     if (!user) {
-      return NextResponse.json({ error: '�<LŁgY' }, { status: 401 })
+      return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
     }
 
-    // �����1֗
+    // ユーザー情報取得
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('organization_id')
@@ -28,10 +28,10 @@ export async function GET(request: NextRequest, { params }: Params) {
       .single()
 
     if (userError || !userData) {
-      return NextResponse.json({ error: '�����1n֗k1WW~W_' }, { status: 400 })
+      return NextResponse.json({ error: 'ユーザー情報の取得に失敗しました' }, { status: 400 })
     }
 
-    // �et֗
+    // 承認履歴取得
     const { data: approvals, error } = await supabase
       .from('work_report_approvals')
       .select('*')
@@ -40,12 +40,12 @@ export async function GET(request: NextRequest, { params }: Params) {
       .order('approved_at', { ascending: false })
 
     if (error) {
-      return NextResponse.json({ error: '�etn֗k1WW~W_' }, { status: 500 })
+      return NextResponse.json({ error: '承認履歴の取得に失敗しました' }, { status: 500 })
     }
 
     return NextResponse.json(approvals || [])
   } catch (error) {
     console.error('Get approvals error:', error)
-    return NextResponse.json({ error: '�etn֗k1WW~W_' }, { status: 500 })
+    return NextResponse.json({ error: '承認履歴の取得に失敗しました' }, { status: 500 })
   }
 }

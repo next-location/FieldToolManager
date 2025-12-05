@@ -1,26 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import {
+  notifyWorkReportApproved,
+  notifyWorkReportRejected,
+} from '@/lib/notifications/work-report-notifications'
 
 interface Params {
   params: Promise<{ id: string }>
 }
 
-// POST /api/work-reports/[id]/approve - \m1J�n�/t
+// POST /api/work-reports/[id]/approve - 作業報告書の承認/却下
 export async function POST(request: NextRequest, { params }: Params) {
   try {
     const { id } = await params
     const supabase = await createClient()
 
-    // �<��ï
+    // 認証チェック
     const {
       data: { user },
     } = await supabase.auth.getUser()
 
     if (!user) {
-      return NextResponse.json({ error: '�<LŁgY' }, { status: 401 })
+      return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
     }
 
-    // �����1֗
+    // ユーザー情報取得
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('organization_id, role, name')
@@ -28,45 +32,51 @@ export async function POST(request: NextRequest, { params }: Params) {
       .single()
 
     if (userError || !userData) {
-      return NextResponse.json({ error: '�����1n֗k1WW~W_' }, { status: 400 })
+      return NextResponse.json({ error: 'ユーザー情報の取得に失敗しました' }, { status: 400 })
     }
 
-    // leader ~_o admin n���
+    // leader または admin のみ承認可能
     if (userData.role !== 'leader' && userData.role !== 'admin') {
-      return NextResponse.json({ error: '�)PLB�~[�' }, { status: 403 })
+      return NextResponse.json({ error: '承認権限がありません' }, { status: 403 })
     }
 
-    // ꯨ���ǣn֗
+    // リクエストボディ取得
     const body = await request.json()
     const { action, comment } = body // action: 'approved' | 'rejected'
 
     if (!action || (action !== 'approved' && action !== 'rejected')) {
-      return NextResponse.json({ error: '�����L!�gY' }, { status: 400 })
+      return NextResponse.json({ error: 'アクションが不正です' }, { status: 400 })
     }
 
-    // \m1J�֗
+    // 作業報告書を取得（現場名と作成者情報も取得）
     const { data: report, error: reportError } = await supabase
       .from('work_reports')
-      .select('*')
+      .select(
+        `
+        *,
+        site:sites(name),
+        created_by_user:users!work_reports_created_by_fkey(id, name)
+      `
+      )
       .eq('id', id)
       .eq('organization_id', userData.organization_id)
       .is('deleted_at', null)
       .single()
 
     if (reportError || !report) {
-      return NextResponse.json({ error: '\m1J�L�dK�~[�' }, { status: 404 })
+      return NextResponse.json({ error: '作業報告書が見つかりません' }, { status: 404 })
     }
 
-    // �������ï��n1J�n���	
+    // ステータスチェック：提出済みの報告書のみ承認可能
     if (report.status !== 'submitted') {
       return NextResponse.json(
-        { error: '��n1J�n�gM~Y' },
+        { error: '提出済みの報告書のみ承認できます' },
         { status: 400 }
       )
     }
 
-    // ��󶯷���
-    // 1. 1J�n��������
+    // トランザクション処理
+    // 1. 報告書のステータス更新
     const newStatus = action === 'approved' ? 'approved' : 'rejected'
     const { error: updateError } = await supabase
       .from('work_reports')
@@ -78,12 +88,12 @@ export async function POST(request: NextRequest, { params }: Params) {
 
     if (updateError) {
       return NextResponse.json(
-        { error: '1J�n�������k1WW~W_' },
+        { error: '報告書のステータス更新に失敗しました' },
         { status: 500 }
       )
     }
 
-    // 2. �et�\
+    // 2. 承認履歴を登録
     const { error: approvalError } = await supabase.from('work_report_approvals').insert({
       organization_id: userData.organization_id,
       work_report_id: id,
@@ -94,7 +104,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     })
 
     if (approvalError) {
-      // ����ï: 1J�n������Ck;Y
+      // ロールバック: 報告書ステータスを戻す
       await supabase
         .from('work_reports')
         .update({
@@ -104,17 +114,39 @@ export async function POST(request: NextRequest, { params }: Params) {
         .eq('id', id)
 
       return NextResponse.json(
-        { error: '�etn\k1WW~W_' },
+        { error: '承認履歴の登録に失敗しました' },
         { status: 500 }
       )
     }
 
+    // 3. 通知を送信
+    try {
+      const notifyParams = {
+        organizationId: userData.organization_id,
+        workReportId: id,
+        reportDate: report.report_date,
+        siteName: report.site?.name || '不明な現場',
+        creatorId: report.created_by,
+        approverName: userData.name,
+        comment: comment || undefined,
+      }
+
+      if (action === 'approved') {
+        await notifyWorkReportApproved(notifyParams)
+      } else {
+        await notifyWorkReportRejected(notifyParams)
+      }
+    } catch (notifyError) {
+      console.error('Notification error:', notifyError)
+      // 通知エラーは承認処理の成功を妨げない
+    }
+
     return NextResponse.json({
-      message: action === 'approved' ? '�W~W_' : 'tW~W_',
+      message: action === 'approved' ? '承認しました' : '却下しました',
       status: newStatus,
     })
   } catch (error) {
     console.error('Approval error:', error)
-    return NextResponse.json({ error: '��k1WW~W_' }, { status: 500 })
+    return NextResponse.json({ error: '処理に失敗しました' }, { status: 500 })
   }
 }
