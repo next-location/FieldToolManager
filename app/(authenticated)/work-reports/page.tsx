@@ -142,7 +142,17 @@ export default async function WorkReportsPage({
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">作業報告書</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">作業報告書</h1>
+            {(userData.role === 'leader' || userData.role === 'admin') && (
+              <Link
+                href="/work-reports/pending"
+                className="text-sm text-blue-600 hover:text-blue-800 mt-1 inline-block"
+              >
+                承認待ち一覧を見る →
+              </Link>
+            )}
+          </div>
           <Link
             href="/work-reports/new"
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
