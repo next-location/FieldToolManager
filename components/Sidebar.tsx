@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 interface SidebarProps {
-  userRole: 'staff' | 'leader' | 'admin' | 'super_admin'
+  userRole: 'staff' | 'leader' | 'manager' | 'admin' | 'super_admin'
   isOpen: boolean
   onClose: () => void
   heavyEquipmentEnabled?: boolean
@@ -16,7 +16,8 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null)
 
   const isAdmin = userRole === 'admin' || userRole === 'super_admin'
-  const isLeaderOrAdmin = userRole === 'leader' || userRole === 'admin' || userRole === 'super_admin'
+  const isManagerOrAdmin = userRole === 'manager' || userRole === 'admin' || userRole === 'super_admin'
+  const isLeaderOrAbove = userRole === 'leader' || userRole === 'manager' || userRole === 'admin' || userRole === 'super_admin'
 
   const isActive = (path: string) => pathname === path || pathname?.startsWith(path + '/')
 
@@ -91,7 +92,9 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
             <button
               onClick={() => toggleMenu('tools')}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                isActive('/tools') || isActive('/consumables') || isActive('/tool-sets')
+                (pathname === '/tools' || (pathname?.startsWith('/tools/') && !pathname?.startsWith('/tools/movements'))) ||
+                (pathname === '/consumables' || (pathname?.startsWith('/consumables/') && !pathname?.startsWith('/consumables/bulk-movement'))) ||
+                (pathname === '/tool-sets' || (pathname?.startsWith('/tool-sets/') && !pathname?.startsWith('/tool-sets/movement')))
                   ? 'bg-blue-50 text-blue-700 font-medium'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
@@ -134,7 +137,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                   href="/consumables"
                   onClick={onClose}
                   className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                    pathname === '/consumables' || (pathname?.startsWith('/consumables/') && !pathname?.startsWith('/consumables/orders'))
+                    pathname === '/consumables' || (pathname?.startsWith('/consumables/') && !pathname?.startsWith('/consumables/orders') && !pathname?.startsWith('/consumables/bulk-movement'))
                       ? 'bg-blue-50 text-blue-700 font-medium'
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
@@ -156,7 +159,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                   href="/tool-sets"
                   onClick={onClose}
                   className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                    isActive('/tool-sets')
+                    pathname === '/tool-sets' || (pathname?.startsWith('/tool-sets/') && !pathname?.startsWith('/tool-sets/movement'))
                       ? 'bg-blue-50 text-blue-700 font-medium'
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
@@ -172,7 +175,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
             <button
               onClick={() => toggleMenu('equipment')}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                pathname === '/equipment' || (pathname?.startsWith('/equipment/') && !pathname?.startsWith('/equipment/cost-report') && !pathname?.startsWith('/equipment/analytics'))
+                pathname === '/equipment' || (pathname?.startsWith('/equipment/') && !pathname?.startsWith('/equipment/cost-report') && !pathname?.startsWith('/equipment/analytics') && !pathname?.startsWith('/equipment/movement'))
                   ? 'bg-blue-50 text-blue-700 font-medium'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
@@ -204,7 +207,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                   href="/equipment"
                   onClick={onClose}
                   className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                    pathname === '/equipment' || (pathname?.startsWith('/equipment/') && !pathname?.startsWith('/equipment/cost-report') && !pathname?.startsWith('/equipment/analytics'))
+                    pathname === '/equipment' || (pathname?.startsWith('/equipment/') && !pathname?.startsWith('/equipment/cost-report') && !pathname?.startsWith('/equipment/analytics') && !pathname?.startsWith('/equipment/movement'))
                       ? 'bg-blue-50 text-blue-700 font-medium'
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
@@ -220,7 +223,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
             <button
               onClick={() => toggleMenu('movement')}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                isActive('/movements')
+                isActive('/movements') || isActive('/tool-sets/movement') || isActive('/equipment/movement') || isActive('/consumables/bulk-movement')
                   ? 'bg-blue-50 text-blue-700 font-medium'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
@@ -307,13 +310,144 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
             )}
           </div>
 
+          {/* 作業報告書 */}
+          <Link
+            href="/work-reports"
+            onClick={onClose}
+            className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${
+              isActive('/work-reports')
+                ? 'bg-blue-50 text-blue-700 font-medium'
+                : 'text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <span>作業報告書</span>
+          </Link>
+
+          {/* 勤怠管理 */}
+          <div>
+            <button
+              onClick={() => toggleMenu('attendance')}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
+                isActive('/attendance')
+                  ? 'bg-blue-50 text-blue-700 font-medium'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <span>勤怠管理</span>
+              </div>
+              <svg
+                className={`w-4 h-4 transition-transform ${expandedMenu === 'attendance' ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {expandedMenu === 'attendance' && (
+              <div className="ml-8 mt-1 space-y-1">
+                {/* 出退勤（全員） */}
+                <Link
+                  href="/attendance/clock"
+                  onClick={onClose}
+                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                    isActive('/attendance/clock')
+                      ? 'bg-blue-50 text-blue-700 font-medium'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  出退勤
+                </Link>
+
+                {/* 勤怠履歴（全員） */}
+                <Link
+                  href="/attendance/my-records"
+                  onClick={onClose}
+                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                    isActive('/attendance/my-records')
+                      ? 'bg-blue-50 text-blue-700 font-medium'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  勤怠履歴
+                </Link>
+
+                {/* リーダー以上のみ表示 */}
+                {isLeaderOrAbove && (
+                  <>
+                    <Link
+                      href="/attendance/records"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive('/attendance/records')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="flex items-center justify-between">
+                        <span>勤怠一覧</span>
+                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      </span>
+                    </Link>
+                    <Link
+                      href="/attendance/qr/leader"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive('/attendance/qr/leader')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="flex items-center justify-between">
+                        <span>出退勤QR発行</span>
+                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      </span>
+                    </Link>
+                    <Link
+                      href="/attendance/alerts"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive('/attendance/alerts')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="flex items-center justify-between">
+                        <span>アラート通知</span>
+                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      </span>
+                    </Link>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* マスタ管理（リーダー・管理者） */}
-          {isLeaderOrAdmin && (
+          {isLeaderOrAbove && (
             <div>
               <button
                 onClick={() => toggleMenu('master')}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                  isActive('/sites') || isActive('/warehouse-locations') || isActive('/categories') || isActive('/master')
+                  isActive('/sites') || (pathname === '/clients' || (pathname?.startsWith('/clients/') && !pathname?.startsWith('/clients/stats'))) || isActive('/warehouse-locations') || isActive('/categories') || isActive('/master')
                     ? 'bg-blue-50 text-blue-700 font-medium'
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
@@ -341,6 +475,22 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
 
               {expandedMenu === 'master' && (
                 <div className="ml-8 mt-1 space-y-1">
+                  {isAdmin && (
+                    <Link
+                      href="/clients"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        pathname === '/clients' || (pathname?.startsWith('/clients/') && !pathname?.startsWith('/clients/stats'))
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="flex items-center justify-between">
+                        <span>取引先マスタ</span>
+                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      </span>
+                    </Link>
+                  )}
                   <Link
                     href="/sites"
                     onClick={onClose}
@@ -363,7 +513,10 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                             : 'text-gray-600 hover:bg-gray-50'
                         }`}
                       >
-                        倉庫位置管理
+                        <span className="flex items-center justify-between">
+                          <span>倉庫位置管理</span>
+                          <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                        </span>
                       </Link>
                       <Link
                         href="/categories"
@@ -374,7 +527,10 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                             : 'text-gray-600 hover:bg-gray-50'
                         }`}
                       >
-                        道具カテゴリ管理
+                        <span className="flex items-center justify-between">
+                          <span>道具カテゴリ管理</span>
+                          <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                        </span>
                       </Link>
                       {heavyEquipmentEnabled && (
                         <Link
@@ -386,7 +542,10 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                               : 'text-gray-600 hover:bg-gray-50'
                           }`}
                         >
-                          重機カテゴリ管理
+                          <span className="flex items-center justify-between">
+                            <span>重機カテゴリ管理</span>
+                            <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                          </span>
                         </Link>
                       )}
                     </>
@@ -396,13 +555,13 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
             </div>
           )}
 
-          {/* レポート・分析（リーダー・管理者） */}
-          {isLeaderOrAdmin && (
+          {/* レポート・分析（マネージャー・管理者） */}
+          {isManagerOrAdmin && (
             <div>
               <button
                 onClick={() => toggleMenu('analytics')}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                  isActive('/analytics') || isActive('/equipment/cost-report') || isActive('/equipment/analytics')
+                  isActive('/analytics') || isActive('/equipment/cost-report') || isActive('/equipment/analytics') || isActive('/clients/stats') || isActive('/attendance/reports/monthly')
                     ? 'bg-blue-50 text-blue-700 font-medium'
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
@@ -430,6 +589,38 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
 
               {expandedMenu === 'analytics' && (
                 <div className="ml-8 mt-1 space-y-1">
+                  {isManagerOrAdmin && (
+                    <Link
+                      href="/attendance/reports/monthly"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive('/attendance/reports/monthly')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="flex items-center justify-between">
+                        <span>月次勤怠レポート</span>
+                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      </span>
+                    </Link>
+                  )}
+                  {isAdmin && (
+                    <Link
+                      href="/clients/stats"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive('/clients/stats')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="flex items-center justify-between">
+                        <span>取引先統計・分析</span>
+                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      </span>
+                    </Link>
+                  )}
                   <Link
                     href="/analytics/cost"
                     onClick={onClose}
@@ -439,7 +630,10 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                         : 'text-gray-600 hover:bg-gray-50'
                     }`}
                   >
-                    コスト分析
+                    <span className="flex items-center justify-between">
+                      <span>コスト分析</span>
+                      <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                    </span>
                   </Link>
                   <Link
                     href="/analytics/usage"
@@ -450,7 +644,10 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                         : 'text-gray-600 hover:bg-gray-50'
                     }`}
                   >
-                    使用頻度分析
+                    <span className="flex items-center justify-between">
+                      <span>使用頻度分析</span>
+                      <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                    </span>
                   </Link>
                   <Link
                     href="/analytics/inventory"
@@ -461,18 +658,10 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                         : 'text-gray-600 hover:bg-gray-50'
                     }`}
                   >
-                    在庫最適化
-                  </Link>
-                  <Link
-                    href="/attendance/reports/monthly"
-                    onClick={onClose}
-                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                      isActive('/attendance/reports/monthly')
-                        ? 'bg-blue-50 text-blue-700 font-medium'
-                        : 'text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    月次勤怠レポート
+                    <span className="flex items-center justify-between">
+                      <span>在庫最適化</span>
+                      <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                    </span>
                   </Link>
                   {heavyEquipmentEnabled && (
                     <>
@@ -485,7 +674,10 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                             : 'text-gray-600 hover:bg-gray-50'
                         }`}
                       >
-                        重機コストレポート
+                        <span className="flex items-center justify-between">
+                          <span>重機コストレポート</span>
+                          <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                        </span>
                       </Link>
                       <Link
                         href="/equipment/analytics"
@@ -496,7 +688,10 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                             : 'text-gray-600 hover:bg-gray-50'
                         }`}
                       >
-                        重機稼働率分析
+                        <span className="flex items-center justify-between">
+                          <span>重機稼働率分析</span>
+                          <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                        </span>
                       </Link>
                     </>
                   )}
@@ -525,89 +720,6 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
             </svg>
             <span>マニュアル</span>
           </Link>
-
-          {/* 出退勤 */}
-          <Link
-            href="/attendance/my-records"
-            onClick={onClose}
-            className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${
-              isActive('/attendance/my-records')
-                ? 'bg-blue-50 text-blue-700 font-medium'
-                : 'text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <span>勤怠履歴</span>
-          </Link>
-
-          {isAdminOrLeaderOrAdmin && (
-            <>
-              <Link
-                href="/attendance/records"
-                onClick={onClose}
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${
-                  isActive('/attendance/records')
-                    ? 'bg-blue-50 text-blue-700 font-medium'
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-                  />
-                </svg>
-                <span>勤怠一覧</span>
-              </Link>
-              <Link
-                href="/attendance/qr/leader"
-                onClick={onClose}
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${
-                  isActive('/attendance/qr/leader')
-                    ? 'bg-blue-50 text-blue-700 font-medium'
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
-                  />
-                </svg>
-                <span>リーダー用QR発行</span>
-              </Link>
-              <Link
-                href="/attendance/alerts"
-                onClick={onClose}
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${
-                  isActive('/attendance/alerts')
-                    ? 'bg-blue-50 text-blue-700 font-medium'
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                  />
-                </svg>
-                <span>アラート通知</span>
-              </Link>
-            </>
-          )}
 
           {/* 設定・管理 */}
           <div className="pt-4 mt-4 border-t border-gray-200">
@@ -670,7 +782,10 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                           : 'text-gray-600 hover:bg-gray-50'
                       }`}
                     >
-                      スタッフ管理
+                      <span className="flex items-center justify-between">
+                        <span>スタッフ管理</span>
+                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      </span>
                     </Link>
                     <Link
                       href="/settings/organization"
@@ -681,7 +796,10 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                           : 'text-gray-600 hover:bg-gray-50'
                       }`}
                     >
-                      運用設定
+                      <span className="flex items-center justify-between">
+                        <span>運用設定</span>
+                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      </span>
                     </Link>
                     <Link
                       href="/attendance/settings"
@@ -692,18 +810,10 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                           : 'text-gray-600 hover:bg-gray-50'
                       }`}
                     >
-                      出退勤設定
-                    </Link>
-                    <Link
-                      href="/attendance/qr/manage"
-                      onClick={onClose}
-                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive('/attendance/qr/manage')
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      現場QR管理
+                      <span className="flex items-center justify-between">
+                        <span>出退勤設定</span>
+                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      </span>
                     </Link>
                     <Link
                       href="/attendance/terminals"
@@ -714,7 +824,10 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                           : 'text-gray-600 hover:bg-gray-50'
                       }`}
                     >
-                      タブレット端末管理
+                      <span className="flex items-center justify-between">
+                        <span>タブレット端末管理</span>
+                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      </span>
                     </Link>
                     <Link
                       href="/admin/audit-logs"
@@ -725,7 +838,10 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                           : 'text-gray-600 hover:bg-gray-50'
                       }`}
                     >
-                      監査ログ
+                      <span className="flex items-center justify-between">
+                        <span>監査ログ</span>
+                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      </span>
                     </Link>
                   </>
                 )}
