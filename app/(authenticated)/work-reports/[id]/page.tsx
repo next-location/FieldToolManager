@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { DeleteButton } from './DeleteButton'
+import { DownloadPDFButton } from './DownloadPDFButton'
 
 export default async function WorkReportDetailPage({
   params,
@@ -99,6 +100,7 @@ export default async function WorkReportDetailPage({
             </div>
 
             <div className="flex gap-2">
+              <DownloadPDFButton report={report} />
               {canEdit && (
                 <Link
                   href={`/work-reports/${id}/edit`}
