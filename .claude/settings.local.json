@@ -78,7 +78,13 @@
       "Read(//private/tmp/**)",
       "Bash(timeout 120 npx supabase start)",
       "Bash(tee:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(node -e \"\nconst cookie = ''%7B%22access_token%22%3A%22eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiIxMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDEiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzY0ODU0MTg1LCJpYXQiOjE3NjQ4NTA1ODUsImVtYWlsIjoiYWRtaW5AdGVzdC5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6ImVtYWlsIiwicHJvdmlkZXJzIjpbImVtYWlsIl19LCJ1c2VyX21ldGFkYXRhIjp7fSwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJhYWwiOiJhYWwxIiwiYW1yIjpbeyJtZXRob2QiOiJwYXNzd29yZCIsInRpbWVzdGFtcCI6MTc2NDg1MDU4NX1dLCJzZXNzaW9uX2lkIjoiZDc4YmZiZWUtYzNmMC00YzQxLTkzZGItOTQxYThmZjAzZTUyIiwiaXNfYW5vbnltb3VzIjpmYWxzZX0.qaH4hDOzWdIs8IS7lMx0T-644l0BCpFwFZcsbhLheIU%22%2C%22token_type%22%3A%22bearer%22%2C%22expires_in%22%3A3600%2C%22expires_at%22%3A1764854185%2C%22refresh_token%22%3A%22strlydwxrsty%22%2C%22user%22%3A%7B%22id%22%3A%2210000000-0000-0000-0000-000000000001%22%2C%22aud%22%3A%22authenticated%22%2C%22role%22%3A%22authenticated%22%2C%22email%22%3A%22admin%40test.com%22%2C%22email_confirmed_at%22%3A%222025-12-03T09%3A37%3A52.052798Z%22%2C%22phone%22%3A%22%22%2C%22confirmed_at%22%3A%222025-12-03T09%3A37%3A52.052798Z%22%2C%22last_sign_in_at%22%3A%222025-12-04T12%3A16%3A25.014482093Z%22%2C%22app_metadata%22%3A%7B%22provider%22%3A%22email%22%2C%22providers%22%3A%5B%22email%22%5D%7D%2C%22user_metadata%22%3A%7B%7D%2C%22identities%22%3A%5B%7B%22identity_id%22%3A%22e6f39465-cb82-4fe0-939a-eba50de36b32%22%2C%22id%22%3A%2210000000-0000-0000-0000-000000000001%22%2C%22user_id%22%3A%2210000000-0000-0000-0000-000000000001%22%2C%22identity_data%22%3A%7B%22email%22%3A%22admin%40test.com%22%2C%22sub%22%3A%2210000000-0000-0000-0000-000000000001%22%7D%2C%22provider%22%3A%22email%22%2C%22last_sign_in_at%22%3A%222025-12-03T09%3A37%3A52.061914Z%22%2C%22created_at%22%3A%222025-12-03T09%3A37%3A52.061914Z%22%2C%22updated_at%22%3A%222025-12-03T09%3A37%3A52.061914Z%22%2C%22email%22%3A%22admin%40test.com%22%7D%5D%2C%22created_at%22%3A%222025-12-03T09%3A37%3A52.052798Z%22%2C%22updated_at%22%3A%222025-12-04T12%3A16%3A25.018841Z%22%2C%22is_anonymous%22%3Afalse%7D%2C%22weak_password%22%3Anull%7D'';\nconsole.log(decodeURIComponent(cookie).substring(0, 200));\n\")",
+      "Bash(export PGPASSWORD=postgres)",
+      "Bash(awk:*)",
+      "Bash(node:*)",
+      "Bash(npm run:*)",
+      "Bash(tail:*)"
     ],
     "deny": [],
     "ask": []

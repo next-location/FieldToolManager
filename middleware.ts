@@ -3,8 +3,20 @@ import { updateSession } from '@/lib/supabase/middleware'
 import { createClient } from '@/lib/supabase/server'
 
 export async function middleware(request: NextRequest) {
-  // セッション更新
-  const response = await updateSession(request)
+  console.log('[Middleware] Processing path:', request.nextUrl.pathname)
+
+  // セッション更新（クッキーの設定のみ）
+  let response = await updateSession(request)
+
+  // ログイン・公開ページ・API・静的ファイルはスキップ
+  if (request.nextUrl.pathname.startsWith('/login') ||
+      request.nextUrl.pathname.startsWith('/api') ||
+      request.nextUrl.pathname.startsWith('/_next') ||
+      request.nextUrl.pathname.startsWith('/favicon') ||
+      request.nextUrl.pathname.includes('.')) {
+    console.log('[Middleware] Skipping auth check for:', request.nextUrl.pathname)
+    return response
+  }
 
   // マルチテナント検証（開発・本番共通）
   const hostname = request.headers.get('host') || ''

@@ -80,6 +80,7 @@ export default async function ConsumableAdjustPage({
               consumableName={consumable.name}
               unit={consumable.unit}
               currentQuantity={warehouseInventory?.quantity || 0}
+              userRole={userData.role}
             />
           </div>
         </div>

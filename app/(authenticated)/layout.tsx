@@ -9,23 +9,46 @@ interface AuthenticatedLayoutProps {
 export default async function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   const supabase = await createClient()
 
+  console.log('[AUTH LAYOUT] Checking authentication...')
+
   const {
     data: { user },
+    error: authError
   } = await supabase.auth.getUser()
 
+  console.log('[AUTH LAYOUT] Auth result:', {
+    hasUser: !!user,
+    userId: user?.id,
+    error: authError?.message
+  })
+
   if (!user) {
+    console.log('[AUTH LAYOUT] No user, redirecting to /login')
     redirect('/login')
   }
 
-  const { data: userData } = await supabase
+  console.log('[AUTH LAYOUT] Fetching user data from database...')
+
+  const { data: userData, error: dbError } = await supabase
     .from('users')
     .select('role, organization_id, name')
     .eq('id', user.id)
     .single()
 
+  console.log('[AUTH LAYOUT] User data result:', {
+    hasUserData: !!userData,
+    error: dbError?.message
+  })
+
   if (!userData) {
+    console.log('[AUTH LAYOUT] No user data, redirecting to /login')
     redirect('/login')
   }
+
+  console.log('[AUTH LAYOUT] User authenticated successfully:', {
+    userId: user.id,
+    role: userData.role
+  })
 
   const { data: organization } = await supabase
     .from('organizations')

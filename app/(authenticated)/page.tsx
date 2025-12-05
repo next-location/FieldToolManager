@@ -64,6 +64,21 @@ export default async function Home() {
     .eq('id', userData?.organization_id)
     .single()
 
+  // 出退勤設定を取得
+  const { data: attendanceSettings } = await supabase
+    .from('organization_attendance_settings')
+    .select('clock_method, allow_manual, allow_qr, allow_location')
+    .eq('organization_id', userData?.organization_id)
+    .single()
+
+  // アクティブな現場リストを取得（出退勤用）
+  const { data: sites } = await supabase
+    .from('sites')
+    .select('id, name')
+    .eq('organization_id', userData?.organization_id)
+    .eq('is_active', true)
+    .order('name')
+
   // 重機のアラートをチェック
   let equipmentAlerts: any[] = []
   if (orgData?.heavy_equipment_enabled) {
@@ -233,7 +248,7 @@ export default async function Home() {
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {/* 出退勤ウィジェット */}
-          <AttendanceWidget />
+          <AttendanceWidget attendanceSettings={attendanceSettings} sites={sites || []} />
 
           {/* 道具管理 */}
           <Link

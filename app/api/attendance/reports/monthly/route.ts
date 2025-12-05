@@ -66,10 +66,10 @@ export async function GET(request: NextRequest) {
         clock_out_time,
         clock_in_location_type,
         clock_out_location_type,
-        total_work_minutes,
-        total_break_minutes,
+        break_records,
+        auto_break_deducted_minutes,
         is_manually_edited,
-        users (
+        users!attendance_records_user_id_fkey (
           id,
           name,
           email,
@@ -150,13 +150,30 @@ export async function GET(request: NextRequest) {
         stats.incomplete_days++
       }
 
-      // 勤務時間・休憩時間
-      if (record.total_work_minutes) {
-        stats.total_work_minutes += record.total_work_minutes
-        stats.total_break_minutes += record.total_break_minutes || 0
+      // 勤務時間・休憩時間計算
+      if (record.clock_in_time && record.clock_out_time) {
+        const clockIn = new Date(record.clock_in_time)
+        const clockOut = new Date(record.clock_out_time)
+        const totalMinutes = Math.floor((clockOut.getTime() - clockIn.getTime()) / (1000 * 60))
+
+        // 休憩時間計算
+        let totalBreakMinutes = record.auto_break_deducted_minutes || 0
+        if (record.break_records && Array.isArray(record.break_records)) {
+          for (const breakRecord of record.break_records) {
+            if (breakRecord.start && breakRecord.end) {
+              const breakStart = new Date(breakRecord.start)
+              const breakEnd = new Date(breakRecord.end)
+              totalBreakMinutes += Math.floor((breakEnd.getTime() - breakStart.getTime()) / (1000 * 60))
+            }
+          }
+        }
+
+        const workMinutes = Math.max(0, totalMinutes - totalBreakMinutes)
+        stats.total_work_minutes += workMinutes
+        stats.total_break_minutes += totalBreakMinutes
 
         // 残業日数（8時間 = 480分超）
-        if (record.total_work_minutes > 480) {
+        if (workMinutes > 480) {
           stats.overtime_days++
         }
       }

@@ -39,68 +39,32 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (qrError || !qrCode) {
-      // QRコードが存在しない場合は自動生成
-      const { data: settings } = await supabase
-        .from('organization_attendance_settings')
-        .select('office_qr_rotation_days, office_clock_methods')
-        .eq('organization_id', userData.organization_id)
-        .single()
-
-      // QRスキャンが有効でない場合はエラー
-      const clockMethods = settings?.office_clock_methods as any
-      if (!clockMethods?.qr_scan && !clockMethods?.qr_display) {
-        return NextResponse.json({ error: 'QRコード機能が有効になっていません' }, { status: 400 })
-      }
-
-      // 自動生成（管理者のみ）
-      const isAdminOrManager = ['admin', 'manager'].includes(userData.role)
-      if (!isAdminOrManager) {
-        return NextResponse.json({ error: 'QRコードが生成されていません。管理者に連絡してください。' }, { status: 404 })
-      }
-
-      // 自動生成ロジックを呼び出す
-      const crypto = require('crypto')
-      const rotationDays = settings?.office_qr_rotation_days || 7
-      const randomToken = crypto.randomBytes(32).toString('hex')
-      const validFrom = now
-      const validUntil = new Date(now.getTime() + rotationDays * 24 * 60 * 60 * 1000)
-      const qrData = `ATT:${userData.organization_id}:${randomToken}:${validUntil.toISOString()}`
-
-      const { data: newQrCode, error: insertError } = await supabase
-        .from('office_qr_codes')
-        .insert({
-          organization_id: userData.organization_id,
-          qr_data: qrData,
-          valid_from: validFrom.toISOString(),
-          valid_until: validUntil.toISOString(),
-          is_active: true,
-        })
-        .select()
-        .single()
-
-      if (insertError) {
-        console.error('Auto QR generation error:', insertError)
-        return NextResponse.json({ error: 'QRコードの自動生成に失敗しました' }, { status: 500 })
-      }
-
-      const daysRemaining = Math.ceil((validUntil.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-
-      return NextResponse.json({
-        id: newQrCode.id,
-        qr_data: newQrCode.qr_data,
-        valid_from: newQrCode.valid_from,
-        valid_until: newQrCode.valid_until,
-        days_remaining: daysRemaining,
-      })
+      // QRコードが存在しない場合は404を返す（自動生成しない）
+      return NextResponse.json({ error: 'QRコードが生成されていません' }, { status: 404 })
     }
 
     // 有効期限までの日数を計算
     const validUntil = new Date(qrCode.valid_until)
     const daysRemaining = Math.ceil((validUntil.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
 
+    // QRコード画像を生成（サーバーサイドで生成）
+    const QRCode = require('qrcode')
+    let qrImage: string
+    try {
+      qrImage = await QRCode.toDataURL(qrCode.qr_data, {
+        width: 400,
+        margin: 2,
+        errorCorrectionLevel: 'M',
+      })
+    } catch (qrError) {
+      console.error('QR image generation error:', qrError)
+      return NextResponse.json({ error: 'QR画像の生成に失敗しました' }, { status: 500 })
+    }
+
     return NextResponse.json({
       id: qrCode.id,
       qr_data: qrCode.qr_data,
+      qr_image: qrImage,
       valid_from: qrCode.valid_from,
       valid_until: qrCode.valid_until,
       days_remaining: daysRemaining,

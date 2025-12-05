@@ -1098,14 +1098,307 @@ OPENAI_API_KEY=sk-...
 
 ---
 
+## 6. 顔認証による出退勤打刻
+
+### 概要
+タブレット設置企業向けに、顔認証で出退勤を記録できる機能。会社入口や現場に設置したタブレットのカメラで本人確認を行い、QRコードやPINコード入力なしで打刻可能。
+
+### 想定利用シーン
+- **会社入口**: タブレットを設置し、出勤時に顔をかざすだけで打刻
+- **現場**: 固定タブレット設置型の現場で、QRなしで出退勤記録
+- **マスク対応**: 認証失敗時はPINコードまたは手動選択にフォールバック
+
+### 技術スタック（推奨）
+
+#### オプション1: ブラウザベース（Face-api.js）
+```json
+{
+  "dependencies": {
+    "face-api.js": "^0.22.2",
+    "@tensorflow/tfjs": "^4.0.0"
+  }
+}
+```
+
+**利点:**
+- サーバー不要（ブラウザ上で動作）
+- プライバシー保護（顔データが外部送信されない）
+- 無料
+
+**欠点:**
+- 精度: 70-80%程度
+- 照明条件に敏感
+- マスク着用時の精度低下
+
+#### オプション2: クラウドAPI（Amazon Rekognition / Azure Face API）
+```typescript
+// AWS Rekognition
+import { RekognitionClient, CompareFacesCommand } from "@aws-sdk/client-rekognition";
+
+const client = new RekognitionClient({ region: "ap-northeast-1" });
+
+export async function verifyFace(sourceImage: Buffer, targetImage: Buffer) {
+  const command = new CompareFacesCommand({
+    SourceImage: { Bytes: sourceImage },
+    TargetImage: { Bytes: targetImage },
+    SimilarityThreshold: 90
+  });
+
+  const response = await client.send(command);
+  return response.FaceMatches?.[0]?.Similarity >= 90;
+}
+```
+
+**利点:**
+- 高精度（95%以上）
+- マスク検出機能あり
+- リアルネス検証（写真での不正防止）
+
+**欠点:**
+- コスト: $1 / 1,000画像
+- プライバシー懸念（外部送信）
+
+### 実装方法（Face-api.js推奨）
+
+#### データベース設計
+```sql
+-- 顔認証データテーブル
+CREATE TABLE face_recognition_data (
+  user_id UUID PRIMARY KEY REFERENCES users(id),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  face_descriptors JSONB NOT NULL,  -- 顔特徴ベクトル（128次元×5枚）
+  sample_count INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- PINコード（フォールバック用）
+CREATE TABLE user_pin_codes (
+  user_id UUID PRIMARY KEY REFERENCES users(id),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  pin_hash TEXT NOT NULL,  -- bcryptでハッシュ化
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 顔認証ログ
+CREATE TABLE face_recognition_logs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  recognition_result TEXT NOT NULL CHECK (recognition_result IN ('success', 'failed', 'fallback_pin', 'fallback_manual')),
+  similarity_score DECIMAL(5, 2),  -- 一致率（0-100）
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+#### 顔登録フロー
+```typescript
+// components/FaceRegistration.tsx
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import * as faceapi from 'face-api.js';
+
+export default function FaceRegistration({ userId }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [modelLoaded, setModelLoaded] = useState(false);
+  const [capturedFaces, setCapturedFaces] = useState<Float32Array[]>([]);
+
+  useEffect(() => {
+    // モデルをロード
+    const loadModels = async () => {
+      await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+      await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
+      await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
+      setModelLoaded(true);
+    };
+    loadModels();
+  }, []);
+
+  const startCamera = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream;
+    }
+  };
+
+  const captureFace = async () => {
+    if (!videoRef.current || !modelLoaded) return;
+
+    const detection = await faceapi
+      .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+
+    if (detection) {
+      setCapturedFaces([...capturedFaces, detection.descriptor]);
+
+      if (capturedFaces.length >= 4) {
+        // 5枚撮影完了 → サーバーに送信
+        await fetch('/api/face/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            descriptors: [...capturedFaces, detection.descriptor]
+          })
+        });
+        alert('顔登録完了！');
+      }
+    } else {
+      alert('顔が検出できませんでした。もう一度試してください。');
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <video ref={videoRef} autoPlay width="640" height="480" />
+
+      <div className="text-center">
+        <p>撮影: {capturedFaces.length} / 5</p>
+        <button onClick={startCamera} className="btn">カメラ起動</button>
+        <button onClick={captureFace} className="btn" disabled={!modelLoaded}>
+          撮影
+        </button>
+      </div>
+
+      <div className="text-sm text-gray-600">
+        <p>撮影のコツ:</p>
+        <ul className="list-disc list-inside">
+          <li>正面を向いて撮影</li>
+          <li>明るい場所で撮影</li>
+          <li>マスクやサングラスを外す</li>
+          <li>5枚の写真で少し角度を変える</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+```
+
+#### 顔認証打刻フロー
+```typescript
+// components/FaceAttendance.tsx
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import * as faceapi from 'face-api.js';
+
+export default function FaceAttendance() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [detecting, setDetecting] = useState(false);
+
+  const verifyFace = async () => {
+    setDetecting(true);
+
+    const detection = await faceapi
+      .detectSingleFace(videoRef.current!, new faceapi.TinyFaceDetectorOptions())
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+
+    if (detection) {
+      // サーバーで全スタッフの顔データと比較
+      const response = await fetch('/api/face/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          descriptor: Array.from(detection.descriptor)
+        })
+      });
+
+      const { matched, user, similarity } = await response.json();
+
+      if (matched && similarity >= 70) {
+        // 打刻成功
+        await fetch('/api/attendance/clock', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id,
+            method: 'face',
+            similarity
+          })
+        });
+
+        alert(`${user.name}さん、出勤しました！`);
+      } else {
+        // 認証失敗 → フォールバック
+        showFallbackOptions();
+      }
+    }
+
+    setDetecting(false);
+  };
+
+  return (
+    <div className="space-y-4">
+      <video ref={videoRef} autoPlay width="640" height="480" />
+
+      <button onClick={verifyFace} disabled={detecting}>
+        {detecting ? '認証中...' : '顔認証で打刻'}
+      </button>
+    </div>
+  );
+}
+```
+
+### フォールバック機能
+
+顔認証失敗時の3段階フォールバック:
+
+```typescript
+// 1. 再試行（3回まで）
+// 2. PINコード入力
+// 3. 手動でスタッフ選択
+```
+
+### セキュリティ対策
+
+1. **写真での不正防止**: リアルネス検証（瞬き検出）
+2. **なりすまし防止**: 複数角度からの顔登録
+3. **プライバシー保護**: 顔画像は保存せず、特徴ベクトルのみ保存
+
+### コスト見積もり
+
+| 方式 | 初期コスト | 月額コスト | 精度 |
+|------|-----------|-----------|------|
+| Face-api.js（ブラウザ） | 0円 | 0円 | 70-80% |
+| AWS Rekognition | 0円 | 月間10,000打刻で$10 | 95%+ |
+| Azure Face API | 0円 | 月間10,000打刻で$10 | 95%+ |
+
+### 推奨実装優先度
+
+**Phase 4以降（初期リリースには含めない）**
+
+理由:
+- タブレット設置企業が限定的
+- QR/手動打刻で十分な企業が多い
+- 精度・コスト・プライバシーのトレードオフが難しい
+- データ蓄積後に本当に必要か判断
+
+### 代替案: PINコード打刻
+
+顔認証より簡易で実用的な方法:
+
+```typescript
+// 各スタッフに4桁のPINを発行
+// タブレットでPIN入力 → 打刻
+// 実装コスト低、精度100%
+```
+
+---
+
 ## 次のステップ
 
 1. 基本システム開発完了
 2. フェーズ1のAI機能を実装（異常検知・自然言語検索）
 3. ユーザーフィードバック収集
 4. フェーズ2以降の機能を段階的に追加
+5. **顔認証はPhase 4以降で検討**（需要が確認できた場合のみ）
 
 ---
 
 **作成日**: 2025-11-29
-**更新日**: -
+**更新日**: 2025-12-04（顔認証機能追加）

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { AttendanceSettingsForm } from './AttendanceSettingsForm'
+import { AttendanceSettingsFormSimple } from './AttendanceSettingsFormSimple'
 
 export default async function AttendanceSettingsPage() {
   const supabase = await createClient()
@@ -50,7 +50,7 @@ export default async function AttendanceSettingsPage() {
         </div>
 
         <div className="bg-white shadow sm:rounded-lg">
-          <AttendanceSettingsForm
+          <AttendanceSettingsFormSimple
             initialSettings={attendanceSettings}
             organizationId={userData.organization_id}
           />

@@ -233,6 +233,25 @@ export default async function WorkReportDetailPage({
           </div>
         </div>
 
+        {/* カスタムフィールド */}
+        {report.custom_fields && Object.keys(report.custom_fields).length > 0 && (
+          <div className="bg-white shadow sm:rounded-lg mb-6">
+            <div className="px-4 py-5 sm:p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">業種固有項目</h3>
+              <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                {Object.entries(report.custom_fields).map(([key, value]) => (
+                  <div key={key}>
+                    <dt className="text-sm font-medium text-gray-500">{key}</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {typeof value === 'boolean' ? (value ? 'はい' : 'いいえ') : value?.toString() || '－'}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          </div>
+        )}
+
         {/* 使用した資材 */}
         {report.materials_used && Array.isArray(report.materials_used) && report.materials_used.length > 0 && (
           <div className="bg-white shadow sm:rounded-lg mb-6">

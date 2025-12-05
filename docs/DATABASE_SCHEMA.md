@@ -116,6 +116,64 @@ ToolCategory (道具カテゴリ)
 ├── is_active BOOLEAN
 └── created_at
 
+Client (取引先マスタ) ✨NEW
+├── id (PK, UUID)
+├── organization_id (FK) ← 重要！
+├── code TEXT (UQ) "CL-0001" ← 取引先コード
+├── name TEXT "株式会社ABC建設" ← 取引先名
+├── name_kana TEXT ← フリガナ
+├── short_name TEXT ← 略称
+├── client_type "customer" | "supplier" | "partner" | "both" ← 取引先分類
+├── industry TEXT ← 業種
+├── postal_code TEXT ← 郵便番号
+├── address TEXT ← 住所
+├── phone TEXT ← 電話番号
+├── fax TEXT ← FAX番号
+├── email TEXT ← メールアドレス
+├── website TEXT ← ウェブサイト
+├── contact_person TEXT ← 担当者名
+├── contact_department TEXT ← 担当部署
+├── contact_phone TEXT ← 担当者電話番号
+├── contact_email TEXT ← 担当者メールアドレス
+├── payment_terms TEXT ← 支払条件
+├── payment_method "bank_transfer" | "cash" | "check" | "credit" | "other"
+├── payment_due_days INTEGER ← 支払期日（日数）
+├── bank_name TEXT ← 銀行名
+├── bank_branch TEXT ← 支店名
+├── bank_account_type "savings" | "current" | "other" ← 口座種別
+├── bank_account_number TEXT ← 口座番号
+├── bank_account_holder TEXT ← 口座名義
+├── credit_limit DECIMAL(15, 2) ← 与信限度額
+├── current_balance DECIMAL(15, 2) ← 現在残高（売掛金・買掛金）
+├── tax_id TEXT ← 法人番号・事業者番号
+├── tax_registration_number TEXT ← インボイス登録番号
+├── is_tax_exempt BOOLEAN ← 非課税事業者
+├── first_transaction_date DATE ← 初回取引日
+├── last_transaction_date DATE ← 最終取引日
+├── total_transaction_count INTEGER ← 取引回数
+├── total_transaction_amount DECIMAL(15, 2) ← 累計取引額
+├── rating INTEGER (1-5) ← 評価
+├── notes TEXT ← 備考・メモ
+├── internal_notes TEXT ← 社内用メモ
+├── is_active BOOLEAN ← 有効/無効
+├── created_at
+├── updated_at
+└── deleted_at (論理削除)
+
+**用途**: 顧客・仕入先・協力会社の管理
+- 現場の発注者情報として使用
+- 見積・請求書・領収書発行に使用
+- 売上管理・支払い管理に使用
+- client_type: customer=顧客, supplier=仕入先, partner=協力会社, both=顧客兼仕入先
+
+UNIQUE(organization_id, code) ← 1組織内で取引先コードは一意
+UNIQUE(organization_id, name) ← 1組織内で取引先名は一意
+
+    ↓ 1:N (1つの取引先に複数の現場)
+
+Site (現場)
+├── client_id (FK → Client.id) ← 発注者・元請け企業
+
 ToolSet (道具セット - テンプレート) ✨新規追加
 ├── id (PK, UUID)
 ├── organization_id (FK) ← 重要！
@@ -341,12 +399,17 @@ organizations
     ├─→ tools
     ├─→ locations
     ├─→ tool_categories
+    ├─→ clients ← ✨NEW: 取引先マスタ
     ├─→ contracts
     ├─→ invoices
     ├─→ payment_records
     ├─→ audit_logs
     ├─→ organization_features
     └─→ custom_field_definitions
+
+clients (取引先マスタ)
+    ↓ 1:N
+    └─→ sites ← 現場の発注者・元請け企業
 
 users
     ↓ 1:1 (super_admin only)
@@ -544,6 +607,98 @@ CREATE INDEX idx_tool_categories_display_order ON tool_categories(display_order)
 
 -- RLS有効化
 ALTER TABLE tool_categories ENABLE ROW LEVEL SECURITY;
+```
+
+#### clients (取引先マスタ) ✨NEW
+```sql
+CREATE TABLE clients (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+
+  -- 基本情報
+  code TEXT NOT NULL, -- 取引先コード（例: CL-0001）
+  name TEXT NOT NULL, -- 取引先名
+  name_kana TEXT, -- フリガナ
+  short_name TEXT, -- 略称
+
+  -- 取引先分類
+  client_type TEXT NOT NULL CHECK (client_type IN ('customer', 'supplier', 'partner', 'both')),
+  industry TEXT, -- 業種
+
+  -- 連絡先情報
+  postal_code TEXT,
+  address TEXT,
+  phone TEXT,
+  fax TEXT,
+  email TEXT,
+  website TEXT,
+
+  -- 担当者情報
+  contact_person TEXT,
+  contact_department TEXT,
+  contact_phone TEXT,
+  contact_email TEXT,
+
+  -- 取引条件
+  payment_terms TEXT,
+  payment_method TEXT CHECK (payment_method IN ('bank_transfer', 'cash', 'check', 'credit', 'other')),
+  payment_due_days INTEGER DEFAULT 30,
+
+  -- 銀行情報
+  bank_name TEXT,
+  bank_branch TEXT,
+  bank_account_type TEXT CHECK (bank_account_type IN ('savings', 'current', 'other')),
+  bank_account_number TEXT,
+  bank_account_holder TEXT,
+
+  -- 財務情報
+  credit_limit DECIMAL(15, 2),
+  current_balance DECIMAL(15, 2) DEFAULT 0,
+
+  -- 税務情報
+  tax_id TEXT,
+  tax_registration_number TEXT, -- インボイス登録番号
+  is_tax_exempt BOOLEAN DEFAULT false,
+
+  -- 取引実績
+  first_transaction_date DATE,
+  last_transaction_date DATE,
+  total_transaction_count INTEGER DEFAULT 0,
+  total_transaction_amount DECIMAL(15, 2) DEFAULT 0,
+
+  -- 評価・メモ
+  rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+  notes TEXT,
+  internal_notes TEXT,
+
+  -- ステータス
+  is_active BOOLEAN DEFAULT true,
+
+  -- タイムスタンプ
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  deleted_at TIMESTAMPTZ,
+
+  -- 制約
+  UNIQUE(organization_id, code),
+  UNIQUE(organization_id, name)
+);
+
+CREATE INDEX idx_clients_organization_id ON clients(organization_id);
+CREATE INDEX idx_clients_code ON clients(organization_id, code);
+CREATE INDEX idx_clients_name ON clients(organization_id, name);
+CREATE INDEX idx_clients_client_type ON clients(client_type);
+CREATE INDEX idx_clients_is_active ON clients(is_active);
+CREATE INDEX idx_clients_deleted_at ON clients(deleted_at) WHERE deleted_at IS NULL;
+CREATE INDEX idx_clients_email ON clients(email) WHERE email IS NOT NULL;
+CREATE INDEX idx_clients_last_transaction_date ON clients(last_transaction_date DESC) WHERE last_transaction_date IS NOT NULL;
+
+-- RLS有効化
+ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
+
+COMMENT ON TABLE clients IS '取引先マスタ（顧客・仕入先・協力会社）';
+COMMENT ON COLUMN clients.client_type IS '取引先分類: customer=顧客, supplier=仕入先, partner=協力会社, both=顧客兼仕入先';
+COMMENT ON COLUMN clients.tax_registration_number IS 'インボイス登録番号（適格請求書発行事業者登録番号）';
 ```
 
 ### 2.2 セキュリティ・監査テーブル
@@ -951,6 +1106,82 @@ export interface ToolCategory {
   created_at: Date;
   updated_at: Date;
 }
+```
+
+#### Client (取引先マスタ) ✨NEW
+```typescript
+export interface Client {
+  id: string; // UUID
+  organization_id: string; // 組織ID
+
+  // 基本情報
+  code: string; // 取引先コード（例: CL-0001）
+  name: string; // 取引先名
+  name_kana?: string; // フリガナ
+  short_name?: string; // 略称
+
+  // 取引先分類
+  client_type: 'customer' | 'supplier' | 'partner' | 'both'; // 顧客/仕入先/協力会社/兼用
+  industry?: string; // 業種
+
+  // 連絡先情報
+  postal_code?: string; // 郵便番号
+  address?: string; // 住所
+  phone?: string; // 電話番号
+  fax?: string; // FAX番号
+  email?: string; // メールアドレス
+  website?: string; // ウェブサイト
+
+  // 担当者情報
+  contact_person?: string; // 担当者名
+  contact_department?: string; // 担当部署
+  contact_phone?: string; // 担当者電話番号
+  contact_email?: string; // 担当者メールアドレス
+
+  // 取引条件
+  payment_terms?: string; // 支払条件（例: 月末締め翌月末払い）
+  payment_method?: 'bank_transfer' | 'cash' | 'check' | 'credit' | 'other'; // 支払方法
+  payment_due_days?: number; // 支払期日（日数）
+
+  // 銀行情報
+  bank_name?: string; // 銀行名
+  bank_branch?: string; // 支店名
+  bank_account_type?: 'savings' | 'current' | 'other'; // 口座種別
+  bank_account_number?: string; // 口座番号
+  bank_account_holder?: string; // 口座名義
+
+  // 財務情報
+  credit_limit?: number; // 与信限度額
+  current_balance: number; // 現在残高（売掛金・買掛金）
+
+  // 税務情報
+  tax_id?: string; // 法人番号・事業者番号
+  tax_registration_number?: string; // インボイス登録番号
+  is_tax_exempt: boolean; // 非課税事業者
+
+  // 取引実績
+  first_transaction_date?: string; // 初回取引日
+  last_transaction_date?: string; // 最終取引日
+  total_transaction_count: number; // 取引回数
+  total_transaction_amount: number; // 累計取引額
+
+  // 評価・メモ
+  rating?: number; // 評価（1-5）
+  notes?: string; // 備考・メモ
+  internal_notes?: string; // 社内用メモ
+
+  // ステータス
+  is_active: boolean; // 有効/無効
+
+  // タイムスタンプ
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string; // 論理削除
+}
+
+export type ClientType = 'customer' | 'supplier' | 'partner' | 'both';
+export type PaymentMethod = 'bank_transfer' | 'cash' | 'check' | 'credit' | 'other';
+export type BankAccountType = 'savings' | 'current' | 'other';
 ```
 
 ### 3.2 監査・機能管理型

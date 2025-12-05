@@ -1,0 +1,681 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { AddStaffModal } from './AddStaffModal'
+import { EditStaffModal } from './EditStaffModal'
+import { DeleteConfirmModal } from './DeleteConfirmModal'
+import { HistoryModal } from './HistoryModal'
+import { BulkImportModal } from './BulkImportModal'
+import { PermissionMatrixModal } from './PermissionMatrixModal'
+
+interface User {
+  id: string
+  name: string
+  email: string
+  role: 'staff' | 'leader' | 'manager' | 'admin' | 'super_admin'
+  department: string | null
+  employee_id: string | null
+  phone: string | null
+  is_active: boolean
+  last_login_at: string | null
+  created_at: string
+}
+
+interface StaffListClientProps {
+  userRole: string
+  organization: {
+    max_users: number
+    plan: string
+    current_count: number
+  } | null
+  departments: string[]
+}
+
+export function StaffListClient({ userRole, organization, departments }: StaffListClientProps) {
+  const [staff, setStaff] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [departmentFilter, setDepartmentFilter] = useState('all')
+  const [roleFilter, setRoleFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('active')
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isBulkImportModalOpen, setIsBulkImportModalOpen] = useState(false)
+  const [isPermissionMatrixOpen, setIsPermissionMatrixOpen] = useState(false)
+  const [editingStaff, setEditingStaff] = useState<User | null>(null)
+  const [deletingStaff, setDeletingStaff] = useState<User | null>(null)
+  const [historyStaff, setHistoryStaff] = useState<User | null>(null)
+
+  const isAdmin = userRole === 'admin' || userRole === 'super_admin'
+  const isManager = userRole === 'manager'
+  const isLeader = userRole === 'leader'
+  const canManageStaff = isAdmin || isManager
+  const usagePercent = organization ? (organization.current_count / organization.max_users) * 100 : 0
+
+  // 権限による操作制限
+  // admin: 全員を操作可能
+  // manager: admin/super_admin 以外を操作可能
+  // leader: 閲覧のみ（編集不可）
+  const canEditUser = (targetUser: User) => {
+    if (isAdmin) return true
+    if (isManager && targetUser.role !== 'admin' && targetUser.role !== 'super_admin') return true
+    return false
+  }
+
+  // role表示用のヘルパー関数
+  const getRoleLabel = (role: string) => {
+    const labels: Record<string, string> = {
+      staff: 'スタッフ',
+      leader: 'リーダー',
+      manager: 'マネージャー',
+      admin: '管理者',
+      super_admin: 'スーパー管理者',
+    }
+    return labels[role] || role
+  }
+
+  const getRoleColor = (role: string) => {
+    const colors: Record<string, string> = {
+      staff: 'bg-gray-100 text-gray-800',
+      leader: 'bg-blue-100 text-blue-800',
+      manager: 'bg-green-100 text-green-800',
+      admin: 'bg-purple-100 text-purple-800',
+      super_admin: 'bg-red-100 text-red-800',
+    }
+    return colors[role] || 'bg-gray-100 text-gray-800'
+  }
+
+  // スタッフ一覧取得
+  const fetchStaff = async () => {
+    try {
+      setLoading(true)
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: '50',
+      })
+
+      if (search) params.append('search', search)
+      if (departmentFilter !== 'all') params.append('department', departmentFilter)
+      if (roleFilter !== 'all') params.append('role', roleFilter)
+      if (statusFilter !== 'all') params.append('status', statusFilter)
+
+      const response = await fetch(`/api/staff?${params.toString()}`)
+      const data = await response.json()
+
+      if (response.ok) {
+        setStaff(data.data || [])
+        setTotalPages(data.total_pages || 1)
+      } else {
+        console.error('Failed to fetch staff:', data.error)
+      }
+    } catch (error) {
+      console.error('Error fetching staff:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchStaff()
+  }, [search, departmentFilter, roleFilter, statusFilter, page])
+
+  // アカウント有効化/無効化
+  const handleToggleActive = async (userId: string) => {
+    try {
+      const response = await fetch(`/api/staff/${userId}/toggle-active`, {
+        method: 'POST',
+      })
+
+      if (response.ok) {
+        fetchStaff()
+      } else {
+        const data = await response.json()
+        alert(data.error || 'ステータスの更新に失敗しました')
+      }
+    } catch (error) {
+      console.error('Error toggling active status:', error)
+      alert('予期しないエラーが発生しました')
+    }
+  }
+
+  // パスワードリセット
+  const handlePasswordReset = async (userId: string, userName: string) => {
+    if (!confirm(`${userName} のパスワードをリセットしますか？\n\nリセットトークンが発行され、24時間以内に新しいパスワードを設定できます。`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/staff/${userId}/reset-password`, {
+        method: 'POST',
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.reset_url) {
+          // 開発環境ではURLを表示
+          alert(`パスワードリセットトークンを発行しました。\n\nリセットURL: ${data.reset_url}\n\n本番環境ではメールで送信されます。`)
+        } else {
+          alert('パスワードリセットトークンを発行し、メールを送信しました。')
+        }
+      } else {
+        const data = await response.json()
+        alert(data.error || 'パスワードリセットに失敗しました')
+      }
+    } catch (error) {
+      console.error('Error resetting password:', error)
+      alert('予期しないエラーが発生しました')
+    }
+  }
+
+  // 削除確認
+  const handleDeleteConfirm = async () => {
+    if (!deletingStaff) return
+
+    try {
+      const response = await fetch(`/api/staff/${deletingStaff.id}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        setDeletingStaff(null)
+        fetchStaff()
+      } else {
+        const data = await response.json()
+        alert(data.error || 'スタッフの削除に失敗しました')
+      }
+    } catch (error) {
+      console.error('Error deleting staff:', error)
+      alert('予期しないエラーが発生しました')
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* ヘッダー */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">スタッフ管理</h1>
+          <p className="mt-2 text-sm text-gray-600">組織内のスタッフを管理します</p>
+        </div>
+        {isAdmin && (
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              disabled={usagePercent >= 100}
+              className={`px-4 py-2 text-sm font-medium rounded-md shadow-sm text-white ${
+                usagePercent >= 100
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700'
+              }`}
+            >
+              + スタッフを追加
+            </button>
+            <button
+              onClick={() => setIsBulkImportModalOpen(true)}
+              disabled={usagePercent >= 100}
+              className={`px-4 py-2 text-sm font-medium rounded-md shadow-sm ${
+                usagePercent >= 100
+                  ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                  : 'bg-green-600 text-white hover:bg-green-700'
+              }`}
+            >
+              📥 CSV一括登録
+            </button>
+            <button
+              onClick={() => setIsPermissionMatrixOpen(true)}
+              className="px-4 py-2 text-sm font-medium rounded-md shadow-sm bg-purple-600 text-white hover:bg-purple-700"
+            >
+              🔐 権限一覧
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* 利用状況バー */}
+      {organization && (
+        <div
+          className={`border-l-4 p-4 ${
+            usagePercent >= 100
+              ? 'bg-red-100 border-red-400'
+              : usagePercent >= 80
+              ? 'bg-yellow-100 border-yellow-400'
+              : 'bg-blue-100 border-blue-400'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p
+                className={`font-medium ${
+                  usagePercent >= 100
+                    ? 'text-red-800'
+                    : usagePercent >= 80
+                    ? 'text-yellow-800'
+                    : 'text-blue-800'
+                }`}
+              >
+                📊 利用状況: {organization.current_count}/{organization.max_users}人 ({organization.plan}プラン)
+              </p>
+              {usagePercent >= 100 && (
+                <p className="mt-1 text-sm text-red-700">
+                  ⚠️ プランの上限に達しています。新しいスタッフを追加するには、プランをアップグレードしてください。
+                </p>
+              )}
+              {usagePercent >= 80 && usagePercent < 100 && (
+                <p className="mt-1 text-sm text-yellow-700">
+                  ⚠️ あと{organization.max_users - organization.current_count}
+                  人で上限です。プランアップグレードを検討してください。
+                </p>
+              )}
+            </div>
+            {usagePercent >= 100 && (
+              <button className="px-4 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700">
+                プランをアップグレード
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 検索・フィルタ */}
+      <div className="bg-white p-4 rounded-lg shadow">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <input
+            type="text"
+            placeholder="🔍 名前・メールで検索"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+
+          <select
+            value={departmentFilter}
+            onChange={(e) => setDepartmentFilter(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="all">全ての部署</option>
+            {departments.map((dept) => (
+              <option key={dept} value={dept}>
+                {dept}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="all">全ての権限</option>
+            <option value="admin">管理者</option>
+            <option value="leader">リーダー</option>
+            <option value="staff">一般スタッフ</option>
+          </select>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="all">全ての状態</option>
+            <option value="active">有効</option>
+            <option value="inactive">無効</option>
+          </select>
+        </div>
+      </div>
+
+      {/* デスクトップ: テーブル表示 */}
+      <div className="hidden md:block bg-white shadow rounded-lg overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                名前
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                メール
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                部署
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                権限
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                状態
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                最終ログイン
+              </th>
+              {isAdmin && (
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  操作
+                </th>
+              )}
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {loading ? (
+              <tr>
+                <td colSpan={isAdmin ? 7 : 6} className="px-6 py-4 text-center text-gray-500">
+                  読み込み中...
+                </td>
+              </tr>
+            ) : staff.length === 0 ? (
+              <tr>
+                <td colSpan={isAdmin ? 7 : 6} className="px-6 py-4 text-center text-gray-500">
+                  スタッフが見つかりません
+                </td>
+              </tr>
+            ) : (
+              staff.map((user) => (
+                <tr key={user.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-500">{user.email}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{user.department || '-'}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleColor(user.role)}`}
+                    >
+                      {getRoleLabel(user.role)}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {user.is_active ? '✅ 有効' : '❌ 無効'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {user.last_login_at
+                      ? new Date(user.last_login_at).toLocaleDateString('ja-JP', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })
+                      : '未ログイン'}
+                  </td>
+                  {canManageStaff && (
+                    <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex justify-end items-center gap-1">
+                        {isAdmin && (
+                          <button
+                            onClick={() => setHistoryStaff(user)}
+                            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all hover:shadow-sm"
+                            title="変更履歴"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </button>
+                        )}
+                        {canEditUser(user) && (
+                          <button
+                            onClick={() => setEditingStaff(user)}
+                            className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-all hover:shadow-sm"
+                            title="編集"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                        )}
+                        {isAdmin && (
+                          <button
+                            onClick={() => handlePasswordReset(user.id, user.name)}
+                            className="p-2 text-orange-600 hover:text-orange-900 hover:bg-orange-50 rounded-lg transition-all hover:shadow-sm"
+                            title="パスワードリセット"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                            </svg>
+                          </button>
+                        )}
+                        {isAdmin && (
+                          <button
+                            onClick={() => handleToggleActive(user.id)}
+                            className={`p-2 rounded-lg transition-all hover:shadow-sm ${
+                              user.is_active
+                                ? 'text-yellow-600 hover:text-yellow-900 hover:bg-yellow-50'
+                                : 'text-green-600 hover:text-green-900 hover:bg-green-50'
+                            }`}
+                            title={user.is_active ? '無効化' : '有効化'}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={user.is_active ? "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" : "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"} />
+                            </svg>
+                          </button>
+                        )}
+                        {canEditUser(user) && (
+                          <button
+                            onClick={() => setDeletingStaff(user)}
+                            className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-all hover:shadow-sm"
+                            title="削除"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* スマホ: カード表示 */}
+      <div className="md:hidden space-y-4">
+        {loading ? (
+          <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+            読み込み中...
+          </div>
+        ) : staff.length === 0 ? (
+          <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+            スタッフが見つかりません
+          </div>
+        ) : (
+          staff.map((user) => (
+            <div key={user.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+              {/* カードヘッダー */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h3 className="text-base font-bold text-gray-900">{user.name}</h3>
+                    <p className="text-xs text-gray-600 mt-0.5">{user.email}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(user.role)}`}>
+                      {getRoleLabel(user.role)}
+                    </span>
+                    <span
+                      className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {user.is_active ? '✓' : '×'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* カード本体 */}
+              <div className="px-4 py-3 space-y-2">
+                <div className="flex items-center text-sm">
+                  <span className="text-gray-500 w-24 flex-shrink-0">部署:</span>
+                  <span className="text-gray-900 font-medium">{user.department || '未設定'}</span>
+                </div>
+                <div className="flex items-center text-sm">
+                  <span className="text-gray-500 w-24 flex-shrink-0">ログイン:</span>
+                  <span className="text-gray-700 text-xs">
+                    {user.last_login_at
+                      ? new Date(user.last_login_at).toLocaleDateString('ja-JP', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                        })
+                      : '未ログイン'}
+                  </span>
+                </div>
+              </div>
+
+              {/* 操作ボタン */}
+              {canManageStaff && (
+                <div className="px-4 pb-4">
+                  <div className="grid grid-cols-2 gap-2">
+                    {isAdmin && (
+                      <button
+                        onClick={() => setHistoryStaff(user)}
+                        className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>履歴</span>
+                      </button>
+                    )}
+                    {canEditUser(user) && (
+                      <button
+                        onClick={() => setEditingStaff(user)}
+                        className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        <span>編集</span>
+                      </button>
+                    )}
+                    {isAdmin && (
+                      <button
+                        onClick={() => handlePasswordReset(user.id, user.name)}
+                        className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-orange-700 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
+                        <span>リセット</span>
+                      </button>
+                    )}
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleToggleActive(user.id)}
+                        className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
+                          user.is_active
+                            ? 'text-yellow-700 bg-yellow-50 hover:bg-yellow-100'
+                            : 'text-green-700 bg-green-50 hover:bg-green-100'
+                        }`}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={user.is_active ? "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" : "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"} />
+                        </svg>
+                        <span>{user.is_active ? '無効化' : '有効化'}</span>
+                      </button>
+                    )}
+                  </div>
+                  {canEditUser(user) && (
+                    <button
+                      onClick={() => setDeletingStaff(user)}
+                      className="w-full mt-2 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      <span>削除</span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* ページネーション */}
+      {totalPages > 1 && (
+        <div className="flex justify-center space-x-2">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-4 py-2 text-sm border rounded-md disabled:opacity-50"
+          >
+            前へ
+          </button>
+          <span className="px-4 py-2 text-sm">
+            {page} / {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="px-4 py-2 text-sm border rounded-md disabled:opacity-50"
+          >
+            次へ
+          </button>
+        </div>
+      )}
+
+      {/* モーダル */}
+      <AddStaffModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={fetchStaff}
+        departments={departments}
+      />
+
+      {editingStaff && (
+        <EditStaffModal
+          isOpen={true}
+          onClose={() => setEditingStaff(null)}
+          onSuccess={fetchStaff}
+          staff={editingStaff}
+          departments={departments}
+        />
+      )}
+
+      {deletingStaff && (
+        <DeleteConfirmModal
+          isOpen={true}
+          onClose={() => setDeletingStaff(null)}
+          onConfirm={handleDeleteConfirm}
+          staffName={deletingStaff.name}
+        />
+      )}
+
+      {historyStaff && (
+        <HistoryModal
+          isOpen={true}
+          onClose={() => setHistoryStaff(null)}
+          staffId={historyStaff.id}
+          staffName={historyStaff.name}
+        />
+      )}
+
+      <BulkImportModal
+        isOpen={isBulkImportModalOpen}
+        onClose={() => setIsBulkImportModalOpen(false)}
+        onSuccess={fetchStaff}
+      />
+
+      <PermissionMatrixModal
+        isOpen={isPermissionMatrixOpen}
+        onClose={() => setIsPermissionMatrixOpen(false)}
+      />
+    </div>
+  )
+}

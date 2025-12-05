@@ -30,6 +30,11 @@ export default async function SiteDetailPage({
         id,
         name,
         email
+      ),
+      client:clients (
+        id,
+        name,
+        code
       )
     `
     )
@@ -109,6 +114,16 @@ export default async function SiteDetailPage({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              {site.client && (
+                <div>
+                  <p className="text-sm text-gray-600">取引先</p>
+                  <p className="text-gray-900">
+                    <Link href={`/clients/${site.client.id}`} className="text-blue-600 hover:text-blue-800">
+                      🏢 {site.client.name} ({site.client.code})
+                    </Link>
+                  </p>
+                </div>
+              )}
               {site.address && (
                 <div>
                   <p className="text-sm text-gray-600">住所</p>

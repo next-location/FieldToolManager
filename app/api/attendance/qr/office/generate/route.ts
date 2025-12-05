@@ -60,8 +60,8 @@ export async function POST(request: NextRequest) {
     const validFrom = now
     const validUntil = new Date(now.getTime() + rotationDays * 24 * 60 * 60 * 1000)
 
-    // QRデータフォーマット: ATT:${organization_id}:${random_token}:${valid_until}
-    const qrData = `ATT:${userData.organization_id}:${randomToken}:${validUntil.toISOString()}`
+    // QRデータフォーマット: ATT|${organization_id}|${random_token}|${valid_until}
+    const qrData = `ATT|${userData.organization_id}|${randomToken}|${validUntil.toISOString()}`
 
     // データベースに保存
     const { data: newQrCode, error: insertError } = await supabase
@@ -84,15 +84,27 @@ export async function POST(request: NextRequest) {
     // 有効期限までの日数を計算
     const daysRemaining = Math.ceil((validUntil.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
 
+    // QRコード画像を生成（サーバーサイドで生成）
+    const QRCode = require('qrcode')
+    let qrImage: string
+    try {
+      qrImage = await QRCode.toDataURL(newQrCode.qr_data, {
+        width: 400,
+        margin: 2,
+        errorCorrectionLevel: 'M',
+      })
+    } catch (qrError) {
+      console.error('QR image generation error:', qrError)
+      return NextResponse.json({ error: 'QR画像の生成に失敗しました' }, { status: 500 })
+    }
+
     return NextResponse.json({
       success: true,
-      qr_code: {
-        id: newQrCode.id,
-        qr_data: newQrCode.qr_data,
-        valid_from: newQrCode.valid_from,
-        valid_until: newQrCode.valid_until,
-        days_remaining: daysRemaining,
-      },
+      qr_data: newQrCode.qr_data,
+      qr_image: qrImage,
+      valid_from: newQrCode.valid_from,
+      valid_until: newQrCode.valid_until,
+      days_remaining: daysRemaining,
     })
   } catch (error) {
     console.error('Unexpected error:', error)

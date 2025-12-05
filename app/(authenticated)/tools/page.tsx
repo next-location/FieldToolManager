@@ -12,12 +12,14 @@ export default async function ToolsPage() {
     redirect('/login')
   }
 
-  // ユーザーの組織IDを取得
+  // ユーザーの組織IDと権限を取得
   const { data: userData } = await supabase
     .from('users')
-    .select('organization_id')
+    .select('organization_id, role')
     .eq('email', user.email)
     .single()
+
+  const isAdmin = userData?.role === 'admin'
 
   // 道具マスタと個別アイテム数を取得（個別管理のみ）
   const { data: tools, error } = await supabase
@@ -69,20 +71,22 @@ export default async function ToolsPage() {
       <div className="px-4 py-6 sm:px-0">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">道具一覧</h1>
-          <div className="flex space-x-3">
-            <Link
-              href="/tools/bulk-qr"
-              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-            >
-              🖨️ QRコード一括印刷
-            </Link>
-            <Link
-              href="/tools/new"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              + 新規登録
-            </Link>
-          </div>
+          {isAdmin && (
+            <div className="flex space-x-3">
+              <Link
+                href="/tools/bulk-qr"
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              >
+                🖨️ QRコード一括印刷
+              </Link>
+              <Link
+                href="/tools/new"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                + 新規登録
+              </Link>
+            </div>
+          )}
         </div>
 
         {error && (

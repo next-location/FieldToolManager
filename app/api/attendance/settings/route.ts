@@ -118,6 +118,14 @@ export async function PUT(request: NextRequest) {
       )
     }
 
+    // 新しい統一型のqr_rotation_daysバリデーション
+    if (body.qr_rotation_days && ![1, 3, 7, 30].includes(body.qr_rotation_days)) {
+      return NextResponse.json(
+        { error: 'QR更新頻度は1, 3, 7, 30日のいずれかを指定してください' },
+        { status: 400 }
+      )
+    }
+
     if (body.break_time_mode && !['none', 'simple', 'detailed'].includes(body.break_time_mode)) {
       return NextResponse.json(
         { error: '休憩時間モードが不正です' },
@@ -132,25 +140,62 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    // 時刻フォーマットのバリデーション（HH:MM）
-    const timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/
-    if (body.checkin_reminder_time && !timeRegex.test(body.checkin_reminder_time)) {
+    // 新しい統一型のclock_methodバリデーション
+    if (body.clock_method && !['manual', 'qr_code', 'location'].includes(body.clock_method)) {
       return NextResponse.json(
-        { error: '出勤リマインダー時刻のフォーマットが不正です（HH:MM形式）' },
+        { error: '打刻方法が不正です' },
         { status: 400 }
       )
     }
-    if (body.checkout_reminder_time && !timeRegex.test(body.checkout_reminder_time)) {
-      return NextResponse.json(
-        { error: '退勤リマインダー時刻のフォーマットが不正です（HH:MM形式）' },
-        { status: 400 }
-      )
+
+    // 月次レポート日のバリデーション
+    if (body.monthly_report_day !== undefined) {
+      if (body.monthly_report_day < 1 || body.monthly_report_day > 31) {
+        return NextResponse.json(
+          { error: '月次レポート日は1-31の範囲で指定してください' },
+          { status: 400 }
+        )
+      }
     }
-    if (body.admin_daily_report_time && !timeRegex.test(body.admin_daily_report_time)) {
-      return NextResponse.json(
-        { error: '日次レポート時刻のフォーマットが不正です（HH:MM形式）' },
-        { status: 400 }
-      )
+
+    // 時刻フォーマットのバリデーション（HH:MM または HH:MM:SS）
+    const timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/
+
+    // HH:MM形式の場合はHH:MM:SS形式に変換
+    const normalizeTime = (time: string | undefined) => {
+      if (!time) return undefined
+      if (time.length === 5 && time.match(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/)) {
+        return `${time}:00`
+      }
+      return time
+    }
+
+    if (body.checkin_reminder_time) {
+      body.checkin_reminder_time = normalizeTime(body.checkin_reminder_time)
+      if (body.checkin_reminder_enabled && !timeRegex.test(body.checkin_reminder_time)) {
+        return NextResponse.json(
+          { error: '出勤リマインダー時刻のフォーマットが不正です（HH:MM形式）' },
+          { status: 400 }
+        )
+      }
+    }
+    if (body.checkout_reminder_time) {
+      body.checkout_reminder_time = normalizeTime(body.checkout_reminder_time)
+      if (body.checkout_reminder_enabled && !timeRegex.test(body.checkout_reminder_time)) {
+        return NextResponse.json(
+          { error: '退勤リマインダー時刻のフォーマットが不正です（HH:MM形式）' },
+          { status: 400 }
+        )
+      }
+    }
+    if (body.admin_daily_report_time) {
+      body.admin_daily_report_time = normalizeTime(body.admin_daily_report_time)
+      if (body.admin_daily_report_enabled && !timeRegex.test(body.admin_daily_report_time)) {
+        return NextResponse.json(
+          { error: '日次レポート時刻のフォーマットが不正です（HH:MM形式）' },
+          { status: 400 }
+        )
+      }
     }
 
     // 更新データ準備

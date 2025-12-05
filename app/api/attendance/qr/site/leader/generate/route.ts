@@ -62,15 +62,37 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 出退勤設定を取得（QR有効期限設定を確認）
+    const { data: attendanceSettings } = await supabase
+      .from('organization_attendance_settings')
+      .select('qr_rotation_days')
+      .eq('organization_id', userData.organization_id)
+      .single()
+
+    // QR更新頻度（デフォルト: 1日）
+    const rotationDays = attendanceSettings?.qr_rotation_days || 1
+
     // 日本時間で今日の日付を取得
     const now = new Date()
     const jstOffset = 9 * 60 // 日本は UTC+9
     const jstDate = new Date(now.getTime() + jstOffset * 60 * 1000)
     const today = jstDate.toISOString().split('T')[0] // YYYY-MM-DD
 
-    // QRコードデータ生成
-    // フォーマット: SITE:{site_id}:{leader_id}:{date}
-    const qrData = `SITE:${site_id}:${userData.id}:${today}`
+    // 有効期限を計算（rotationDays日後の23:59:59）
+    const expiresDate = new Date(jstDate)
+    expiresDate.setDate(expiresDate.getDate() + rotationDays)
+    expiresDate.setHours(23, 59, 59, 999)
+    const expiresAt = new Date(expiresDate.getTime() - jstOffset * 60 * 1000) // UTC に戻す
+
+    // QRコードデータ生成（JSON形式）
+    const qrData = JSON.stringify({
+      type: 'site_leader',
+      location_type: 'site',
+      site_id,
+      leader_id: userData.id,
+      valid_date: today,
+      expires_at: expiresAt.toISOString(),
+    })
 
     // QRコード記録をデータベースに保存（履歴管理用）
     const { data: qrRecord, error: insertError } = await supabase
@@ -78,10 +100,10 @@ export async function POST(request: NextRequest) {
       .insert({
         organization_id: userData.organization_id,
         site_id,
-        leader_id: userData.id,
-        qr_data: qrData,
-        valid_date: today,
-        generated_at: now.toISOString(),
+        generated_by: userData.id,
+        qr_code_data: qrData,
+        expires_at: expiresAt.toISOString(),
+        is_active: true,
       })
       .select()
       .single()
@@ -94,10 +116,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // QRコード画像を生成（サーバーサイドで生成）
+    const QRCode = require('qrcode')
+    let qrImage: string
+    try {
+      qrImage = await QRCode.toDataURL(qrData, {
+        width: 400,
+        margin: 2,
+        errorCorrectionLevel: 'M',
+      })
+    } catch (qrError) {
+      console.error('QR image generation error:', qrError)
+      return NextResponse.json({ error: 'QR画像の生成に失敗しました' }, { status: 500 })
+    }
+
     return NextResponse.json({
       success: true,
       qr_data: qrData,
+      qr_image: qrImage,
       site_name: site.name,
+      site_id: site.id,
+      generated_at: qrRecord.generated_at,
+      expires_at: qrRecord.expires_at,
       valid_date: today,
       type: 'site_leader',
       message: `${site.name}の当日有効なQRコードを発行しました`,

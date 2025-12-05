@@ -43,6 +43,17 @@ export function AttendanceSettingsForm({
   initialSettings: OrganizationAttendanceSettings | null
   organizationId: string
 }) {
+  // 時刻をHH:MM形式に正規化する関数
+  const normalizeTime = (time: string | undefined): string => {
+    if (!time) return ''
+    // HH:MM:SS形式の場合はHH:MMに変換
+    if (time.includes(':')) {
+      const parts = time.split(':')
+      return `${parts[0]}:${parts[1]}`
+    }
+    return time
+  }
+
   const [settings, setSettings] = useState(
     initialSettings
       ? {
@@ -56,11 +67,11 @@ export function AttendanceSettingsForm({
           auto_break_deduction: initialSettings.auto_break_deduction,
           auto_break_minutes: initialSettings.auto_break_minutes,
           checkin_reminder_enabled: initialSettings.checkin_reminder_enabled,
-          checkin_reminder_time: initialSettings.checkin_reminder_time,
+          checkin_reminder_time: normalizeTime(initialSettings.checkin_reminder_time),
           checkout_reminder_enabled: initialSettings.checkout_reminder_enabled,
-          checkout_reminder_time: initialSettings.checkout_reminder_time,
+          checkout_reminder_time: normalizeTime(initialSettings.checkout_reminder_time),
           admin_daily_report_enabled: initialSettings.admin_daily_report_enabled,
-          admin_daily_report_time: initialSettings.admin_daily_report_time,
+          admin_daily_report_time: normalizeTime(initialSettings.admin_daily_report_time),
           admin_daily_report_email: initialSettings.admin_daily_report_email,
           qr_expiry_alert_enabled: initialSettings.qr_expiry_alert_enabled,
           qr_expiry_alert_email: initialSettings.qr_expiry_alert_email,

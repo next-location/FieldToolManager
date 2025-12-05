@@ -10,6 +10,7 @@ export async function createSite(formData: FormData) {
   const name = formData.get('name') as string
   const address = formData.get('address') as string
   const manager_id = formData.get('manager_id') as string | null
+  const client_id = formData.get('client_id') as string | null
 
   // ユーザー情報と組織IDを取得
   const {
@@ -36,6 +37,7 @@ export async function createSite(formData: FormData) {
     name,
     address: address || null,
     manager_id: manager_id || null,
+    client_id: client_id || null,
     is_active: true,
   })
 
@@ -57,6 +59,7 @@ export async function updateSite(id: string, formData: FormData) {
   const name = formData.get('name') as string
   const address = formData.get('address') as string
   const manager_id = formData.get('manager_id') as string | null
+  const client_id = formData.get('client_id') as string | null
   const is_active = formData.get('is_active') === 'true'
 
   const { error } = await supabase
@@ -65,6 +68,7 @@ export async function updateSite(id: string, formData: FormData) {
       name,
       address: address || null,
       manager_id: manager_id || null,
+      client_id: client_id || null,
       is_active,
     })
     .eq('id', id)

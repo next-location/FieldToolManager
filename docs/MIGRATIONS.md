@@ -113,6 +113,196 @@ npm run health-check
 
 ## 3. マイグレーション履歴
 
+### Phase 10: 取引先マスタ追加（2025-12-05）
+
+#### 20250105000010_create_clients_master.sql ✨NEW
+```sql
+-- 取引先マスタテーブル作成
+CREATE TABLE clients (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+
+  -- 基本情報
+  code TEXT NOT NULL, -- 取引先コード（例: CL-0001）
+  name TEXT NOT NULL, -- 取引先名
+  name_kana TEXT, -- フリガナ
+  short_name TEXT, -- 略称
+
+  -- 取引先分類
+  client_type TEXT NOT NULL CHECK (client_type IN ('customer', 'supplier', 'partner', 'both')),
+  industry TEXT, -- 業種
+
+  -- 連絡先情報
+  postal_code TEXT,
+  address TEXT,
+  phone TEXT,
+  fax TEXT,
+  email TEXT,
+  website TEXT,
+
+  -- 担当者情報
+  contact_person TEXT,
+  contact_department TEXT,
+  contact_phone TEXT,
+  contact_email TEXT,
+
+  -- 取引条件
+  payment_terms TEXT,
+  payment_method TEXT CHECK (payment_method IN ('bank_transfer', 'cash', 'check', 'credit', 'other')),
+  payment_due_days INTEGER DEFAULT 30,
+
+  -- 銀行情報
+  bank_name TEXT,
+  bank_branch TEXT,
+  bank_account_type TEXT CHECK (bank_account_type IN ('savings', 'current', 'other')),
+  bank_account_number TEXT,
+  bank_account_holder TEXT,
+
+  -- 財務情報
+  credit_limit DECIMAL(15, 2),
+  current_balance DECIMAL(15, 2) DEFAULT 0,
+
+  -- 税務情報
+  tax_id TEXT,
+  tax_registration_number TEXT, -- インボイス登録番号
+  is_tax_exempt BOOLEAN DEFAULT false,
+
+  -- 取引実績
+  first_transaction_date DATE,
+  last_transaction_date DATE,
+  total_transaction_count INTEGER DEFAULT 0,
+  total_transaction_amount DECIMAL(15, 2) DEFAULT 0,
+
+  -- 評価・メモ
+  rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+  notes TEXT,
+  internal_notes TEXT,
+
+  -- ステータス
+  is_active BOOLEAN DEFAULT true,
+
+  -- タイムスタンプ
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  deleted_at TIMESTAMPTZ,
+
+  -- 制約
+  UNIQUE(organization_id, code),
+  UNIQUE(organization_id, name)
+);
+
+-- インデックス作成
+CREATE INDEX idx_clients_organization_id ON clients(organization_id);
+CREATE INDEX idx_clients_code ON clients(organization_id, code);
+CREATE INDEX idx_clients_name ON clients(organization_id, name);
+CREATE INDEX idx_clients_client_type ON clients(client_type);
+CREATE INDEX idx_clients_is_active ON clients(is_active);
+CREATE INDEX idx_clients_deleted_at ON clients(deleted_at) WHERE deleted_at IS NULL;
+CREATE INDEX idx_clients_email ON clients(email) WHERE email IS NOT NULL;
+CREATE INDEX idx_clients_last_transaction_date ON clients(last_transaction_date DESC) WHERE last_transaction_date IS NOT NULL;
+
+-- RLS有効化
+ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
+
+-- RLSポリシー
+CREATE POLICY "clients_isolation_policy"
+    ON clients
+    FOR ALL
+    USING (
+        organization_id IN (
+            SELECT organization_id
+            FROM users
+            WHERE id = auth.uid()
+        )
+    );
+
+-- 現場テーブルに取引先参照追加
+ALTER TABLE sites ADD COLUMN IF NOT EXISTS client_id UUID REFERENCES clients(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_sites_client_id ON sites(client_id);
+
+-- 取引先コード自動生成テーブル
+CREATE TABLE IF NOT EXISTS client_code_sequences (
+    organization_id UUID PRIMARY KEY REFERENCES organizations(id) ON DELETE CASCADE,
+    last_number INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 取引先コード生成関数
+CREATE OR REPLACE FUNCTION generate_client_code(org_id UUID, prefix TEXT DEFAULT 'CL')
+RETURNS TEXT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    next_number INTEGER;
+    new_code TEXT;
+BEGIN
+    INSERT INTO client_code_sequences (organization_id, last_number)
+    VALUES (org_id, 1)
+    ON CONFLICT (organization_id)
+    DO UPDATE SET
+        last_number = client_code_sequences.last_number + 1,
+        updated_at = NOW()
+    RETURNING last_number INTO next_number;
+
+    new_code := prefix || '-' || LPAD(next_number::TEXT, 4, '0');
+    RETURN new_code;
+END;
+$$;
+
+-- 更新日時自動更新トリガー
+CREATE OR REPLACE FUNCTION update_clients_updated_at()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trigger_update_clients_updated_at
+    BEFORE UPDATE ON clients
+    FOR EACH ROW
+    EXECUTE FUNCTION update_clients_updated_at();
+```
+
+**適用日**: 2025-12-05
+**ステータス**: ✅ 完了
+**対象環境**: ローカル開発環境
+**ロールバック手順**:
+```sql
+-- トリガー削除
+DROP TRIGGER IF EXISTS trigger_update_clients_updated_at ON clients;
+DROP FUNCTION IF EXISTS update_clients_updated_at();
+
+-- 関数削除
+DROP FUNCTION IF EXISTS generate_client_code(UUID, TEXT);
+
+-- テーブル削除
+DROP TABLE IF EXISTS client_code_sequences;
+
+-- 現場テーブルから取引先参照削除
+ALTER TABLE sites DROP COLUMN IF EXISTS client_id;
+
+-- 取引先マスタ削除
+DROP TABLE IF EXISTS clients CASCADE;
+```
+
+**変更内容**:
+- 取引先マスタテーブル（clients）作成
+- 現場テーブル（sites）に取引先参照（client_id）追加
+- 取引先コード自動生成機能追加
+- RLSポリシー設定
+
+**今後の使用用途**:
+- 現場の発注者・元請け企業管理
+- 見積書・請求書・領収書発行
+- 売上管理・支払い管理
+- 作業報告書発行
+
+---
+
 ### Phase 1: 基盤構築（2025-12-01 〜）
 
 #### 20251201120000_create_organizations_table.sql

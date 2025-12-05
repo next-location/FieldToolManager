@@ -61,6 +61,7 @@ export async function GET(request: NextRequest) {
       today_record: todayRecord || null,
       is_clocked_in: todayRecord ? !todayRecord.clock_out_time : false,
       clock_in_time: todayRecord?.clock_in_time || null,
+      clock_out_time: todayRecord?.clock_out_time || null,
       location_type: todayRecord?.clock_in_location_type || null,
       site_name: todayRecord?.site?.name || null,
     }

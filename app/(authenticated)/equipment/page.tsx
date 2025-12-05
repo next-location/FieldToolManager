@@ -50,7 +50,7 @@ export default async function EquipmentPage() {
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
 
-  const isLeaderOrAdmin = ['leader', 'admin', 'super_admin'].includes(userData?.role || '')
+  const isAdmin = userData?.role === 'admin'
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -62,7 +62,7 @@ export default async function EquipmentPage() {
               登録されている重機の一覧を確認できます
             </p>
           </div>
-          {isLeaderOrAdmin && (
+          {isAdmin && (
             <div className="flex space-x-3">
               <Link
                 href="/equipment/bulk-qr"

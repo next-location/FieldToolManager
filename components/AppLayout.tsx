@@ -11,7 +11,7 @@ interface AppLayoutProps {
     id: string
     name?: string | null
   }
-  userRole: 'staff' | 'leader' | 'admin' | 'super_admin'
+  userRole: 'staff' | 'leader' | 'manager' | 'admin' | 'super_admin'
   organizationId: string
   organizationName?: string
   heavyEquipmentEnabled?: boolean

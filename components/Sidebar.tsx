@@ -311,25 +311,78 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
           </div>
 
           {/* 作業報告書 */}
-          <Link
-            href="/work-reports"
-            onClick={onClose}
-            className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${
-              isActive('/work-reports')
-                ? 'bg-blue-50 text-blue-700 font-medium'
-                : 'text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            <span>作業報告書</span>
-          </Link>
+          <div>
+            <button
+              onClick={() => toggleMenu('work-reports')}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
+                isActive('/work-reports')
+                  ? 'bg-blue-50 text-blue-700 font-medium'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                <span>作業報告書</span>
+              </div>
+              <svg
+                className={`w-4 h-4 transition-transform ${
+                  expandedMenu === 'work-reports' ? 'rotate-180' : ''
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {expandedMenu === 'work-reports' && (
+              <div className="ml-4 mt-1 space-y-1 border-l border-gray-200 pl-4">
+                <Link
+                  href="/work-reports"
+                  onClick={onClose}
+                  className={`block px-3 py-2 rounded-lg transition-colors text-sm ${
+                    pathname === '/work-reports'
+                      ? 'bg-blue-50 text-blue-700 font-medium'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  報告書一覧
+                </Link>
+                <Link
+                  href="/work-reports/new"
+                  onClick={onClose}
+                  className={`block px-3 py-2 rounded-lg transition-colors text-sm ${
+                    pathname === '/work-reports/new'
+                      ? 'bg-blue-50 text-blue-700 font-medium'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  新規作成
+                </Link>
+                {isAdmin && (
+                  <Link
+                    href="/work-reports/settings"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg transition-colors text-sm ${
+                      pathname === '/work-reports/settings'
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    設定
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* 勤怠管理 */}
           <div>

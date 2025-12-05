@@ -77,7 +77,7 @@ export default async function EquipmentDetailPage({
     .eq('id', userData?.organization_id)
     .single()
 
-  const isLeaderOrAdmin = ['leader', 'admin', 'super_admin'].includes(userData?.role || '')
+  const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userData?.role || '')
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -99,7 +99,7 @@ export default async function EquipmentDetailPage({
           usageRecords={usageRecords || []}
           maintenanceRecords={maintenanceRecords || []}
           organizationSettings={orgData?.heavy_equipment_settings || {}}
-          isLeaderOrAdmin={isLeaderOrAdmin}
+          isLeaderOrAdmin={isManagerOrAdmin}
         />
       </div>
     </div>

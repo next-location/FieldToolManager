@@ -9,7 +9,7 @@ interface AppHeaderProps {
     email: string | null
     id: string
   }
-  userRole: 'staff' | 'leader' | 'admin' | 'super_admin'
+  userRole: 'staff' | 'leader' | 'manager' | 'admin' | 'super_admin'
   organizationId: string
   organizationName?: string
   currentPage?: string

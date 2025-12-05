@@ -34,21 +34,7 @@ export async function POST(request: NextRequest) {
     // リクエストボディ取得
     const body: ClockInRequest = await request.json()
 
-    // バリデーション
-    if (!['office', 'site', 'remote'].includes(body.location_type)) {
-      return NextResponse.json(
-        { error: '不正な出勤場所タイプです' },
-        { status: 400 }
-      )
-    }
-
-    if (body.location_type === 'site' && !body.site_id) {
-      return NextResponse.json(
-        { error: '現場出勤の場合はsite_idが必要です' },
-        { status: 400 }
-      )
-    }
-
+    // バリデーション（打刻方法）
     if (!['manual', 'qr'].includes(body.method)) {
       return NextResponse.json(
         { error: '不正な打刻方法です' },
@@ -61,6 +47,23 @@ export async function POST(request: NextRequest) {
         { error: 'QR打刻の場合はqr_dataが必要です' },
         { status: 400 }
       )
+    }
+
+    // 手動打刻の場合のみ location_type をバリデーション（QR打刻はQR検証後に設定）
+    if (body.method === 'manual') {
+      if (!['office', 'site', 'remote'].includes(body.location_type)) {
+        return NextResponse.json(
+          { error: '不正な出勤場所タイプです' },
+          { status: 400 }
+        )
+      }
+
+      if (body.location_type === 'site' && !body.site_id) {
+        return NextResponse.json(
+          { error: '現場出勤の場合はsite_idが必要です' },
+          { status: 400 }
+        )
+      }
     }
 
     // 現在日時（JST）

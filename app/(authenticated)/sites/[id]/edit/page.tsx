@@ -45,6 +45,15 @@ export default async function EditSitePage({
     .eq('is_active', true)
     .order('name')
 
+  // 取引先一覧を取得
+  const { data: clients } = await supabase
+    .from('clients')
+    .select('id, name, code')
+    .eq('organization_id', userData?.organization_id)
+    .eq('is_active', true)
+    .is('deleted_at', null)
+    .order('name')
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-2xl mx-auto px-4">
@@ -77,6 +86,32 @@ export default async function EditSitePage({
                   defaultValue={site.name}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
+              </div>
+
+              {/* 取引先 */}
+              <div>
+                <label
+                  htmlFor="client_id"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  取引先
+                </label>
+                <select
+                  id="client_id"
+                  name="client_id"
+                  defaultValue={site.client_id || ''}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">選択してください</option>
+                  {clients?.map((client) => (
+                    <option key={client.id} value={client.id}>
+                      {client.name} ({client.code})
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-sm text-gray-500">
+                  取引先が未登録の場合は、先に<Link href="/clients/new" className="text-blue-600 hover:text-blue-800">取引先マスタ</Link>から登録してください
+                </p>
               </div>
 
               {/* 住所 */}

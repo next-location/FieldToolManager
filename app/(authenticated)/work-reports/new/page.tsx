@@ -41,6 +41,23 @@ export default async function NewWorkReportPage() {
     .is('deleted_at', null)
     .order('name')
 
+  // 組織の報告書設定を取得
+  const { data: settings } = await supabase
+    .from('organization_report_settings')
+    .select('*')
+    .eq('organization_id', userData.organization_id)
+    .single()
+
+  // 設定がない場合はデフォルト値
+  const reportSettings = settings || {
+    enable_work_location: true,
+    enable_progress_rate: true,
+    enable_materials: true,
+    enable_tools: true,
+    custom_fields: [],
+    require_approval: false,
+  }
+
   return (
     <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
@@ -56,6 +73,7 @@ export default async function NewWorkReportPage() {
           workers={workers || []}
           currentUserId={user.id}
           currentUserName={userData.name}
+          settings={reportSettings}
         />
       </div>
     </div>

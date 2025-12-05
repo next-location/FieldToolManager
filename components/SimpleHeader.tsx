@@ -9,7 +9,7 @@ interface SimpleHeaderProps {
     id: string
     name?: string | null
   }
-  userRole: 'staff' | 'leader' | 'admin' | 'super_admin'
+  userRole: 'staff' | 'leader' | 'manager' | 'admin' | 'super_admin'
   organizationId: string
   organizationName?: string
   onMenuClick: () => void
@@ -28,6 +28,7 @@ export function SimpleHeader({
     const labels: Record<string, string> = {
       staff: 'スタッフ',
       leader: 'リーダー',
+      manager: 'マネージャー',
       admin: '管理者',
       super_admin: 'スーパー管理者',
     }

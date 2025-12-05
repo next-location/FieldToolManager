@@ -9,12 +9,18 @@ export function AdjustmentForm({
   consumableName,
   unit,
   currentQuantity,
+  userRole,
 }: {
   consumableId: string
   consumableName: string
   unit: string
   currentQuantity: number
+  userRole: string
 }) {
+  // staffとleader権限の場合、±100個までの制限
+  const STAFF_MAX_ADJUSTMENT = 100
+  const isLimitedRole = userRole === 'staff' || userRole === 'leader'
+
   const router = useRouter()
   const [adjustmentType, setAdjustmentType] = useState<'add' | 'remove' | 'set'>('add')
   const [quantity, setQuantity] = useState('')
@@ -46,6 +52,22 @@ export function AdjustmentForm({
       setError('有効な数量を入力してください')
       setLoading(false)
       return
+    }
+
+    // staff/leader権限の制限チェック
+    if (isLimitedRole) {
+      if (adjustmentType === 'set') {
+        const diff = Math.abs(qty - currentQuantity)
+        if (diff > STAFF_MAX_ADJUSTMENT) {
+          setError(`一般スタッフ・リーダーは±${STAFF_MAX_ADJUSTMENT}個までの調整に制限されています。大幅な調整が必要な場合は管理者またはマネージャーに依頼してください。`)
+          setLoading(false)
+          return
+        }
+      } else if (qty > STAFF_MAX_ADJUSTMENT) {
+        setError(`一般スタッフ・リーダーは±${STAFF_MAX_ADJUSTMENT}個までの調整に制限されています。大幅な調整が必要な場合は管理者またはマネージャーに依頼してください。`)
+        setLoading(false)
+        return
+      }
     }
 
     if (adjustmentType === 'remove' && qty > currentQuantity) {
@@ -94,6 +116,11 @@ export function AdjustmentForm({
                 <li>紛失・破損による在庫減少</li>
                 <li>他社からの無償提供による在庫追加</li>
               </ul>
+              {isLimitedRole && (
+                <p className="mt-2 text-yellow-800 font-semibold">
+                  💡 一般スタッフ・リーダーは±{STAFF_MAX_ADJUSTMENT}個までの調整に制限されています。大幅な調整が必要な場合は管理者またはマネージャーに依頼してください。
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -157,6 +184,7 @@ export function AdjustmentForm({
             type="number"
             id="quantity"
             min="0"
+            max={isLimitedRole && adjustmentType !== 'set' ? STAFF_MAX_ADJUSTMENT : undefined}
             required
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
@@ -173,6 +201,11 @@ export function AdjustmentForm({
             <strong className="ml-1 text-gray-900">
               {calculateNewQuantity()} {unit}
             </strong>
+          </p>
+        )}
+        {isLimitedRole && (
+          <p className="mt-1 text-xs text-gray-500">
+            💡 一般スタッフ・リーダーは±{STAFF_MAX_ADJUSTMENT}個までの調整が可能です
           </p>
         )}
       </div>
