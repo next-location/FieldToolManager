@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { notifyWorkReportSubmitted } from '@/lib/notifications/work-report-notifications'
 
 // GET /api/work-reports/[id] - 作業報告書詳細取得
 export async function GET(
@@ -84,10 +85,10 @@ export async function PATCH(
       return NextResponse.json({ error: '報告書が見つかりません' }, { status: 404 })
     }
 
-    // 権限チェック: 下書きで、かつ作成者本人のみ編集可能
-    if (existingReport.status !== 'draft') {
+    // 権限チェック: 下書き または 却下された報告書のみ編集可能
+    if (existingReport.status !== 'draft' && existingReport.status !== 'rejected') {
       return NextResponse.json(
-        { error: '提出済みの報告書は編集できません' },
+        { error: '下書きまたは却下された報告書のみ編集できます' },
         { status: 403 }
       )
     }
@@ -138,6 +139,14 @@ export async function PATCH(
     if (body.next_tasks !== undefined) updateData.next_tasks = body.next_tasks
     if (body.custom_fields !== undefined) updateData.custom_fields = body.custom_fields
 
+    // ステータス更新対応（却下された報告書を編集して再提出する場合）
+    if (body.status !== undefined) {
+      // 却下状態からsubmittedへの遷移のみ許可
+      if (existingReport.status === 'rejected' && body.status === 'submitted') {
+        updateData.status = 'submitted'
+      }
+    }
+
     // 作業報告書更新
     const { data, error } = await supabase
       .from('work_reports')
@@ -155,6 +164,31 @@ export async function PATCH(
     if (error) {
       console.error('Work report update error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    // 再提出された場合は通知を送信
+    if (existingReport.status === 'rejected' && updateData.status === 'submitted' && data) {
+      try {
+        // ユーザー情報を取得
+        const { data: submitterData } = await supabase
+          .from('users')
+          .select('name, organization_id')
+          .eq('id', user.id)
+          .single()
+
+        if (submitterData) {
+          await notifyWorkReportSubmitted({
+            organizationId: submitterData.organization_id,
+            workReportId: data.id,
+            reportDate: data.report_date,
+            siteName: data.site?.name || '不明な現場',
+            submitterName: submitterData.name,
+          })
+        }
+      } catch (notifyError) {
+        console.error('Notification error:', notifyError)
+        // 通知エラーは更新の成功を妨げない
+      }
     }
 
     return NextResponse.json({ data })

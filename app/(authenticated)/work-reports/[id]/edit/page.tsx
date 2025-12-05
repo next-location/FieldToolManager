@@ -41,8 +41,11 @@ export default async function EditWorkReportPage({
     notFound()
   }
 
-  // 編集権限チェック（下書き状態 かつ 作成者のみ）
-  if (report.status !== 'draft' || report.created_by !== user.id) {
+  // 編集権限チェック（下書き または 却下された報告書 かつ 作成者のみ）
+  if (
+    (report.status !== 'draft' && report.status !== 'rejected') ||
+    report.created_by !== user.id
+  ) {
     redirect(`/work-reports/${id}`)
   }
 

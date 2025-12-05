@@ -62,8 +62,11 @@ export default async function WorkReportDetailPage({
   }
 
   // 編集・削除権限チェック
-  const canEdit = report.status === 'draft' && report.created_by === user.id
+  // 下書き または 却下された報告書は作成者が編集可能
+  const canEdit =
+    (report.status === 'draft' || report.status === 'rejected') && report.created_by === user.id
   const canDelete = report.created_by === user.id || userData.role === 'admin'
+  const canResubmit = report.status === 'rejected' && report.created_by === user.id
 
   // 承認権限チェック（leader/admin かつ 提出済みステータス）
   const canApprove =
