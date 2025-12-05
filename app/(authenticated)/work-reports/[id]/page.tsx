@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { DeleteButton } from './DeleteButton'
 import { DownloadPDFButton } from './DownloadPDFButton'
 import { PhotoGallery } from './PhotoGallery'
+import { AttachmentList } from './AttachmentList'
 
 export default async function WorkReportDetailPage({
   params,
@@ -248,6 +249,9 @@ export default async function WorkReportDetailPage({
 
         {/* 写真ギャラリー */}
         <PhotoGallery reportId={id} canEdit={canEdit} />
+
+        {/* 添付資料 */}
+        <AttachmentList reportId={id} canEdit={canEdit} />
 
         {/* メタ情報 */}
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
