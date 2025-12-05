@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { DeleteButton } from './DeleteButton'
 import { DownloadPDFButton } from './DownloadPDFButton'
+import { PhotoGallery } from './PhotoGallery'
 
 export default async function WorkReportDetailPage({
   params,
@@ -244,6 +245,9 @@ export default async function WorkReportDetailPage({
             </div>
           </div>
         )}
+
+        {/* 写真ギャラリー */}
+        <PhotoGallery reportId={id} canEdit={canEdit} />
 
         {/* メタ情報 */}
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
