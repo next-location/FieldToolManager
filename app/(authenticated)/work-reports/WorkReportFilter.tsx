@@ -8,16 +8,23 @@ interface Site {
   name: string
 }
 
-interface WorkReportFilterProps {
-  sites: Site[]
+interface User {
+  id: string
+  name: string
 }
 
-export function WorkReportFilter({ sites }: WorkReportFilterProps) {
+interface WorkReportFilterProps {
+  sites: Site[]
+  users: User[]
+}
+
+export function WorkReportFilter({ sites, users }: WorkReportFilterProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
   const [status, setStatus] = useState(searchParams.get('status') || 'all')
   const [siteId, setSiteId] = useState(searchParams.get('site_id') || '')
+  const [createdBy, setCreatedBy] = useState(searchParams.get('created_by') || '')
   const [dateFrom, setDateFrom] = useState(searchParams.get('date_from') || '')
   const [dateTo, setDateTo] = useState(searchParams.get('date_to') || '')
   const [keyword, setKeyword] = useState(searchParams.get('keyword') || '')
@@ -26,6 +33,7 @@ export function WorkReportFilter({ sites }: WorkReportFilterProps) {
     const params = new URLSearchParams()
     if (status !== 'all') params.set('status', status)
     if (siteId) params.set('site_id', siteId)
+    if (createdBy) params.set('created_by', createdBy)
     if (dateFrom) params.set('date_from', dateFrom)
     if (dateTo) params.set('date_to', dateTo)
     if (keyword) params.set('keyword', keyword)
@@ -36,6 +44,7 @@ export function WorkReportFilter({ sites }: WorkReportFilterProps) {
   const clearFilter = () => {
     setStatus('all')
     setSiteId('')
+    setCreatedBy('')
     setDateFrom('')
     setDateTo('')
     setKeyword('')
@@ -79,6 +88,26 @@ export function WorkReportFilter({ sites }: WorkReportFilterProps) {
             {sites.map((site) => (
               <option key={site.id} value={site.id}>
                 {site.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 作成者 */}
+        <div>
+          <label htmlFor="created_by" className="block text-sm font-medium text-gray-700 mb-1">
+            作成者
+          </label>
+          <select
+            id="created_by"
+            value={createdBy}
+            onChange={(e) => setCreatedBy(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">全員</option>
+            {users.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.name}
               </option>
             ))}
           </select>

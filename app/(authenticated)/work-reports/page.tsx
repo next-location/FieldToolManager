@@ -12,6 +12,7 @@ export default async function WorkReportsPage({
     date_from?: string
     date_to?: string
     keyword?: string
+    created_by?: string
   }>
 }) {
   const params = await searchParams
@@ -20,6 +21,7 @@ export default async function WorkReportsPage({
   const dateFrom = params.date_from || ''
   const dateTo = params.date_to || ''
   const keyword = params.keyword || ''
+  const createdBy = params.created_by || ''
 
   const supabase = await createClient()
 
@@ -71,6 +73,11 @@ export default async function WorkReportsPage({
     query = query.eq('site_id', siteId)
   }
 
+  // 作成者フィルター
+  if (createdBy) {
+    query = query.eq('created_by', createdBy)
+  }
+
   // 日付範囲フィルター
   if (dateFrom) {
     query = query.gte('report_date', dateFrom)
@@ -98,6 +105,15 @@ export default async function WorkReportsPage({
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name')
+    .eq('is_active', true)
+    .is('deleted_at', null)
+    .order('name')
+
+  // 作成者一覧を取得（フィルタ用）
+  const { data: users } = await supabase
+    .from('users')
+    .select('id, name')
+    .eq('organization_id', userData.organization_id)
     .eq('is_active', true)
     .is('deleted_at', null)
     .order('name')
@@ -135,7 +151,7 @@ export default async function WorkReportsPage({
           </Link>
         </div>
 
-        <WorkReportFilter sites={sites || []} />
+        <WorkReportFilter sites={sites || []} users={users || []} />
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded mb-4">
