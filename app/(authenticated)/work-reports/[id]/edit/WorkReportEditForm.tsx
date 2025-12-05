@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { WorkReport } from '@/types/work-reports'
+import { PhotoGallery } from '../PhotoGallery'
+import { AttachmentList } from '../AttachmentList'
 
 interface Site {
   id: string
@@ -17,13 +19,31 @@ interface Worker {
   role: string
 }
 
+interface CustomField {
+  name: string
+  type: 'text' | 'number' | 'select' | 'checkbox' | 'date' | 'time'
+  options?: string[]
+  required?: boolean
+  unit?: string
+}
+
+interface Settings {
+  enable_work_location: boolean
+  enable_progress_rate: boolean
+  enable_materials: boolean
+  enable_tools: boolean
+  custom_fields: CustomField[]
+  require_approval: boolean
+}
+
 interface WorkReportEditFormProps {
   report: WorkReport
   sites: Site[]
   workers: Worker[]
+  settings: Settings
 }
 
-export function WorkReportEditForm({ report, sites, workers }: WorkReportEditFormProps) {
+export function WorkReportEditForm({ report, sites, workers, settings }: WorkReportEditFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -36,6 +56,11 @@ export function WorkReportEditForm({ report, sites, workers }: WorkReportEditFor
   const [workLocation, setWorkLocation] = useState(report.work_location || '')
   const [progressRate, setProgressRate] = useState<number | undefined>(
     report.progress_rate ?? undefined
+  )
+
+  // カスタムフィールドの値を保持（既存データで初期化）
+  const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>(
+    report.custom_fields || {}
   )
 
   // 作業員IDを抽出
@@ -113,6 +138,7 @@ export function WorkReportEditForm({ report, sites, workers }: WorkReportEditFor
           workers: workerData,
           work_location: workLocation || undefined,
           progress_rate: progressRate !== undefined && progressRate !== null ? progressRate : undefined,
+          custom_fields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined,
           status: isDraft ? 'draft' : 'submitted',
         }),
       })
@@ -317,42 +343,174 @@ export function WorkReportEditForm({ report, sites, workers }: WorkReportEditFor
           </div>
 
           {/* オプション項目 */}
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">オプション</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* 作業場所 */}
-              <div>
-                <label htmlFor="work_location" className="block text-sm font-medium text-gray-700 mb-1">
-                  作業場所（詳細）
-                </label>
-                <input
-                  type="text"
-                  id="work_location"
-                  value={workLocation}
-                  onChange={(e) => setWorkLocation(e.target.value)}
-                  placeholder="例: 1階 西側エリア"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
+          {(settings.enable_work_location || settings.enable_progress_rate) && (
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">オプション</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 作業場所 */}
+                {settings.enable_work_location && (
+                  <div>
+                    <label htmlFor="work_location" className="block text-sm font-medium text-gray-700 mb-1">
+                      作業場所（詳細）
+                    </label>
+                    <input
+                      type="text"
+                      id="work_location"
+                      value={workLocation}
+                      onChange={(e) => setWorkLocation(e.target.value)}
+                      placeholder="例: 1階 西側エリア"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                )}
 
-              {/* 進捗率 */}
-              <div>
-                <label htmlFor="progress_rate" className="block text-sm font-medium text-gray-700 mb-1">
-                  進捗率（%）
-                </label>
-                <input
-                  type="number"
-                  id="progress_rate"
-                  value={progressRate ?? ''}
-                  onChange={(e) => setProgressRate(e.target.value ? Number(e.target.value) : undefined)}
-                  min="0"
-                  max="100"
-                  placeholder="0〜100"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
+                {/* 進捗率 */}
+                {settings.enable_progress_rate && (
+                  <div>
+                    <label htmlFor="progress_rate" className="block text-sm font-medium text-gray-700 mb-1">
+                      進捗率（%）
+                    </label>
+                    <input
+                      type="number"
+                      id="progress_rate"
+                      value={progressRate ?? ''}
+                      onChange={(e) => setProgressRate(e.target.value ? Number(e.target.value) : undefined)}
+                      min="0"
+                      max="100"
+                      placeholder="0〜100"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                )}
               </div>
             </div>
-          </div>
+          )}
+
+          {/* カスタムフィールド */}
+          {settings.custom_fields.length > 0 && (
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">業種固有項目</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {settings.custom_fields.map((field, index) => (
+                  <div key={index}>
+                    <label
+                      htmlFor={`custom_field_${index}`}
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      {field.name}
+                      {field.required && <span className="text-red-500 ml-1">*</span>}
+                      {field.unit && <span className="text-gray-500 ml-1">({field.unit})</span>}
+                    </label>
+
+                    {field.type === 'text' && (
+                      <input
+                        type="text"
+                        id={`custom_field_${index}`}
+                        value={customFieldValues[field.name] || ''}
+                        onChange={(e) =>
+                          setCustomFieldValues({ ...customFieldValues, [field.name]: e.target.value })
+                        }
+                        required={field.required}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    )}
+
+                    {field.type === 'number' && (
+                      <input
+                        type="number"
+                        id={`custom_field_${index}`}
+                        value={customFieldValues[field.name] ?? ''}
+                        onChange={(e) =>
+                          setCustomFieldValues({
+                            ...customFieldValues,
+                            [field.name]: e.target.value ? Number(e.target.value) : undefined,
+                          })
+                        }
+                        required={field.required}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    )}
+
+                    {field.type === 'select' && field.options && (
+                      <select
+                        id={`custom_field_${index}`}
+                        value={customFieldValues[field.name] || ''}
+                        onChange={(e) =>
+                          setCustomFieldValues({ ...customFieldValues, [field.name]: e.target.value })
+                        }
+                        required={field.required}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="">選択してください</option>
+                        {field.options.map((option, optIdx) => (
+                          <option key={optIdx} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+
+                    {field.type === 'checkbox' && (
+                      <label className="flex items-center pt-2">
+                        <input
+                          type="checkbox"
+                          id={`custom_field_${index}`}
+                          checked={customFieldValues[field.name] || false}
+                          onChange={(e) =>
+                            setCustomFieldValues({ ...customFieldValues, [field.name]: e.target.checked })
+                          }
+                          className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-900">はい</span>
+                      </label>
+                    )}
+
+                    {field.type === 'date' && (
+                      <input
+                        type="date"
+                        id={`custom_field_${index}`}
+                        value={customFieldValues[field.name] || ''}
+                        onChange={(e) =>
+                          setCustomFieldValues({ ...customFieldValues, [field.name]: e.target.value })
+                        }
+                        required={field.required}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    )}
+
+                    {field.type === 'time' && (
+                      <input
+                        type="time"
+                        id={`custom_field_${index}`}
+                        value={customFieldValues[field.name] || ''}
+                        onChange={(e) =>
+                          setCustomFieldValues({ ...customFieldValues, [field.name]: e.target.value })
+                        }
+                        required={field.required}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 写真添付 */}
+      <div className="bg-white shadow sm:rounded-lg">
+        <div className="px-4 py-5 sm:p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">写真添付</h3>
+          <PhotoGallery reportId={report.id} canEdit={true} />
+        </div>
+      </div>
+
+      {/* 資料添付 */}
+      <div className="bg-white shadow sm:rounded-lg">
+        <div className="px-4 py-5 sm:p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">資料添付</h3>
+          <AttachmentList reportId={report.id} canEdit={true} />
         </div>
       </div>
 

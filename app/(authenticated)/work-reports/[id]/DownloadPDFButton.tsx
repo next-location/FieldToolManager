@@ -14,10 +14,19 @@ interface DownloadPDFButtonProps {
 export function DownloadPDFButton({ report }: DownloadPDFButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false)
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     setIsGenerating(true)
 
     try {
+      // 写真と添付資料を取得
+      const [photosResponse, attachmentsResponse] = await Promise.all([
+        fetch(`/api/work-reports/${report.id}/photos`),
+        fetch(`/api/work-reports/${report.id}/attachments`),
+      ])
+
+      const photos = photosResponse.ok ? await photosResponse.json() : []
+      const attachments = attachmentsResponse.ok ? await attachmentsResponse.json() : []
+
       const pdfData = {
         id: report.id,
         report_date: report.report_date,
@@ -32,6 +41,9 @@ export function DownloadPDFButton({ report }: DownloadPDFButtonProps) {
         created_by_name: report.created_by_user?.name || '不明',
         created_at: report.created_at,
         status: report.status,
+        custom_fields: report.custom_fields,
+        photos: photos,
+        attachments: attachments,
       }
 
       const pdf = generateWorkReportPDF(pdfData)

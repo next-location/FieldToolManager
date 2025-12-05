@@ -5,6 +5,8 @@ import { DeleteButton } from './DeleteButton'
 import { DownloadPDFButton } from './DownloadPDFButton'
 import { PhotoGallery } from './PhotoGallery'
 import { AttachmentList } from './AttachmentList'
+import { ApprovalButtons } from './ApprovalButtons'
+import { ApprovalHistory } from './ApprovalHistory'
 
 export default async function WorkReportDetailPage({
   params,
@@ -63,6 +65,10 @@ export default async function WorkReportDetailPage({
   const canEdit = report.status === 'draft' && report.created_by === user.id
   const canDelete = report.created_by === user.id || userData.role === 'admin'
 
+  // 承認権限チェック（leader/admin かつ 提出済みステータス）
+  const canApprove =
+    (userData.role === 'leader' || userData.role === 'admin') && report.status === 'submitted'
+
   // 天気アイコン
   const weatherIcons: Record<string, string> = {
     sunny: '☀️ 晴れ',
@@ -103,6 +109,7 @@ export default async function WorkReportDetailPage({
 
             <div className="flex gap-2">
               <DownloadPDFButton report={report} />
+              {canApprove && <ApprovalButtons reportId={id} />}
               {canEdit && (
                 <Link
                   href={`/work-reports/${id}/edit`}
@@ -271,6 +278,16 @@ export default async function WorkReportDetailPage({
 
         {/* 添付資料 */}
         <AttachmentList reportId={id} canEdit={canEdit} />
+
+        {/* 承認履歴 */}
+        {(report.status === 'approved' || report.status === 'rejected') && (
+          <div className="bg-white shadow sm:rounded-lg">
+            <div className="px-4 py-5 sm:p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">承認履歴</h3>
+              <ApprovalHistory reportId={id} />
+            </div>
+          </div>
+        )}
 
         {/* メタ情報 */}
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">

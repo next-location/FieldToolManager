@@ -18,6 +18,16 @@ interface WorkReportPDFData {
   created_by_name: string
   created_at: string
   status: string
+  custom_fields?: Record<string, any>
+  photos?: Array<{
+    photo_type: string
+    caption?: string
+    photo_url: string
+  }>
+  attachments?: Array<{
+    file_name: string
+    file_size: number
+  }>
 }
 
 export function generateWorkReportPDF(data: WorkReportPDFData): jsPDF {
@@ -117,6 +127,27 @@ export function generateWorkReportPDF(data: WorkReportPDFData): jsPDF {
     yPosition = (doc as any).lastAutoTable.finalY + 10
   }
 
+  // カスタムフィールドセクション
+  if (data.custom_fields && Object.keys(data.custom_fields).length > 0) {
+    if (yPosition > 250) {
+      doc.addPage()
+      yPosition = 20
+    }
+    doc.setFontSize(headingFontSize)
+    doc.text('業種固有項目', 20, yPosition)
+    yPosition += 8
+
+    doc.setFontSize(bodyFontSize)
+    Object.entries(data.custom_fields).forEach(([key, value]) => {
+      const displayValue = typeof value === 'boolean'
+        ? (value ? 'はい' : 'いいえ')
+        : value?.toString() || '-'
+      doc.text(`${key}: ${displayValue}`, 25, yPosition)
+      yPosition += 7
+    })
+    yPosition += 5
+  }
+
   // 作業内容セクション
   doc.setFontSize(headingFontSize)
   if (yPosition > 250) {
@@ -145,6 +176,61 @@ export function generateWorkReportPDF(data: WorkReportPDFData): jsPDF {
     data.materials_used.forEach((material) => {
       doc.text(`- ${material}`, 25, yPosition)
       yPosition += 7
+    })
+    yPosition += 5
+  }
+
+  // 写真セクション
+  if (data.photos && data.photos.length > 0) {
+    if (yPosition > 250) {
+      doc.addPage()
+      yPosition = 20
+    }
+    doc.setFontSize(headingFontSize)
+    doc.text('写真', 20, yPosition)
+    yPosition += 8
+
+    doc.setFontSize(bodyFontSize)
+    const photoTypeLabels: Record<string, string> = {
+      before: '作業前',
+      during: '作業中',
+      after: '作業後',
+      equipment: '使用機材',
+      other: 'その他',
+    }
+
+    data.photos.forEach((photo, index) => {
+      const label = photoTypeLabels[photo.photo_type] || photo.photo_type
+      const caption = photo.caption ? ` - ${photo.caption}` : ''
+      doc.text(`${index + 1}. ${label}${caption}`, 25, yPosition)
+      yPosition += 7
+      if (yPosition > 270) {
+        doc.addPage()
+        yPosition = 20
+      }
+    })
+    yPosition += 5
+  }
+
+  // 添付資料セクション
+  if (data.attachments && data.attachments.length > 0) {
+    if (yPosition > 250) {
+      doc.addPage()
+      yPosition = 20
+    }
+    doc.setFontSize(headingFontSize)
+    doc.text('添付資料', 20, yPosition)
+    yPosition += 8
+
+    doc.setFontSize(bodyFontSize)
+    data.attachments.forEach((attachment, index) => {
+      const sizeInKB = Math.round(attachment.file_size / 1024)
+      doc.text(`${index + 1}. ${attachment.file_name} (${sizeInKB} KB)`, 25, yPosition)
+      yPosition += 7
+      if (yPosition > 270) {
+        doc.addPage()
+        yPosition = 20
+      }
     })
     yPosition += 5
   }
