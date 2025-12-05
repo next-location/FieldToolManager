@@ -177,6 +177,19 @@ The project will use a dedicated `docs/` folder for comprehensive documentation,
 - **Usage**: MUST reference when implementing staff management features
 - **Note**: Extends existing users table with new columns and adds audit logging
 
+#### 13. **`docs/WORK_REPORT_SPEC.md`** ⭐ 作業報告書機能仕様
+- **Purpose**: 作業報告書機能の完全な設計書
+- **Content**:
+  - ハイブリッド方式の設計（コア項目 + オプション項目 + カスタムフィールド）
+  - データベース設計（work_reports, work_report_photos, work_report_attachments, organization_report_settings）
+  - 機能仕様（作成、一覧、詳細、承認フロー、PDF出力）
+  - 画面設計（ワイヤーフレーム付き）
+  - 段階的実装計画（Phase 1-4）
+  - 写真・資料アップロード機能
+  - 業種別カスタマイズ対応
+- **Usage**: 作業報告書機能の実装時に必ず参照
+- **Note**: 建築業をはじめ様々な現場系業種に対応できる汎用的な設計
+
 ### Development Priority
 
 1. **Environment Setup**: Follow `docs/ENVIRONMENT_SETUP.md` FIRST
