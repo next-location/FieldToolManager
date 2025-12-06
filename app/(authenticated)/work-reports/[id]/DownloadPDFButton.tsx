@@ -1,58 +1,39 @@
 'use client'
 
 import { useState } from 'react'
-import { generateWorkReportPDF } from '@/lib/pdf/work-report-pdf'
-import type { WorkReport } from '@/types/work-reports'
 
 interface DownloadPDFButtonProps {
-  report: WorkReport & {
-    site?: { name: string; address?: string }
-    created_by_user?: { name: string }
-  }
+  reportId: string
+  siteName: string
+  reportDate: string
 }
 
-export function DownloadPDFButton({ report }: DownloadPDFButtonProps) {
+export function DownloadPDFButton({ reportId, siteName, reportDate }: DownloadPDFButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false)
 
   const handleDownload = async () => {
     setIsGenerating(true)
 
     try {
-      // 写真と添付資料を取得
-      const [photosResponse, attachmentsResponse] = await Promise.all([
-        fetch(`/api/work-reports/${report.id}/photos`),
-        fetch(`/api/work-reports/${report.id}/attachments`),
-      ])
+      // APIからPDFを取得
+      const response = await fetch(`/api/work-reports/${reportId}/pdf`)
 
-      const photos = photosResponse.ok ? await photosResponse.json() : []
-      const attachments = attachmentsResponse.ok ? await attachmentsResponse.json() : []
-
-      const pdfData = {
-        id: report.id,
-        report_date: report.report_date,
-        weather: report.weather,
-        site_name: report.site?.name || '不明',
-        site_address: report.site?.address,
-        description: report.description,
-        work_location: report.work_location,
-        progress_rate: report.progress_rate,
-        workers: Array.isArray(report.workers) ? report.workers : [],
-        materials_used: Array.isArray(report.materials_used) ? report.materials_used : undefined,
-        created_by_name: report.created_by_user?.name || '不明',
-        created_at: report.created_at,
-        status: report.status,
-        custom_fields: report.custom_fields,
-        photos: photos,
-        attachments: attachments,
+      if (!response.ok) {
+        throw new Error('PDF生成に失敗しました')
       }
 
-      const pdf = generateWorkReportPDF(pdfData)
+      // PDFをBlobとして取得
+      const blob = await response.blob()
 
-      // ファイル名を生成
-      const dateStr = new Date(report.report_date).toLocaleDateString('ja-JP').replace(/\//g, '-')
-      const fileName = `作業報告書_${report.site?.name || '不明'}_${dateStr}.pdf`
-
-      pdf.save(fileName)
+      // ダウンロードリンクを作成
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `作業報告書_${siteName}_${reportDate}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
     } catch (error) {
       console.error('PDF生成エラー:', error)
       alert('PDFの生成に失敗しました')

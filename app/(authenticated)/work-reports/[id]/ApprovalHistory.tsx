@@ -1,79 +1,65 @@
-'use client'
-
-import { useEffect, useState } from 'react'
-
-interface Approval {
+interface ApprovalRecord {
   id: string
   approver_name: string
   action: 'approved' | 'rejected'
   comment: string | null
-  approved_at: string
+  created_at: string
 }
 
 interface ApprovalHistoryProps {
-  reportId: string
+  approvals: ApprovalRecord[]
 }
 
-export function ApprovalHistory({ reportId }: ApprovalHistoryProps) {
-  const [approvals, setApprovals] = useState<Approval[]>([])
-  const [loading, setLoading] = useState(true)
+export function ApprovalHistory({ approvals }: ApprovalHistoryProps) {
+  if (!approvals || approvals.length === 0) {
+    return null
+  }
 
-  useEffect(() => {
-    fetchApprovals()
-  }, [reportId])
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleString('ja-JP', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  }
 
-  const fetchApprovals = async () => {
-    try {
-      const response = await fetch(`/api/work-reports/${reportId}/approvals`)
-      if (response.ok) {
-        const data = await response.json()
-        setApprovals(data)
-      }
-    } catch (error) {
-      console.error('Failed to fetch approvals:', error)
-    } finally {
-      setLoading(false)
+  const getActionBadge = (action: 'approved' | 'rejected') => {
+    if (action === 'approved') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          ÊâøË™ç
+        </span>
+      )
     }
-  }
-
-  if (loading) {
-    return <div className="text-sm text-gray-600">≠º-...</div>
-  }
-
-  if (approvals.length === 0) {
-    return <div className="text-sm text-gray-600">çetoBä~[ì</div>
+    return (
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+        Âç¥‰∏ã
+      </span>
+    )
   }
 
   return (
-    <div className="space-y-4">
-      {approvals.map((approval) => (
-        <div key={approval.id} className="border-l-4 border-gray-300 pl-4 py-2">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-gray-900">{approval.approver_name}</span>
-                <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    approval.action === 'approved'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}
-                >
-                  {approval.action === 'approved' ? 'ç' : 't'}
-                </span>
-              </div>
-              <div className="mt-1 text-sm text-gray-600">
-                {new Date(approval.approved_at).toLocaleString('ja-JP')}
+    <div className="bg-white shadow sm:rounded-lg">
+      <div className="px-4 py-5 sm:p-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">ÊâøË™çÂ±•Ê≠¥</h3>
+        <div className="space-y-4">
+          {approvals.map((approval) => (
+            <div key={approval.id} className="border-l-4 border-gray-200 pl-4">
+              <div className="flex items-center gap-2 mb-1">
+                {getActionBadge(approval.action)}
+                <span className="text-sm font-medium text-gray-900">{approval.approver_name}</span>
+                <span className="text-xs text-gray-500">{formatDate(approval.created_at)}</span>
               </div>
               {approval.comment && (
-                <div className="mt-2 text-sm text-gray-700 bg-gray-50 rounded p-2">
-                  {approval.comment}
-                </div>
+                <p className="text-sm text-gray-600 mt-1">{approval.comment}</p>
               )}
             </div>
-          </div>
+          ))}
         </div>
-      ))}
+      </div>
     </div>
   )
 }

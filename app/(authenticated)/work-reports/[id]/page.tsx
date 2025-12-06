@@ -111,8 +111,12 @@ export default async function WorkReportDetailPage({
             </div>
 
             <div className="flex gap-2">
-              <DownloadPDFButton report={report} />
-              {canApprove && <ApprovalButtons reportId={id} />}
+              <DownloadPDFButton
+                reportId={id}
+                siteName={report.site?.name || '不明'}
+                reportDate={report.report_date}
+              />
+              {canApprove && <ApprovalButtons reportId={id} status={report.status} />}
               {canEdit && (
                 <Link
                   href={`/work-reports/${id}/edit`}

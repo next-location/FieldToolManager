@@ -315,7 +315,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
             <button
               onClick={() => toggleMenu('work-reports')}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                isActive('/work-reports')
+                (pathname === '/work-reports' || pathname === '/work-reports/new' || (pathname?.startsWith('/work-reports/') && !pathname.startsWith('/work-reports/settings')))
                   ? 'bg-blue-50 text-blue-700 font-medium'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
@@ -766,7 +766,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
             <button
               onClick={() => toggleMenu('settings')}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                isActive('/settings') || isActive('/admin')
+                isActive('/settings') || isActive('/admin') || pathname === '/work-reports/settings' || pathname === '/attendance/settings'
                   ? 'bg-blue-50 text-blue-700 font-medium'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}

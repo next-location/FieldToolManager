@@ -10,12 +10,6 @@ interface Site {
   address: string | null
 }
 
-interface Worker {
-  id: string
-  name: string
-  role: string
-}
-
 interface CustomField {
   name: string
   type: 'text' | 'number' | 'select' | 'checkbox' | 'date' | 'time'
@@ -35,13 +29,12 @@ interface Settings {
 
 interface WorkReportFormProps {
   sites: Site[]
-  workers: Worker[]
   currentUserId: string
   currentUserName: string
   settings: Settings
 }
 
-export function WorkReportForm({ sites, workers, currentUserId, currentUserName, settings }: WorkReportFormProps) {
+export function WorkReportForm({ sites, currentUserId, currentUserName, settings }: WorkReportFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -56,18 +49,11 @@ export function WorkReportForm({ sites, workers, currentUserId, currentUserName,
   const [description, setDescription] = useState('')
   const [workLocation, setWorkLocation] = useState('')
   const [progressRate, setProgressRate] = useState<number | undefined>(undefined)
-  const [selectedWorkerIds, setSelectedWorkerIds] = useState<string[]>([currentUserId])
+  const [materials, setMaterials] = useState('')
+  const [tools, setTools] = useState('')
 
   // カスタムフィールドの値を保持
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>({})
-
-  const handleWorkerToggle = (workerId: string) => {
-    setSelectedWorkerIds((prev) =>
-      prev.includes(workerId)
-        ? prev.filter((id) => id !== workerId)
-        : [...prev, workerId]
-    )
-  }
 
   const handleSubmit = async (e: React.FormEvent, isDraft: boolean) => {
     e.preventDefault()
@@ -86,10 +72,6 @@ export function WorkReportForm({ sites, workers, currentUserId, currentUserName,
       setError('作業内容を入力してください')
       return
     }
-    if (selectedWorkerIds.length === 0) {
-      setError('作業員を1名以上選択してください')
-      return
-    }
 
     setLoading(true)
 
@@ -97,15 +79,12 @@ export function WorkReportForm({ sites, workers, currentUserId, currentUserName,
       // 作業時間を計算
       const workHours = calculateWorkHours(workStartTime, workEndTime, breakTime)
 
-      // 作業員データを構築
-      const workerData = selectedWorkerIds.map((workerId) => {
-        const worker = workers.find((w) => w.id === workerId)
-        return {
-          user_id: workerId,
-          name: worker?.name || '',
-          work_hours: workHours,
-        }
-      })
+      // 作業員データを構築（作成者のみ）
+      const workerData = [{
+        user_id: currentUserId,
+        name: currentUserName,
+        work_hours: workHours,
+      }]
 
       const response = await fetch('/api/work-reports', {
         method: 'POST',
@@ -120,6 +99,8 @@ export function WorkReportForm({ sites, workers, currentUserId, currentUserName,
           workers: workerData,
           work_location: workLocation || undefined,
           progress_rate: progressRate !== undefined && progressRate !== null ? progressRate : undefined,
+          materials: materials || undefined,
+          tools: tools || undefined,
           custom_fields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined,
           status: isDraft ? 'draft' : 'submitted',
         }),
@@ -278,38 +259,6 @@ export function WorkReportForm({ sites, workers, currentUserId, currentUserName,
             </div>
           </div>
 
-          {/* 作業員選択 */}
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              作業員 <span className="text-red-500">*</span>
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {workers.map((worker) => (
-                <label
-                  key={worker.id}
-                  className={`flex items-center px-3 py-2 border rounded-md cursor-pointer transition-colors ${
-                    selectedWorkerIds.includes(worker.id)
-                      ? 'bg-blue-50 border-blue-500'
-                      : 'bg-white border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedWorkerIds.includes(worker.id)}
-                    onChange={() => handleWorkerToggle(worker.id)}
-                    className="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-900">{worker.name}</span>
-                </label>
-              ))}
-            </div>
-            {selectedWorkerIds.length > 0 && (
-              <div className="mt-2 text-sm text-gray-600">
-                選択中: <span className="font-semibold text-gray-900">{selectedWorkerIds.length}名</span>
-              </div>
-            )}
-          </div>
-
           {/* 作業内容 */}
           <div>
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
@@ -327,7 +276,7 @@ export function WorkReportForm({ sites, workers, currentUserId, currentUserName,
           </div>
 
           {/* オプション項目 */}
-          {(settings.enable_work_location || settings.enable_progress_rate) && (
+          {(settings.enable_work_location || settings.enable_progress_rate || settings.enable_materials || settings.enable_tools) && (
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4">オプション</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -362,6 +311,40 @@ export function WorkReportForm({ sites, workers, currentUserId, currentUserName,
                       min="0"
                       max="100"
                       placeholder="0〜100"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                )}
+
+                {/* 使用資材 */}
+                {settings.enable_materials && (
+                  <div className="md:col-span-2">
+                    <label htmlFor="materials" className="block text-sm font-medium text-gray-700 mb-1">
+                      使用資材
+                    </label>
+                    <textarea
+                      id="materials"
+                      value={materials}
+                      onChange={(e) => setMaterials(e.target.value)}
+                      rows={3}
+                      placeholder="例: コンクリート 5m³、鉄筋 D13 100本"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                )}
+
+                {/* 使用道具 */}
+                {settings.enable_tools && (
+                  <div className="md:col-span-2">
+                    <label htmlFor="tools" className="block text-sm font-medium text-gray-700 mb-1">
+                      使用道具
+                    </label>
+                    <textarea
+                      id="tools"
+                      value={tools}
+                      onChange={(e) => setTools(e.target.value)}
+                      rows={3}
+                      placeholder="例: 電動ドリル、サンダー、水平器"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
