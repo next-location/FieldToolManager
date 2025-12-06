@@ -4,7 +4,7 @@ import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import fs from 'fs'
 import path from 'path'
-import { drawCompanyName, getTableConfig, drawCustomFields } from '@/lib/pdf/helpers'
+import { drawCompanyName, getTableConfig, drawCustomFields, drawPhotos } from '@/lib/pdf/helpers'
 
 export async function GET(
   request: NextRequest,
@@ -454,6 +454,20 @@ export async function GET(
         report.custom_fields_data || {},
         yPos
       )
+    }
+
+    // 写真データを取得
+    const { data: photos } = await supabase
+      .from('work_report_photos')
+      .select('id, storage_path, caption, display_order')
+      .eq('work_report_id', id)
+      .is('deleted_at', null)
+      .order('display_order', { ascending: true })
+      .order('created_at', { ascending: true })
+
+    // 写真をPDFに埋め込み
+    if (photos && photos.length > 0) {
+      yPos = await drawPhotos(doc, photos, supabase, yPos)
     }
 
     // ========================================

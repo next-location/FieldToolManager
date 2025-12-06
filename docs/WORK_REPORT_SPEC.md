@@ -1079,6 +1079,162 @@ if (customFieldDefinitions && customFieldDefinitions.length > 0) {
 
 ---
 
+## 9. 写真・添付ファイル機能（Phase 3）
+
+### 9.1 概要
+
+作業報告書に写真と添付ファイルをアップロードして管理する機能です。
+- 写真: 現場の状況を視覚的に記録
+- 添付ファイル: 図面、仕様書、マニュアル等の関連資料を添付
+
+### 9.2 データベース設計
+
+#### work_report_photos テーブル
+```sql
+CREATE TABLE work_report_photos (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  work_report_id UUID NOT NULL REFERENCES work_reports(id) ON DELETE CASCADE,
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  storage_path TEXT NOT NULL, -- Supabase Storage内のパス
+  file_name TEXT NOT NULL, -- オリジナルファイル名
+  file_size INTEGER NOT NULL, -- バイト単位
+  mime_type TEXT NOT NULL,
+  caption TEXT, -- 写真コメント
+  display_order INTEGER, -- 表示順序
+  taken_at TIMESTAMPTZ, -- 撮影日時
+  location_name TEXT, -- 撮影場所名
+  uploaded_by UUID NOT NULL REFERENCES auth.users(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  deleted_at TIMESTAMPTZ
+);
+```
+
+#### work_report_attachments テーブル
+```sql
+CREATE TABLE work_report_attachments (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  work_report_id UUID NOT NULL REFERENCES work_reports(id) ON DELETE CASCADE,
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  storage_path TEXT NOT NULL,
+  file_name TEXT NOT NULL,
+  file_size INTEGER NOT NULL,
+  mime_type TEXT NOT NULL,
+  file_type TEXT NOT NULL, -- '図面', '仕様書', 'マニュアル', 'その他'
+  description TEXT, -- ファイル説明
+  display_order INTEGER,
+  uploaded_by UUID NOT NULL REFERENCES auth.users(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  deleted_at TIMESTAMPTZ
+);
+```
+
+### 9.3 Supabase Storage
+
+#### work-report-photos バケット
+- **サイズ制限**: 5MB
+- **許可MIME**: image/jpeg, image/jpg, image/png, image/webp
+- **パス構造**: `{user_id}/{report_id}/{timestamp}_{filename}`
+- **RLS**: 組織内ユーザーのみアクセス可能
+
+#### work-report-attachments バケット
+- **サイズ制限**: 10MB
+- **許可MIME**: PDF, 画像, Word, Excel
+- **パス構造**: `{user_id}/{report_id}/{timestamp}_{filename}`
+- **RLS**: 組織内ユーザーのみアクセス可能
+
+### 9.4 API仕様
+
+#### 写真API
+
+**GET /api/work-reports/[id]/photos**
+- 写真一覧取得（削除されていないもの、display_order順）
+
+**POST /api/work-reports/[id]/photos**
+- 写真アップロード
+- FormData: file, caption, display_order, taken_at, location_name
+
+**PUT /api/work-reports/[id]/photos/[photo_id]**
+- キャプション・表示順序更新
+
+**DELETE /api/work-reports/[id]/photos/[photo_id]**
+- 写真削除（論理削除: deleted_at設定）
+- Storageからもファイル削除
+
+#### 添付ファイルAPI
+
+**GET /api/work-reports/[id]/attachments**
+- 添付ファイル一覧取得
+
+**POST /api/work-reports/[id]/attachments**
+- ファイルアップロード
+- FormData: file, file_type, description, display_order
+
+**DELETE /api/work-reports/[id]/attachments/[attachment_id]**
+- ファイル削除（論理削除）
+
+### 9.5 UI設計
+
+#### PhotoUploadコンポーネント
+- 複数ファイル選択・ドラッグ&ドロップ対応
+- プレビュー表示（グリッドレイアウト）
+- キャプション入力
+- 表示順序の並び替え（ドラッグ&ドロップ）
+- アップロード進捗表示
+- 削除機能
+
+#### AttachmentUploadコンポーネント
+- ファイル選択UI
+- ファイル種別選択（図面、仕様書、マニュアル、その他）
+- 説明文入力
+- ファイル一覧表示（ファイル名、サイズ、種別）
+- 削除機能
+
+### 9.6 PDF埋め込み
+
+#### drawPhotos() 関数
+```typescript
+export async function drawPhotos(
+  doc: jsPDF,
+  photos: Array<{
+    id: string
+    storage_path: string
+    caption?: string | null
+    display_order: number
+  }>,
+  supabase: any,
+  startY: number
+): Promise<number>
+```
+
+**実装内容**:
+- Supabase Storageから画像を取得
+- Base64形式に変換
+- 2列レイアウトで配置（画像幅: (ページ幅 - マージン - 間隔) / 2）
+- アスペクト比4:3で表示
+- キャプション付きで表示
+- 自動改ページ対応
+
+### 9.7 技術仕様・注意事項
+
+#### セキュリティ
+- ファイル名のサニタイゼーション: `file.name.replace(/[^a-zA-Z0-9._-]/g, '_')`
+- MIMEタイプチェック（ホワイトリスト方式）
+- サイズ制限チェック（写真: 5MB、添付: 10MB）
+- RLSによるアクセス制御
+
+#### エラーハンドリング
+- Storage失敗時のロールバック（DB削除）
+- 画像読み込みエラー時のプレースホルダー表示
+
+#### パフォーマンス
+- タイムスタンプベースのファイル名（衝突回避）
+- 論理削除による履歴保持
+- display_order による効率的なソート
+
+---
+
 ## まとめ
 
 本仕様書では、ハイブリッド方式による柔軟かつ使いやすい作業報告書機能を定義しました。
@@ -1087,10 +1243,11 @@ if (customFieldDefinitions && customFieldDefinitions.length > 0) {
 1. ✅ 業種による違いに対応（カスタムフィールド機能実装完了）
 2. ✅ シンプルで使いやすいUI（コア項目のみでも使える）
 3. ✅ 段階的実装（MVPから高度な機能まで）
-4. ✅ 写真・資料の充実したサポート
+4. ✅ 写真・資料の充実したサポート（Phase 3実装完了）
 5. ✅ 承認フローによる品質管理
 6. ✅ PDF生成の共通ヘルパー関数による保守性向上
 7. ✅ 個人印鑑の自動生成機能（シャチハタ風）
 8. ✅ カスタムフィールド機能（動的フォーム・PDF反映）
+9. ✅ 写真・添付ファイル機能（アップロード・管理・PDF埋め込み）
 
 この設計により、建築業をはじめ様々な現場系業種に対応できる汎用的な作業報告書システムを構築できます。

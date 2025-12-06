@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { CustomFieldInput } from './CustomFieldInput'
+import { PhotoUpload } from './PhotoUpload'
+import { AttachmentUpload } from './AttachmentUpload'
 
 interface Site {
   id: string
@@ -639,6 +641,16 @@ export function WorkReportForm({ sites, organizationUsers, currentUserId, curren
             </div>
           )}
         </div>
+      </div>
+
+      {/* 写真セクション */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <PhotoUpload reportId={undefined} />
+      </div>
+
+      {/* 添付ファイルセクション */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <AttachmentUpload reportId={undefined} />
       </div>
 
       {/* アクションボタン */}
