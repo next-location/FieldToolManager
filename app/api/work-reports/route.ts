@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import type { WorkReportFilter } from '@/types/work-reports'
 import { notifyWorkReportSubmitted } from '@/lib/notifications/work-report-notifications'
+import { generateWorkReportNumber } from '@/lib/work-reports/report-number'
 
 // GET /api/work-reports - 作業報告書一覧取得
 export async function GET(request: NextRequest) {
@@ -158,6 +159,9 @@ export async function POST(request: NextRequest) {
     // ステータス決定（draft または submitted）
     const status = body.status === 'submitted' ? 'submitted' : 'draft'
 
+    // 作業報告書番号を生成
+    const reportNumber = await generateWorkReportNumber(userData.organization_id)
+
     // 作業報告書作成
     const { data, error } = await supabase
       .from('work_reports')
@@ -183,6 +187,9 @@ export async function POST(request: NextRequest) {
         client_contact_details: body.client_contact_details,
         next_tasks: body.next_tasks,
         custom_fields: body.custom_fields || {},
+        special_notes: body.special_notes,
+        remarks: body.remarks,
+        report_number: reportNumber,
         status: status,
         created_by: user.id,
       })

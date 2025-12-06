@@ -62,6 +62,10 @@ export function WorkReportForm({ sites, organizationUsers, currentUserId, curren
   // 帯同作業員（自分以外のユーザー）
   const [accompaniedWorkerIds, setAccompaniedWorkerIds] = useState<string[]>([])
 
+  // 特記事項・備考
+  const [specialNotes, setSpecialNotes] = useState('')
+  const [remarks, setRemarks] = useState('')
+
   // カスタムフィールドの値を保持
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>({})
 
@@ -124,6 +128,8 @@ export function WorkReportForm({ sites, organizationUsers, currentUserId, curren
           progress_rate: progressRate !== undefined && progressRate !== null ? progressRate : undefined,
           materials: materials || undefined,
           tools: tools || undefined,
+          special_notes: specialNotes || undefined,
+          remarks: remarks || undefined,
           custom_fields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined,
           status: isDraft ? 'draft' : 'submitted',
         }),
@@ -406,6 +412,42 @@ export function WorkReportForm({ sites, organizationUsers, currentUserId, curren
               </div>
             </div>
           )}
+
+          {/* 特記事項・備考 */}
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">特記事項・備考</h3>
+            <div className="grid grid-cols-1 gap-6">
+              {/* 特記事項 */}
+              <div>
+                <label htmlFor="special_notes" className="block text-sm font-medium text-gray-700 mb-1">
+                  特記事項
+                </label>
+                <textarea
+                  id="special_notes"
+                  value={specialNotes}
+                  onChange={(e) => setSpecialNotes(e.target.value)}
+                  rows={3}
+                  placeholder="特別な注意事項や重要な情報を記載してください"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              {/* 備考 */}
+              <div>
+                <label htmlFor="remarks" className="block text-sm font-medium text-gray-700 mb-1">
+                  備考
+                </label>
+                <textarea
+                  id="remarks"
+                  value={remarks}
+                  onChange={(e) => setRemarks(e.target.value)}
+                  rows={3}
+                  placeholder="その他補足事項があれば記載してください"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+          </div>
 
           {/* カスタムフィールド */}
           {settings.custom_fields.length > 0 && (

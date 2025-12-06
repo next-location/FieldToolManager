@@ -127,7 +127,7 @@ export async function GET(
     doc.text(`作成日: ${createdDate}`, 15, yPos)
 
     // 作業報告書ナンバー（作成日の下）
-    doc.text(`報告書No: ${report.id.substring(0, 8)}`, 15, yPos + 4)
+    doc.text(`報告書No: ${report.report_number || report.id.substring(0, 8)}`, 15, yPos + 4)
 
     // 角印の右端位置を基準にする
     const sealRightEdge = 185 + 20 // sealX + sealSize
@@ -395,7 +395,7 @@ export async function GET(
       ...getTableConfig({ type: 'remarks' }),
       startY: yPos,
       head: [['特記事項', '備考']],
-      body: [['', '']],
+      body: [[report.special_notes || '', report.remarks || '']],
       columnStyles: {
         0: { cellWidth: 95 }, // 特記事項（左半分）
         1: { cellWidth: 95 }, // 備考（右半分）
