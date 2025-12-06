@@ -7,6 +7,8 @@ import { PhotoGallery } from './PhotoGallery'
 import { AttachmentList } from './AttachmentList'
 import { ApprovalButtons } from './ApprovalButtons'
 import { ApprovalHistory } from './ApprovalHistory'
+import { SubmitButton } from './SubmitButton'
+import { StatusBadge } from '@/components/work-reports/StatusBadge'
 
 export default async function WorkReportDetailPage({
   params,
@@ -81,19 +83,6 @@ export default async function WorkReportDetailPage({
     '': '－',
   }
 
-  // ステータスバッジのスタイル
-  const getStatusBadge = (status: string) => {
-    const badges: Record<string, { bg: string; text: string; label: string }> = {
-      draft: { bg: 'bg-gray-100', text: 'text-gray-800', label: '下書き' },
-      submitted: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: '提出済' },
-      approved: { bg: 'bg-green-100', text: 'text-green-800', label: '承認済' },
-      rejected: { bg: 'bg-red-100', text: 'text-red-800', label: '差戻' },
-    }
-    return badges[status] || badges.draft
-  }
-
-  const badge = getStatusBadge(report.status)
-
   return (
     <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
@@ -116,6 +105,7 @@ export default async function WorkReportDetailPage({
                 siteName={report.site?.name || '不明'}
                 reportDate={report.report_date}
               />
+              <SubmitButton reportId={id} status={report.status} />
               {canApprove && <ApprovalButtons reportId={id} status={report.status} />}
               {canEdit && (
                 <Link
@@ -142,9 +132,7 @@ export default async function WorkReportDetailPage({
                   weekday: 'short',
                 })}
               </h2>
-              <span className={`px-3 py-1 text-sm font-semibold rounded-full ${badge.bg} ${badge.text}`}>
-                {badge.label}
-              </span>
+              <StatusBadge status={report.status as 'draft' | 'submitted' | 'approved' | 'rejected'} />
             </div>
 
             <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">

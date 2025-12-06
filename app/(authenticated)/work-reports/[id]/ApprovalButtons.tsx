@@ -28,12 +28,15 @@ export function ApprovalButtons({ reportId, status }: ApprovalButtonsProps) {
     setError('')
 
     try {
-      const response = await fetch(`/api/work-reports/${reportId}/${action}`, {
+      const response = await fetch(`/api/work-reports/${reportId}/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ comment: comment.trim() || undefined }),
+        body: JSON.stringify({
+          action: action === 'approve' ? 'approved' : 'rejected',
+          comment: comment.trim() || undefined
+        }),
       })
 
       if (!response.ok) {

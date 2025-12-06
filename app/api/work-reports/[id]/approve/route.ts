@@ -78,12 +78,25 @@ export async function POST(request: NextRequest, { params }: Params) {
     // トランザクション処理
     // 1. 報告書のステータス更新
     const newStatus = action === 'approved' ? 'approved' : 'rejected'
+    const now = new Date().toISOString()
+
+    const updateData: any = {
+      status: newStatus,
+      updated_at: now,
+    }
+
+    if (action === 'approved') {
+      updateData.approved_at = now
+      updateData.approved_by = user.id
+    } else {
+      updateData.rejected_at = now
+      updateData.rejected_by = user.id
+      updateData.rejection_reason = comment || null
+    }
+
     const { error: updateError } = await supabase
       .from('work_reports')
-      .update({
-        status: newStatus,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', id)
 
     if (updateError) {
