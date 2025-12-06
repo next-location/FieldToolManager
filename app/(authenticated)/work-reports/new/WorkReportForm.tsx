@@ -62,6 +62,9 @@ export function WorkReportForm({ sites, organizationUsers, currentUserId, curren
   // 帯同作業員（自分以外のユーザー）
   const [accompaniedWorkerIds, setAccompaniedWorkerIds] = useState<string[]>([])
 
+  // 時間外（残業時間） - 作業員ごとに管理（currentUserIdも含む）
+  const [overtimeHours, setOvertimeHours] = useState<Record<string, number>>({})
+
   // 特記事項・備考
   const [specialNotes, setSpecialNotes] = useState('')
   const [remarks, setRemarks] = useState('')
@@ -99,6 +102,7 @@ export function WorkReportForm({ sites, organizationUsers, currentUserId, curren
           user_id: currentUserId,
           name: currentUserName,
           work_hours: workHours,
+          overtime_hours: overtimeHours[currentUserId] || 0,
         },
         ...accompaniedWorkerIds.map(workerId => {
           const user = organizationUsers.find(u => u.id === workerId)
@@ -106,6 +110,7 @@ export function WorkReportForm({ sites, organizationUsers, currentUserId, curren
             user_id: workerId,
             name: user?.name || '',
             work_hours: workHours, // 同じ作業時間を適用
+            overtime_hours: overtimeHours[workerId] || 0,
           }
         })
       ]
@@ -286,6 +291,27 @@ export function WorkReportForm({ sites, organizationUsers, currentUserId, curren
             <div className="mt-2 text-sm text-gray-600">
               実作業時間: <span className="font-semibold text-gray-900">{calculatedWorkHours}時間</span>
             </div>
+
+            {/* 自分の時間外 */}
+            <div className="mt-4">
+              <label htmlFor="own_overtime" className="block text-sm font-medium text-gray-700 mb-1">
+                時間外（残業時間）
+              </label>
+              <input
+                type="number"
+                id="own_overtime"
+                value={overtimeHours[currentUserId] || ''}
+                onChange={(e) => setOvertimeHours({
+                  ...overtimeHours,
+                  [currentUserId]: e.target.value ? Number(e.target.value) : 0
+                })}
+                min="0"
+                step="0.5"
+                placeholder="0"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
+              <p className="mt-1 text-xs text-gray-500">残業時間を時間単位で入力してください（例: 2、1.5）</p>
+            </div>
           </div>
 
           {/* 帯同作業員 */}
@@ -296,22 +322,45 @@ export function WorkReportForm({ sites, organizationUsers, currentUserId, curren
               {organizationUsers
                 .filter(user => user.id !== currentUserId)
                 .map(user => (
-                  <label key={user.id} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={accompaniedWorkerIds.includes(user.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setAccompaniedWorkerIds([...accompaniedWorkerIds, user.id])
-                        } else {
-                          setAccompaniedWorkerIds(accompaniedWorkerIds.filter(id => id !== user.id))
-                        }
-                      }}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <span className="text-sm text-gray-900">{user.name}</span>
-                    <span className="text-xs text-gray-500">({user.email})</span>
-                  </label>
+                  <div key={user.id} className="space-y-2">
+                    <label className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={accompaniedWorkerIds.includes(user.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setAccompaniedWorkerIds([...accompaniedWorkerIds, user.id])
+                          } else {
+                            setAccompaniedWorkerIds(accompaniedWorkerIds.filter(id => id !== user.id))
+                          }
+                        }}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <span className="text-sm text-gray-900">{user.name}</span>
+                      <span className="text-xs text-gray-500">({user.email})</span>
+                    </label>
+                    {accompaniedWorkerIds.includes(user.id) && (
+                      <div className="ml-7 pb-2">
+                        <label htmlFor={`overtime_${user.id}`} className="block text-xs font-medium text-gray-700 mb-1">
+                          時間外（残業時間）
+                        </label>
+                        <input
+                          type="number"
+                          id={`overtime_${user.id}`}
+                          value={overtimeHours[user.id] || ''}
+                          onChange={(e) => setOvertimeHours({
+                            ...overtimeHours,
+                            [user.id]: e.target.value ? Number(e.target.value) : 0
+                          })}
+                          min="0"
+                          step="0.5"
+                          placeholder="0"
+                          className="w-32 px-2 py-1 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        />
+                        <span className="ml-1 text-xs text-gray-500">時間</span>
+                      </div>
+                    )}
+                  </div>
                 ))}
               {organizationUsers.filter(user => user.id !== currentUserId).length === 0 && (
                 <p className="text-sm text-gray-500">他の社員が登録されていません</p>

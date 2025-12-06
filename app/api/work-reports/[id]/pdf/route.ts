@@ -341,7 +341,7 @@ export async function GET(
         (index + 1).toString(), // No.
         worker.name || '-',
         worker.work_hours !== undefined ? `${worker.work_hours}時間` : '-',
-        '-', // 時間外（TODO: データベースに追加予定）
+        worker.overtime_hours !== undefined && worker.overtime_hours > 0 ? `${worker.overtime_hours}時間` : '-',
       ])
 
       autoTable(doc, {
