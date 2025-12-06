@@ -57,6 +57,14 @@ export default async function NewWorkReportPage() {
     require_approval: false,
   }
 
+  // カスタムフィールド定義を取得（組織全体 + 現場固有は後で取得）
+  const { data: customFields } = await supabase
+    .from('work_report_custom_fields')
+    .select('*')
+    .eq('organization_id', userData.organization_id)
+    .is('site_id', null)
+    .order('display_order', { ascending: true })
+
   return (
     <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
@@ -73,6 +81,7 @@ export default async function NewWorkReportPage() {
           currentUserId={user.id}
           currentUserName={userData.name}
           settings={reportSettings}
+          customFields={customFields || []}
         />
       </div>
     </div>

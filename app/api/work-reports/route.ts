@@ -187,6 +187,7 @@ export async function POST(request: NextRequest) {
         client_contact_details: body.client_contact_details,
         next_tasks: body.next_tasks,
         custom_fields: body.custom_fields || {},
+        custom_fields_data: body.custom_fields_data || {},
         special_notes: body.special_notes,
         remarks: body.remarks,
         report_number: reportNumber,

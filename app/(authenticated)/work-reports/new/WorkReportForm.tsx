@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { CustomFieldInput } from './CustomFieldInput'
 
 interface Site {
   id: string
@@ -24,6 +25,17 @@ interface CustomField {
   unit?: string
 }
 
+interface CustomFieldDefinition {
+  id: string
+  field_key: string
+  field_label: string
+  field_type: 'text' | 'textarea' | 'number' | 'date' | 'select' | 'checkbox'
+  field_options?: string[]
+  is_required: boolean
+  placeholder?: string
+  help_text?: string
+}
+
 interface Settings {
   enable_work_location: boolean
   enable_progress_rate: boolean
@@ -39,9 +51,10 @@ interface WorkReportFormProps {
   currentUserId: string
   currentUserName: string
   settings: Settings
+  customFields: CustomFieldDefinition[]
 }
 
-export function WorkReportForm({ sites, organizationUsers, currentUserId, currentUserName, settings }: WorkReportFormProps) {
+export function WorkReportForm({ sites, organizationUsers, currentUserId, currentUserName, settings, customFields }: WorkReportFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -136,6 +149,7 @@ export function WorkReportForm({ sites, organizationUsers, currentUserId, curren
           special_notes: specialNotes || undefined,
           remarks: remarks || undefined,
           custom_fields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined,
+          custom_fields_data: customFieldValues, // 新しいカスタムフィールドデータ
           status: isDraft ? 'draft' : 'submitted',
         }),
       })
@@ -498,10 +512,27 @@ export function WorkReportForm({ sites, organizationUsers, currentUserId, curren
             </div>
           </div>
 
-          {/* カスタムフィールド */}
+          {/* 新しいカスタムフィールド */}
+          {customFields.length > 0 && (
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">カスタム項目</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {customFields.map((field) => (
+                  <CustomFieldInput
+                    key={field.id}
+                    field={field}
+                    value={customFieldValues[field.field_key]}
+                    onChange={(key, value) => setCustomFieldValues({ ...customFieldValues, [key]: value })}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 旧形式のカスタムフィールド（後方互換性のため残す） */}
           {settings.custom_fields.length > 0 && (
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">業種固有項目</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">業種固有項目（旧形式）</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {settings.custom_fields.map((field, index) => (
                   <div key={index}>

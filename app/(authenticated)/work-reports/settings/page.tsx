@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { WorkReportSettingsForm } from './WorkReportSettingsForm'
+import { CustomFieldsManager } from './CustomFieldsManager'
 
 export default async function WorkReportSettingsPage() {
   const supabase = await createClient()
@@ -29,6 +30,14 @@ export default async function WorkReportSettingsPage() {
     redirect('/')
   }
 
+  // カスタムフィールド取得
+  const { data: customFields } = await supabase
+    .from('work_report_custom_fields')
+    .select('*')
+    .eq('organization_id', userData.organization_id)
+    .is('site_id', null)
+    .order('display_order', { ascending: true })
+
   return (
     <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
@@ -39,7 +48,15 @@ export default async function WorkReportSettingsPage() {
           </p>
         </div>
 
-        <WorkReportSettingsForm />
+        <div className="space-y-8">
+          <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6">
+            <WorkReportSettingsForm />
+          </div>
+
+          <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6">
+            <CustomFieldsManager initialFields={customFields || []} />
+          </div>
+        </div>
       </div>
     </div>
   )
