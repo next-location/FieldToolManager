@@ -203,3 +203,71 @@ export function getTableConfig(options: {
     ...customConfig,
   }
 }
+
+/**
+ * カスタムフィールドデータをテーブル形式で描画
+ *
+ * @param doc - jsPDFインスタンス
+ * @param autoTable - autoTable関数
+ * @param customFieldDefinitions - カスタムフィールド定義配列
+ * @param customFieldsData - カスタムフィールド実データ（JSONB）
+ * @param startY - 開始Y座標
+ * @returns 次の描画開始Y座標
+ */
+export function drawCustomFields(
+  doc: jsPDF,
+  autoTable: any,
+  customFieldDefinitions: Array<{
+    field_key: string
+    field_label: string
+    field_type: 'text' | 'textarea' | 'number' | 'date' | 'select' | 'checkbox'
+    field_options?: string[]
+  }>,
+  customFieldsData: Record<string, any>,
+  startY: number
+): number {
+  if (!customFieldDefinitions || customFieldDefinitions.length === 0) {
+    return startY
+  }
+
+  // カスタムフィールドの行データを作成
+  const customFieldRows: string[][] = []
+
+  customFieldDefinitions.forEach((field) => {
+    const value = customFieldsData[field.field_key]
+    let displayValue = '-'
+
+    if (value !== undefined && value !== null && value !== '') {
+      if (field.field_type === 'checkbox' && Array.isArray(value)) {
+        // チェックボックス: 配列を「,」区切りで表示
+        displayValue = value.join(', ')
+      } else if (field.field_type === 'date' && typeof value === 'string') {
+        // 日付: YYYY-MM-DD形式をそのまま表示
+        displayValue = value
+      } else {
+        displayValue = String(value)
+      }
+    }
+
+    customFieldRows.push([field.field_label, displayValue])
+  })
+
+  // テーブルとして描画（2列: ラベル | 値）
+  autoTable(doc, {
+    startY: startY,
+    head: [['項目', '内容']],
+    body: customFieldRows,
+    ...getTableConfig({
+      type: 'content', // 改ページ許可
+      customStyles: {
+        cellPadding: 2,
+      },
+    }),
+    columnStyles: {
+      0: { cellWidth: 50, fontStyle: 'bold' }, // ラベル列（太字）
+      1: { cellWidth: 'auto' }, // 値列（自動幅）
+    },
+  })
+
+  return (doc as any).lastAutoTable.finalY
+}

@@ -941,17 +941,156 @@ generatePersonalSeal(surname: string, size?: number): string
 
 ---
 
+## 8. カスタムフィールド機能（Phase 2実装完了）
+
+### 8.1 概要
+
+管理者が自由に項目を追加できる柔軟なカスタムフィールド機能。組織全体または現場ごとに独自の入力項目を定義可能。
+
+### 8.2 データベース設計
+
+#### work_report_custom_fields テーブル
+
+**カラム**:
+- `id UUID` - 主キー
+- `organization_id UUID` - 組織ID（必須）
+- `site_id UUID` - 現場ID（NULL=組織全体、指定=現場固有）
+- `field_key TEXT` - フィールド識別子（例: custom_weather）
+- `field_label TEXT` - 表示名（例: 天気）
+- `field_type TEXT` - フィールドタイプ
+  - `text` - テキスト（1行）
+  - `textarea` - テキスト（複数行）
+  - `number` - 数値
+  - `date` - 日付
+  - `select` - 選択肢（ドロップダウン）
+  - `checkbox` - チェックボックス
+- `field_options JSONB` - 選択肢配列（select/checkboxのみ）
+- `display_order INTEGER` - 表示順序
+- `is_required BOOLEAN` - 必須フラグ
+- `placeholder TEXT` - プレースホルダー
+- `help_text TEXT` - ヘルプテキスト
+
+**ユニーク制約**: `(organization_id, site_id, field_key)`
+
+#### work_reports.custom_fields_data JSONB
+
+カスタムフィールドの値を保存（スキーマレス設計）
+
+**例**:
+```json
+{
+  "custom_weather": "晴れ",
+  "custom_equipment_count": 5,
+  "custom_safety_check": ["ヘルメット", "安全帯", "保護メガネ"]
+}
+```
+
+### 8.3 API仕様
+
+#### GET /api/work-reports/custom-fields?site_id=xxx
+- カスタムフィールド定義一覧取得
+- 組織全体 + 現場固有フィールドを返す
+
+#### POST /api/work-reports/custom-fields
+- カスタムフィールド定義作成
+- 権限: admin/super_adminのみ
+
+#### PUT /api/work-reports/custom-fields/[id]
+- カスタムフィールド定義更新
+- 権限: admin/super_adminのみ
+
+#### DELETE /api/work-reports/custom-fields/[id]
+- カスタムフィールド定義削除
+- 権限: admin/super_adminのみ
+
+### 8.4 管理UI
+
+**場所**: `/work-reports/settings` （作業報告書設定ページ）
+
+**機能**:
+1. カスタムフィールド一覧表示
+   - フィールド名、タイプ、必須/任意、選択肢
+2. 新規フィールド追加フォーム
+   - フィールドキー、ラベル、タイプ選択
+   - select/checkboxの場合は選択肢入力（カンマ区切り）
+   - プレースホルダー、ヘルプテキスト、必須フラグ
+3. フィールド削除機能
+
+**コンポーネント**: `CustomFieldsManager.tsx`
+
+### 8.5 動的フォーム生成
+
+**場所**: `/work-reports/new` （作業報告書作成ページ）
+
+**機能**:
+1. カスタムフィールド定義を取得
+2. フィールドタイプに応じた入力コンポーネントを動的生成
+3. バリデーション（必須フィールド）
+4. データをJSONB形式でcustom_fields_dataに保存
+
+**コンポーネント**: `CustomFieldInput.tsx`
+
+### 8.6 PDF表示
+
+**ヘルパー関数**: `lib/pdf/helpers.ts` の `drawCustomFields()`
+
+**仕様**:
+- カスタムフィールドがある場合、特記事項・備考の後に自動表示
+- テーブル形式（2列: 項目名 | 値）
+- 改ページ設定: `type: 'content'` （自動改ページ許可）
+- チェックボックス値は「,」区切りで表示
+- 日付はYYYY-MM-DD形式
+
+**実装**: `app/api/work-reports/[id]/pdf/route.ts`
+```typescript
+// カスタムフィールド定義を取得
+const { data: customFieldDefinitions } = await supabase
+  .from('work_report_custom_fields')
+  .select('*')
+  .eq('organization_id', userData.organization_id)
+  .or(`site_id.eq.${report.site_id},site_id.is.null`)
+  .order('display_order', { ascending: true })
+
+// PDF描画
+if (customFieldDefinitions && customFieldDefinitions.length > 0) {
+  yPos = drawCustomFields(
+    doc,
+    autoTable,
+    customFieldDefinitions,
+    report.custom_fields_data || {},
+    yPos
+  )
+}
+```
+
+### 8.7 技術仕様
+
+- **データ保存**: JSONB（柔軟なスキーマレス設計）
+- **スコープ**: 組織全体（site_id=NULL）または現場固有（site_id指定）
+- **権限**: 設定はadmin/super_adminのみ、入力は全ユーザー
+- **改ページ対応**: PDF生成時にgetTableConfig()の改ページ設定を使用
+
+### 8.8 注意事項
+
+- カスタムフィールドのfield_keyは変更不可（データ整合性のため）
+- 既存データへの影響を避けるため、削除は慎重に行う
+- 大量のカスタムフィールド（50個以上）はPDF表示が長くなるため注意
+- チェックボックスタイプは配列で保存されるため、検索時は適切にJSONBクエリを使用
+
+---
+
 ## まとめ
 
 本仕様書では、ハイブリッド方式による柔軟かつ使いやすい作業報告書機能を定義しました。
 
 ### 重要ポイント
-1. ✅ 業種による違いに対応（カスタムフィールド）
+1. ✅ 業種による違いに対応（カスタムフィールド機能実装完了）
 2. ✅ シンプルで使いやすいUI（コア項目のみでも使える）
 3. ✅ 段階的実装（MVPから高度な機能まで）
 4. ✅ 写真・資料の充実したサポート
 5. ✅ 承認フローによる品質管理
 6. ✅ PDF生成の共通ヘルパー関数による保守性向上
 7. ✅ 個人印鑑の自動生成機能（シャチハタ風）
+8. ✅ カスタムフィールド機能（動的フォーム・PDF反映）
 
 この設計により、建築業をはじめ様々な現場系業種に対応できる汎用的な作業報告書システムを構築できます。

@@ -4,7 +4,7 @@ import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import fs from 'fs'
 import path from 'path'
-import { drawCompanyName, getTableConfig } from '@/lib/pdf/helpers'
+import { drawCompanyName, getTableConfig, drawCustomFields } from '@/lib/pdf/helpers'
 
 export async function GET(
   request: NextRequest,
@@ -75,6 +75,14 @@ export async function GET(
       console.log('[PDF API] Report not found:', error)
       return NextResponse.json({ error: '作業報告書が見つかりません' }, { status: 404 })
     }
+
+    // カスタムフィールド定義を取得
+    const { data: customFieldDefinitions } = await supabase
+      .from('work_report_custom_fields')
+      .select('*')
+      .eq('organization_id', userData.organization_id)
+      .or(`site_id.eq.${report.site_id},site_id.is.null`)
+      .order('display_order', { ascending: true })
 
     console.log('[PDF API] Report found, generating PDF with jsPDF...')
 
@@ -434,6 +442,19 @@ export async function GET(
         1: { cellWidth: 95 }, // 備考（右半分）
       },
     })
+
+    yPos = (doc as any).lastAutoTable.finalY + 5
+
+    // カスタムフィールド（存在する場合のみ）
+    if (customFieldDefinitions && customFieldDefinitions.length > 0) {
+      yPos = drawCustomFields(
+        doc,
+        autoTable,
+        customFieldDefinitions,
+        report.custom_fields_data || {},
+        yPos
+      )
+    }
 
     // ========================================
     // フッター部分（ページ番号のみ）
