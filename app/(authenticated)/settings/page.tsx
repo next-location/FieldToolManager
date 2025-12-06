@@ -37,6 +37,7 @@ export default async function SettingsPage() {
               currentName={userData?.name || ''}
               currentEmail={user.email || ''}
               currentDepartment={userData?.department || ''}
+              currentSealData={userData?.personal_seal_data || ''}
             />
           </div>
         </div>

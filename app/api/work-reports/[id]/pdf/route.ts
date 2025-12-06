@@ -63,7 +63,8 @@ export async function GET(
             address
           )
         ),
-        created_by_user:users!work_reports_created_by_fkey(name)
+        created_by_user:users!work_reports_created_by_fkey(name, personal_seal_data),
+        approved_by_user:users!work_reports_approved_by_fkey(name, personal_seal_data)
       `
       )
       .eq('id', id)
@@ -160,6 +161,38 @@ export async function GET(
     doc.rect(personInChargeX, stampY + stampHeaderHeight, stampBoxSize, stampBoxSize)
     // 名称テキスト（小さく、上下中央配置）
     doc.text('担当印', personInChargeX + stampBoxSize / 2, stampY + stampHeaderHeight / 2 + 1, { align: 'center' })
+
+    // 担当印の印鑑画像を表示（作成者の印鑑データがある場合）
+    if (report.created_by_user?.personal_seal_data) {
+      try {
+        doc.addImage(
+          report.created_by_user.personal_seal_data,
+          'SVG',
+          personInChargeX + 1,
+          stampY + stampHeaderHeight + 1,
+          stampBoxSize - 2,
+          stampBoxSize - 2
+        )
+      } catch (err) {
+        console.error('[PDF API] Error adding person in charge seal:', err)
+      }
+    }
+
+    // 承認印の印鑑画像を表示（承認者の印鑑データがある場合）
+    if (report.approved_by_user?.personal_seal_data) {
+      try {
+        doc.addImage(
+          report.approved_by_user.personal_seal_data,
+          'SVG',
+          approvalX + 1,
+          stampY + stampHeaderHeight + 1,
+          stampBoxSize - 2,
+          stampBoxSize - 2
+        )
+      } catch (err) {
+        console.error('[PDF API] Error adding approval seal:', err)
+      }
+    }
 
     yPos += 8
 
