@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { jsPDF } from 'jspdf'
+import autoTable from 'jspdf-autotable'
 import fs from 'fs'
 import path from 'path'
 
@@ -35,13 +36,32 @@ export async function GET(
       return NextResponse.json({ error: 'ユーザー情報が見つかりません' }, { status: 404 })
     }
 
+    // 組織情報を取得
+    const { data: organization } = await supabase
+      .from('organizations')
+      .select('name, postal_code, address, phone, fax')
+      .eq('id', userData.organization_id)
+      .single()
+
+    if (!organization) {
+      return NextResponse.json({ error: '組織情報が見つかりません' }, { status: 404 })
+    }
+
     // 作業報告書を取得（リレーション名を明示的に指定）
     const { data: report, error } = await supabase
       .from('work_reports')
       .select(
         `
         *,
-        site:sites!work_reports_site_id_fkey(name, address),
+        site:sites!work_reports_site_id_fkey(
+          id,
+          name,
+          address,
+          client:clients!sites_client_id_fkey(
+            name,
+            address
+          )
+        ),
         created_by_user:users!work_reports_created_by_fkey(name)
       `
       )
@@ -84,12 +104,157 @@ export async function GET(
       // フォント登録に失敗してもPDF生成は続行（デフォルトフォント使用）
     }
 
-    let yPos = 20
+    let yPos = 15
 
-    // タイトル
-    doc.setFontSize(20)
+    // ========================================
+    // ヘッダー部分
+    // ========================================
+
+    // タイトル（中央配置）
+    doc.setFontSize(16)
+    doc.setFont('NotoSansJP', 'normal')
     doc.text('作業報告書', 105, yPos, { align: 'center' })
-    yPos += 15
+
+    // 作成日（左端、タイトル上部に揃える）
+    doc.setFontSize(8)
+    doc.setFont('NotoSansJP', 'normal')
+    const createdDate = new Date(report.created_at).toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+    doc.text(`作成日: ${createdDate}`, 15, yPos)
+
+    // 作業報告書ナンバー（作成日の下）
+    doc.text(`報告書No: ${report.id.substring(0, 8)}`, 15, yPos + 4)
+
+    // 角印の右端位置を基準にする
+    const sealRightEdge = 185 + 20 // sealX + sealSize
+
+    // 担当印・承認印（角印の右端に揃える）
+    const stampBoxSize = 12 // 正方形のサイズ
+    const stampHeaderHeight = 4 // 名称エリアの高さ
+    const stampY = yPos - 4 // タイトルと高さを揃える
+
+    // 承認印（角印の右端に揃える）
+    const approvalX = sealRightEdge - stampBoxSize
+    doc.setDrawColor(0, 0, 0)
+    doc.setLineWidth(0.1) // 細く
+
+    // 名称部分（背景グレー）
+    doc.setFillColor(240, 240, 240) // 薄いグレー
+    doc.rect(approvalX, stampY, stampBoxSize, stampHeaderHeight, 'FD') // F=fill, D=draw
+    // 捺印部分（正方形）
+    doc.rect(approvalX, stampY + stampHeaderHeight, stampBoxSize, stampBoxSize)
+    // 名称テキスト（小さく、上下中央配置）
+    doc.setFontSize(5)
+    doc.text('承認印', approvalX + stampBoxSize / 2, stampY + stampHeaderHeight / 2 + 1, { align: 'center' })
+
+    // 担当印（承認印の左隣）
+    const personInChargeX = approvalX - stampBoxSize - 2
+    // 名称部分（背景グレー）
+    doc.setFillColor(240, 240, 240)
+    doc.rect(personInChargeX, stampY, stampBoxSize, stampHeaderHeight, 'FD')
+    // 捺印部分（正方形）
+    doc.rect(personInChargeX, stampY + stampHeaderHeight, stampBoxSize, stampBoxSize)
+    // 名称テキスト（小さく、上下中央配置）
+    doc.text('担当印', personInChargeX + stampBoxSize / 2, stampY + stampHeaderHeight / 2 + 1, { align: 'center' })
+
+    yPos += 8
+
+    // 自社情報と角印（担当印・承認印の下に配置、余白を設ける）
+    const stampTotalHeight = stampY + stampHeaderHeight + stampBoxSize
+    const companyInfoStartY = stampTotalHeight + 5 // 余白を少し増やす
+
+    // 自社情報（右寄せ）
+    const companyInfoX = 140
+    let companyInfoY = companyInfoStartY
+
+    // 社名（少し大きく）
+    doc.setFontSize(9)
+    doc.setFont('NotoSansJP', 'normal')
+    doc.text(organization.name, companyInfoX, companyInfoY)
+    companyInfoY += 5
+
+    // その他の情報（小さく）
+    doc.setFontSize(7)
+    doc.text(`〒${organization.postal_code || '-'}`, companyInfoX, companyInfoY)
+    companyInfoY += 3.5
+    doc.text(organization.address || '-', companyInfoX, companyInfoY)
+    companyInfoY += 3.5
+    doc.text(`TEL: ${organization.phone || '-'}`, companyInfoX, companyInfoY)
+    companyInfoY += 3.5
+    if (organization.fax) {
+      doc.text(`FAX: ${organization.fax}`, companyInfoX, companyInfoY)
+      companyInfoY += 3.5
+    }
+    doc.text(`作成者: ${report.created_by_user?.name || '-'}`, companyInfoX, companyInfoY)
+
+    // 角印の位置（自社情報の右側）
+    const sealX = 185
+    const sealY = companyInfoStartY
+    const sealSize = 20
+
+    // 角印の枠（将来的に画像に置き換え）
+    if (organization.company_seal_url) {
+      // TODO: 画像読み込みと配置（将来実装）
+      // doc.addImage(sealImage, 'PNG', sealX, sealY, sealSize, sealSize)
+    } else {
+      // 仮の枠表示
+      doc.setDrawColor(200, 200, 200)
+      doc.setLineWidth(0.5)
+      doc.rect(sealX, sealY, sealSize, sealSize)
+      doc.setFontSize(6)
+      doc.setTextColor(150, 150, 150)
+      doc.text('角印', sealX + 7, sealY + 11)
+      doc.setTextColor(0, 0, 0)
+    }
+
+    // 自社情報エリアの高さを計算
+    const companyInfoHeight = companyInfoY - companyInfoStartY
+    const sealHeight = sealSize
+    const companyInfoAreaHeight = Math.max(companyInfoHeight, sealHeight)
+
+    // 取引先情報（自社情報エリアと上下中央揃え）
+    const clientInfoStartY = companyInfoStartY + (companyInfoAreaHeight / 2) - 10 // 中央揃え調整
+
+    // 社名ラベル（小さく）+ 社名（大きく）
+    let clientYPos = clientInfoStartY
+    doc.setFontSize(6)
+    doc.setFont('NotoSansJP', 'normal')
+    doc.text('社名：', 15, clientYPos)
+
+    doc.setFontSize(12)
+    const clientName = report.site?.client?.name || '-'
+    doc.text(`${clientName} 様`, 25, clientYPos)
+    clientYPos += 2
+
+    // 社名の下に細い線を引く
+    doc.setDrawColor(0, 0, 0)
+    doc.setLineWidth(0.1)
+    doc.line(15, clientYPos, 120, clientYPos)
+    clientYPos += 6
+
+    // 作業現場ラベル（小さく）+ 現場名（通常サイズ）
+    doc.setFontSize(6)
+    doc.text('作業現場：', 15, clientYPos)
+
+    doc.setFontSize(10)
+    const siteName = report.site?.name || '-'
+    doc.text(siteName, 33, clientYPos)
+    clientYPos += 2
+
+    // 下線を引く（細く）
+    doc.setLineWidth(0.1)
+    doc.line(15, clientYPos, 120, clientYPos)
+    clientYPos += 3
+
+    // yPosを更新（取引先情報と自社情報エリアの下）
+    yPos = Math.max(clientYPos, companyInfoStartY + companyInfoAreaHeight + 3)
+
+    // ========================================
+    // 本文部分（作業内容）
+    // ========================================
 
     // 天気マップ
     const weatherMap: Record<string, string> = {
@@ -99,20 +264,7 @@ export async function GET(
       snowy: '雪',
     }
 
-    // ステータスマップ
-    const statusMap: Record<string, string> = {
-      draft: '下書き',
-      submitted: '提出済',
-      approved: '承認済',
-      rejected: '差戻',
-    }
-
-    // 基本情報
-    doc.setFontSize(14)
-    doc.text('■ 基本情報', 20, yPos)
-    yPos += 10
-
-    doc.setFontSize(10)
+    // 作業日・天気・進捗率
     const reportDate = new Date(report.report_date).toLocaleDateString('ja-JP', {
       year: 'numeric',
       month: 'long',
@@ -120,97 +272,156 @@ export async function GET(
       weekday: 'long',
     })
 
-    const basicInfo = [
-      `作業日: ${reportDate}`,
-      `天気: ${weatherMap[report.weather] || '不明'}`,
-      `現場: ${report.site?.name || '不明'}`,
-    ]
+    // 作業人数（workers配列の長さ）
+    const workerCount = report.workers && Array.isArray(report.workers) ? report.workers.length : 0
 
-    if (report.site?.address) {
-      basicInfo.push(`住所: ${report.site.address}`)
-    }
+    autoTable(doc, {
+      startY: yPos,
+      body: [
+        ['作業日', reportDate],
+        ['開始時間', '-'], // TODO: データベースに追加予定
+        ['終了時間', '-'], // TODO: データベースに追加予定
+        ['作業場所（詳細）', report.work_location || '-'],
+        ['作業人数', `${workerCount}名`],
+        ['天気', weatherMap[report.weather as keyof typeof weatherMap] || '-'],
+        ['進捗率', report.progress_rate !== null ? `${report.progress_rate}%` : '-'],
+      ],
+      theme: 'grid',
+      styles: {
+        font: 'NotoSansJP',
+        fontSize: 9,
+        cellPadding: 3,
+      },
+      columnStyles: {
+        0: { cellWidth: 50, fontStyle: 'normal', fillColor: [240, 240, 240] },
+        1: { cellWidth: 140 },
+      },
+    })
 
-    if (report.work_location) {
-      basicInfo.push(`作業場所（詳細）: ${report.work_location}`)
-    }
-
-    if (report.progress_rate !== null && report.progress_rate !== undefined) {
-      basicInfo.push(`進捗率: ${report.progress_rate}%`)
-    }
-
-    basicInfo.push(`ステータス: ${statusMap[report.status] || report.status}`)
-
-    for (const info of basicInfo) {
-      doc.text(info, 25, yPos)
-      yPos += 7
-    }
-
-    yPos += 5
+    yPos = (doc as any).lastAutoTable.finalY + 8
 
     // 作業員
     if (report.workers && Array.isArray(report.workers) && report.workers.length > 0) {
-      doc.setFontSize(14)
-      doc.text('■ 作業員', 20, yPos)
-      yPos += 10
+      const workerRows = report.workers.map((worker: any) => [
+        worker.name || '-',
+        worker.work_hours !== undefined ? `${worker.work_hours}時間` : '-',
+      ])
 
-      doc.setFontSize(10)
-      for (const worker of report.workers) {
-        const workHours = worker.work_hours !== undefined ? `${worker.work_hours}時間` : '-'
-        doc.text(`${worker.name}: ${workHours}`, 25, yPos)
-        yPos += 7
-      }
+      autoTable(doc, {
+        startY: yPos,
+        head: [['作業員', '作業時間']],
+        body: workerRows,
+        theme: 'grid',
+        styles: {
+          font: 'NotoSansJP',
+          fontSize: 9,
+          cellPadding: 3,
+        },
+        headStyles: {
+          fillColor: [200, 200, 200],
+          textColor: [0, 0, 0],
+          fontStyle: 'normal',
+          halign: 'center',
+        },
+        columnStyles: {
+          0: { cellWidth: 95 },
+          1: { cellWidth: 95, halign: 'center' },
+        },
+      })
 
-      yPos += 5
+      yPos = (doc as any).lastAutoTable.finalY + 8
     }
 
     // 作業内容
-    doc.setFontSize(14)
-    doc.text('■ 作業内容', 20, yPos)
-    yPos += 10
+    autoTable(doc, {
+      startY: yPos,
+      head: [['作業内容']],
+      body: [[report.description || '-']],
+      theme: 'grid',
+      styles: {
+        font: 'NotoSansJP',
+        fontSize: 9,
+        cellPadding: 3,
+      },
+      headStyles: {
+        fillColor: [200, 200, 200],
+        textColor: [0, 0, 0],
+        fontStyle: 'normal',
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 190 },
+      },
+    })
 
-    doc.setFontSize(10)
-    const splitDescription = doc.splitTextToSize(report.description, 170)
-    doc.text(splitDescription, 25, yPos)
-    yPos += splitDescription.length * 7 + 5
+    yPos = (doc as any).lastAutoTable.finalY + 8
 
-    // 使用資材
-    if (report.materials) {
-      if (yPos > 250) {
-        doc.addPage()
-        yPos = 20
-      }
+    // 使用資材・使用道具
+    const materialsText = report.materials_used && Array.isArray(report.materials_used)
+      ? report.materials_used.join('\n')
+      : '-'
 
-      doc.setFontSize(14)
-      doc.text('■ 使用資材', 20, yPos)
-      yPos += 10
+    autoTable(doc, {
+      startY: yPos,
+      head: [['使用資材']],
+      body: [[materialsText]],
+      theme: 'grid',
+      styles: {
+        font: 'NotoSansJP',
+        fontSize: 9,
+        cellPadding: 3,
+      },
+      headStyles: {
+        fillColor: [200, 200, 200],
+        textColor: [0, 0, 0],
+        fontStyle: 'normal',
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 190 },
+      },
+    })
 
-      doc.setFontSize(10)
-      const splitMaterials = doc.splitTextToSize(report.materials, 170)
-      doc.text(splitMaterials, 25, yPos)
-      yPos += splitMaterials.length * 7 + 5
+    yPos = (doc as any).lastAutoTable.finalY + 8
+
+    // 備考（カスタムフィールドがあれば表示）
+    if (report.custom_fields && Object.keys(report.custom_fields).length > 0) {
+      const customFieldsText = Object.entries(report.custom_fields)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join('\n')
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [['備考']],
+        body: [[customFieldsText]],
+        theme: 'grid',
+        styles: {
+          font: 'NotoSansJP',
+          fontSize: 9,
+          cellPadding: 3,
+        },
+        headStyles: {
+          fillColor: [200, 200, 200],
+          textColor: [0, 0, 0],
+          fontStyle: 'normal',
+          halign: 'center',
+        },
+        columnStyles: {
+          0: { cellWidth: 190 },
+        },
+      })
     }
 
-    // 使用道具
-    if (report.tools) {
-      if (yPos > 250) {
-        doc.addPage()
-        yPos = 20
-      }
-
-      doc.setFontSize(14)
-      doc.text('■ 使用道具', 20, yPos)
-      yPos += 10
-
-      doc.setFontSize(10)
-      const splitTools = doc.splitTextToSize(report.tools, 170)
-      doc.text(splitTools, 25, yPos)
-      yPos += splitTools.length * 7 + 5
+    // ========================================
+    // フッター部分（ページ番号のみ）
+    // ========================================
+    const pageCount = doc.getNumberOfPages()
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i)
+      doc.setFontSize(8)
+      doc.setFont('NotoSansJP', 'normal')
+      doc.text(`ページ ${i} / ${pageCount}`, 195, 290, { align: 'right' })
     }
-
-    // フッター
-    doc.setFontSize(8)
-    doc.text(`作成者: ${report.created_by_user?.name || '不明'}`, 20, 280)
-    doc.text(`作成日時: ${new Date(report.created_at).toLocaleString('ja-JP')}`, 20, 285)
 
     // PDFをバイト配列として取得
     const pdfBytes = doc.output('arraybuffer')
