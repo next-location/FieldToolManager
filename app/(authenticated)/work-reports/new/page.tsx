@@ -32,6 +32,14 @@ export default async function NewWorkReportPage() {
     .is('deleted_at', null)
     .order('name')
 
+  // 組織内のユーザー一覧を取得（帯同作業員選択用）
+  const { data: organizationUsers } = await supabase
+    .from('users')
+    .select('id, name, email')
+    .eq('organization_id', userData.organization_id)
+    .is('deleted_at', null)
+    .order('name')
+
   // 組織の報告書設定を取得
   const { data: settings } = await supabase
     .from('organization_report_settings')
@@ -61,6 +69,7 @@ export default async function NewWorkReportPage() {
 
         <WorkReportForm
           sites={sites || []}
+          organizationUsers={organizationUsers || []}
           currentUserId={user.id}
           currentUserName={userData.name}
           settings={reportSettings}

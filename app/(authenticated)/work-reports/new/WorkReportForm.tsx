@@ -10,6 +10,12 @@ interface Site {
   address: string | null
 }
 
+interface OrganizationUser {
+  id: string
+  name: string
+  email: string
+}
+
 interface CustomField {
   name: string
   type: 'text' | 'number' | 'select' | 'checkbox' | 'date' | 'time'
@@ -29,12 +35,13 @@ interface Settings {
 
 interface WorkReportFormProps {
   sites: Site[]
+  organizationUsers: OrganizationUser[]
   currentUserId: string
   currentUserName: string
   settings: Settings
 }
 
-export function WorkReportForm({ sites, currentUserId, currentUserName, settings }: WorkReportFormProps) {
+export function WorkReportForm({ sites, organizationUsers, currentUserId, currentUserName, settings }: WorkReportFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -51,6 +58,9 @@ export function WorkReportForm({ sites, currentUserId, currentUserName, settings
   const [progressRate, setProgressRate] = useState<number | undefined>(undefined)
   const [materials, setMaterials] = useState('')
   const [tools, setTools] = useState('')
+
+  // 帯同作業員（自分以外のユーザー）
+  const [accompaniedWorkerIds, setAccompaniedWorkerIds] = useState<string[]>([])
 
   // カスタムフィールドの値を保持
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>({})
@@ -79,12 +89,22 @@ export function WorkReportForm({ sites, currentUserId, currentUserName, settings
       // 作業時間を計算
       const workHours = calculateWorkHours(workStartTime, workEndTime, breakTime)
 
-      // 作業員データを構築（作成者のみ）
-      const workerData = [{
-        user_id: currentUserId,
-        name: currentUserName,
-        work_hours: workHours,
-      }]
+      // 作業員データを構築（作成者 + 帯同作業員）
+      const workerData = [
+        {
+          user_id: currentUserId,
+          name: currentUserName,
+          work_hours: workHours,
+        },
+        ...accompaniedWorkerIds.map(workerId => {
+          const user = organizationUsers.find(u => u.id === workerId)
+          return {
+            user_id: workerId,
+            name: user?.name || '',
+            work_hours: workHours, // 同じ作業時間を適用
+          }
+        })
+      ]
 
       const response = await fetch('/api/work-reports', {
         method: 'POST',
@@ -95,6 +115,9 @@ export function WorkReportForm({ sites, currentUserId, currentUserName, settings
           site_id: siteId,
           report_date: reportDate,
           weather,
+          work_start_time: workStartTime,
+          work_end_time: workEndTime,
+          break_minutes: breakTime,
           description,
           workers: workerData,
           work_location: workLocation || undefined,
@@ -256,6 +279,37 @@ export function WorkReportForm({ sites, currentUserId, currentUserName, settings
 
             <div className="mt-2 text-sm text-gray-600">
               実作業時間: <span className="font-semibold text-gray-900">{calculatedWorkHours}時間</span>
+            </div>
+          </div>
+
+          {/* 帯同作業員 */}
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">帯同作業員</h3>
+            <div className="space-y-2">
+              <p className="text-sm text-gray-600">一緒に作業した社員を選択してください（任意）</p>
+              {organizationUsers
+                .filter(user => user.id !== currentUserId)
+                .map(user => (
+                  <label key={user.id} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={accompaniedWorkerIds.includes(user.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setAccompaniedWorkerIds([...accompaniedWorkerIds, user.id])
+                        } else {
+                          setAccompaniedWorkerIds(accompaniedWorkerIds.filter(id => id !== user.id))
+                        }
+                      }}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <span className="text-sm text-gray-900">{user.name}</span>
+                    <span className="text-xs text-gray-500">({user.email})</span>
+                  </label>
+                ))}
+              {organizationUsers.filter(user => user.id !== currentUserId).length === 0 && (
+                <p className="text-sm text-gray-500">他の社員が登録されていません</p>
+              )}
             </div>
           </div>
 

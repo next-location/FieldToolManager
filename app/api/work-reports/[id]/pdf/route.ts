@@ -301,13 +301,13 @@ export async function GET(
         ],
         [
           '開始時間',
-          '-', // TODO: データベースに追加予定
+          report.work_start_time || '-',
           '天気',
           weatherMap[report.weather as keyof typeof weatherMap] || '-',
         ],
         [
           '終了時間',
-          '-', // TODO: データベースに追加予定
+          report.work_end_time || '-',
           '進捗率',
           report.progress_rate !== null ? `${report.progress_rate}%` : '-',
         ],
