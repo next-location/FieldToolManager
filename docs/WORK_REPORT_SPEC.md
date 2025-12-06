@@ -1,6 +1,6 @@
 # 作業報告書機能 仕様書
 
-最終更新: 2025-12-05
+最終更新: 2025-12-06
 
 ## 目次
 1. [概要](#1-概要)
@@ -766,6 +766,117 @@ submitted（提出済み）
 
 ---
 
+## 11. PDF生成の共通ヘルパー関数
+
+### 11.1 概要
+
+複数の作業報告書テンプレートに対応するため、PDF生成の共通ロジックをヘルパー関数として実装しています。
+
+### 11.2 実装ファイル
+
+**`lib/pdf/helpers.ts`**
+
+### 11.3 提供される関数
+
+#### 11.3.1 `drawCompanyName()`
+
+自社名を描画する関数。会社名が長い場合（指定した最大幅を超える場合）、会社種別を自動的に改行して小さいフォントで表示します。
+
+**サポートされる会社種別**:
+- 株式会社
+- 有限会社
+- 合同会社
+- 合資会社
+- 合名会社
+- 一般社団法人
+- 一般財団法人
+- 公益社団法人
+- 公益財団法人
+
+**パラメータ**:
+```typescript
+drawCompanyName(
+  doc: jsPDF,              // jsPDFインスタンス
+  companyName: string,     // 会社名
+  x: number,               // X座標
+  startY: number,          // 開始Y座標
+  maxWidth: number = 50,   // 最大幅（mm）。これを超える場合に改行
+  mainFontSize: number = 9, // メイン部分のフォントサイズ
+  companyTypeFontSize: number = 7 // 会社種別のフォントサイズ
+): number // 次の描画開始Y座標を返す
+```
+
+**使用例**:
+```typescript
+companyInfoY = drawCompanyName(doc, organization.name, companyInfoX, companyInfoY, 50, 9, 7)
+```
+
+#### 11.3.2 `getTableConfig()`
+
+autoTableの共通スタイル設定を返す関数。ページブレーク制御、線の色、フォント設定などを統一します。
+
+**テーブルタイプ**:
+- `'info'`: 作業日・作業人数等の情報テーブル（改ページ避ける）
+- `'list'`: 作業員リスト等のテーブル（ヘッダー避ける、行は自動）
+- `'content'`: 作業内容・使用資材等の長文テーブル（自動改ページ）
+- `'remarks'`: 特記事項・備考等の固定高さテーブル（改ページ避ける）
+
+**パラメータ**:
+```typescript
+getTableConfig(options: {
+  type: 'info' | 'list' | 'content' | 'remarks',
+  customStyles?: Partial<UserConfig['styles']>,
+  customHeadStyles?: Partial<UserConfig['headStyles']>,
+  customConfig?: Partial<UserConfig>
+}): Partial<UserConfig>
+```
+
+**使用例**:
+```typescript
+autoTable(doc, {
+  ...getTableConfig({ type: 'info' }),
+  startY: yPos,
+  body: [[...]],
+  columnStyles: { ... }
+})
+```
+
+### 11.4 ページブレーク制御の詳細
+
+各テーブルタイプごとに適切なページブレーク設定が自動的に適用されます:
+
+| タイプ | pageBreak | rowPageBreak | 用途 |
+|--------|-----------|--------------|------|
+| info | avoid | avoid | 小さなテーブル全体を1ページに収める |
+| list | avoid | auto | ヘッダーと最初の行を一緒に配置、行が多い場合は自動改ページ |
+| content | auto | auto | 長文が入力された場合、自然に次ページに続く |
+| remarks | avoid | avoid | 最後のセクションを1ページに収める |
+
+### 11.5 新しいテンプレートの実装方法
+
+新しい作業報告書テンプレートを作成する際は、以下のヘルパー関数を使用してください:
+
+```typescript
+import { drawCompanyName, getTableConfig } from '@/lib/pdf/helpers'
+
+// 自社名の描画
+companyInfoY = drawCompanyName(doc, organization.name, x, y, 50, 9, 7)
+
+// テーブルの作成
+autoTable(doc, {
+  ...getTableConfig({ type: 'info' }), // または 'list', 'content', 'remarks'
+  startY: yPos,
+  // 以下、テーブル固有の設定
+  head: [['ヘッダー']],
+  body: [['本文']],
+  columnStyles: { ... }
+})
+```
+
+これにより、すべてのテンプレートで一貫したスタイルとページブレーク動作を保証できます。
+
+---
+
 ## まとめ
 
 本仕様書では、ハイブリッド方式による柔軟かつ使いやすい作業報告書機能を定義しました。
@@ -776,5 +887,6 @@ submitted（提出済み）
 3. ✅ 段階的実装（MVPから高度な機能まで）
 4. ✅ 写真・資料の充実したサポート
 5. ✅ 承認フローによる品質管理
+6. ✅ PDF生成の共通ヘルパー関数による保守性向上
 
 この設計により、建築業をはじめ様々な現場系業種に対応できる汎用的な作業報告書システムを構築できます。

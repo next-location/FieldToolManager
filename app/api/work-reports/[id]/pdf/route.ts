@@ -4,6 +4,7 @@ import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import fs from 'fs'
 import path from 'path'
+import { drawCompanyName, getTableConfig } from '@/lib/pdf/helpers'
 
 export async function GET(
   request: NextRequest,
@@ -164,17 +165,15 @@ export async function GET(
 
     // 自社情報と角印（担当印・承認印の下に配置、余白を設ける）
     const stampTotalHeight = stampY + stampHeaderHeight + stampBoxSize
-    const companyInfoStartY = stampTotalHeight + 5 // 余白を少し増やす
+    const companyInfoStartY = stampTotalHeight + 8 // 余白を増やす（5→8）
 
-    // 自社情報（右寄せ）
-    const companyInfoX = 140
+    // 自社情報（さらに右寄せ）
+    const companyInfoX = 150
     let companyInfoY = companyInfoStartY
 
-    // 社名（少し大きく）
-    doc.setFontSize(9)
+    // 社名（少し大きく）- 長い場合は会社種別を改行
     doc.setFont('NotoSansJP', 'normal')
-    doc.text(organization.name, companyInfoX, companyInfoY)
-    companyInfoY += 5
+    companyInfoY = drawCompanyName(doc, organization.name, companyInfoX, companyInfoY, 50, 9, 7)
 
     // その他の情報（小さく）
     doc.setFontSize(7)
@@ -247,10 +246,24 @@ export async function GET(
     // 下線を引く（細く）
     doc.setLineWidth(0.1)
     doc.line(15, clientYPos, 120, clientYPos)
+    clientYPos += 6
+
+    // 作業場所（詳細）ラベル（小さく）+ 作業場所（通常サイズ）
+    doc.setFontSize(6)
+    doc.text('作業場所：', 15, clientYPos)
+
+    doc.setFontSize(10)
+    const workLocation = report.work_location || '-'
+    doc.text(workLocation, 33, clientYPos)
+    clientYPos += 2
+
+    // 下線を引く（細く）
+    doc.setLineWidth(0.1)
+    doc.line(15, clientYPos, 120, clientYPos)
     clientYPos += 3
 
     // yPosを更新（取引先情報と自社情報エリアの下）
-    yPos = Math.max(clientYPos, companyInfoStartY + companyInfoAreaHeight + 3)
+    yPos = Math.max(clientYPos, companyInfoStartY + companyInfoAreaHeight + 8) // 余白を増やす（3→8）
 
     // ========================================
     // 本文部分（作業内容）
@@ -275,86 +288,90 @@ export async function GET(
     // 作業人数（workers配列の長さ）
     const workerCount = report.workers && Array.isArray(report.workers) ? report.workers.length : 0
 
+    // 2列レイアウト: 左側3項目、右側3項目
     autoTable(doc, {
+      ...getTableConfig({ type: 'info' }),
       startY: yPos,
       body: [
-        ['作業日', reportDate],
-        ['開始時間', '-'], // TODO: データベースに追加予定
-        ['終了時間', '-'], // TODO: データベースに追加予定
-        ['作業場所（詳細）', report.work_location || '-'],
-        ['作業人数', `${workerCount}名`],
-        ['天気', weatherMap[report.weather as keyof typeof weatherMap] || '-'],
-        ['進捗率', report.progress_rate !== null ? `${report.progress_rate}%` : '-'],
+        [
+          '作業日',
+          reportDate,
+          '作業人数',
+          `${workerCount}名`,
+        ],
+        [
+          '開始時間',
+          '-', // TODO: データベースに追加予定
+          '天気',
+          weatherMap[report.weather as keyof typeof weatherMap] || '-',
+        ],
+        [
+          '終了時間',
+          '-', // TODO: データベースに追加予定
+          '進捗率',
+          report.progress_rate !== null ? `${report.progress_rate}%` : '-',
+        ],
       ],
-      theme: 'grid',
-      styles: {
-        font: 'NotoSansJP',
-        fontSize: 9,
-        cellPadding: 3,
-      },
       columnStyles: {
-        0: { cellWidth: 50, fontStyle: 'normal', fillColor: [240, 240, 240] },
-        1: { cellWidth: 140 },
+        0: { cellWidth: 25, fontStyle: 'normal', fillColor: [240, 240, 240] },
+        1: { cellWidth: 70 },
+        2: { cellWidth: 25, fontStyle: 'normal', fillColor: [240, 240, 240] },
+        3: { cellWidth: 70 },
       },
     })
 
-    yPos = (doc as any).lastAutoTable.finalY + 8
+    yPos = (doc as any).lastAutoTable.finalY + 5
 
-    // 作業員
-    if (report.workers && Array.isArray(report.workers) && report.workers.length > 0) {
-      const workerRows = report.workers.map((worker: any) => [
+    // 作業員（帯同作業員がいる場合のみ表示）
+    // TODO: 帯同作業員機能実装後に有効化
+    // 現在はworkersに自分以外のデータがある場合のみ表示
+    if (report.workers && Array.isArray(report.workers) && report.workers.length > 1) {
+      // 作成者を最初に配置、それ以外を帯同作業員として後ろに配置
+      const creatorId = report.created_by
+      const creatorWorker = report.workers.find((w: any) => w.user_id === creatorId)
+      const accompaniedWorkers = report.workers.filter((w: any) => w.user_id !== creatorId)
+
+      const sortedWorkers = []
+      if (creatorWorker) {
+        sortedWorkers.push(creatorWorker)
+      }
+      sortedWorkers.push(...accompaniedWorkers)
+
+      const workerRows = sortedWorkers.map((worker: any, index: number) => [
+        (index + 1).toString(), // No.
         worker.name || '-',
         worker.work_hours !== undefined ? `${worker.work_hours}時間` : '-',
+        '-', // 時間外（TODO: データベースに追加予定）
       ])
 
       autoTable(doc, {
+        ...getTableConfig({ type: 'list' }),
         startY: yPos,
-        head: [['作業員', '作業時間']],
+        head: [['No.', '作業員', '作業時間', '時間外']],
         body: workerRows,
-        theme: 'grid',
-        styles: {
-          font: 'NotoSansJP',
-          fontSize: 9,
-          cellPadding: 3,
-        },
-        headStyles: {
-          fillColor: [200, 200, 200],
-          textColor: [0, 0, 0],
-          fontStyle: 'normal',
-          halign: 'center',
-        },
         columnStyles: {
-          0: { cellWidth: 95 },
-          1: { cellWidth: 95, halign: 'center' },
+          0: { cellWidth: 15, halign: 'center' }, // No.
+          1: { cellWidth: 70 }, // 作業員
+          2: { cellWidth: 52.5, halign: 'center' }, // 作業時間
+          3: { cellWidth: 52.5, halign: 'center' }, // 時間外
         },
       })
 
-      yPos = (doc as any).lastAutoTable.finalY + 8
+      yPos = (doc as any).lastAutoTable.finalY + 5
     }
 
     // 作業内容
     autoTable(doc, {
+      ...getTableConfig({ type: 'content' }),
       startY: yPos,
       head: [['作業内容']],
       body: [[report.description || '-']],
-      theme: 'grid',
-      styles: {
-        font: 'NotoSansJP',
-        fontSize: 9,
-        cellPadding: 3,
-      },
-      headStyles: {
-        fillColor: [200, 200, 200],
-        textColor: [0, 0, 0],
-        fontStyle: 'normal',
-        halign: 'center',
-      },
       columnStyles: {
         0: { cellWidth: 190 },
       },
     })
 
-    yPos = (doc as any).lastAutoTable.finalY + 8
+    yPos = (doc as any).lastAutoTable.finalY + 5
 
     // 使用資材・使用道具
     const materialsText = report.materials_used && Array.isArray(report.materials_used)
@@ -362,55 +379,28 @@ export async function GET(
       : '-'
 
     autoTable(doc, {
+      ...getTableConfig({ type: 'content' }),
       startY: yPos,
       head: [['使用資材']],
       body: [[materialsText]],
-      theme: 'grid',
-      styles: {
-        font: 'NotoSansJP',
-        fontSize: 9,
-        cellPadding: 3,
-      },
-      headStyles: {
-        fillColor: [200, 200, 200],
-        textColor: [0, 0, 0],
-        fontStyle: 'normal',
-        halign: 'center',
-      },
       columnStyles: {
         0: { cellWidth: 190 },
       },
     })
 
-    yPos = (doc as any).lastAutoTable.finalY + 8
+    yPos = (doc as any).lastAutoTable.finalY + 5
 
-    // 備考（カスタムフィールドがあれば表示）
-    if (report.custom_fields && Object.keys(report.custom_fields).length > 0) {
-      const customFieldsText = Object.entries(report.custom_fields)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join('\n')
-
-      autoTable(doc, {
-        startY: yPos,
-        head: [['備考']],
-        body: [[customFieldsText]],
-        theme: 'grid',
-        styles: {
-          font: 'NotoSansJP',
-          fontSize: 9,
-          cellPadding: 3,
-        },
-        headStyles: {
-          fillColor: [200, 200, 200],
-          textColor: [0, 0, 0],
-          fontStyle: 'normal',
-          halign: 'center',
-        },
-        columnStyles: {
-          0: { cellWidth: 190 },
-        },
-      })
-    }
+    // 特記事項と備考エリア（2列レイアウト）
+    autoTable(doc, {
+      ...getTableConfig({ type: 'remarks' }),
+      startY: yPos,
+      head: [['特記事項', '備考']],
+      body: [['', '']],
+      columnStyles: {
+        0: { cellWidth: 95 }, // 特記事項（左半分）
+        1: { cellWidth: 95 }, // 備考（右半分）
+      },
+    })
 
     // ========================================
     // フッター部分（ページ番号のみ）
