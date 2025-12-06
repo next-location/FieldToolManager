@@ -19,12 +19,28 @@ export async function GET(
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
     }
 
-    // 作業報告書の資料を取得
+    // 作業報告書の存在と権限チェック
+    const { data: report, error: reportError } = await supabase
+      .from('work_reports')
+      .select('id, organization_id')
+      .eq('id', id)
+      .single()
+
+    if (reportError || !report) {
+      return NextResponse.json(
+        { error: '作業報告書が見つかりません' },
+        { status: 404 }
+      )
+    }
+
+    // 添付ファイル一覧取得（削除されていないもの、表示順序でソート）
     const { data: attachments, error } = await supabase
       .from('work_report_attachments')
       .select('*')
       .eq('work_report_id', id)
-      .order('uploaded_at', { ascending: true })
+      .is('deleted_at', null)
+      .order('display_order', { ascending: true })
+      .order('created_at', { ascending: true })
 
     if (error) {
       console.error('資料取得エラー:', error)
@@ -34,7 +50,7 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(attachments)
+    return NextResponse.json({ attachments: attachments || [] })
   } catch (error) {
     console.error('資料取得エラー:', error)
     return NextResponse.json(
@@ -62,55 +78,30 @@ export async function POST(
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
     }
 
-    // ユーザーの組織IDを取得
-    const { data: userData } = await supabase
-      .from('users')
-      .select('organization_id')
-      .eq('id', user.id)
-      .single()
-
-    if (!userData) {
-      return NextResponse.json(
-        { error: 'ユーザー情報が見つかりません' },
-        { status: 404 }
-      )
-    }
-
-    // 作業報告書の存在確認と権限チェック
-    const { data: report } = await supabase
+    // 作業報告書の存在と権限チェック
+    const { data: report, error: reportError } = await supabase
       .from('work_reports')
       .select('id, organization_id')
       .eq('id', id)
-      .is('deleted_at', null)
       .single()
 
-    if (!report) {
+    if (reportError || !report) {
       return NextResponse.json(
         { error: '作業報告書が見つかりません' },
         { status: 404 }
       )
     }
 
-    if (report.organization_id !== userData.organization_id) {
-      return NextResponse.json({ error: '権限がありません' }, { status: 403 })
-    }
-
-    // フォームデータを取得
+    // FormDataの取得
     const formData = await request.formData()
     const file = formData.get('file') as File
-    const attachmentType = formData.get('attachment_type') as string
+    const fileType = formData.get('file_type') as string | null
     const description = formData.get('description') as string | null
+    const displayOrder = formData.get('display_order') as string | null
 
     if (!file) {
       return NextResponse.json(
         { error: 'ファイルが指定されていません' },
-        { status: 400 }
-      )
-    }
-
-    if (!attachmentType) {
-      return NextResponse.json(
-        { error: '資料タイプが指定されていません' },
         { status: 400 }
       )
     }
@@ -124,75 +115,81 @@ export async function POST(
     }
 
     // MIMEタイプチェック
-    const allowedTypes = [
+    const ALLOWED_MIME_TYPES = [
       'application/pdf',
       'image/jpeg',
+      'image/jpg',
       'image/png',
+      'image/webp',
       'application/vnd.ms-excel',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ]
-    if (!allowedTypes.includes(file.type)) {
+    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
       return NextResponse.json(
         { error: 'PDF、画像、Excel、Wordファイルのみアップロード可能です' },
         { status: 400 }
       )
     }
 
-    // ファイル名を生成（UUID + 拡張子）
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${user.id}/${id}/${crypto.randomUUID()}.${fileExt}`
+    // ファイル名の生成（タイムスタンプ + オリジナルファイル名）
+    const timestamp = Date.now()
+    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+    const fileName = `${timestamp}_${sanitizedFileName}`
+
+    // Storageパス: {user_id}/{report_id}/{timestamp}_{filename}
+    const storagePath = `${user.id}/${id}/${fileName}`
 
     // Supabase Storageにアップロード
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('work-report-attachments')
-      .upload(fileName, file, {
-        cacheControl: '3600',
+      .upload(storagePath, file, {
+        contentType: file.type,
         upsert: false,
       })
 
     if (uploadError) {
-      console.error('アップロードエラー:', uploadError)
+      console.error('Storage upload error:', uploadError)
       return NextResponse.json(
         { error: 'ファイルのアップロードに失敗しました' },
         { status: 500 }
       )
     }
 
-    // 公開URLを取得
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from('work-report-attachments').getPublicUrl(fileName)
-
-    // データベースに資料情報を保存
-    const { data: attachmentData, error: dbError } = await supabase
+    // データベースにメタデータ保存
+    const { data: attachment, error: insertError } = await supabase
       .from('work_report_attachments')
       .insert({
-        organization_id: userData.organization_id,
         work_report_id: id,
-        file_url: publicUrl,
-        attachment_type: attachmentType,
+        organization_id: report.organization_id,
+        storage_path: storagePath,
         file_name: file.name,
-        description: description || null,
         file_size: file.size,
         mime_type: file.type,
+        file_type: fileType || 'その他',
+        description: description || null,
+        display_order: displayOrder ? parseInt(displayOrder, 10) : null,
         uploaded_by: user.id,
       })
       .select()
       .single()
 
-    if (dbError) {
-      console.error('データベース保存エラー:', dbError)
-      // ストレージからファイルを削除
-      await supabase.storage.from('work-report-attachments').remove([fileName])
+    if (insertError) {
+      console.error('Database insert error:', insertError)
+
+      // Storageからファイル削除（ロールバック）
+      await supabase.storage
+        .from('work-report-attachments')
+        .remove([storagePath])
+
       return NextResponse.json(
         { error: '資料情報の保存に失敗しました' },
         { status: 500 }
       )
     }
 
-    return NextResponse.json(attachmentData, { status: 201 })
+    return NextResponse.json({ attachment }, { status: 201 })
   } catch (error) {
     console.error('資料アップロードエラー:', error)
     return NextResponse.json(
