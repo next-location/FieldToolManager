@@ -22,10 +22,9 @@ export async function DELETE(
     // 添付ファイル情報を取得
     const { data: attachment, error: attachmentError } = await supabase
       .from('work_report_attachments')
-      .select('id, work_report_id, storage_path')
+      .select('id, work_report_id, file_url')
       .eq('id', attachmentId)
       .eq('work_report_id', id)
-      .is('deleted_at', null)
       .single()
 
     if (attachmentError || !attachment) {
@@ -36,19 +35,29 @@ export async function DELETE(
     }
 
     // Storageからファイルを削除
-    const { error: storageError } = await supabase.storage
-      .from('work-report-attachments')
-      .remove([attachment.storage_path])
+    if (attachment.file_url) {
+      // file_urlからストレージパスを抽出
+      let storagePath = attachment.file_url
 
-    if (storageError) {
-      console.error('Storage delete error:', storageError)
-      // Storageエラーでも処理を継続（DB削除は実行）
+      // URLの場合はパス部分を抽出
+      if (storagePath.includes('/storage/v1/object/public/work-report-attachments/')) {
+        storagePath = storagePath.split('/storage/v1/object/public/work-report-attachments/')[1]
+      }
+
+      const { error: storageError } = await supabase.storage
+        .from('work-report-attachments')
+        .remove([storagePath])
+
+      if (storageError) {
+        console.error('Storage delete error:', storageError)
+        // Storageエラーでも処理を継続（DB削除は実行）
+      }
     }
 
-    // データベースから論理削除（deleted_atを設定）
+    // データベースから物理削除
     const { error: deleteError } = await supabase
       .from('work_report_attachments')
-      .update({ deleted_at: new Date().toISOString() })
+      .delete()
       .eq('id', attachmentId)
 
     if (deleteError) {

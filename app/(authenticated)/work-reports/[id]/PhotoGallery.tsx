@@ -45,7 +45,19 @@ export function PhotoGallery({ reportId, canEdit }: PhotoGalleryProps) {
       const response = await fetch(`/api/work-reports/${reportId}/photos`)
       if (response.ok) {
         const data = await response.json()
-        setPhotos(data)
+        console.log('📸 Fetched photos data:', data) // デバッグ用
+        // dataが配列でない場合の処理
+        if (Array.isArray(data)) {
+          setPhotos(data)
+        } else if (data && typeof data === 'object') {
+          // dataがオブジェクトの場合、photosプロパティを探す
+          const photoArray = data.photos || data.data || []
+          console.log('📸 Extracted photo array:', photoArray) // デバッグ用
+          setPhotos(Array.isArray(photoArray) ? photoArray : [])
+        } else {
+          console.error('📸 Unexpected data format:', data)
+          setPhotos([])
+        }
       }
     } catch (err) {
       console.error('写真取得エラー:', err)
@@ -93,8 +105,17 @@ export function PhotoGallery({ reportId, canEdit }: PhotoGalleryProps) {
         throw new Error(errorData.error || 'アップロードに失敗しました')
       }
 
-      const newPhoto = await response.json()
-      setPhotos([...photos, newPhoto])
+      const data = await response.json()
+      console.log('📸 Upload response data:', data) // デバッグ用
+      // APIは{ photo: ... }形式で返すので、photoプロパティを取得
+      const newPhoto = data.photo || data
+      console.log('📸 New photo to add:', newPhoto) // デバッグ用
+      console.log('📸 Current photos before add:', photos) // デバッグ用
+      setPhotos(prevPhotos => {
+        const updated = [...prevPhotos, newPhoto]
+        console.log('📸 Updated photos array:', updated) // デバッグ用
+        return updated
+      })
       setCaption('')
 
       // ファイル入力をリセット
@@ -234,10 +255,12 @@ export function PhotoGallery({ reportId, canEdit }: PhotoGalleryProps) {
                     onClick={() => setSelectedPhoto(photo)}
                   >
                     <Image
-                      src={photo.photo_url}
+                      src={photo.photo_url || ''}
                       alt={photo.caption || photoTypeLabels[photo.photo_type]}
                       fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       className="object-cover transition-transform group-hover:scale-105"
+                      priority={photos.indexOf(photo) < 4} // 最初の4枚は優先的に読み込み
                     />
                   </div>
 
@@ -296,7 +319,7 @@ export function PhotoGallery({ reportId, canEdit }: PhotoGalleryProps) {
             <div className="bg-white rounded-lg overflow-hidden">
               <div className="relative" style={{ maxHeight: 'calc(100vh - 200px)' }}>
                 <img
-                  src={selectedPhoto.photo_url}
+                  src={selectedPhoto.photo_url || ''}
                   alt={selectedPhoto.caption || photoTypeLabels[selectedPhoto.photo_type]}
                   className="w-full h-auto"
                 />

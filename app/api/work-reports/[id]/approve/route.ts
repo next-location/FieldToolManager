@@ -35,8 +35,8 @@ export async function POST(request: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'ユーザー情報の取得に失敗しました' }, { status: 400 })
     }
 
-    // leader または admin のみ承認可能
-    if (userData.role !== 'leader' && userData.role !== 'admin') {
+    // manager または admin のみ承認可能
+    if (userData.role !== 'manager' && userData.role !== 'admin') {
       return NextResponse.json({ error: '承認権限がありません' }, { status: 403 })
     }
 

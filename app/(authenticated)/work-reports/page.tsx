@@ -86,7 +86,7 @@ export default async function WorkReportsPage({
     query = query.lte('report_date', dateTo)
   }
 
-  const { data: reports, error } = await query.order('report_date', {
+  const { data: reports, error } = await query.order('created_at', {
     ascending: false,
   })
 
@@ -144,14 +144,6 @@ export default async function WorkReportsPage({
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">作業報告書</h1>
-            {(userData.role === 'leader' || userData.role === 'admin') && (
-              <Link
-                href="/work-reports/pending"
-                className="text-sm text-blue-600 hover:text-blue-800 mt-1 inline-block"
-              >
-                承認待ち一覧を見る →
-              </Link>
-            )}
           </div>
           <Link
             href="/work-reports/new"

@@ -302,6 +302,166 @@ export default async function StaffManualPage() {
             </div>
           </section>
 
+          {/* 作業報告書の作成 */}
+          <section className="mb-10">
+            <h2 className="text-2xl font-bold text-gray-900 border-b-2 border-orange-500 pb-2 mb-4">
+              📝 作業報告書の作成・提出
+            </h2>
+
+            <div className="bg-orange-50 border-l-4 border-orange-400 p-4 mb-6">
+              <p className="font-semibold text-orange-800">使用シーン</p>
+              <ul className="mt-2 space-y-1 text-orange-700 text-sm">
+                <li>• 毎日の作業終了後に日報を作成</li>
+                <li>• 現場での作業内容を記録</li>
+                <li>• 写真を添付して作業状況を報告</li>
+              </ul>
+            </div>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">新規作成の手順</h3>
+            <ol className="list-decimal list-inside space-y-3 text-gray-700">
+              <li>
+                <strong>作業報告書メニューへ移動</strong>
+                <div className="ml-6 mt-2 text-sm bg-gray-50 p-3 rounded">
+                  メニュー → 作業報告書 → 新規作成をタップ
+                </div>
+              </li>
+
+              <li>
+                <strong>基本情報を入力</strong>
+                <div className="ml-6 mt-2 space-y-2 text-sm">
+                  <div className="bg-gray-50 p-3 rounded">
+                    <p className="font-medium">必須項目：</p>
+                    <ul className="mt-1 space-y-1">
+                      <li>• <strong>作業日</strong>: カレンダーから選択</li>
+                      <li>• <strong>現場</strong>: プルダウンから選択</li>
+                      <li>• <strong>天候</strong>: 晴れ/曇り/雨/雪から選択</li>
+                      <li>• <strong>作業時間</strong>: 開始・終了時刻を入力</li>
+                      <li>• <strong>作業内容</strong>: 具体的に記入</li>
+                    </ul>
+                  </div>
+                </div>
+              </li>
+
+              <li>
+                <strong>詳細情報を入力（任意）</strong>
+                <div className="ml-6 mt-2 space-y-2 text-sm">
+                  <div className="bg-gray-50 p-3 rounded">
+                    <ul className="space-y-1">
+                      <li>• <strong>帯同作業員</strong>: 一緒に作業したスタッフを選択</li>
+                      <li>• <strong>作業箇所</strong>: 具体的な場所（例：2階リビング）</li>
+                      <li>• <strong>進捗率</strong>: 作業の進み具合（0〜100%）</li>
+                      <li>• <strong>使用道具</strong>: 使用した道具を選択</li>
+                      <li>• <strong>使用材料</strong>: 使用した材料を記入</li>
+                    </ul>
+                  </div>
+                </div>
+              </li>
+
+              <li>
+                <strong>写真を添付（推奨）</strong>
+                <div className="ml-6 mt-2 text-sm bg-yellow-50 p-3 rounded">
+                  <p className="font-medium text-yellow-800">📸 写真の撮影・添付方法：</p>
+                  <ol className="mt-2 list-decimal list-inside space-y-1 text-yellow-700">
+                    <li>「写真を追加」ボタンをタップ</li>
+                    <li>「カメラ」または「ライブラリから選択」を選択</li>
+                    <li>写真の種類を選択（作業前/作業中/作業後/問題箇所/その他）</li>
+                    <li>必要に応じてキャプション（説明文）を追加</li>
+                    <li>複数枚の写真を追加可能（最大10枚）</li>
+                  </ol>
+                </div>
+              </li>
+
+              <li>
+                <strong>資料を添付（必要に応じて）</strong>
+                <div className="ml-6 mt-2 text-sm bg-gray-50 p-3 rounded">
+                  <ul className="space-y-1">
+                    <li>• PDF、Excel、Wordなどの資料を添付可能</li>
+                    <li>• 図面や見積書などを添付する際に使用</li>
+                    <li>• ファイルサイズ上限：10MB/ファイル</li>
+                  </ul>
+                </div>
+              </li>
+
+              <li>
+                <strong>保存または提出</strong>
+                <div className="ml-6 mt-2 text-sm">
+                  <div className="bg-blue-50 p-3 rounded space-y-2">
+                    <div>
+                      <span className="font-medium">📝 下書き保存：</span>
+                      <p className="mt-1">後で編集したい場合は「下書き保存」をタップ</p>
+                    </div>
+                    <div>
+                      <span className="font-medium">✅ 提出：</span>
+                      <p className="mt-1">内容を確認して「提出」をタップ（管理者の承認待ちになります）</p>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            </ol>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-8 mb-3">作成した報告書の確認</h3>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <p className="text-gray-700 mb-3">作成した報告書は以下から確認できます：</p>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-start">
+                  <span className="text-blue-500 mr-2">📋</span>
+                  <div>
+                    <strong>報告書一覧</strong>
+                    <p className="text-gray-600">メニュー → 作業報告書 → 一覧</p>
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-yellow-500 mr-2">📝</span>
+                  <div>
+                    <strong>下書き</strong>
+                    <p className="text-gray-600">ステータス「下書き」でフィルター</p>
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-green-500 mr-2">✅</span>
+                  <div>
+                    <strong>承認済み</strong>
+                    <p className="text-gray-600">ステータス「承認済み」でフィルター</p>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-8 mb-3">報告書の編集・再提出</h3>
+            <div className="bg-amber-50 border-l-4 border-amber-400 p-4">
+              <p className="font-semibold text-amber-800 mb-2">下書きまたは差し戻された報告書の編集：</p>
+              <ol className="space-y-1 text-amber-700 text-sm list-decimal list-inside">
+                <li>報告書一覧から該当の報告書をタップ</li>
+                <li>詳細画面で「編集」ボタンをタップ</li>
+                <li>内容を修正</li>
+                <li>「提出」または「下書き保存」をタップ</li>
+              </ol>
+            </div>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-8 mb-3">承認状況の確認</h3>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <p className="text-gray-700 mb-3">報告書のステータス：</p>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium mr-2">下書き</span>
+                  まだ提出していない状態
+                </li>
+                <li>
+                  <span className="inline-block px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-medium mr-2">承認待ち</span>
+                  管理者の確認待ち
+                </li>
+                <li>
+                  <span className="inline-block px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium mr-2">承認済み</span>
+                  管理者が承認済み
+                </li>
+                <li>
+                  <span className="inline-block px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium mr-2">差し戻し</span>
+                  修正が必要（コメントを確認して修正）
+                </li>
+              </ul>
+            </div>
+          </section>
+
           {/* クイックリファレンス */}
           <section className="mb-10">
             <h2 className="text-2xl font-bold text-gray-900 border-b-2 border-blue-500 pb-2 mb-4">
@@ -328,6 +488,10 @@ export default async function StaffManualPage() {
                   <tr>
                     <td className="px-4 py-3 text-sm text-gray-900">道具の場所を確認</td>
                     <td className="px-4 py-3 text-sm text-gray-700">QR → 道具をスキャン</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 text-sm text-gray-900">作業報告書を作成</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">作業報告書 → 新規作成 → 入力 → 提出</td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 text-sm text-gray-900">消耗品（軍手）を補充</td>

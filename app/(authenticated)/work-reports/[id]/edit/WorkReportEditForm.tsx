@@ -6,6 +6,7 @@ import Link from 'next/link'
 import type { WorkReport } from '@/types/work-reports'
 import { PhotoGallery } from '../PhotoGallery'
 import { AttachmentList } from '../AttachmentList'
+import { CustomFieldInput } from '../../new/CustomFieldInput'
 
 interface Site {
   id: string
@@ -13,10 +14,16 @@ interface Site {
   address: string | null
 }
 
-interface Worker {
+interface OrganizationUser {
   id: string
   name: string
-  role: string
+  email: string
+}
+
+interface OrganizationTool {
+  id: string
+  name: string
+  model_number: string | null
 }
 
 interface CustomField {
@@ -25,6 +32,17 @@ interface CustomField {
   options?: string[]
   required?: boolean
   unit?: string
+}
+
+interface CustomFieldDefinition {
+  id: string
+  field_key: string
+  field_label: string
+  field_type: 'text' | 'textarea' | 'number' | 'date' | 'select' | 'checkbox'
+  field_options?: string[]
+  is_required: boolean
+  placeholder?: string
+  help_text?: string
 }
 
 interface Settings {
@@ -39,11 +57,24 @@ interface Settings {
 interface WorkReportEditFormProps {
   report: WorkReport
   sites: Site[]
-  workers: Worker[]
+  organizationUsers: OrganizationUser[]
+  organizationTools: OrganizationTool[]
+  currentUserId: string
+  currentUserName: string
   settings: Settings
+  customFields: CustomFieldDefinition[]
 }
 
-export function WorkReportEditForm({ report, sites, workers, settings }: WorkReportEditFormProps) {
+export function WorkReportEditForm({
+  report,
+  sites,
+  organizationUsers,
+  organizationTools,
+  currentUserId,
+  currentUserName,
+  settings,
+  customFields
+}: WorkReportEditFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -52,39 +83,74 @@ export function WorkReportEditForm({ report, sites, workers, settings }: WorkRep
   const [siteId, setSiteId] = useState(report.site_id)
   const [reportDate, setReportDate] = useState(report.report_date)
   const [weather, setWeather] = useState<'sunny' | 'cloudy' | 'rainy' | 'snowy' | ''>(report.weather)
+  const [workStartTime, setWorkStartTime] = useState(report.work_start_time || '08:00')
+  const [workEndTime, setWorkEndTime] = useState(report.work_end_time || '17:00')
+  const [breakTime, setBreakTime] = useState(report.break_minutes ?? 60)
   const [description, setDescription] = useState(report.description)
   const [workLocation, setWorkLocation] = useState(report.work_location || '')
   const [progressRate, setProgressRate] = useState<number | undefined>(
     report.progress_rate ?? undefined
   )
+  const [materials, setMaterials] = useState(report.materials_used?.join('\n') || '')
+  const [toolsText, setToolsText] = useState('')
+
+  // 使用道具（道具マスタから選択）
+  const initialSelectedTools = (report.tools_used || []).map((toolId, index) => ({
+    id: `tool_${index}`,
+    toolId
+  }))
+  const [selectedTools, setSelectedTools] = useState<Array<{ id: string; toolId: string }>>(initialSelectedTools)
+
+  // 道具検索用のステート
+  const [toolSearchTerms, setToolSearchTerms] = useState<Record<string, string>>({})
+
+  // 帯同作業員の初期化
+  const initialWorkers = Array.isArray(report.workers) ? report.workers : []
+  const initialAccompaniedWorkers = initialWorkers
+    .filter((w: any) => w.user_id !== currentUserId)
+    .map((w: any, index: number) => ({
+      id: `worker_${index}`,
+      userId: w.user_id
+    }))
+  const [accompaniedWorkers, setAccompaniedWorkers] = useState<Array<{ id: string; userId: string }>>(initialAccompaniedWorkers)
+
+  // 新規アイテム用のカウンター（hydrationエラー回避のため）
+  const [nextWorkerId, setNextWorkerId] = useState(initialAccompaniedWorkers.length)
+  const [nextToolId, setNextToolId] = useState(initialSelectedTools.length)
+
+  // 作業員検索用のステート
+  const [workerSearchTerms, setWorkerSearchTerms] = useState<Record<string, string>>({})
+
+  // 時間外（残業時間）の初期化
+  const initialOvertimeHours: Record<string, number> = {}
+  initialWorkers.forEach((w: any) => {
+    if (w.overtime_hours) {
+      initialOvertimeHours[w.user_id] = w.overtime_hours
+    }
+  })
+  const [overtimeHours, setOvertimeHours] = useState<Record<string, number>>(initialOvertimeHours)
+
+  // 特記事項・備考
+  const [specialNotes, setSpecialNotes] = useState(report.special_notes || '')
+  const [remarks, setRemarks] = useState(report.remarks || '')
 
   // カスタムフィールドの値を保持（既存データで初期化）
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>(
-    report.custom_fields || {}
+    report.custom_fields_data || report.custom_fields || {}
   )
 
-  // 作業員IDを抽出
-  const initialWorkerIds = Array.isArray(report.workers)
-    ? report.workers.map((w: any) => w.user_id).filter(Boolean)
-    : []
-  const [selectedWorkerIds, setSelectedWorkerIds] = useState<string[]>(initialWorkerIds)
-
-  // 作業時間を抽出（最初の作業員の作業時間を基準とする）
-  const firstWorker = Array.isArray(report.workers) && report.workers.length > 0 ? report.workers[0] : null
-  const initialWorkHours = firstWorker && typeof firstWorker === 'object' && 'work_hours' in firstWorker
-    ? firstWorker.work_hours
-    : 8
-
-  const [workStartTime, setWorkStartTime] = useState('08:00')
-  const [workEndTime, setWorkEndTime] = useState('17:00')
-  const [breakTime, setBreakTime] = useState(60)
-
-  const handleWorkerToggle = (workerId: string) => {
-    setSelectedWorkerIds((prev) =>
-      prev.includes(workerId)
-        ? prev.filter((id) => id !== workerId)
-        : [...prev, workerId]
-    )
+  // ひらがな⇔カタカナ変換関数
+  const toHiragana = (str: string) => {
+    return str.replace(/[\u30A1-\u30F6]/g, (match) => {
+      const chr = match.charCodeAt(0) - 0x60
+      return String.fromCharCode(chr)
+    })
+  }
+  const toKatakana = (str: string) => {
+    return str.replace(/[\u3041-\u3096]/g, (match) => {
+      const chr = match.charCodeAt(0) + 0x60
+      return String.fromCharCode(chr)
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent, isDraft: boolean) => {
@@ -104,10 +170,6 @@ export function WorkReportEditForm({ report, sites, workers, settings }: WorkRep
       setError('作業内容を入力してください')
       return
     }
-    if (selectedWorkerIds.length === 0) {
-      setError('作業員を1名以上選択してください')
-      return
-    }
 
     setLoading(true)
 
@@ -115,15 +177,29 @@ export function WorkReportEditForm({ report, sites, workers, settings }: WorkRep
       // 作業時間を計算
       const workHours = calculateWorkHours(workStartTime, workEndTime, breakTime)
 
-      // 作業員データを構築
-      const workerData = selectedWorkerIds.map((workerId) => {
-        const worker = workers.find((w) => w.id === workerId)
-        return {
-          user_id: workerId,
-          name: worker?.name || '',
+      // 作業員データを構築（作成者 + 帯同作業員）
+      const workerData = [
+        {
+          user_id: currentUserId,
+          name: currentUserName,
           work_hours: workHours,
-        }
-      })
+          overtime_hours: overtimeHours[currentUserId] || 0,
+        },
+        ...accompaniedWorkers.map(worker => {
+          const user = organizationUsers.find(u => u.id === worker.userId)
+          return {
+            user_id: worker.userId,
+            name: user?.name || '',
+            work_hours: workHours,
+            overtime_hours: overtimeHours[worker.userId] || 0,
+          }
+        })
+      ]
+
+      // 選択された道具のIDリストを作成
+      const selectedToolIds = selectedTools
+        .map(t => t.toolId)
+        .filter(id => id !== '')
 
       const response = await fetch(`/api/work-reports/${report.id}`, {
         method: 'PATCH',
@@ -134,11 +210,20 @@ export function WorkReportEditForm({ report, sites, workers, settings }: WorkRep
           site_id: siteId,
           report_date: reportDate,
           weather,
+          work_start_time: workStartTime,
+          work_end_time: workEndTime,
+          break_minutes: breakTime,
           description,
           workers: workerData,
           work_location: workLocation || undefined,
           progress_rate: progressRate !== undefined && progressRate !== null ? progressRate : undefined,
+          materials: materials || undefined,
+          tools: toolsText || undefined,
+          tool_ids: selectedToolIds.length > 0 ? selectedToolIds : undefined,
+          special_notes: specialNotes || undefined,
+          remarks: remarks || undefined,
           custom_fields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined,
+          custom_fields_data: customFieldValues,
           status: isDraft ? 'draft' : 'submitted',
         }),
       })
@@ -172,8 +257,15 @@ export function WorkReportEditForm({ report, sites, workers, settings }: WorkRep
 
   const calculatedWorkHours = calculateWorkHours(workStartTime, workEndTime, breakTime)
 
+  // Enterキーでの誤送信を防止
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') {
+      e.preventDefault()
+    }
+  }
+
   return (
-    <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-6">
+    <form onSubmit={(e) => handleSubmit(e, false)} onKeyDown={handleKeyDown} className="space-y-6">
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
           {error}
@@ -292,38 +384,195 @@ export function WorkReportEditForm({ report, sites, workers, settings }: WorkRep
             <div className="mt-2 text-sm text-gray-600">
               実作業時間: <span className="font-semibold text-gray-900">{calculatedWorkHours}時間</span>
             </div>
+
+            {/* 自分の時間外 */}
+            <div className="mt-4">
+              <label htmlFor="own_overtime" className="block text-sm font-medium text-gray-700 mb-1">
+                時間外（残業時間）
+              </label>
+              <input
+                type="number"
+                id="own_overtime"
+                value={overtimeHours[currentUserId] || ''}
+                onChange={(e) => setOvertimeHours({
+                  ...overtimeHours,
+                  [currentUserId]: e.target.value ? Number(e.target.value) : 0
+                })}
+                min="0"
+                step="0.5"
+                placeholder="0"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
+              <p className="mt-1 text-xs text-gray-500">残業時間を時間単位で入力してください（例: 2、1.5）</p>
+            </div>
           </div>
 
-          {/* 作業員選択 */}
+          {/* 帯同作業員 */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              作業員 <span className="text-red-500">*</span>
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {workers.map((worker) => (
-                <label
-                  key={worker.id}
-                  className={`flex items-center px-3 py-2 border rounded-md cursor-pointer transition-colors ${
-                    selectedWorkerIds.includes(worker.id)
-                      ? 'bg-blue-50 border-blue-500'
-                      : 'bg-white border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedWorkerIds.includes(worker.id)}
-                    onChange={() => handleWorkerToggle(worker.id)}
-                    className="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-900">{worker.name}</span>
-                </label>
-              ))}
+            <h3 className="text-lg font-medium text-gray-900 mb-4">帯同作業員</h3>
+            <p className="text-sm text-gray-600 mb-3">一緒に作業した社員を選択してください（任意）</p>
+            <div className="space-y-3">
+              {accompaniedWorkers.map((worker, index) => {
+                const searchTerm = workerSearchTerms[worker.id] || ''
+
+                // すでに選択されているユーザーIDのリスト（現在編集中のworker以外）
+                const selectedUserIds = accompaniedWorkers
+                  .filter(w => w.id !== worker.id)
+                  .map(w => w.userId)
+                  .filter(id => id !== '')
+
+                const filteredUsers = organizationUsers
+                  .filter(user => user.id !== currentUserId)
+                  .filter(user => !selectedUserIds.includes(user.id)) // すでに選択済みのユーザーを除外
+                  .filter(user => {
+                    if (!searchTerm) return false // 検索語がない場合は何も表示しない
+                    const term = searchTerm.toLowerCase()
+                    const termHiragana = toHiragana(term)
+                    const termKatakana = toKatakana(term)
+
+                    const userName = user.name.toLowerCase()
+                    const userNameHiragana = toHiragana(userName)
+                    const userNameKatakana = toKatakana(userName)
+                    const userEmail = user.email.toLowerCase()
+
+                    return (
+                      userName.includes(term) ||
+                      userName.includes(termHiragana) ||
+                      userName.includes(termKatakana) ||
+                      userNameHiragana.includes(term) ||
+                      userNameHiragana.includes(termHiragana) ||
+                      userNameHiragana.includes(termKatakana) ||
+                      userNameKatakana.includes(term) ||
+                      userNameKatakana.includes(termHiragana) ||
+                      userNameKatakana.includes(termKatakana) ||
+                      userEmail.includes(term)
+                    )
+                  })
+
+                const selectedUser = organizationUsers.find(u => u.id === worker.userId)
+
+                return (
+                  <div key={worker.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-1">
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        作業員 {index + 1}
+                      </label>
+
+                      {/* 選択されたユーザー表示（検索していない時のみ） */}
+                      {selectedUser && !searchTerm && (
+                        <div className="mb-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                          <div className="text-sm font-medium text-blue-900">{selectedUser.name}</div>
+                          <div className="text-xs text-blue-700">{selectedUser.email}</div>
+                        </div>
+                      )}
+
+                      {/* 検索入力 */}
+                      <input
+                        type="text"
+                        placeholder={selectedUser ? "別の作業員を検索..." : "名前またはメールアドレスで検索..."}
+                        value={searchTerm}
+                        onChange={(e) => {
+                          setWorkerSearchTerms({
+                            ...workerSearchTerms,
+                            [worker.id]: e.target.value
+                          })
+                        }}
+                        className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      />
+
+                      {/* 検索結果リスト（検索語がある時のみ表示） */}
+                      {searchTerm && (
+                        <div className="max-h-48 overflow-y-auto border border-gray-300 rounded-md mb-2 bg-white shadow-sm">
+                          {filteredUsers.length === 0 ? (
+                            <div className="p-3 text-sm text-gray-500">検索結果なし</div>
+                          ) : (
+                            filteredUsers.map(user => (
+                              <button
+                                key={user.id}
+                                type="button"
+                                onClick={() => {
+                                  const newWorkers = [...accompaniedWorkers]
+                                  newWorkers[index] = { ...worker, userId: user.id }
+                                  setAccompaniedWorkers(newWorkers)
+                                  // 選択後、検索欄をクリア
+                                  setWorkerSearchTerms({
+                                    ...workerSearchTerms,
+                                    [worker.id]: ''
+                                  })
+                                }}
+                                className={`w-full text-left p-3 hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0 ${
+                                  user.id === worker.userId ? 'bg-blue-100' : 'bg-white'
+                                }`}
+                              >
+                                <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                                <div className="text-xs text-gray-500">{user.email}</div>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      )}
+
+                      <div className="mt-2">
+                        <label htmlFor={`overtime_${worker.id}`} className="block text-xs font-medium text-gray-700 mb-1">
+                          時間外（残業時間）
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            id={`overtime_${worker.id}`}
+                            value={overtimeHours[worker.userId] || ''}
+                            onChange={(e) => setOvertimeHours({
+                              ...overtimeHours,
+                              [worker.userId]: e.target.value ? Number(e.target.value) : 0
+                            })}
+                            min="0"
+                            step="0.5"
+                            placeholder="0"
+                            className="w-24 px-2 py-1 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                          />
+                          <span className="text-xs text-gray-500">時間</span>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAccompaniedWorkers(accompaniedWorkers.filter((_, i) => i !== index))
+                        const newOvertimeHours = { ...overtimeHours }
+                        delete newOvertimeHours[worker.userId]
+                        setOvertimeHours(newOvertimeHours)
+                        const newSearchTerms = { ...workerSearchTerms }
+                        delete newSearchTerms[worker.id]
+                        setWorkerSearchTerms(newSearchTerms)
+                      }}
+                      className="mt-6 px-2 py-1 text-sm text-red-600 hover:text-red-800"
+                    >
+                      削除
+                    </button>
+                  </div>
+                )
+              })}
+
+              {/* 追加ボタン */}
+              <button
+                type="button"
+                onClick={() => {
+                  const newId = `worker_${nextWorkerId}`
+                  setNextWorkerId(nextWorkerId + 1)
+                  setAccompaniedWorkers([...accompaniedWorkers, { id: newId, userId: '' }])
+                }}
+                className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-md text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors"
+              >
+                + 作業員を追加
+              </button>
+
+              {accompaniedWorkers.length === 0 && (
+                <p className="text-sm text-gray-500 text-center">「+ 作業員を追加」ボタンをクリックして作業員を追加してください</p>
+              )}
+              {organizationUsers.filter(user => user.id !== currentUserId).length === 0 && (
+                <p className="text-sm text-gray-500">他の社員が登録されていません</p>
+              )}
             </div>
-            {selectedWorkerIds.length > 0 && (
-              <div className="mt-2 text-sm text-gray-600">
-                選択中: <span className="font-semibold text-gray-900">{selectedWorkerIds.length}名</span>
-              </div>
-            )}
           </div>
 
           {/* 作業内容 */}
@@ -331,19 +580,30 @@ export function WorkReportEditForm({ report, sites, workers, settings }: WorkRep
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
               作業内容 <span className="text-red-500">*</span>
             </label>
-            <textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-              rows={5}
-              placeholder="実施した作業の内容を詳しく記入してください"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
+            <div>
+              <textarea
+                id="description"
+                value={description}
+                onChange={(e) => {
+                  if (e.target.value.length <= 5000) {
+                    setDescription(e.target.value)
+                  }
+                }}
+                required
+                rows={5}
+                placeholder="実施した作業の内容を詳しく記入してください"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
+              <div className="text-right -mt-[7px]">
+                <span className={`text-xs ${description.length > 5000 ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
+                  {description.length} / 5000
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* オプション項目 */}
-          {(settings.enable_work_location || settings.enable_progress_rate) && (
+          {(settings.enable_work_location || settings.enable_progress_rate || settings.enable_materials || settings.enable_tools) && (
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4">オプション</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -382,14 +642,256 @@ export function WorkReportEditForm({ report, sites, workers, settings }: WorkRep
                     />
                   </div>
                 )}
+
+                {/* 使用資材 */}
+                {settings.enable_materials && (
+                  <div className="md:col-span-2">
+                    <label htmlFor="materials" className="block text-sm font-medium text-gray-700 mb-1">
+                      使用資材
+                    </label>
+                    <div>
+                      <textarea
+                        id="materials"
+                        value={materials}
+                        onChange={(e) => {
+                          if (e.target.value.length <= 2000) {
+                            setMaterials(e.target.value)
+                          }
+                        }}
+                        rows={3}
+                        placeholder="例: コンクリート 5m³、鉄筋 D13 100本"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      />
+                      <div className="text-right -mt-[7px]">
+                        <span className={`text-xs ${materials.length > 2000 ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
+                          {materials.length} / 2000
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 使用道具 */}
+                {settings.enable_tools && (
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      使用道具
+                    </label>
+                    <p className="text-sm text-gray-600 mb-3">使用した道具を選択してください（任意）</p>
+                    <div className="space-y-3">
+                      {selectedTools.map((tool, index) => {
+                        const searchTerm = toolSearchTerms[tool.id] || ''
+                        const selectedToolIds = selectedTools
+                          .filter(t => t.id !== tool.id)
+                          .map(t => t.toolId)
+                          .filter(id => id !== '')
+
+                        const filteredTools = organizationTools
+                          .filter(orgTool => !selectedToolIds.includes(orgTool.id))
+                          .filter(orgTool => {
+                            if (!searchTerm) return false
+                            const term = searchTerm.toLowerCase()
+                            const termHiragana = toHiragana(term)
+                            const termKatakana = toKatakana(term)
+
+                            const name = orgTool.name.toLowerCase()
+                            const nameHiragana = toHiragana(name)
+                            const nameKatakana = toKatakana(name)
+                            const model = orgTool.model_number?.toLowerCase() || ''
+
+                            return (
+                              name.includes(term) ||
+                              name.includes(termHiragana) ||
+                              name.includes(termKatakana) ||
+                              nameHiragana.includes(term) ||
+                              nameHiragana.includes(termHiragana) ||
+                              nameHiragana.includes(termKatakana) ||
+                              nameKatakana.includes(term) ||
+                              nameKatakana.includes(termHiragana) ||
+                              nameKatakana.includes(termKatakana) ||
+                              model.includes(term)
+                            )
+                          })
+
+                        const selectedTool = organizationTools.find(t => t.id === tool.toolId)
+
+                        return (
+                          <div key={tool.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="flex-1">
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                道具 {index + 1}
+                              </label>
+
+                              {/* 選択された道具表示（検索していない時のみ） */}
+                              {selectedTool && !searchTerm && (
+                                <div className="mb-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                  <div className="text-sm font-medium text-blue-900">{selectedTool.name}</div>
+                                  {selectedTool.model_number && (
+                                    <div className="text-xs text-blue-700">{selectedTool.model_number}</div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* 検索入力 */}
+                              <input
+                                type="text"
+                                placeholder={selectedTool ? "別の道具を検索..." : "道具名または型番で検索..."}
+                                value={searchTerm}
+                                onChange={(e) => {
+                                  setToolSearchTerms({
+                                    ...toolSearchTerms,
+                                    [tool.id]: e.target.value
+                                  })
+                                }}
+                                className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                              />
+
+                              {/* 検索結果リスト（検索語がある時のみ表示） */}
+                              {searchTerm && (
+                                <div className="max-h-48 overflow-y-auto border border-gray-300 rounded-md mb-2 bg-white shadow-sm">
+                                  {filteredTools.length === 0 ? (
+                                    <div className="p-3 text-sm text-gray-500">検索結果なし</div>
+                                  ) : (
+                                    filteredTools.map(orgTool => (
+                                      <button
+                                        key={orgTool.id}
+                                        type="button"
+                                        onClick={() => {
+                                          setSelectedTools(selectedTools.map(t =>
+                                            t.id === tool.id ? { ...t, toolId: orgTool.id } : t
+                                          ))
+                                          setToolSearchTerms({
+                                            ...toolSearchTerms,
+                                            [tool.id]: ''
+                                          })
+                                        }}
+                                        className={`w-full text-left p-3 hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0 ${
+                                          orgTool.id === tool.toolId ? 'bg-blue-100' : 'bg-white'
+                                        }`}
+                                      >
+                                        <div className="text-sm font-medium text-gray-900">{orgTool.name}</div>
+                                        {orgTool.model_number && (
+                                          <div className="text-xs text-gray-500">{orgTool.model_number}</div>
+                                        )}
+                                      </button>
+                                    ))
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newTools = selectedTools.filter(t => t.id !== tool.id)
+                                setSelectedTools(newTools)
+                                const newSearchTerms = { ...toolSearchTerms }
+                                delete newSearchTerms[tool.id]
+                                setToolSearchTerms(newSearchTerms)
+                              }}
+                              className="mt-6 px-3 py-2 text-red-600 hover:text-red-800 font-medium text-sm"
+                            >
+                              削除
+                            </button>
+                          </div>
+                        )
+                      })}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newId = `tool_${nextToolId}`
+                          setNextToolId(nextToolId + 1)
+                          setSelectedTools([...selectedTools, { id: newId, toolId: '' }])
+                        }}
+                        className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-md text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors"
+                      >
+                        + 道具を追加
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
-          {/* カスタムフィールド */}
+          {/* 特記事項・備考 */}
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">特記事項・備考</h3>
+            <div className="grid grid-cols-1 gap-6">
+              {/* 特記事項 */}
+              <div>
+                <label htmlFor="special_notes" className="block text-sm font-medium text-gray-700 mb-1">
+                  特記事項
+                </label>
+                <div>
+                  <textarea
+                    id="special_notes"
+                    value={specialNotes}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 2000) {
+                        setSpecialNotes(e.target.value)
+                      }
+                    }}
+                    rows={3}
+                    placeholder="特別な注意事項や重要な情報を記載してください"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <div className="text-right -mt-[7px]">
+                    <span className={`text-xs ${specialNotes.length > 2000 ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
+                      {specialNotes.length} / 2000
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 備考 */}
+              <div>
+                <label htmlFor="remarks" className="block text-sm font-medium text-gray-700 mb-1">
+                  備考
+                </label>
+                <div>
+                  <textarea
+                    id="remarks"
+                    value={remarks}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 2000) {
+                        setRemarks(e.target.value)
+                      }
+                    }}
+                    rows={3}
+                    placeholder="その他補足事項があれば記載してください"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <div className="text-right -mt-[7px]">
+                    <span className={`text-xs ${remarks.length > 2000 ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
+                      {remarks.length} / 2000
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 新しいカスタムフィールド */}
+          {customFields.length > 0 && (
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">カスタム項目</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {customFields.map((field) => (
+                  <CustomFieldInput
+                    key={field.id}
+                    field={field}
+                    value={customFieldValues[field.field_key]}
+                    onChange={(key, value) => setCustomFieldValues({ ...customFieldValues, [key]: value })}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 旧形式のカスタムフィールド（後方互換性のため残す） */}
           {settings.custom_fields.length > 0 && (
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">業種固有項目</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">業種固有項目（旧形式）</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {settings.custom_fields.map((field, index) => (
                   <div key={index}>

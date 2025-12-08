@@ -75,6 +75,13 @@ export function ProfileMenu({ userName }: ProfileMenuProps) {
             >
               🔧 管理設定
             </Link>
+            <Link
+              href="/organization"
+              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              onClick={() => setIsOpen(false)}
+            >
+              🏢 組織設定
+            </Link>
             <div className="border-t border-gray-200">
               <form action="/auth/logout" method="post">
                 <button

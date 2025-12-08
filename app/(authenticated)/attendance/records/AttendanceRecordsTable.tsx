@@ -17,15 +17,25 @@ interface Site {
 }
 
 interface AttendanceRecordsTableProps {
-  staffList: Staff[]
-  sitesList: Site[]
   userRole: string
+  filters?: {
+    user_id: string
+    start_date: string
+    end_date: string
+    location_type: string
+    site_id: string
+  }
 }
 
 export function AttendanceRecordsTable({
-  staffList,
-  sitesList,
   userRole,
+  filters = {
+    user_id: '',
+    start_date: '',
+    end_date: '',
+    location_type: '',
+    site_id: '',
+  },
 }: AttendanceRecordsTableProps) {
   const [records, setRecords] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -37,15 +47,6 @@ export function AttendanceRecordsTable({
   // 編集モーダル状態
   const [editingRecord, setEditingRecord] = useState<any | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-
-  // フィルター状態
-  const [filters, setFilters] = useState({
-    user_id: '',
-    start_date: '',
-    end_date: '',
-    location_type: '',
-    site_id: '',
-  })
 
   // データ取得
   useEffect(() => {
@@ -77,18 +78,6 @@ export function AttendanceRecordsTable({
     } finally {
       setLoading(false)
     }
-  }
-
-  // フィルターリセット
-  const handleResetFilters = () => {
-    setFilters({
-      user_id: '',
-      start_date: '',
-      end_date: '',
-      location_type: '',
-      site_id: '',
-    })
-    setPage(1)
   }
 
   // 勤務時間計算（時間:分）
@@ -153,111 +142,12 @@ export function AttendanceRecordsTable({
 
   return (
     <div className="p-6">
-      {/* フィルター */}
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            スタッフ
-          </label>
-          <select
-            value={filters.user_id}
-            onChange={(e) => {
-              setFilters({ ...filters, user_id: e.target.value })
-              setPage(1)
-            }}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-          >
-            <option value="">全員</option>
-            {staffList.map((staff) => (
-              <option key={staff.id} value={staff.id}>
-                {staff.name}
-              </option>
-            ))}
-          </select>
-        </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            開始日
-          </label>
-          <input
-            type="date"
-            value={filters.start_date}
-            onChange={(e) => {
-              setFilters({ ...filters, start_date: e.target.value })
-              setPage(1)
-            }}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            終了日
-          </label>
-          <input
-            type="date"
-            value={filters.end_date}
-            onChange={(e) => {
-              setFilters({ ...filters, end_date: e.target.value })
-              setPage(1)
-            }}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            出勤場所
-          </label>
-          <select
-            value={filters.location_type}
-            onChange={(e) => {
-              setFilters({ ...filters, location_type: e.target.value })
-              setPage(1)
-            }}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-          >
-            <option value="">すべて</option>
-            <option value="office">会社</option>
-            <option value="site">現場</option>
-            <option value="remote">リモート</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            現場
-          </label>
-          <select
-            value={filters.site_id}
-            onChange={(e) => {
-              setFilters({ ...filters, site_id: e.target.value })
-              setPage(1)
-            }}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-          >
-            <option value="">すべて</option>
-            {sitesList.map((site) => (
-              <option key={site.id} value={site.id}>
-                {site.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4">
         <div className="text-sm text-gray-700">
           全 {total} 件中 {(page - 1) * 50 + 1} 〜{' '}
           {Math.min(page * 50, total)} 件を表示
         </div>
-        <button
-          onClick={handleResetFilters}
-          className="text-sm text-blue-600 hover:text-blue-700"
-        >
-          フィルターをリセット
-        </button>
       </div>
 
       {/* テーブル */}

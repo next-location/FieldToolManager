@@ -148,67 +148,71 @@ export function getTableConfig(options: {
       // 作業員リスト等のテーブル
       pageBreakConfig = {
         pageBreak: 'avoid',
-        rowPageBreak: 'auto',
+        rowPageBreak: 'avoid',
+        showHead: 'everyPage',
         styles: {
           ...baseStyles,
-          cellPadding: 3,
+          cellPadding: 1.5,
+          minCellHeight: 6,
           ...customStyles,
-        },
-        headStyles: {
-          ...baseHeadStyles,
-          ...customHeadStyles,
         },
       }
       break
 
     case 'content':
-      // 作業内容・使用資材等の長文テーブル
+      // 作業内容など改ページ可能なテーブル
       pageBreakConfig = {
         pageBreak: 'auto',
         rowPageBreak: 'auto',
+        showHead: 'everyPage',
         styles: {
           ...baseStyles,
           cellPadding: 3,
+          minCellHeight: 8,
           ...customStyles,
-        },
-        headStyles: {
-          ...baseHeadStyles,
-          ...customHeadStyles,
         },
       }
       break
 
     case 'remarks':
-      // 特記事項・備考等の固定高さテーブル
+      // 特記事項・備考（改ページ避ける）
       pageBreakConfig = {
         pageBreak: 'avoid',
         rowPageBreak: 'avoid',
         styles: {
           ...baseStyles,
           cellPadding: 3,
-          minCellHeight: 30,
+          minCellHeight: 20,
+          fontSize: 8,
           ...customStyles,
-        },
-        headStyles: {
-          ...baseHeadStyles,
-          ...customHeadStyles,
         },
       }
       break
+
+    default:
+      pageBreakConfig = {
+        styles: {
+          ...baseStyles,
+          ...customStyles,
+        },
+      }
   }
 
   return {
-    theme: 'grid',
     ...pageBreakConfig,
+    headStyles: {
+      ...baseHeadStyles,
+      ...customHeadStyles,
+    },
     ...customConfig,
   }
 }
 
 /**
- * カスタムフィールドデータをテーブル形式で描画
+ * カスタムフィールドをPDFに描画
  *
  * @param doc - jsPDFインスタンス
- * @param autoTable - autoTable関数
+ * @param autoTable - autoTableライブラリ
  * @param customFieldDefinitions - カスタムフィールド定義配列
  * @param customFieldsData - カスタムフィールド実データ（JSONB）
  * @param startY - 開始Y座標
@@ -249,27 +253,67 @@ export function drawCustomFields(
       }
     }
 
-    customFieldRows.push([field.field_label, displayValue])
+    // field_labelを直接使用（データベースから正しく取得されているはず）
+    customFieldRows.push([field.field_label || field.field_key, displayValue])
   })
 
-  // テーブルとして描画（2列: ラベル | 値）
+  // jsPDFのフォントを再設定
+  doc.setFont('NotoSansJP', 'normal')
+
+  // テーブルとして描画（2列: ラベル | 値）- 特記事項・備考と同じ横幅
   autoTable(doc, {
     startY: startY,
     head: [['項目', '内容']],
     body: customFieldRows,
-    ...getTableConfig({
-      type: 'content', // 改ページ許可
-      customStyles: {
-        cellPadding: 2,
-      },
-    }),
+    styles: {
+      font: 'NotoSansJP',
+      fontSize: 8,
+      cellPadding: 2,
+      lineColor: [0, 0, 0],
+      lineWidth: 0.1,
+      halign: 'center',
+      fillColor: [255, 255, 255],
+    },
+    headStyles: {
+      fillColor: [240, 240, 240],
+      textColor: [0, 0, 0],
+      fontStyle: 'normal',
+      font: 'NotoSansJP',
+      halign: 'center',
+    },
+    bodyStyles: {
+      font: 'NotoSansJP',
+      fillColor: [255, 255, 255],
+      textColor: [0, 0, 0],
+    },
     columnStyles: {
-      0: { cellWidth: 50, fontStyle: 'bold' }, // ラベル列（太字）
-      1: { cellWidth: 'auto' }, // 値列（自動幅）
+      0: {
+        cellWidth: 60,
+        fontStyle: 'bold',
+        font: 'NotoSansJP',
+        halign: 'center',
+      },
+      1: {
+        cellWidth: 130,
+        font: 'NotoSansJP',
+        halign: 'center',
+      },
+    },
+    alternateRowStyles: {
+      fillColor: [255, 255, 255],
+    },
+    // フォントの前処理を行う
+    didParseCell: function (data: any) {
+      // 全てのセルに対してフォントを明示的に設定
+      data.cell.styles.font = 'NotoSansJP'
+    },
+    // 描画前にフォントを再設定
+    willDrawCell: function (data: any) {
+      doc.setFont('NotoSansJP', 'normal')
     },
   })
 
-  return (doc as any).lastAutoTable.finalY
+  return (doc as any).lastAutoTable.finalY + 5
 }
 
 /**
@@ -287,104 +331,90 @@ export async function drawPhotos(
     id: string
     storage_path: string
     caption?: string | null
-    display_order: number
   }>,
   supabase: any,
   startY: number
-): Promise<number> {
+): number {
   if (!photos || photos.length === 0) {
     return startY
   }
 
   let yPos = startY
 
-  // セクションタイトル
-  doc.setFontSize(12)
-  doc.setFont('NotoSansJP-Regular', 'bold')
-  doc.text('写真', 14, yPos)
-  yPos += 8
+  // 写真タイトル
+  doc.setFontSize(10)
+  doc.setFont('NotoSansJP', 'bold')
+  doc.text('写真', 15, yPos)
+  yPos += 10
 
   // 写真を2列で配置
-  const pageWidth = doc.internal.pageSize.getWidth()
-  const margin = 14
-  const spacing = 5 // 画像間のスペース
-  const imageWidth = (pageWidth - margin * 2 - spacing) / 2 // 2列配置
-  const imageHeight = imageWidth * 0.75 // アスペクト比 4:3
+  const photoWidth = 80 // 写真の幅（mm）
+  const photoHeight = 60 // 写真の高さ（mm）
+  const spacing = 10 // 写真間のスペース
+  const leftX = 15 // 左側の写真のX座標
+  const rightX = leftX + photoWidth + spacing // 右側の写真のX座標
 
   for (let i = 0; i < photos.length; i++) {
     const photo = photos[i]
-    const col = i % 2 // 0: 左列, 1: 右列
+    const isLeftColumn = i % 2 === 0
+    const x = isLeftColumn ? leftX : rightX
 
-    // 改ページチェック（画像 + キャプション）
-    const requiredHeight = imageHeight + 15 // 画像 + キャプション + マージン
-    if (yPos + requiredHeight > doc.internal.pageSize.getHeight() - 20) {
+    // 新しい行の開始（右列の場合はスキップ）
+    if (isLeftColumn && i > 0) {
+      yPos += photoHeight + spacing + 10 // 10mmは写真キャプション用
+    }
+
+    // ページブレークチェック
+    if (yPos + photoHeight + 10 > 280) {
       doc.addPage()
       yPos = 20
     }
 
-    const xPos = margin + col * (imageWidth + spacing)
-
     try {
-      // Supabase Storageから画像を取得
-      const { data: imageData, error } = await supabase.storage
-        .from('work-report-photos')
-        .download(photo.storage_path)
+      // Supabase Storageから写真URLを取得
+      const { data: urlData } = supabase.storage.from('work-report-photos').getPublicUrl(photo.storage_path)
 
-      if (error) {
-        console.error('Photo download error:', error)
-        // エラーの場合、プレースホルダーを描画
-        doc.setFillColor(240, 240, 240)
-        doc.rect(xPos, yPos, imageWidth, imageHeight, 'F')
+      if (urlData?.publicUrl) {
+        // 写真を配置（エラー時はスキップ）
+        try {
+          doc.addImage(urlData.publicUrl, 'JPEG', x, yPos, photoWidth, photoHeight)
+        } catch (imgError) {
+          // 画像追加エラー時は枠だけ表示
+          doc.setDrawColor(200, 200, 200)
+          doc.setLineWidth(0.5)
+          doc.rect(x, yPos, photoWidth, photoHeight)
+          doc.setFontSize(8)
+          doc.setTextColor(150, 150, 150)
+          doc.text('画像読み込みエラー', x + photoWidth / 2, yPos + photoHeight / 2, { align: 'center' })
+          doc.setTextColor(0, 0, 0)
+        }
+      } else {
+        // 写真が見つからない場合は枠だけ表示
+        doc.setDrawColor(200, 200, 200)
+        doc.setLineWidth(0.5)
+        doc.rect(x, yPos, photoWidth, photoHeight)
         doc.setFontSize(8)
         doc.setTextColor(150, 150, 150)
-        doc.text('画像読み込みエラー', xPos + imageWidth / 2, yPos + imageHeight / 2, {
-          align: 'center',
-        })
+        doc.text('写真なし', x + photoWidth / 2, yPos + photoHeight / 2, { align: 'center' })
         doc.setTextColor(0, 0, 0)
-      } else {
-        // BlobをBase64に変換
-        const base64 = await blobToBase64(imageData)
+      }
 
-        // 画像をPDFに埋め込み
-        doc.addImage(base64, 'JPEG', xPos, yPos, imageWidth, imageHeight)
+      // キャプション
+      if (photo.caption) {
+        doc.setFontSize(8)
+        doc.setFont('NotoSansJP', 'normal')
+        doc.text(photo.caption, x, yPos + photoHeight + 3)
       }
     } catch (error) {
       console.error('Photo processing error:', error)
-      // エラーの場合、プレースホルダーを描画
-      doc.setFillColor(240, 240, 240)
-      doc.rect(xPos, yPos, imageWidth, imageHeight, 'F')
-    }
-
-    // キャプションを描画
-    if (photo.caption) {
-      doc.setFontSize(8)
-      doc.setFont('NotoSansJP-Regular', 'normal')
-      const captionY = yPos + imageHeight + 4
-      // 長いキャプションは折り返し
-      const lines = doc.splitTextToSize(photo.caption, imageWidth)
-      doc.text(lines, xPos, captionY)
-    }
-
-    // 右列の場合（または最後の写真）、次の行に移動
-    if (col === 1 || i === photos.length - 1) {
-      yPos += imageHeight + 15 // 画像高さ + キャプション + マージン
     }
   }
 
-  return yPos + 5 // 次のセクションのための余白
-}
+  // 最終行の処理
+  if (photos.length > 0) {
+    const lastRowHasLeftPhoto = (photos.length - 1) % 2 === 0
+    yPos += photoHeight + (lastRowHasLeftPhoto ? 10 : 0) + spacing
+  }
 
-/**
- * BlobをBase64文字列に変換
- */
-function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      const base64 = reader.result as string
-      resolve(base64)
-    }
-    reader.onerror = reject
-    reader.readAsDataURL(blob)
-  })
+  return yPos
 }

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { AttendanceRecordsTable } from './AttendanceRecordsTable'
+import { AttendanceRecordsWrapper } from './AttendanceRecordsWrapper'
 
 export default async function AttendanceRecordsPage() {
   const supabase = await createClient()
@@ -58,13 +58,11 @@ export default async function AttendanceRecordsPage() {
           </p>
         </div>
 
-        <div className="bg-white shadow sm:rounded-lg">
-          <AttendanceRecordsTable
-            staffList={staffList || []}
-            sitesList={sitesList || []}
-            userRole={userData.role}
-          />
-        </div>
+        <AttendanceRecordsWrapper
+          staffList={staffList || []}
+          sitesList={sitesList || []}
+          userRole={userData.role}
+        />
       </div>
     </div>
   )

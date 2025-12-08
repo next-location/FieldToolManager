@@ -5,6 +5,8 @@ import autoTable from 'jspdf-autotable'
 import fs from 'fs'
 import path from 'path'
 import { drawCompanyName, getTableConfig, drawCustomFields, drawPhotos } from '@/lib/pdf/helpers'
+import { svgToPngDataUrl } from '@/lib/pdf/svg-to-png'
+import { generateCompanySeal } from '@/lib/company-seal/generate-seal'
 
 export async function GET(
   request: NextRequest,
@@ -37,10 +39,10 @@ export async function GET(
       return NextResponse.json({ error: 'ユーザー情報が見つかりません' }, { status: 404 })
     }
 
-    // 組織情報を取得
+    // 組織情報を取得（角印データも含む）
     const { data: organization } = await supabase
       .from('organizations')
-      .select('name, postal_code, address, phone, fax')
+      .select('name, postal_code, address, phone, fax, company_seal_url')
       .eq('id', userData.organization_id)
       .single()
 
@@ -173,32 +175,67 @@ export async function GET(
     // 担当印の印鑑画像を表示（作成者の印鑑データがある場合）
     if (report.created_by_user?.personal_seal_data) {
       try {
-        doc.addImage(
-          report.created_by_user.personal_seal_data,
-          'SVG',
-          personInChargeX + 1,
-          stampY + stampHeaderHeight + 1,
-          stampBoxSize - 2,
-          stampBoxSize - 2
-        )
+        const sealData = report.created_by_user.personal_seal_data
+        // Data URLの形式チェック
+        if (sealData.startsWith('data:image/svg+xml;base64,')) {
+          // SVGをPNGに変換
+          const pngDataUrl = await svgToPngDataUrl(sealData, stampBoxSize * 4, stampBoxSize * 4)
+          doc.addImage(
+            pngDataUrl,
+            'PNG',
+            personInChargeX + 1,
+            stampY + stampHeaderHeight + 1,
+            stampBoxSize - 2,
+            stampBoxSize - 2
+          )
+        }
       } catch (err) {
         console.error('[PDF API] Error adding person in charge seal:', err)
+        // エラー時は印鑑文字を表示
+        try {
+          const creatorName = report.created_by_user?.name || ''
+          if (creatorName) {
+            doc.setFontSize(8)
+            doc.setTextColor(204, 0, 0) // 赤色
+            doc.text(creatorName.substring(0, 2), personInChargeX + stampBoxSize / 2, stampY + stampHeaderHeight + stampBoxSize / 2, { align: 'center' })
+            doc.setTextColor(0, 0, 0) // 黒色に戻す
+          }
+        } catch (textErr) {
+          console.error('[PDF API] Error adding text seal:', textErr)
+        }
       }
     }
 
     // 承認印の印鑑画像を表示（承認者の印鑑データがある場合）
-    if (report.approved_by_user?.personal_seal_data) {
+    if (report.approved_by_user?.personal_seal_data && report.status === 'approved') {
       try {
-        doc.addImage(
-          report.approved_by_user.personal_seal_data,
-          'SVG',
-          approvalX + 1,
-          stampY + stampHeaderHeight + 1,
-          stampBoxSize - 2,
-          stampBoxSize - 2
-        )
+        const sealData = report.approved_by_user.personal_seal_data
+        if (sealData.startsWith('data:image/svg+xml;base64,')) {
+          // SVGをPNGに変換
+          const pngDataUrl = await svgToPngDataUrl(sealData, stampBoxSize * 4, stampBoxSize * 4)
+          doc.addImage(
+            pngDataUrl,
+            'PNG',
+            approvalX + 1,
+            stampY + stampHeaderHeight + 1,
+            stampBoxSize - 2,
+            stampBoxSize - 2
+          )
+        }
       } catch (err) {
         console.error('[PDF API] Error adding approval seal:', err)
+        // エラー時は印鑑文字を表示
+        try {
+          const approverName = report.approved_by_user?.name || ''
+          if (approverName) {
+            doc.setFontSize(8)
+            doc.setTextColor(204, 0, 0) // 赤色
+            doc.text(approverName.substring(0, 2), approvalX + stampBoxSize / 2, stampY + stampHeaderHeight + stampBoxSize / 2, { align: 'center' })
+            doc.setTextColor(0, 0, 0) // 黒色に戻す
+          }
+        } catch (textErr) {
+          console.error('[PDF API] Error adding text seal:', textErr)
+        }
       }
     }
 
@@ -235,19 +272,56 @@ export async function GET(
     const sealY = companyInfoStartY
     const sealSize = 20
 
-    // 角印の枠（将来的に画像に置き換え）
-    if (organization.company_seal_url) {
-      // TODO: 画像読み込みと配置（将来実装）
-      // doc.addImage(sealImage, 'PNG', sealX, sealY, sealSize, sealSize)
-    } else {
-      // 仮の枠表示
-      doc.setDrawColor(200, 200, 200)
-      doc.setLineWidth(0.5)
-      doc.rect(sealX, sealY, sealSize, sealSize)
-      doc.setFontSize(6)
-      doc.setTextColor(150, 150, 150)
-      doc.text('角印', sealX + 7, sealY + 11)
-      doc.setTextColor(0, 0, 0)
+    // 保存された角印または新規生成した角印を表示
+    try {
+      let sealDataUrl: string | null = null
+
+      // 1. まず保存された角印データがあるか確認
+      if (organization.company_seal_url) {
+        console.log('[PDF API] Using saved company seal')
+        const savedSeal = organization.company_seal_url
+
+        // Data URLの形式チェック
+        if (savedSeal.startsWith('data:image/png;base64,')) {
+          // すでにPNG形式なのでそのまま使用
+          sealDataUrl = savedSeal
+        } else if (savedSeal.startsWith('data:image/svg+xml;base64,')) {
+          // SVG形式の場合はPNGに変換
+          sealDataUrl = await svgToPngDataUrl(savedSeal, sealSize * 20, sealSize * 20)
+        } else {
+          console.error('[PDF API] Unknown seal format:', savedSeal.substring(0, 50))
+        }
+      } else {
+        // 2. 保存された角印がない場合は新規生成
+        console.log('[PDF API] Generating new company seal')
+        const sealSvg = generateCompanySeal({
+          companyName: organization.name,
+          fontStyle: 'mincho', // デフォルトで明朝体を使用
+          size: sealSize * 20, // 高解像度で生成（400px）
+          color: '#CC0000'
+        })
+
+        // SVGをPNGに変換
+        sealDataUrl = await svgToPngDataUrl(sealSvg, sealSize * 20, sealSize * 20)
+      }
+
+      // PDFに角印を追加
+      if (sealDataUrl) {
+        doc.addImage(
+          sealDataUrl,
+          'PNG',
+          sealX,
+          sealY,
+          sealSize,
+          sealSize
+        )
+        console.log('[PDF API] Company seal added successfully')
+      } else {
+        console.log('[PDF API] No seal data available')
+      }
+    } catch (err) {
+      console.error('[PDF API] Error adding company seal:', err)
+      // エラー時は枠なしで何も表示しない
     }
 
     // 自社情報エリアの高さを計算
@@ -447,10 +521,23 @@ export async function GET(
 
     // カスタムフィールド（存在する場合のみ）
     if (customFieldDefinitions && customFieldDefinitions.length > 0) {
+      console.log('[PDF API] Custom field definitions:', JSON.stringify(customFieldDefinitions, null, 2))
+      console.log('[PDF API] Custom field data:', JSON.stringify(report.custom_fields_data, null, 2))
+
+      // カスタムフィールド定義の形式を確認して修正
+      const formattedDefinitions = customFieldDefinitions.map((field: any) => ({
+        field_key: field.field_key,
+        field_label: field.field_label,
+        field_type: field.field_type || 'text',
+        field_options: field.field_options || []
+      }))
+
+      console.log('[PDF API] Formatted definitions:', JSON.stringify(formattedDefinitions, null, 2))
+
       yPos = drawCustomFields(
         doc,
         autoTable,
-        customFieldDefinitions,
+        formattedDefinitions,
         report.custom_fields_data || {},
         yPos
       )

@@ -33,14 +33,12 @@ export async function GET(
       )
     }
 
-    // 添付ファイル一覧取得（削除されていないもの、表示順序でソート）
+    // 添付ファイル一覧取得（アップロード日時順でソート）
     const { data: attachments, error } = await supabase
       .from('work_report_attachments')
       .select('*')
       .eq('work_report_id', id)
-      .is('deleted_at', null)
-      .order('display_order', { ascending: true })
-      .order('created_at', { ascending: true })
+      .order('uploaded_at', { ascending: true })
 
     if (error) {
       console.error('資料取得エラー:', error)
@@ -50,7 +48,23 @@ export async function GET(
       )
     }
 
-    return NextResponse.json({ attachments: attachments || [] })
+    // file_urlをSupabase StorageのPublic URLに変換
+    const attachmentsWithPublicUrls = attachments?.map(attachment => {
+      // file_urlが既に完全なURLの場合はそのまま使用
+      if (attachment.file_url && attachment.file_url.startsWith('http')) {
+        return attachment
+      }
+      // 相対パスの場合はSupabase StorageのPublic URLを生成
+      const publicUrl = attachment.file_url
+        ? supabase.storage.from('work-report-attachments').getPublicUrl(attachment.file_url).data.publicUrl
+        : null
+      return {
+        ...attachment,
+        file_url: publicUrl || attachment.file_url
+      }
+    }) || []
+
+    return NextResponse.json({ attachments: attachmentsWithPublicUrls })
   } catch (error) {
     console.error('資料取得エラー:', error)
     return NextResponse.json(
@@ -98,6 +112,10 @@ export async function POST(
     const fileType = formData.get('file_type') as string | null
     const description = formData.get('description') as string | null
     const displayOrder = formData.get('display_order') as string | null
+
+    // file_typeのバリデーションと変換
+    const VALID_FILE_TYPES = ['drawing', 'specification', 'manual', 'other']
+    const mappedFileType = VALID_FILE_TYPES.includes(fileType || '') ? fileType : 'other'
 
     if (!file) {
       return NextResponse.json(
@@ -163,13 +181,13 @@ export async function POST(
       .insert({
         work_report_id: id,
         organization_id: report.organization_id,
-        storage_path: storagePath,
-        file_name: file.name,
+        file_url: storagePath, // storage_path → file_urlに変更
+        file_name: file.name, // file_nameカラムは存在する
         file_size: file.size,
         mime_type: file.type,
-        file_type: fileType || 'その他',
+        file_type: mappedFileType, // バリデーション済みのfile_typeを使用
         description: description || null,
-        display_order: displayOrder ? parseInt(displayOrder, 10) : null,
+        // display_orderカラムは存在しないため削除
         uploaded_by: user.id,
       })
       .select()
@@ -189,7 +207,14 @@ export async function POST(
       )
     }
 
-    return NextResponse.json({ attachment }, { status: 201 })
+    // file_urlをSupabase StorageのPublic URLに変換
+    const publicUrl = supabase.storage.from('work-report-attachments').getPublicUrl(storagePath).data.publicUrl
+    const attachmentWithPublicUrl = {
+      ...attachment,
+      file_url: publicUrl
+    }
+
+    return NextResponse.json({ attachment: attachmentWithPublicUrl }, { status: 201 })
   } catch (error) {
     console.error('資料アップロードエラー:', error)
     return NextResponse.json(

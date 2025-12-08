@@ -190,6 +190,20 @@ The project will use a dedicated `docs/` folder for comprehensive documentation,
 - **Usage**: 作業報告書機能の実装時に必ず参照
 - **Note**: 建築業をはじめ様々な現場系業種に対応できる汎用的な設計
 
+#### 14. **`docs/INVOICE_MANAGEMENT_SPEC.md`** ⭐ 帳票管理機能仕様
+- **Purpose**: 帳票管理機能（見積・請求・発注・支払）の完全な設計書
+- **Content**:
+  - 見積書・請求書・領収書・発注書・支払通知書の管理機能
+  - 工事別収支管理・原価管理
+  - 売掛金・買掛金管理、入金消込機能
+  - 作業報告書との連携による請求書自動生成
+  - インボイス制度・電子帳簿保存法対応
+  - データベース設計（estimates, invoices, purchase_orders, payments, projects）
+  - 実装フェーズ（Phase 1-5）とAPI設計
+  - 会計ソフト連携（CSVエクスポート）
+- **Usage**: 帳票管理機能の実装時に必ず参照
+- **Note**: 建築系企業の見積・請求・支払業務をデジタル化し、工事単位での収支管理を実現
+
 ### Development Priority
 
 1. **Environment Setup**: Follow `docs/ENVIRONMENT_SETUP.md` FIRST

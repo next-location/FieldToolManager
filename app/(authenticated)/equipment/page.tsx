@@ -26,12 +26,7 @@ export default async function EquipmentPage() {
     .eq('id', userData?.organization_id)
     .single()
 
-  // 重機管理機能が無効の場合はダッシュボードへリダイレクト
-  if (!orgData?.heavy_equipment_enabled) {
-    redirect('/')
-  }
-
-  // 重機一覧を取得
+  // 重機一覧を取得（機能が無効でも空配列として表示）
   const { data: equipment, error } = await supabase
     .from('heavy_equipment')
     .select(`

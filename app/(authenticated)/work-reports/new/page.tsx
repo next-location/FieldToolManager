@@ -40,6 +40,14 @@ export default async function NewWorkReportPage() {
     .is('deleted_at', null)
     .order('name')
 
+  // 組織内の道具一覧を取得（使用道具選択用）
+  const { data: organizationTools } = await supabase
+    .from('tools')
+    .select('id, name, model_number')
+    .eq('organization_id', userData.organization_id)
+    .is('deleted_at', null)
+    .order('name')
+
   // 組織の報告書設定を取得
   const { data: settings } = await supabase
     .from('organization_report_settings')
@@ -78,6 +86,7 @@ export default async function NewWorkReportPage() {
         <WorkReportForm
           sites={sites || []}
           organizationUsers={organizationUsers || []}
+          organizationTools={organizationTools || []}
           currentUserId={user.id}
           currentUserName={userData.name}
           settings={reportSettings}

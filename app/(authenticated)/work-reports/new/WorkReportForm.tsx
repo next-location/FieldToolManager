@@ -19,6 +19,12 @@ interface OrganizationUser {
   email: string
 }
 
+interface OrganizationTool {
+  id: string
+  name: string
+  model_number: string | null
+}
+
 interface CustomField {
   name: string
   type: 'text' | 'number' | 'select' | 'checkbox' | 'date' | 'time'
@@ -50,13 +56,14 @@ interface Settings {
 interface WorkReportFormProps {
   sites: Site[]
   organizationUsers: OrganizationUser[]
+  organizationTools: OrganizationTool[]
   currentUserId: string
   currentUserName: string
   settings: Settings
   customFields: CustomFieldDefinition[]
 }
 
-export function WorkReportForm({ sites, organizationUsers, currentUserId, currentUserName, settings, customFields }: WorkReportFormProps) {
+export function WorkReportForm({ sites, organizationUsers, organizationTools, currentUserId, currentUserName, settings, customFields }: WorkReportFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -72,10 +79,19 @@ export function WorkReportForm({ sites, organizationUsers, currentUserId, curren
   const [workLocation, setWorkLocation] = useState('')
   const [progressRate, setProgressRate] = useState<number | undefined>(undefined)
   const [materials, setMaterials] = useState('')
-  const [tools, setTools] = useState('')
+  const [toolsText, setToolsText] = useState('')
 
-  // 帯同作業員（自分以外のユーザー）
-  const [accompaniedWorkerIds, setAccompaniedWorkerIds] = useState<string[]>([])
+  // 使用道具（道具マスタから選択）- ユニークIDで管理
+  const [selectedTools, setSelectedTools] = useState<Array<{ id: string; toolId: string }>>([])
+
+  // 道具検索用のステート
+  const [toolSearchTerms, setToolSearchTerms] = useState<Record<string, string>>({})
+
+  // 帯同作業員（自分以外のユーザー）- ユニークIDで管理
+  const [accompaniedWorkers, setAccompaniedWorkers] = useState<Array<{ id: string; userId: string }>>([])
+
+  // 作業員検索用のステート
+  const [workerSearchTerms, setWorkerSearchTerms] = useState<Record<string, string>>({})
 
   // 時間外（残業時間） - 作業員ごとに管理（currentUserIdも含む）
   const [overtimeHours, setOvertimeHours] = useState<Record<string, number>>({})
@@ -86,6 +102,20 @@ export function WorkReportForm({ sites, organizationUsers, currentUserId, curren
 
   // カスタムフィールドの値を保持
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>({})
+
+  // ひらがな⇔カタカナ変換関数
+  const toHiragana = (str: string) => {
+    return str.replace(/[\u30A1-\u30F6]/g, (match) => {
+      const chr = match.charCodeAt(0) - 0x60
+      return String.fromCharCode(chr)
+    })
+  }
+  const toKatakana = (str: string) => {
+    return str.replace(/[\u3041-\u3096]/g, (match) => {
+      const chr = match.charCodeAt(0) + 0x60
+      return String.fromCharCode(chr)
+    })
+  }
 
   const handleSubmit = async (e: React.FormEvent, isDraft: boolean) => {
     e.preventDefault()
@@ -119,16 +149,21 @@ export function WorkReportForm({ sites, organizationUsers, currentUserId, curren
           work_hours: workHours,
           overtime_hours: overtimeHours[currentUserId] || 0,
         },
-        ...accompaniedWorkerIds.map(workerId => {
-          const user = organizationUsers.find(u => u.id === workerId)
+        ...accompaniedWorkers.map(worker => {
+          const user = organizationUsers.find(u => u.id === worker.userId)
           return {
-            user_id: workerId,
+            user_id: worker.userId,
             name: user?.name || '',
             work_hours: workHours, // 同じ作業時間を適用
-            overtime_hours: overtimeHours[workerId] || 0,
+            overtime_hours: overtimeHours[worker.userId] || 0,
           }
         })
       ]
+
+      // 選択された道具のIDリストを作成
+      const selectedToolIds = selectedTools
+        .map(t => t.toolId)
+        .filter(id => id !== '')
 
       const response = await fetch('/api/work-reports', {
         method: 'POST',
@@ -147,7 +182,8 @@ export function WorkReportForm({ sites, organizationUsers, currentUserId, curren
           work_location: workLocation || undefined,
           progress_rate: progressRate !== undefined && progressRate !== null ? progressRate : undefined,
           materials: materials || undefined,
-          tools: tools || undefined,
+          tools: toolsText || undefined,
+          tool_ids: selectedToolIds.length > 0 ? selectedToolIds : undefined,
           special_notes: specialNotes || undefined,
           remarks: remarks || undefined,
           custom_fields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined,
@@ -187,8 +223,15 @@ export function WorkReportForm({ sites, organizationUsers, currentUserId, curren
 
   const calculatedWorkHours = calculateWorkHours(workStartTime, workEndTime, breakTime)
 
+  // Enterキーでの誤送信を防止
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') {
+      e.preventDefault()
+    }
+  }
+
   return (
-    <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-6">
+    <form onSubmit={(e) => handleSubmit(e, false)} onKeyDown={handleKeyDown} className="space-y-6">
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
           {error}
@@ -333,51 +376,165 @@ export function WorkReportForm({ sites, organizationUsers, currentUserId, curren
           {/* 帯同作業員 */}
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">帯同作業員</h3>
-            <div className="space-y-2">
-              <p className="text-sm text-gray-600">一緒に作業した社員を選択してください（任意）</p>
-              {organizationUsers
-                .filter(user => user.id !== currentUserId)
-                .map(user => (
-                  <div key={user.id} className="space-y-2">
-                    <label className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
+            <p className="text-sm text-gray-600 mb-3">一緒に作業した社員を選択してください（任意）</p>
+            <div className="space-y-3">
+              {accompaniedWorkers.map((worker, index) => {
+                const searchTerm = workerSearchTerms[worker.id] || ''
+
+                // すでに選択されているユーザーIDのリスト（現在編集中のworker以外）
+                const selectedUserIds = accompaniedWorkers
+                  .filter(w => w.id !== worker.id)
+                  .map(w => w.userId)
+                  .filter(id => id !== '')
+
+                const filteredUsers = organizationUsers
+                  .filter(user => user.id !== currentUserId)
+                  .filter(user => !selectedUserIds.includes(user.id)) // すでに選択済みのユーザーを除外
+                  .filter(user => {
+                    if (!searchTerm) return false // 検索語がない場合は何も表示しない
+                    const term = searchTerm.toLowerCase()
+                    const termHiragana = toHiragana(term)
+                    const termKatakana = toKatakana(term)
+
+                    const userName = user.name.toLowerCase()
+                    const userNameHiragana = toHiragana(userName)
+                    const userNameKatakana = toKatakana(userName)
+                    const userEmail = user.email.toLowerCase()
+
+                    return (
+                      userName.includes(term) ||
+                      userName.includes(termHiragana) ||
+                      userName.includes(termKatakana) ||
+                      userNameHiragana.includes(term) ||
+                      userNameHiragana.includes(termHiragana) ||
+                      userNameHiragana.includes(termKatakana) ||
+                      userNameKatakana.includes(term) ||
+                      userNameKatakana.includes(termHiragana) ||
+                      userNameKatakana.includes(termKatakana) ||
+                      userEmail.includes(term)
+                    )
+                  })
+
+                const selectedUser = organizationUsers.find(u => u.id === worker.userId)
+
+                return (
+                  <div key={worker.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-1">
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        作業員 {index + 1}
+                      </label>
+
+                      {/* 選択されたユーザー表示（検索していない時のみ） */}
+                      {selectedUser && !searchTerm && (
+                        <div className="mb-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                          <div className="text-sm font-medium text-blue-900">{selectedUser.name}</div>
+                          <div className="text-xs text-blue-700">{selectedUser.email}</div>
+                        </div>
+                      )}
+
+                      {/* 検索入力 */}
                       <input
-                        type="checkbox"
-                        checked={accompaniedWorkerIds.includes(user.id)}
+                        type="text"
+                        placeholder={selectedUser ? "別の作業員を検索..." : "名前またはメールアドレスで検索..."}
+                        value={searchTerm}
                         onChange={(e) => {
-                          if (e.target.checked) {
-                            setAccompaniedWorkerIds([...accompaniedWorkerIds, user.id])
-                          } else {
-                            setAccompaniedWorkerIds(accompaniedWorkerIds.filter(id => id !== user.id))
-                          }
+                          setWorkerSearchTerms({
+                            ...workerSearchTerms,
+                            [worker.id]: e.target.value
+                          })
                         }}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                       />
-                      <span className="text-sm text-gray-900">{user.name}</span>
-                      <span className="text-xs text-gray-500">({user.email})</span>
-                    </label>
-                    {accompaniedWorkerIds.includes(user.id) && (
-                      <div className="ml-7 pb-2">
-                        <label htmlFor={`overtime_${user.id}`} className="block text-xs font-medium text-gray-700 mb-1">
+
+                      {/* 検索結果リスト（検索語がある時のみ表示） */}
+                      {searchTerm && (
+                        <div className="max-h-48 overflow-y-auto border border-gray-300 rounded-md mb-2 bg-white shadow-sm">
+                          {filteredUsers.length === 0 ? (
+                            <div className="p-3 text-sm text-gray-500">検索結果なし</div>
+                          ) : (
+                            filteredUsers.map(user => (
+                              <button
+                                key={user.id}
+                                type="button"
+                                onClick={() => {
+                                  const newWorkers = [...accompaniedWorkers]
+                                  newWorkers[index] = { ...worker, userId: user.id }
+                                  setAccompaniedWorkers(newWorkers)
+                                  // 選択後、検索欄をクリア
+                                  setWorkerSearchTerms({
+                                    ...workerSearchTerms,
+                                    [worker.id]: ''
+                                  })
+                                }}
+                                className={`w-full text-left p-3 hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0 ${
+                                  user.id === worker.userId ? 'bg-blue-100' : 'bg-white'
+                                }`}
+                              >
+                                <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                                <div className="text-xs text-gray-500">{user.email}</div>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      )}
+
+                      <div className="mt-2">
+                        <label htmlFor={`overtime_${worker.id}`} className="block text-xs font-medium text-gray-700 mb-1">
                           時間外（残業時間）
                         </label>
-                        <input
-                          type="number"
-                          id={`overtime_${user.id}`}
-                          value={overtimeHours[user.id] || ''}
-                          onChange={(e) => setOvertimeHours({
-                            ...overtimeHours,
-                            [user.id]: e.target.value ? Number(e.target.value) : 0
-                          })}
-                          min="0"
-                          step="0.5"
-                          placeholder="0"
-                          className="w-32 px-2 py-1 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        />
-                        <span className="ml-1 text-xs text-gray-500">時間</span>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            id={`overtime_${worker.id}`}
+                            value={overtimeHours[worker.userId] || ''}
+                            onChange={(e) => setOvertimeHours({
+                              ...overtimeHours,
+                              [worker.userId]: e.target.value ? Number(e.target.value) : 0
+                            })}
+                            min="0"
+                            step="0.5"
+                            placeholder="0"
+                            className="w-24 px-2 py-1 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                          />
+                          <span className="text-xs text-gray-500">時間</span>
+                        </div>
                       </div>
-                    )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAccompaniedWorkers(accompaniedWorkers.filter((_, i) => i !== index))
+                        const newOvertimeHours = { ...overtimeHours }
+                        delete newOvertimeHours[worker.userId]
+                        setOvertimeHours(newOvertimeHours)
+                        const newSearchTerms = { ...workerSearchTerms }
+                        delete newSearchTerms[worker.id]
+                        setWorkerSearchTerms(newSearchTerms)
+                      }}
+                      className="mt-6 px-2 py-1 text-sm text-red-600 hover:text-red-800"
+                    >
+                      削除
+                    </button>
                   </div>
-                ))}
+                )
+              })}
+
+              {/* 追加ボタン */}
+              <button
+                type="button"
+                onClick={() => {
+                  const newId = `worker_${Date.now()}_${Math.random()}`
+                  // 初期値はnullにして、ユーザーに検索させる
+                  setAccompaniedWorkers([...accompaniedWorkers, { id: newId, userId: '' }])
+                }}
+                className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-md text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors"
+              >
+                + 作業員を追加
+              </button>
+
+              {accompaniedWorkers.length === 0 && (
+                <p className="text-sm text-gray-500 text-center">「+ 作業員を追加」ボタンをクリックして作業員を追加してください</p>
+              )}
               {organizationUsers.filter(user => user.id !== currentUserId).length === 0 && (
                 <p className="text-sm text-gray-500">他の社員が登録されていません</p>
               )}
@@ -389,15 +546,26 @@ export function WorkReportForm({ sites, organizationUsers, currentUserId, curren
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
               作業内容 <span className="text-red-500">*</span>
             </label>
-            <textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-              rows={5}
-              placeholder="実施した作業の内容を詳しく記入してください"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
+            <div>
+              <textarea
+                id="description"
+                value={description}
+                onChange={(e) => {
+                  if (e.target.value.length <= 5000) {
+                    setDescription(e.target.value)
+                  }
+                }}
+                required
+                rows={5}
+                placeholder="実施した作業の内容を詳しく記入してください"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
+              <div className="text-right -mt-[7px]">
+                <span className={`text-xs ${description.length > 5000 ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
+                  {description.length} / 5000
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* オプション項目 */}
@@ -447,31 +615,163 @@ export function WorkReportForm({ sites, organizationUsers, currentUserId, curren
                     <label htmlFor="materials" className="block text-sm font-medium text-gray-700 mb-1">
                       使用資材
                     </label>
-                    <textarea
-                      id="materials"
-                      value={materials}
-                      onChange={(e) => setMaterials(e.target.value)}
-                      rows={3}
-                      placeholder="例: コンクリート 5m³、鉄筋 D13 100本"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
+                    <div>
+                      <textarea
+                        id="materials"
+                        value={materials}
+                        onChange={(e) => {
+                          if (e.target.value.length <= 2000) {
+                            setMaterials(e.target.value)
+                          }
+                        }}
+                        rows={3}
+                        placeholder="例: コンクリート 5m³、鉄筋 D13 100本"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      />
+                      <div className="text-right -mt-[7px]">
+                        <span className={`text-xs ${materials.length > 2000 ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
+                          {materials.length} / 2000
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 )}
 
                 {/* 使用道具 */}
                 {settings.enable_tools && (
                   <div className="md:col-span-2">
-                    <label htmlFor="tools" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       使用道具
                     </label>
-                    <textarea
-                      id="tools"
-                      value={tools}
-                      onChange={(e) => setTools(e.target.value)}
-                      rows={3}
-                      placeholder="例: 電動ドリル、サンダー、水平器"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
+                    <p className="text-sm text-gray-600 mb-3">使用した道具を選択してください（任意）</p>
+                    <div className="space-y-3">
+                      {selectedTools.map((tool, index) => {
+                        const searchTerm = toolSearchTerms[tool.id] || ''
+                        const selectedToolIds = selectedTools
+                          .filter(t => t.id !== tool.id)
+                          .map(t => t.toolId)
+                          .filter(id => id !== '')
+
+                        const filteredTools = organizationTools
+                          .filter(orgTool => !selectedToolIds.includes(orgTool.id))
+                          .filter(orgTool => {
+                            if (!searchTerm) return false
+                            const term = searchTerm.toLowerCase()
+                            const termHiragana = toHiragana(term)
+                            const termKatakana = toKatakana(term)
+
+                            const name = orgTool.name.toLowerCase()
+                            const nameHiragana = toHiragana(name)
+                            const nameKatakana = toKatakana(name)
+                            const model = orgTool.model_number?.toLowerCase() || ''
+
+                            return (
+                              name.includes(term) ||
+                              name.includes(termHiragana) ||
+                              name.includes(termKatakana) ||
+                              nameHiragana.includes(term) ||
+                              nameHiragana.includes(termHiragana) ||
+                              nameHiragana.includes(termKatakana) ||
+                              nameKatakana.includes(term) ||
+                              nameKatakana.includes(termHiragana) ||
+                              nameKatakana.includes(termKatakana) ||
+                              model.includes(term)
+                            )
+                          })
+
+                        const selectedTool = organizationTools.find(t => t.id === tool.toolId)
+
+                        return (
+                          <div key={tool.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="flex-1">
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                道具 {index + 1}
+                              </label>
+
+                              {/* 選択された道具表示（検索していない時のみ） */}
+                              {selectedTool && !searchTerm && (
+                                <div className="mb-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                  <div className="text-sm font-medium text-blue-900">{selectedTool.name}</div>
+                                  {selectedTool.model_number && (
+                                    <div className="text-xs text-blue-700">{selectedTool.model_number}</div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* 検索入力 */}
+                              <input
+                                type="text"
+                                placeholder={selectedTool ? "別の道具を検索..." : "道具名または型番で検索..."}
+                                value={searchTerm}
+                                onChange={(e) => {
+                                  setToolSearchTerms({
+                                    ...toolSearchTerms,
+                                    [tool.id]: e.target.value
+                                  })
+                                }}
+                                className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                              />
+
+                              {/* 検索結果リスト（検索語がある時のみ表示） */}
+                              {searchTerm && (
+                                <div className="max-h-48 overflow-y-auto border border-gray-300 rounded-md mb-2 bg-white shadow-sm">
+                                  {filteredTools.length === 0 ? (
+                                    <div className="p-3 text-sm text-gray-500">検索結果なし</div>
+                                  ) : (
+                                    filteredTools.map(orgTool => (
+                                      <button
+                                        key={orgTool.id}
+                                        type="button"
+                                        onClick={() => {
+                                          setSelectedTools(selectedTools.map(t =>
+                                            t.id === tool.id ? { ...t, toolId: orgTool.id } : t
+                                          ))
+                                          setToolSearchTerms({
+                                            ...toolSearchTerms,
+                                            [tool.id]: ''
+                                          })
+                                        }}
+                                        className={`w-full text-left p-3 hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0 ${
+                                          orgTool.id === tool.toolId ? 'bg-blue-100' : 'bg-white'
+                                        }`}
+                                      >
+                                        <div className="text-sm font-medium text-gray-900">{orgTool.name}</div>
+                                        {orgTool.model_number && (
+                                          <div className="text-xs text-gray-500">{orgTool.model_number}</div>
+                                        )}
+                                      </button>
+                                    ))
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newTools = selectedTools.filter(t => t.id !== tool.id)
+                                setSelectedTools(newTools)
+                                const newSearchTerms = { ...toolSearchTerms }
+                                delete newSearchTerms[tool.id]
+                                setToolSearchTerms(newSearchTerms)
+                              }}
+                              className="mt-6 px-3 py-2 text-red-600 hover:text-red-800 font-medium text-sm"
+                            >
+                              削除
+                            </button>
+                          </div>
+                        )
+                      })}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newId = `tool_${Date.now()}_${Math.random()}`
+                          setSelectedTools([...selectedTools, { id: newId, toolId: '' }])
+                        }}
+                        className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-md text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors"
+                      >
+                        + 道具を追加
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -487,14 +787,25 @@ export function WorkReportForm({ sites, organizationUsers, currentUserId, curren
                 <label htmlFor="special_notes" className="block text-sm font-medium text-gray-700 mb-1">
                   特記事項
                 </label>
-                <textarea
-                  id="special_notes"
-                  value={specialNotes}
-                  onChange={(e) => setSpecialNotes(e.target.value)}
-                  rows={3}
-                  placeholder="特別な注意事項や重要な情報を記載してください"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
+                <div>
+                  <textarea
+                    id="special_notes"
+                    value={specialNotes}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 2000) {
+                        setSpecialNotes(e.target.value)
+                      }
+                    }}
+                    rows={3}
+                    placeholder="特別な注意事項や重要な情報を記載してください"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <div className="text-right -mt-[7px]">
+                    <span className={`text-xs ${specialNotes.length > 2000 ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
+                      {specialNotes.length} / 2000
+                    </span>
+                  </div>
+                </div>
               </div>
 
               {/* 備考 */}
@@ -502,14 +813,25 @@ export function WorkReportForm({ sites, organizationUsers, currentUserId, curren
                 <label htmlFor="remarks" className="block text-sm font-medium text-gray-700 mb-1">
                   備考
                 </label>
-                <textarea
-                  id="remarks"
-                  value={remarks}
-                  onChange={(e) => setRemarks(e.target.value)}
-                  rows={3}
-                  placeholder="その他補足事項があれば記載してください"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
+                <div>
+                  <textarea
+                    id="remarks"
+                    value={remarks}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 2000) {
+                        setRemarks(e.target.value)
+                      }
+                    }}
+                    rows={3}
+                    placeholder="その他補足事項があれば記載してください"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <div className="text-right -mt-[7px]">
+                    <span className={`text-xs ${remarks.length > 2000 ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
+                      {remarks.length} / 2000
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

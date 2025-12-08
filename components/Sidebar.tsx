@@ -595,6 +595,100 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
             </div>
           )}
 
+          {/* 帳票管理（管理者） */}
+          {isAdmin && (
+            <div>
+              <button
+                onClick={() => toggleMenu('billing')}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
+                  isActive('/billing') || isActive('/projects') || isActive('/estimates') || isActive('/invoices') || isActive('/purchase-orders') || isActive('/payments')
+                    ? 'bg-blue-50 text-blue-700 font-medium'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <span>帳票管理</span>
+                </div>
+                <svg
+                  className={`w-4 h-4 transition-transform ${expandedMenu === 'billing' ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {expandedMenu === 'billing' && (
+                <div className="ml-8 mt-1 space-y-1">
+                  <Link
+                    href="/projects"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive('/projects')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    工事管理
+                  </Link>
+                  <Link
+                    href="/estimates"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive('/estimates')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    見積書一覧
+                  </Link>
+                  <Link
+                    href="/invoices"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive('/invoices')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    請求書一覧
+                  </Link>
+                  <Link
+                    href="/purchase-orders"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive('/purchase-orders')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    発注書一覧
+                  </Link>
+                  <Link
+                    href="/payments"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive('/payments')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    入出金管理
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* レポート・分析（マネージャー・管理者） */}
           {isManagerOrAdmin && (
             <div>
@@ -800,6 +894,22 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
 
             {expandedMenu === 'settings' && (
               <div className="ml-8 mt-1 space-y-1">
+                {isAdmin && (
+                  <Link
+                    href="/organization"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive('/organization')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="flex items-center justify-between">
+                      <span>組織情報設定</span>
+                      <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                    </span>
+                  </Link>
+                )}
                 <Link
                   href="/settings"
                   onClick={onClose}

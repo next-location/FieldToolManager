@@ -41,6 +41,16 @@ export default async function EditWorkReportPage({
     notFound()
   }
 
+  // デバッグ: 取得したデータを確認
+  console.log('=== Edit Page Report Data ===')
+  console.log('weather:', report.weather)
+  console.log('workers:', report.workers)
+  console.log('materials_used:', report.materials_used)
+  console.log('tools_used:', report.tools_used)
+  console.log('special_notes:', report.special_notes)
+  console.log('remarks:', report.remarks)
+  console.log('custom_fields_data:', report.custom_fields_data)
+
   // 編集権限チェック（下書き または 却下された報告書 かつ 作成者のみ）
   if (
     (report.status !== 'draft' && report.status !== 'rejected') ||
@@ -57,12 +67,19 @@ export default async function EditWorkReportPage({
     .is('deleted_at', null)
     .order('name')
 
-  // 組織のアクティブなユーザー（作業員）を取得
-  const { data: workers } = await supabase
+  // 組織内のユーザー一覧を取得（帯同作業員選択用）
+  const { data: organizationUsers } = await supabase
     .from('users')
-    .select('id, name, role')
+    .select('id, name, email')
     .eq('organization_id', userData.organization_id)
-    .eq('is_active', true)
+    .is('deleted_at', null)
+    .order('name')
+
+  // 組織内の道具一覧を取得（使用道具選択用）
+  const { data: organizationTools } = await supabase
+    .from('tools')
+    .select('id, name, model_number')
+    .eq('organization_id', userData.organization_id)
     .is('deleted_at', null)
     .order('name')
 
@@ -83,6 +100,14 @@ export default async function EditWorkReportPage({
     require_approval: false,
   }
 
+  // カスタムフィールド定義を取得
+  const { data: customFields } = await supabase
+    .from('work_report_custom_fields')
+    .select('*')
+    .eq('organization_id', userData.organization_id)
+    .is('site_id', null)
+    .order('display_order', { ascending: true })
+
   return (
     <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
@@ -96,8 +121,12 @@ export default async function EditWorkReportPage({
         <WorkReportEditForm
           report={report}
           sites={sites || []}
-          workers={workers || []}
+          organizationUsers={organizationUsers || []}
+          organizationTools={organizationTools || []}
+          currentUserId={user.id}
+          currentUserName={userData.name}
           settings={reportSettings}
+          customFields={customFields || []}
         />
       </div>
     </div>

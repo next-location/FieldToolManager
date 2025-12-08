@@ -33,14 +33,13 @@ export async function GET(
       )
     }
 
-    // 写真一覧取得（削除されていないもの、表示順序でソート）
+    // 写真一覧取得（表示順序でソート）
     const { data: photos, error } = await supabase
       .from('work_report_photos')
       .select('*')
       .eq('work_report_id', id)
-      .is('deleted_at', null)
       .order('display_order', { ascending: true })
-      .order('created_at', { ascending: true })
+      .order('uploaded_at', { ascending: true })
 
     if (error) {
       console.error('写真取得エラー:', error)
@@ -50,7 +49,23 @@ export async function GET(
       )
     }
 
-    return NextResponse.json({ photos: photos || [] })
+    // photo_urlをSupabase StorageのPublic URLに変換
+    const photosWithPublicUrls = photos?.map(photo => {
+      // photo_urlが既に完全なURLの場合はそのまま使用
+      if (photo.photo_url && photo.photo_url.startsWith('http')) {
+        return photo
+      }
+      // 相対パスの場合はSupabase StorageのPublic URLを生成
+      const publicUrl = photo.photo_url
+        ? supabase.storage.from('work-report-photos').getPublicUrl(photo.photo_url).data.publicUrl
+        : null
+      return {
+        ...photo,
+        photo_url: publicUrl || photo.photo_url
+      }
+    }) || []
+
+    return NextResponse.json({ photos: photosWithPublicUrls })
   } catch (error) {
     console.error('写真取得エラー:', error)
     return NextResponse.json(
@@ -159,12 +174,12 @@ export async function POST(
       .insert({
         work_report_id: id,
         organization_id: report.organization_id,
-        storage_path: storagePath,
-        file_name: file.name,
+        photo_url: storagePath, // storage_path → photo_urlに変更
+        photo_type: 'other', // デフォルト値として'other'を設定
         file_size: file.size,
         mime_type: file.type,
         caption: caption || null,
-        display_order: displayOrder ? parseInt(displayOrder, 10) : null,
+        display_order: displayOrder ? parseInt(displayOrder, 10) : 0,
         taken_at: takenAt || null,
         location_name: locationName || null,
         uploaded_by: user.id,
@@ -184,7 +199,14 @@ export async function POST(
       )
     }
 
-    return NextResponse.json({ photo }, { status: 201 })
+    // photo_urlをSupabase StorageのPublic URLに変換
+    const publicUrl = supabase.storage.from('work-report-photos').getPublicUrl(storagePath).data.publicUrl
+    const photoWithPublicUrl = {
+      ...photo,
+      photo_url: publicUrl
+    }
+
+    return NextResponse.json({ photo: photoWithPublicUrl }, { status: 201 })
   } catch (error) {
     console.error('写真アップロードエラー:', error)
     return NextResponse.json(

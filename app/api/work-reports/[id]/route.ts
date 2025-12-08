@@ -5,9 +5,10 @@ import { notifyWorkReportSubmitted } from '@/lib/notifications/work-report-notif
 // GET /api/work-reports/[id] - 作業報告書詳細取得
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const supabase = await createClient()
 
     // 認証チェック
@@ -31,7 +32,7 @@ export async function GET(
         attachments:work_report_attachments(*)
       `
       )
-      .eq('id', params.id)
+      .eq('id', id)
       .is('deleted_at', null)
       .single()
 
@@ -56,9 +57,10 @@ export async function GET(
 // PATCH /api/work-reports/[id] - 作業報告書更新
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const supabase = await createClient()
 
     // 認証チェック
@@ -70,14 +72,33 @@ export async function PATCH(
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
     }
 
+    // ユーザー情報を取得（organization_idとroleを含む）
+    const { data: userData } = await supabase
+      .from('users')
+      .select('id, organization_id, role')
+      .eq('id', user.id)
+      .single()
+
+    if (!userData) {
+      return NextResponse.json({ error: 'ユーザー情報が見つかりません' }, { status: 404 })
+    }
+
     // リクエストボディ取得
     const body = await request.json()
+
+    console.log('=== PATCH Request Body ===')
+    console.log('materials:', body.materials)
+    console.log('tool_ids:', body.tool_ids)
+    console.log('special_notes:', body.special_notes)
+    console.log('remarks:', body.remarks)
+    console.log('workers:', body.workers)
+    console.log('custom_fields_data:', body.custom_fields_data)
 
     // 既存の報告書を取得
     const { data: existingReport } = await supabase
       .from('work_reports')
-      .select('created_by, status')
-      .eq('id', params.id)
+      .select('created_by, status, workers, organization_id')
+      .eq('id', id)
       .is('deleted_at', null)
       .single()
 
@@ -85,31 +106,19 @@ export async function PATCH(
       return NextResponse.json({ error: '報告書が見つかりません' }, { status: 404 })
     }
 
-    // 権限チェック: 下書き または 却下された報告書のみ編集可能
-    if (existingReport.status !== 'draft' && existingReport.status !== 'rejected') {
+    // 組織IDチェック（同じ組織の報告書のみ編集可能）
+    if (existingReport.organization_id !== userData.organization_id) {
       return NextResponse.json(
-        { error: '下書きまたは却下された報告書のみ編集できます' },
+        { error: 'この報告書へのアクセス権限がありません' },
         { status: 403 }
       )
     }
 
-    // 作業者情報の整形
-    let workers = existingReport.workers
-    if (body.worker_ids) {
-      workers = await Promise.all(
-        body.worker_ids.map(async (workerId: string) => {
-          const { data: workerData } = await supabase
-            .from('users')
-            .select('id, name')
-            .eq('id', workerId)
-            .single()
-
-          return {
-            user_id: workerId,
-            name: workerData?.name || '',
-            work_hours: 0,
-          }
-        })
+    // 権限チェック: 下書き または 却下された報告書のみ編集可能（管理者は例外）
+    if (userData.role !== 'admin' && existingReport.status !== 'draft' && existingReport.status !== 'rejected') {
+      return NextResponse.json(
+        { error: '下書きまたは却下された報告書のみ編集できます' },
+        { status: 403 }
       )
     }
 
@@ -122,11 +131,31 @@ export async function PATCH(
     if (body.work_start_time !== undefined) updateData.work_start_time = body.work_start_time
     if (body.work_end_time !== undefined) updateData.work_end_time = body.work_end_time
     if (body.break_minutes !== undefined) updateData.break_minutes = body.break_minutes
-    if (body.worker_ids !== undefined) updateData.workers = workers
+
+    // 作業員データ（新形式：配列で受け取る）
+    if (body.workers !== undefined) updateData.workers = body.workers
+
     if (body.work_location !== undefined) updateData.work_location = body.work_location
     if (body.progress_rate !== undefined) updateData.progress_rate = body.progress_rate
-    if (body.materials_used !== undefined) updateData.materials_used = body.materials_used
+
+    // 使用資材（テキスト形式 - 改行区切り）
+    if (body.materials !== undefined) {
+      // テキストを改行で配列に変換
+      updateData.materials_used = body.materials.trim()
+        ? body.materials.split('\n').map((m: string) => m.trim()).filter(Boolean)
+        : []
+    }
+
+    // 使用道具（UUID配列）
+    if (body.tool_ids !== undefined) updateData.tools_used = body.tool_ids
+
+    // 旧形式のtools_usedも対応
     if (body.tools_used !== undefined) updateData.tools_used = body.tools_used
+
+    // 特記事項・備考
+    if (body.special_notes !== undefined) updateData.special_notes = body.special_notes
+    if (body.remarks !== undefined) updateData.remarks = body.remarks
+
     if (body.safety_incidents !== undefined) updateData.safety_incidents = body.safety_incidents
     if (body.safety_incident_details !== undefined)
       updateData.safety_incident_details = body.safety_incident_details
@@ -137,21 +166,50 @@ export async function PATCH(
     if (body.client_contact_details !== undefined)
       updateData.client_contact_details = body.client_contact_details
     if (body.next_tasks !== undefined) updateData.next_tasks = body.next_tasks
+
+    // カスタムフィールド（旧形式）
     if (body.custom_fields !== undefined) updateData.custom_fields = body.custom_fields
 
-    // ステータス更新対応（却下された報告書を編集して再提出する場合）
+    // カスタムフィールド（新形式）
+    if (body.custom_fields_data !== undefined) updateData.custom_fields_data = body.custom_fields_data
+
+    // ステータス更新対応（下書き保存、提出、却下された報告書を編集して再提出する場合）
     if (body.status !== undefined) {
-      // 却下状態からsubmittedへの遷移のみ許可
-      if (existingReport.status === 'rejected' && body.status === 'submitted') {
+      // 下書き保存の場合
+      if (body.status === 'draft') {
+        updateData.status = 'draft'
+      }
+      // 提出の場合
+      else if (body.status === 'submitted') {
         updateData.status = 'submitted'
+        updateData.submitted_at = new Date().toISOString()
+        updateData.submitted_by = user.id
+      }
+      // 却下状態からsubmittedへの遷移
+      else if (existingReport.status === 'rejected' && body.status === 'submitted') {
+        updateData.status = 'submitted'
+        updateData.submitted_at = new Date().toISOString()
+        updateData.submitted_by = user.id
       }
     }
+
+    console.log('=== Update Data ===')
+    console.log(JSON.stringify(updateData, null, 2))
+    console.log('=== User Data ===')
+    console.log('user.id:', user.id)
+    console.log('userData.organization_id:', userData.organization_id)
+    console.log('userData.role:', userData.role)
+    console.log('=== Report Data ===')
+    console.log('report.id:', id)
+    console.log('report.organization_id:', existingReport.organization_id)
+    console.log('report.status:', existingReport.status)
+    console.log('report.created_by:', existingReport.created_by)
 
     // 作業報告書更新
     const { data, error } = await supabase
       .from('work_reports')
       .update(updateData)
-      .eq('id', params.id)
+      .eq('id', id)
       .select(
         `
         *,
@@ -165,6 +223,12 @@ export async function PATCH(
       console.error('Work report update error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    console.log('=== Updated Report ===')
+    console.log('materials_used:', data?.materials_used)
+    console.log('tools_used:', data?.tools_used)
+    console.log('special_notes:', data?.special_notes)
+    console.log('remarks:', data?.remarks)
 
     // 再提出された場合は通知を送信
     if (existingReport.status === 'rejected' && updateData.status === 'submitted' && data) {
@@ -204,9 +268,10 @@ export async function PATCH(
 // DELETE /api/work-reports/[id] - 作業報告書削除（論理削除）
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const supabase = await createClient()
 
     // 認証チェック
@@ -229,7 +294,7 @@ export async function DELETE(
     const { data: existingReport } = await supabase
       .from('work_reports')
       .select('created_by')
-      .eq('id', params.id)
+      .eq('id', id)
       .is('deleted_at', null)
       .single()
 
@@ -249,7 +314,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('work_reports')
       .update({ deleted_at: new Date().toISOString() })
-      .eq('id', params.id)
+      .eq('id', id)
 
     if (error) {
       console.error('Work report deletion error:', error)

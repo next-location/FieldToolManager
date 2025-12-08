@@ -44,6 +44,7 @@ export default async function AdminManualPage() {
               <a href="#sites" className="text-blue-600 hover:text-blue-800">🏗️ 現場管理</a>
               <a href="#warehouse" className="text-blue-600 hover:text-blue-800">📍 倉庫位置管理</a>
               <a href="#consumables" className="text-blue-600 hover:text-blue-800">🧰 消耗品管理</a>
+              <a href="#work-reports" className="text-blue-600 hover:text-blue-800">📋 作業報告書管理</a>
               <a href="#history" className="text-blue-600 hover:text-blue-800">📊 移動履歴の確認</a>
               <a href="#settings" className="text-blue-600 hover:text-blue-800">⚙️ 組織設定</a>
               <a href="#audit" className="text-blue-600 hover:text-blue-800">📝 監査ログ</a>
@@ -435,6 +436,160 @@ export default async function AdminManualPage() {
                 <li>
                   <strong>監査対応:</strong> 在庫調整は履歴が残るため、理由を明確に記載
                 </li>
+              </ul>
+            </div>
+          </section>
+
+          {/* 作業報告書管理 */}
+          <section id="work-reports" className="mb-10">
+            <h2 className="text-2xl font-bold text-gray-900 border-b-2 border-green-500 pb-2 mb-4">
+              📋 作業報告書管理
+            </h2>
+
+            <p className="text-gray-700 mb-4">
+              作業報告書の承認、管理、分析を行います。管理者は全ての報告書を確認・承認できます。
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">承認待ち報告書の確認</h3>
+            <ol className="list-decimal list-inside space-y-2 text-gray-700 mb-4">
+              <li>ダッシュボードの「承認待ち報告書」カードをクリック</li>
+              <li>または「作業報告」→「承認待ち一覧」へアクセス</li>
+              <li>報告書を開いて内容を確認</li>
+              <li>問題なければ「承認」ボタンをクリック</li>
+            </ol>
+
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <p className="font-semibold text-yellow-800 mb-2">承認時のチェックポイント</p>
+              <ul className="space-y-1 text-yellow-700 text-sm">
+                <li>✓ 作業内容が明確に記載されているか</li>
+                <li>✓ 必要な写真が添付されているか</li>
+                <li>✓ 作業時間が適切か</li>
+                <li>✓ 使用機材・材料が正しく記録されているか</li>
+                <li>✓ 安全対策が実施されているか</li>
+              </ul>
+            </div>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">報告書の検索・フィルタリング</h3>
+            <p className="text-gray-700 mb-4">
+              「作業報告」→「報告書一覧」で過去の報告書を検索できます：
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4">
+              <li><strong>日付範囲:</strong> 期間を指定して検索</li>
+              <li><strong>現場:</strong> 特定の現場の報告書のみ表示</li>
+              <li><strong>作成者:</strong> 特定のスタッフの報告書を確認</li>
+              <li><strong>ステータス:</strong> 下書き/承認待ち/承認済み/差戻し</li>
+              <li><strong>キーワード:</strong> 作業内容や備考を検索</li>
+            </ul>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">PDF出力機能</h3>
+            <ol className="list-decimal list-inside space-y-2 text-gray-700 mb-4">
+              <li>報告書詳細画面を開く</li>
+              <li>右上の「PDFダウンロード」ボタンをクリック</li>
+              <li>以下の情報が含まれたPDFが生成されます：
+                <ul className="list-disc list-inside ml-6 mt-2 space-y-1 text-sm">
+                  <li>会社ロゴ・社印</li>
+                  <li>報告書の全項目</li>
+                  <li>添付写真（最大6枚）</li>
+                  <li>承認者情報と承認日時</li>
+                  <li>個人印影（承認済みの場合）</li>
+                </ul>
+              </li>
+            </ol>
+
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+              <p className="font-semibold text-blue-800 mb-2">PDFの用途</p>
+              <ul className="space-y-1 text-blue-700 text-sm">
+                <li>• 顧客への提出用書類として</li>
+                <li>• 社内アーカイブ用として</li>
+                <li>• 監査・検査対応用として</li>
+                <li>• 請求書の添付書類として</li>
+              </ul>
+            </div>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">月次集計・分析</h3>
+            <p className="text-gray-700 mb-4">
+              月単位で報告書を集計・分析できます：
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4">
+              <li><strong>作業時間集計:</strong> スタッフ別・現場別の作業時間</li>
+              <li><strong>材料使用状況:</strong> 使用材料の集計</li>
+              <li><strong>作業種別分析:</strong> 作業内容の傾向分析</li>
+              <li><strong>写真アーカイブ:</strong> 月次の作業写真一覧</li>
+            </ul>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">カスタムフィールドの設定（上級者向け）</h3>
+            <p className="text-gray-700 mb-4">
+              組織設定から、業種に応じたカスタムフィールドを追加できます：
+            </p>
+            <ol className="list-decimal list-inside space-y-2 text-gray-700 mb-4">
+              <li>「設定・管理」→「組織設定」→「作業報告書設定」</li>
+              <li>「カスタムフィールド追加」をクリック</li>
+              <li>フィールドタイプを選択：
+                <ul className="list-disc list-inside ml-6 mt-2 space-y-1 text-sm">
+                  <li>テキスト（自由記入）</li>
+                  <li>数値（数量・金額など）</li>
+                  <li>選択式（ドロップダウン）</li>
+                  <li>チェックボックス（複数選択）</li>
+                  <li>日付・時刻</li>
+                </ul>
+              </li>
+              <li>必須/任意を設定</li>
+              <li>「保存」をクリック</li>
+            </ol>
+
+            <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
+              <p className="font-semibold text-green-800 mb-2">💡 カスタムフィールド活用例</p>
+              <ul className="space-y-2 text-green-700 text-sm">
+                <li>
+                  <strong>建築業:</strong> 工程区分、検査項目、品質チェック項目
+                </li>
+                <li>
+                  <strong>塗装業:</strong> 塗料種類、塗装面積、乾燥時間
+                </li>
+                <li>
+                  <strong>電気工事業:</strong> 配線長、使用機器型番、絶縁抵抗値
+                </li>
+                <li>
+                  <strong>設備工事業:</strong> 機器型番、設置場所詳細、試運転結果
+                </li>
+              </ul>
+            </div>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">承認フローのカスタマイズ</h3>
+            <p className="text-gray-700 mb-4">
+              組織の規模に応じて承認フローを設定できます：
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4">
+              <li><strong>自動承認:</strong> リーダー以上が作成した報告書は自動承認</li>
+              <li><strong>1段階承認:</strong> リーダーまたは管理者が承認（デフォルト）</li>
+              <li><strong>2段階承認:</strong> リーダー承認後、管理者が最終承認</li>
+              <li><strong>金額基準承認:</strong> 一定金額以上は管理者承認必須</li>
+            </ul>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">データエクスポート</h3>
+            <p className="text-gray-700 mb-4">
+              報告書データをCSV形式でエクスポートできます：
+            </p>
+            <ol className="list-decimal list-inside space-y-2 text-gray-700 mb-4">
+              <li>「作業報告」→「報告書一覧」を開く</li>
+              <li>必要に応じてフィルタリング</li>
+              <li>「CSVエクスポート」ボタンをクリック</li>
+              <li>エクスポート範囲を選択：
+                <ul className="list-disc list-inside ml-6 mt-2 space-y-1 text-sm">
+                  <li>表示中のデータのみ</li>
+                  <li>全期間のデータ</li>
+                  <li>カスタム期間を指定</li>
+                </ul>
+              </li>
+            </ol>
+
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+              <p className="font-semibold text-yellow-800 mb-2">⚠️ 注意事項</p>
+              <ul className="space-y-1 text-yellow-700 text-sm">
+                <li>• 承認済みの報告書は内容を編集できません</li>
+                <li>• 差戻しした報告書は作成者に通知されます</li>
+                <li>• 削除した報告書は復元できません（ゴミ箱機能なし）</li>
+                <li>• 添付ファイルは1ファイル10MBまで</li>
               </ul>
             </div>
           </section>

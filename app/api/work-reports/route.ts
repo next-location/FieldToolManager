@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
       .select(
         `
         *,
-        site:sites(id, name),
+        site:sites!work_reports_site_id_fkey(id, name),
         created_by_user:users!work_reports_created_by_fkey(id, name, email)
       `,
         { count: 'exact' }
@@ -162,8 +162,23 @@ export async function POST(request: NextRequest) {
     // 作業報告書番号を生成
     const reportNumber = await generateWorkReportNumber(userData.organization_id)
 
+    // 使用資材の変換（改行区切りテキスト → 配列）
+    let materialsArray: string[] | undefined = undefined
+    if (body.materials !== undefined) {
+      // テキストを改行で配列に変換
+      materialsArray = body.materials.trim()
+        ? body.materials.split('\n').map((m: string) => m.trim()).filter(Boolean)
+        : []
+    } else if (body.materials_used !== undefined) {
+      // 既に配列の場合はそのまま使用
+      materialsArray = body.materials_used
+    }
+
+    // 使用道具（tool_idsまたはtools_usedを優先）
+    const toolsArray = body.tool_ids || body.tools_used
+
     // 作業報告書作成
-    const { data, error } = await supabase
+    const { data: insertData, error: insertError } = await supabase
       .from('work_reports')
       .insert({
         organization_id: userData.organization_id,
@@ -177,8 +192,8 @@ export async function POST(request: NextRequest) {
         workers: workers,
         work_location: body.work_location,
         progress_rate: body.progress_rate,
-        materials_used: body.materials_used,
-        tools_used: body.tools_used,
+        materials_used: materialsArray,
+        tools_used: toolsArray,
         safety_incidents: body.safety_incidents || false,
         safety_incident_details: body.safety_incident_details,
         quality_issues: body.quality_issues || false,
@@ -194,17 +209,29 @@ export async function POST(request: NextRequest) {
         status: status,
         created_by: user.id,
       })
+      .select('id')
+      .single()
+
+    if (insertError) {
+      console.error('Work report creation error:', insertError)
+      return NextResponse.json({ error: insertError.message }, { status: 500 })
+    }
+
+    // 作成したレポートの詳細を取得
+    const { data, error } = await supabase
+      .from('work_reports')
       .select(
         `
         *,
-        site:sites(id, name),
+        site:sites!work_reports_site_id_fkey(id, name),
         created_by_user:users!work_reports_created_by_fkey(id, name, email)
       `
       )
+      .eq('id', insertData.id)
       .single()
 
     if (error) {
-      console.error('Work report creation error:', error)
+      console.error('Work report fetch error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
@@ -224,7 +251,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ data }, { status: 201 })
+    return NextResponse.json(data, { status: 201 })
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json(

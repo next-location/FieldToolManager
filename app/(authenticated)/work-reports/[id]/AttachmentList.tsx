@@ -53,7 +53,19 @@ export function AttachmentList({ reportId, canEdit }: AttachmentListProps) {
       const response = await fetch(`/api/work-reports/${reportId}/attachments`)
       if (response.ok) {
         const data = await response.json()
-        setAttachments(data)
+        console.log('📎 Fetched attachments data:', data) // デバッグ用
+        // dataが配列でない場合の処理
+        if (Array.isArray(data)) {
+          setAttachments(data)
+        } else if (data && typeof data === 'object') {
+          // dataがオブジェクトの場合、attachmentsプロパティを探す
+          const attachmentArray = data.attachments || data.data || []
+          console.log('📎 Extracted attachment array:', attachmentArray) // デバッグ用
+          setAttachments(Array.isArray(attachmentArray) ? attachmentArray : [])
+        } else {
+          console.error('📎 Unexpected data format:', data)
+          setAttachments([])
+        }
       }
     } catch (err) {
       console.error('資料取得エラー:', err)
@@ -94,7 +106,7 @@ export function AttachmentList({ reportId, canEdit }: AttachmentListProps) {
     try {
       const formData = new FormData()
       formData.append('file', file)
-      formData.append('attachment_type', selectedType)
+      formData.append('file_type', selectedType)
       if (description) {
         formData.append('description', description)
       }
@@ -109,8 +121,17 @@ export function AttachmentList({ reportId, canEdit }: AttachmentListProps) {
         throw new Error(errorData.error || 'アップロードに失敗しました')
       }
 
-      const newAttachment = await response.json()
-      setAttachments([...attachments, newAttachment])
+      const data = await response.json()
+      console.log('📎 Upload response data:', data) // デバッグ用
+      // APIは{ attachment: ... }形式で返すので、attachmentプロパティを取得
+      const newAttachment = data.attachment || data
+      console.log('📎 New attachment to add:', newAttachment) // デバッグ用
+      console.log('📎 Current attachments before add:', attachments) // デバッグ用
+      setAttachments(prevAttachments => {
+        const updated = [...prevAttachments, newAttachment]
+        console.log('📎 Updated attachments array:', updated) // デバッグ用
+        return updated
+      })
       setDescription('')
 
       // ファイル入力をリセット

@@ -295,6 +295,7 @@ export function PendingReportsList({ reports }: PendingReportsListProps) {
                     </div>
                   </div>
                   <p className="text-sm text-gray-700 mt-2 line-clamp-2">{report.description}</p>
+                  </div>
                 </div>
               </div>
             </li>
