@@ -1,0 +1,285 @@
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import Link from 'next/link'
+
+export default async function EstimateDetailPage({
+  params
+}: {
+  params: { id: string }
+}) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  const { data: userData } = await supabase
+    .from('users')
+    .select('role, organization_id')
+    .eq('id', user.id)
+    .single()
+
+  // リーダー以上のみアクセス可能
+  if (!['leader', 'manager', 'admin', 'super_admin'].includes(userData?.role || '')) {
+    redirect('/')
+  }
+
+  // 見積書データを取得
+  const { data: estimate } = await supabase
+    .from('estimates')
+    .select(`
+      *,
+      client:clients(name, postal_code, address, contact_person),
+      project:projects(project_name, project_code),
+      estimate_items(*),
+      created_by:users!estimates_created_by_fkey(name),
+      approved_by:users!estimates_approved_by_fkey(name)
+    `)
+    .eq('id', params.id)
+    .eq('organization_id', userData?.organization_id)
+    .single()
+
+  if (!estimate) {
+    redirect('/estimates')
+  }
+
+  // 組織情報を取得
+  const { data: organization } = await supabase
+    .from('organizations')
+    .select('name, address, phone, tax_registration_number, is_qualified_invoice_issuer')
+    .eq('id', userData?.organization_id)
+    .single()
+
+  const subtotal = estimate.estimate_items?.reduce((sum: number, item: any) => sum + item.amount, 0) || 0
+  const taxAmount = estimate.estimate_items?.reduce((sum: number, item: any) =>
+    sum + (item.amount * item.tax_rate / 100), 0) || 0
+  const total = subtotal + taxAmount
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'draft':
+        return 'bg-gray-100 text-gray-800'
+      case 'sent':
+        return 'bg-blue-100 text-blue-800'
+      case 'accepted':
+        return 'bg-green-100 text-green-800'
+      case 'rejected':
+        return 'bg-red-100 text-red-800'
+      case 'expired':
+        return 'bg-yellow-100 text-yellow-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'draft': return '下書き'
+      case 'sent': return '送付済'
+      case 'accepted': return '承認済'
+      case 'rejected': return '却下'
+      case 'expired': return '期限切れ'
+      default: return status
+    }
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">見積書詳細</h1>
+          <p className="text-gray-600">{estimate.estimate_number}</p>
+        </div>
+        <div className="space-x-2">
+          {estimate.status === 'draft' && (
+            <Link
+              href={`/estimates/${params.id}/edit`}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+            >
+              編集
+            </Link>
+          )}
+          <button
+            className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+            onClick={() => window.print()}
+          >
+            PDF出力
+          </button>
+          {estimate.status === 'accepted' && (
+            <Link
+              href={`/invoices/new?estimate_id=${params.id}`}
+              className="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600"
+            >
+              請求書作成
+            </Link>
+          )}
+          <Link
+            href="/estimates"
+            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
+          >
+            一覧に戻る
+          </Link>
+        </div>
+      </div>
+
+      <div className="bg-white shadow-sm rounded-lg p-8 print:shadow-none">
+        {/* ヘッダー部分 */}
+        <div className="border-b pb-6 mb-6">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold">見　積　書</h2>
+          </div>
+
+          <div className="grid grid-cols-2 gap-8">
+            {/* 宛先 */}
+            <div>
+              <div className="mb-4">
+                <p className="text-lg font-bold border-b-2 border-black pb-1 mb-2">
+                  {estimate.client?.name} 様
+                </p>
+                {estimate.client?.postal_code && (
+                  <p className="text-sm text-gray-600">〒{estimate.client.postal_code}</p>
+                )}
+                {estimate.client?.address && (
+                  <p className="text-sm text-gray-600">{estimate.client.address}</p>
+                )}
+                {estimate.client?.contact_person && (
+                  <p className="text-sm text-gray-600">ご担当: {estimate.client.contact_person} 様</p>
+                )}
+              </div>
+              <div className="mt-6">
+                <p className="text-sm mb-2">下記のとおり見積申し上げます。</p>
+                <div className="bg-blue-50 p-4 rounded">
+                  <p className="text-sm text-gray-600 mb-1">見積金額（税込）</p>
+                  <p className="text-3xl font-bold">¥{Math.floor(total).toLocaleString()}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 発行者情報 */}
+            <div className="text-right">
+              <div className="mb-4">
+                <p className="text-xs text-gray-600 mb-1">見積番号: {estimate.estimate_number}</p>
+                <p className="text-xs text-gray-600 mb-1">
+                  見積日: {new Date(estimate.estimate_date).toLocaleDateString('ja-JP')}
+                </p>
+                {estimate.valid_until && (
+                  <p className="text-xs text-gray-600 mb-1">
+                    有効期限: {new Date(estimate.valid_until).toLocaleDateString('ja-JP')}
+                  </p>
+                )}
+              </div>
+
+              <div className="inline-block text-left">
+                <p className="font-bold text-lg mb-2">{organization?.name}</p>
+                {organization?.address && (
+                  <p className="text-sm text-gray-600">{organization.address}</p>
+                )}
+                {organization?.phone && (
+                  <p className="text-sm text-gray-600">TEL: {organization.phone}</p>
+                )}
+                {organization?.tax_registration_number && organization?.is_qualified_invoice_issuer && (
+                  <p className="text-xs text-gray-600 mt-2">
+                    登録番号: {organization.tax_registration_number}
+                  </p>
+                )}
+              </div>
+
+              <div className="mt-4">
+                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadge(estimate.status)}`}>
+                  {getStatusText(estimate.status)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 件名 */}
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold mb-2">件名</h3>
+          <p className="text-lg">{estimate.title}</p>
+          {estimate.project && (
+            <p className="text-sm text-gray-600 mt-1">
+              工事: {estimate.project.project_name} ({estimate.project.project_code})
+            </p>
+          )}
+        </div>
+
+        {/* 明細 */}
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold mb-2">明細</h3>
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-t border-b">
+                <th className="text-left p-2 text-sm">項目</th>
+                <th className="text-left p-2 text-sm">説明</th>
+                <th className="text-right p-2 text-sm">数量</th>
+                <th className="text-center p-2 text-sm">単位</th>
+                <th className="text-right p-2 text-sm">単価</th>
+                <th className="text-right p-2 text-sm">金額</th>
+                <th className="text-center p-2 text-sm">税率</th>
+              </tr>
+            </thead>
+            <tbody>
+              {estimate.estimate_items?.sort((a: any, b: any) => a.display_order - b.display_order)
+                .map((item: any) => (
+                <tr key={item.id} className="border-b">
+                  <td className="p-2 text-sm">{item.item_name}</td>
+                  <td className="p-2 text-sm text-gray-600">{item.description}</td>
+                  <td className="p-2 text-sm text-right">{item.quantity}</td>
+                  <td className="p-2 text-sm text-center">{item.unit}</td>
+                  <td className="p-2 text-sm text-right">¥{item.unit_price.toLocaleString()}</td>
+                  <td className="p-2 text-sm text-right font-medium">¥{item.amount.toLocaleString()}</td>
+                  <td className="p-2 text-sm text-center">{item.tax_rate}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* 合計 */}
+        <div className="flex justify-end mb-6">
+          <div className="w-80">
+            <div className="flex justify-between py-2">
+              <span className="text-sm">小計:</span>
+              <span className="text-sm font-medium">¥{subtotal.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between py-2 border-b">
+              <span className="text-sm">消費税:</span>
+              <span className="text-sm font-medium">¥{Math.floor(taxAmount).toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between py-3">
+              <span className="font-bold">合計:</span>
+              <span className="text-xl font-bold">¥{Math.floor(total).toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 備考 */}
+        {estimate.notes && (
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold mb-2">備考</h3>
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">{estimate.notes}</p>
+          </div>
+        )}
+
+        {/* 社内メモ（印刷時は非表示） */}
+        {estimate.internal_notes && (
+          <div className="mb-6 p-4 bg-yellow-50 rounded print:hidden">
+            <h3 className="text-sm font-semibold mb-2 text-yellow-800">社内メモ</h3>
+            <p className="text-sm text-yellow-700 whitespace-pre-wrap">{estimate.internal_notes}</p>
+          </div>
+        )}
+
+        {/* メタデータ */}
+        <div className="text-xs text-gray-500 pt-6 border-t print:hidden">
+          <p>作成者: {estimate.created_by?.name} - {new Date(estimate.created_at).toLocaleString('ja-JP')}</p>
+          {estimate.approved_by && (
+            <p>承認者: {estimate.approved_by.name}</p>
+          )}
+          <p>最終更新: {new Date(estimate.updated_at).toLocaleString('ja-JP')}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
