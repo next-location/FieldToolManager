@@ -525,16 +525,19 @@ export function useFeatures(): Features {
 
 ## 6. 実装フェーズ
 
-### Phase 1: 基盤構築（1週間）
-- [ ] データベーステーブル作成
-- [ ] 契約管理テーブル（contracts）
-- [ ] 機能フラグテーブル（feature_flags）
-- [ ] スーパーアドミンテーブル（super_admins）
-- [ ] 基本API実装
-- [ ] パッケージ確認API
-- [ ] 機能制御Hook作成
+### Phase 1: 基盤構築（1週間）✅ 完了
+- [x] データベーステーブル作成
+- [x] 契約管理テーブル（contracts）拡張
+- [x] 機能フラグテーブル（feature_flags）
+- [x] スーパーアドミンテーブル（super_admins）
+- [x] 契約履歴テーブル（contract_history）
+- [x] organization_featuresビュー作成
+- [x] 基本API実装
+- [x] パッケージ確認API（/api/organization/features）
+- [x] 機能制御Hook作成（useFeatures）
+- [x] 開発環境用モック機能実装
 
-### Phase 2: スーパーアドミン機能（1週間）
+### Phase 2: スーパーアドミン機能（1週間）⏸️ 保留
 - [ ] スーパーアドミン認証システム
 - [ ] 契約管理画面
 - [ ] 組織一覧表示
@@ -542,14 +545,19 @@ export function useFeatures(): Features {
 - [ ] パッケージ切り替え
 - [ ] 操作ログ記録
 
-### Phase 3: フロントエンド統合（1週間）
-- [ ] FeatureGateコンポーネント実装
-- [ ] 既存画面への適用
-- [ ] メニュー表示制御
-- [ ] 道具管理画面
-- [ ] 作業報告書画面
-- [ ] 分析画面
-- [ ] アップグレード促進UI
+**注**: Phase 2は後回しにして、まず動作可能な形を優先
+
+### Phase 3: フロントエンド統合（1週間）✅ 完了
+- [x] FeatureGateコンポーネント実装
+- [x] PackageGateコンポーネント実装
+- [x] アップグレード促進UI実装
+- [x] DevPackageControlコンポーネント実装（開発環境用）
+- [x] AppLayoutへの統合
+- [ ] 既存画面への適用（次のステップ）
+  - [ ] Sidebarメニュー表示制御
+  - [ ] 道具管理画面
+  - [ ] 作業報告書画面
+  - [ ] 分析画面
 
 ### Phase 4: テスト実装（3日）
 - [ ] ユニットテスト
