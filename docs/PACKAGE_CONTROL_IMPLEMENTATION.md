@@ -563,10 +563,12 @@ export function useFeatures(): Features {
     - [x] 作業報告書メニュー（現場DXパック）
     - [x] 勤怠管理メニュー（現場DXパック）
     - [x] 帳票管理メニュー（現場DXパック）
-  - [ ] 個別画面への適用（次のステップ）
-    - [ ] 道具管理画面（/tools）
-    - [ ] 作業報告書画面（/work-reports）
-    - [ ] 帳票管理画面（/invoices, /estimates等）
+  - [x] 個別画面への適用（完了）
+    - [x] 道具管理画面（/tools）
+    - [x] 作業報告書画面（/work-reports）
+    - [x] 帳票管理画面（/invoices）
+    - [x] サーバーサイド機能（lib/features/server.ts）
+    - [x] PackageRequiredコンポーネント実装
 
 ### Phase 4: テスト実装（3日）
 - [ ] ユニットテスト
