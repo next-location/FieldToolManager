@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { WorkReportFilter } from './WorkReportFilter'
+import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
+import { PackageRequired } from '@/components/PackageRequired'
 
 export default async function WorkReportsPage({
   searchParams,
@@ -42,6 +44,14 @@ export default async function WorkReportsPage({
 
   if (!userData) {
     redirect('/login')
+  }
+
+  // パッケージチェック
+  if (userData?.organization_id) {
+    const features = await getOrganizationFeatures(userData.organization_id)
+    if (!hasPackage(features, 'dx')) {
+      return <PackageRequired packageType="dx" featureName="作業報告書" userRole={userData.role} />
+    }
   }
 
   // 作業報告書を取得

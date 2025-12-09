@@ -2,6 +2,8 @@ import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
+import { PackageRequired } from '@/components/PackageRequired'
 
 async function InvoiceList() {
   const supabase = await createClient()
@@ -200,13 +202,21 @@ export default async function InvoicesPage() {
 
   const { data: userData } = await supabase
     .from('users')
-    .select('role')
+    .select('organization_id, role')
     .eq('id', user.id)
     .single()
 
   // リーダー以上のみアクセス可能
   if (!['leader', 'manager', 'admin', 'super_admin'].includes(userData?.role || '')) {
     redirect('/')
+  }
+
+  // パッケージチェック
+  if (userData?.organization_id) {
+    const features = await getOrganizationFeatures(userData.organization_id)
+    if (!hasPackage(features, 'dx')) {
+      return <PackageRequired packageType="dx" featureName="請求書管理" userRole={userData.role} />
+    }
   }
 
   return (
