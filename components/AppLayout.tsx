@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { SimpleHeader } from './SimpleHeader'
 import { Sidebar } from './Sidebar'
 import { MobileBottomNav } from './MobileBottomNav'
+import { DevPackageControl } from './DevPackageControl'
 
 interface AppLayoutProps {
   user: {
@@ -56,6 +57,9 @@ export function AppLayout({
 
       {/* モバイル下部固定ナビ */}
       <MobileBottomNav onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+
+      {/* 開発環境用パッケージコントロール */}
+      <DevPackageControl />
     </div>
   )
 }
