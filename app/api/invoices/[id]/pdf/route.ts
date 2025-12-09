@@ -27,25 +27,29 @@ export async function GET(
     }
 
     // ユーザー情報取得
-    const { data: userData } = await supabase
+    const { data: userData, error: userError } = await supabase
       .from('users')
       .select('organization_id')
       .eq('id', user.id)
       .single()
+
+    console.log('[Invoice PDF API] User data:', { userData, userError })
 
     if (!userData) {
       return NextResponse.json({ error: 'ユーザー情報が見つかりません' }, { status: 404 })
     }
 
     // 組織情報を取得（角印データも含む）
-    const { data: organization } = await supabase
+    const { data: organization, error: orgError } = await supabase
       .from('organizations')
-      .select('name, postal_code, address, phone, fax, company_seal_url, bank_name, bank_branch, bank_account_type, bank_account_number, bank_account_holder')
+      .select('name, postal_code, address, phone, fax, company_seal_url, tax_registration_number, is_qualified_invoice_issuer')
       .eq('id', userData.organization_id)
       .single()
 
+    console.log('[Invoice PDF API] Organization data:', { organization, orgError, orgId: userData.organization_id })
+
     if (!organization) {
-      return NextResponse.json({ error: '組織情報が見つかりません' }, { status: 404 })
+      return NextResponse.json({ error: '組織情報が見つかりません', details: orgError }, { status: 404 })
     }
 
     // 請求書を取得
@@ -257,26 +261,8 @@ export async function GET(
 
     yPos = (doc as any).lastAutoTable.finalY + 10
 
-    // お振込先情報
-    if (organization.bank_name) {
-      autoTable(doc, {
-        ...getTableConfig({ type: 'info' }),
-        startY: yPos,
-        head: [['お振込先']],
-        body: [
-          ['銀行名', organization.bank_name || '-'],
-          ['支店名', organization.bank_branch || '-'],
-          ['口座種別', organization.bank_account_type === 'savings' ? '普通預金' : organization.bank_account_type === 'current' ? '当座預金' : '-'],
-          ['口座番号', organization.bank_account_number || '-'],
-          ['口座名義', organization.bank_account_holder || '-'],
-        ],
-        columnStyles: {
-          0: { cellWidth: 40, fontStyle: 'normal', fillColor: [240, 240, 240] },
-          1: { cellWidth: 150 },
-        },
-      })
-      yPos = (doc as any).lastAutoTable.finalY + 5
-    }
+    // お振込先情報（現在は未実装のため省略）
+    // 銀行情報はorganizationsテーブルに存在しないため、将来的に別テーブルで管理予定
 
     // 備考
     if (invoice.notes) {
@@ -292,13 +278,13 @@ export async function GET(
       yPos = (doc as any).lastAutoTable.finalY + 5
     }
 
-    // 適格請求書の記載
-    if (invoice.is_qualified_invoice && invoice.invoice_registration_number) {
+    // 適格請求書の記載（組織情報から取得）
+    if (organization.is_qualified_invoice_issuer && organization.tax_registration_number) {
       yPos += 5
       doc.setFontSize(8)
       doc.text('※この請求書は適格請求書の記載事項を満たしています。', 15, yPos)
       yPos += 4
-      doc.text(`　登録番号: ${invoice.invoice_registration_number}`, 15, yPos)
+      doc.text(`　登録番号: ${organization.tax_registration_number}`, 15, yPos)
     }
 
     // フッター（ページ番号）

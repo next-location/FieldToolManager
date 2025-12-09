@@ -18,6 +18,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 const ORG_ID = '00000000-0000-0000-0000-000000000001'
+const USER_ID = '482dfd07-c261-49d9-8736-d79f45da2767' // auth.usersのadmin@test.comのID
 
 async function createTestData() {
   console.log('🚀 帳票管理テストデータ作成開始...\n')
@@ -46,7 +47,7 @@ async function createTestData() {
       if (orgError) throw orgError
     }
 
-    const userId = '10000000-0000-0000-0000-000000000001'
+    const userId = USER_ID
     const { data: existingUser } = await supabase
       .from('users')
       .select('id')
@@ -231,7 +232,7 @@ async function createTestData() {
         total_amount: 22000000,
         status: 'draft',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       },
       {
         id: '30000000-0000-0000-0001-000000000002',
@@ -246,7 +247,7 @@ async function createTestData() {
         total_amount: 16500000,
         status: 'draft',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       },
       // 送付済み 3件
       {
@@ -262,7 +263,7 @@ async function createTestData() {
         total_amount: 5500000,
         status: 'sent',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       },
       {
         id: '30000000-0000-0000-0001-000000000004',
@@ -276,7 +277,7 @@ async function createTestData() {
         total_amount: 8800000,
         status: 'sent',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       },
       {
         id: '30000000-0000-0000-0001-000000000005',
@@ -291,7 +292,7 @@ async function createTestData() {
         total_amount: 6600000,
         status: 'sent',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       },
       // 承認済み 3件
       {
@@ -307,7 +308,7 @@ async function createTestData() {
         total_amount: 5500000,
         status: 'accepted',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       },
       {
         id: '30000000-0000-0000-0001-000000000007',
@@ -322,7 +323,7 @@ async function createTestData() {
         total_amount: 3300000,
         status: 'accepted',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       },
       {
         id: '30000000-0000-0000-0001-000000000008',
@@ -337,7 +338,7 @@ async function createTestData() {
         total_amount: 1650000,
         status: 'accepted',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       },
       // 却下 1件
       {
@@ -352,7 +353,7 @@ async function createTestData() {
         total_amount: 2200000,
         status: 'rejected',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       },
       // 期限切れ 1件
       {
@@ -367,7 +368,7 @@ async function createTestData() {
         total_amount: 11000000,
         status: 'expired',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       }
     ]
 
@@ -416,7 +417,7 @@ async function createTestData() {
         is_qualified_invoice: true,
         invoice_registration_number: 'T1234567890123',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       },
       {
         id: '40000000-0000-0000-0001-000000000002',
@@ -435,7 +436,7 @@ async function createTestData() {
         is_qualified_invoice: true,
         invoice_registration_number: 'T1234567890123',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       },
       // 一部入金 3件
       {
@@ -454,7 +455,7 @@ async function createTestData() {
         is_qualified_invoice: true,
         invoice_registration_number: 'T1234567890123',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       },
       {
         id: '40000000-0000-0000-0001-000000000004',
@@ -473,7 +474,7 @@ async function createTestData() {
         is_qualified_invoice: true,
         invoice_registration_number: 'T1234567890123',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       },
       {
         id: '40000000-0000-0000-0001-000000000005',
@@ -491,7 +492,7 @@ async function createTestData() {
         is_qualified_invoice: true,
         invoice_registration_number: 'T1234567890123',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       },
       // 全額入金済み 3件
       {
@@ -510,7 +511,7 @@ async function createTestData() {
         is_qualified_invoice: true,
         invoice_registration_number: 'T1234567890123',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       },
       {
         id: '40000000-0000-0000-0001-000000000007',
@@ -528,7 +529,7 @@ async function createTestData() {
         is_qualified_invoice: true,
         invoice_registration_number: 'T1234567890123',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       },
       {
         id: '40000000-0000-0000-0001-000000000008',
@@ -546,7 +547,7 @@ async function createTestData() {
         is_qualified_invoice: true,
         invoice_registration_number: 'T1234567890123',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       }
     ]
 
@@ -590,7 +591,7 @@ async function createTestData() {
         total_amount: 2200000,
         status: 'ordered',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       },
       {
         id: '50000000-0000-0000-0001-000000000002',
@@ -604,7 +605,7 @@ async function createTestData() {
         total_amount: 1650000,
         status: 'ordered',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       },
       // 一部納品 2件
       {
@@ -619,7 +620,7 @@ async function createTestData() {
         total_amount: 1100000,
         status: 'partially_received',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       },
       {
         id: '50000000-0000-0000-0001-000000000004',
@@ -633,7 +634,7 @@ async function createTestData() {
         total_amount: 880000,
         status: 'partially_received',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       },
       // 納品済み 2件
       {
@@ -648,7 +649,7 @@ async function createTestData() {
         total_amount: 3300000,
         status: 'received',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       },
       {
         id: '50000000-0000-0000-0001-000000000006',
@@ -662,7 +663,7 @@ async function createTestData() {
         total_amount: 2750000,
         status: 'received',
         organization_id: ORG_ID,
-        created_by: '10000000-0000-0000-0000-000000000001'
+        created_by: USER_ID
       }
     ]
 

@@ -54,20 +54,23 @@ export function ClientTabs({ clients, initialTab = 'all' }: ClientTabsProps) {
     router.push(`/clients?${params.toString()}`)
   }
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    const params = new URLSearchParams(searchParams.toString())
-    if (searchQuery) {
-      params.set('search', searchQuery)
-    } else {
-      params.delete('search')
-    }
-    router.push(`/clients?${params.toString()}`)
-  }
+  // リアルタイム検索用のフィルター
+  const filteredClients = clients.filter((client) => {
+    // タブフィルター
+    const matchesTab = activeTab === 'all' || client.client_type === activeTab
 
-  // フィルター済みクライアント
-  const filteredClients =
-    activeTab === 'all' ? clients : clients.filter((c) => c.client_type === activeTab)
+    // 検索クエリフィルター
+    if (!searchQuery) return matchesTab
+
+    const query = searchQuery.toLowerCase()
+    const matchesSearch =
+      client.name?.toLowerCase().includes(query) ||
+      client.client_code?.toLowerCase().includes(query) ||
+      client.address?.toLowerCase().includes(query) ||
+      client.phone?.toLowerCase().includes(query)
+
+    return matchesTab && matchesSearch
+  })
 
   const getTypeBadgeColor = (type: ClientType) => {
     switch (type) {
@@ -118,23 +121,28 @@ export function ClientTabs({ clients, initialTab = 'all' }: ClientTabsProps) {
 
       {/* 検索とアクションボタン */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <form onSubmit={handleSearch} className="flex-1 max-w-md">
+        <div className="flex-1 max-w-md">
           <div className="relative">
             <input
               type="text"
               placeholder="取引先名、コード、住所、電話番号で検索..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
-            <button
-              type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
-            >
-              検索
-            </button>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
+                title="クリア"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
           </div>
-        </form>
+        </div>
 
         <div className="flex gap-3">
           <ImportExportButtons

@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@/lib/supabase/client'
 
 export default function NewPaymentPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const supabase = createClientComponentClient()
+  const supabase = createClient()
 
   const paymentType = searchParams.get('type') || 'receipt'
   const invoiceId = searchParams.get('invoice_id')
@@ -155,13 +155,15 @@ export default function NewPaymentPage() {
         .eq('id', user?.id)
         .single()
 
-      // 支払記録を作成
+      // 支払記録を作成（空文字列のUUIDをnullに変換）
       const { data: payment, error: paymentError } = await supabase
         .from('payments')
         .insert({
           ...formData,
+          invoice_id: formData.invoice_id || null,
+          purchase_order_id: formData.purchase_order_id || null,
           organization_id: userData?.organization_id,
-          created_by: user?.id
+          recorded_by: user?.id
         })
         .select()
         .single()

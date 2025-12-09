@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, Fragment } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useFeatures } from '@/hooks/useFeatures'
 
 interface SidebarProps {
   userRole: 'staff' | 'leader' | 'manager' | 'admin' | 'super_admin'
@@ -14,10 +15,15 @@ interface SidebarProps {
 export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = false }: SidebarProps) {
   const pathname = usePathname()
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null)
+  const features = useFeatures()
 
   const isAdmin = userRole === 'admin' || userRole === 'super_admin'
   const isManagerOrAdmin = userRole === 'manager' || userRole === 'admin' || userRole === 'super_admin'
-  const isLeaderOrAbove = userRole === 'leader' || userRole === 'manager' || userRole === 'admin' || userRole === 'super_admin'
+  const isLeaderOrAbove = userRole === 'leader' || userRole === 'manager' | userRole === 'admin' || userRole === 'super_admin'
+
+  // パッケージに応じた表示制御
+  const hasAssetPackage = features.contract.packages.asset_management
+  const hasDxPackage = features.contract.packages.dx_efficiency
 
   const isActive = (path: string) => pathname === path || pathname?.startsWith(path + '/')
 
@@ -27,7 +33,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
   }
 
   return (
-    <Fragment>
+    <div>
       {/* オーバーレイ（モバイル・タブレット用） */}
       {isOpen && (
         <div
@@ -87,399 +93,409 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
             <span>QRスキャン</span>
           </Link>
 
-          {/* 道具管理 */}
-          <div>
-            <button
-              onClick={() => toggleMenu('tools')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                (pathname === '/tools' || (pathname?.startsWith('/tools/') && !pathname?.startsWith('/tools/movements'))) ||
-                (pathname === '/consumables' || (pathname?.startsWith('/consumables/') && !pathname?.startsWith('/consumables/bulk-movement'))) ||
-                (pathname === '/tool-sets' || (pathname?.startsWith('/tool-sets/') && !pathname?.startsWith('/tool-sets/movement')))
-                  ? 'bg-blue-50 text-blue-700 font-medium'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
-                  />
-                </svg>
-                <span>道具管理</span>
-              </div>
-              <svg
-                className={`w-4 h-4 transition-transform ${expandedMenu === 'tools' ? 'rotate-180' : ''}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {expandedMenu === 'tools' && (
-              <div className="ml-8 mt-1 space-y-1">
-                <Link
-                  href="/tools"
-                  onClick={onClose}
-                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                    isActive('/tools')
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  道具一覧
-                </Link>
-                <Link
-                  href="/consumables"
-                  onClick={onClose}
-                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                    pathname === '/consumables' || (pathname?.startsWith('/consumables/') && !pathname?.startsWith('/consumables/orders') && !pathname?.startsWith('/consumables/bulk-movement'))
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  消耗品一覧
-                </Link>
-                <Link
-                  href="/consumables/orders"
-                  onClick={onClose}
-                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                    isActive('/consumables/orders')
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  消耗品発注管理
-                </Link>
-                <Link
-                  href="/tool-sets"
-                  onClick={onClose}
-                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                    pathname === '/tool-sets' || (pathname?.startsWith('/tool-sets/') && !pathname?.startsWith('/tool-sets/movement'))
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  道具セット登録
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* 重機管理 */}
-          <div>
-            <button
-              onClick={() => toggleMenu('equipment')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                pathname === '/equipment' || (pathname?.startsWith('/equipment/') && !pathname?.startsWith('/equipment/cost-report') && !pathname?.startsWith('/equipment/analytics') && !pathname?.startsWith('/equipment/movement'))
-                  ? 'bg-blue-50 text-blue-700 font-medium'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                  />
-                </svg>
-                <span>重機管理</span>
-              </div>
-              <svg
-                className={`w-4 h-4 transition-transform ${expandedMenu === 'equipment' ? 'rotate-180' : ''}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {expandedMenu === 'equipment' && (
-              <div className="ml-8 mt-1 space-y-1">
-                <Link
-                  href="/equipment"
-                  onClick={onClose}
-                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                    pathname === '/equipment' || (pathname?.startsWith('/equipment/') && !pathname?.startsWith('/equipment/cost-report') && !pathname?.startsWith('/equipment/analytics') && !pathname?.startsWith('/equipment/movement'))
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  重機一覧
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* 移動管理 */}
-          <div>
-            <button
-              onClick={() => toggleMenu('movement')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                isActive('/movements') || isActive('/tool-sets/movement') || isActive('/equipment/movement') || isActive('/consumables/bulk-movement')
-                  ? 'bg-blue-50 text-blue-700 font-medium'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                  />
-                </svg>
-                <span>移動管理</span>
-              </div>
-              <svg
-                className={`w-4 h-4 transition-transform ${expandedMenu === 'movement' ? 'rotate-180' : ''}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {expandedMenu === 'movement' && (
-              <div className="ml-8 mt-1 space-y-1">
-                <Link
-                  href="/movements/bulk"
-                  onClick={onClose}
-                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                    isActive('/movements/bulk')
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  道具一括移動
-                </Link>
-                <Link
-                  href="/consumables/bulk-movement"
-                  onClick={onClose}
-                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                    isActive('/consumables/bulk-movement')
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  消耗品一括移動
-                </Link>
-                <Link
-                  href="/tool-sets/movement"
-                  onClick={onClose}
-                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                    isActive('/tool-sets/movement')
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  道具セット移動
-                </Link>
-                <Link
-                  href="/equipment/movement"
-                  onClick={onClose}
-                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                    isActive('/equipment/movement')
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  重機移動
-                </Link>
-                <Link
-                  href="/movements"
-                  onClick={onClose}
-                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                    pathname === '/movements'
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  移動履歴
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* 作業報告書 */}
-          <div>
-            <button
-              onClick={() => toggleMenu('work-reports')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                (pathname === '/work-reports' || pathname === '/work-reports/new' || (pathname?.startsWith('/work-reports/') && !pathname.startsWith('/work-reports/settings')))
-                  ? 'bg-blue-50 text-blue-700 font-medium'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <span>作業報告書</span>
-              </div>
-              <svg
-                className={`w-4 h-4 transition-transform ${
-                  expandedMenu === 'work-reports' ? 'rotate-180' : ''
+          {/* 道具管理（現場資産パックが必要） */}
+          {hasAssetPackage && (
+            <div>
+              <button
+                onClick={() => toggleMenu('tools')}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
+                  (pathname === '/tools' || (pathname?.startsWith('/tools/') && !pathname?.startsWith('/tools/movements'))) ||
+                  (pathname === '/consumables' || (pathname?.startsWith('/consumables/') && !pathname?.startsWith('/consumables/bulk-movement'))) ||
+                  (pathname === '/tool-sets' || (pathname?.startsWith('/tool-sets/') && !pathname?.startsWith('/tool-sets/movement')))
+                    ? 'bg-blue-50 text-blue-700 font-medium'
+                    : 'text-gray-700 hover:bg-gray-50'
                 }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {expandedMenu === 'work-reports' && (
-              <div className="ml-4 mt-1 space-y-1 border-l border-gray-200 pl-4">
-                <Link
-                  href="/work-reports"
-                  onClick={onClose}
-                  className={`block px-3 py-2 rounded-lg transition-colors text-sm ${
-                    pathname === '/work-reports'
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
+                <div className="flex items-center space-x-3">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+                    />
+                  </svg>
+                  <span>道具管理</span>
+                </div>
+                <svg
+                  className={`w-4 h-4 transition-transform ${expandedMenu === 'tools' ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  報告書一覧
-                </Link>
-                <Link
-                  href="/work-reports/new"
-                  onClick={onClose}
-                  className={`block px-3 py-2 rounded-lg transition-colors text-sm ${
-                    pathname === '/work-reports/new'
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  新規作成
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* 勤怠管理 */}
-          <div>
-            <button
-              onClick={() => toggleMenu('attendance')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                isActive('/attendance')
-                  ? 'bg-blue-50 text-blue-700 font-medium'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
-                <span>勤怠管理</span>
-              </div>
-              <svg
-                className={`w-4 h-4 transition-transform ${expandedMenu === 'attendance' ? 'rotate-180' : ''}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              </button>
+
+              {expandedMenu === 'tools' && (
+                <div className="ml-8 mt-1 space-y-1">
+                  <Link
+                    href="/tools"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive('/tools')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    道具一覧
+                  </Link>
+                  <Link
+                    href="/consumables"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      pathname === '/consumables' || (pathname?.startsWith('/consumables/') && !pathname?.startsWith('/consumables/orders') && !pathname?.startsWith('/consumables/bulk-movement'))
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    消耗品一覧
+                  </Link>
+                  <Link
+                    href="/consumables/orders"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive('/consumables/orders')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    消耗品発注管理
+                  </Link>
+                  <Link
+                    href="/tool-sets"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      pathname === '/tool-sets' || (pathname?.startsWith('/tool-sets/') && !pathname?.startsWith('/tool-sets/movement'))
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    道具セット登録
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 重機管理（現場資産パックが必要） */}
+          {hasAssetPackage && (
+            <div>
+              <button
+                onClick={() => toggleMenu('equipment')}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
+                  pathname === '/equipment' || (pathname?.startsWith('/equipment/') && !pathname?.startsWith('/equipment/cost-report') && !pathname?.startsWith('/equipment/analytics') && !pathname?.startsWith('/equipment/movement'))
+                    ? 'bg-blue-50 text-blue-700 font-medium'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {expandedMenu === 'attendance' && (
-              <div className="ml-8 mt-1 space-y-1">
-                {/* 出退勤（全員） */}
-                <Link
-                  href="/attendance/clock"
-                  onClick={onClose}
-                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                    isActive('/attendance/clock')
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
+                <div className="flex items-center space-x-3">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    />
+                  </svg>
+                  <span>重機管理</span>
+                </div>
+                <svg
+                  className={`w-4 h-4 transition-transform ${expandedMenu === 'equipment' ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  出退勤
-                </Link>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
 
-                {/* 勤怠履歴（全員） */}
-                <Link
-                  href="/attendance/my-records"
-                  onClick={onClose}
-                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                    isActive('/attendance/my-records')
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
+              {expandedMenu === 'equipment' && (
+                <div className="ml-8 mt-1 space-y-1">
+                  <Link
+                    href="/equipment"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      pathname === '/equipment' || (pathname?.startsWith('/equipment/') && !pathname?.startsWith('/equipment/cost-report') && !pathname?.startsWith('/equipment/analytics') && !pathname?.startsWith('/equipment/movement'))
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    重機一覧
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 移動管理（現場資産パックが必要） */}
+          {hasAssetPackage && (
+            <div>
+              <button
+                onClick={() => toggleMenu('movement')}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
+                  isActive('/movements') || isActive('/tool-sets/movement') || isActive('/equipment/movement') || isActive('/consumables/bulk-movement')
+                    ? 'bg-blue-50 text-blue-700 font-medium'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                    />
+                  </svg>
+                  <span>移動管理</span>
+                </div>
+                <svg
+                  className={`w-4 h-4 transition-transform ${expandedMenu === 'movement' ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  勤怠履歴
-                </Link>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
 
-                {/* リーダー以上のみ表示 */}
-                {isLeaderOrAbove && (
-                  <>
-                    <Link
-                      href="/attendance/records"
-                      onClick={onClose}
-                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive('/attendance/records')
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className="flex items-center justify-between">
-                        <span>勤怠一覧</span>
-                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                      </span>
-                    </Link>
-                    <Link
-                      href="/attendance/qr/leader"
-                      onClick={onClose}
-                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive('/attendance/qr/leader')
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className="flex items-center justify-between">
-                        <span>出退勤QR発行</span>
-                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                      </span>
-                    </Link>
-                    <Link
-                      href="/attendance/alerts"
-                      onClick={onClose}
-                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive('/attendance/alerts')
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className="flex items-center justify-between">
-                        <span>アラート通知</span>
-                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                      </span>
-                    </Link>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
+              {expandedMenu === 'movement' && (
+                <div className="ml-8 mt-1 space-y-1">
+                  <Link
+                    href="/movements/bulk"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive('/movements/bulk')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    道具一括移動
+                  </Link>
+                  <Link
+                    href="/consumables/bulk-movement"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive('/consumables/bulk-movement')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    消耗品一括移動
+                  </Link>
+                  <Link
+                    href="/tool-sets/movement"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive('/tool-sets/movement')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    道具セット移動
+                  </Link>
+                  <Link
+                    href="/equipment/movement"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive('/equipment/movement')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    重機移動
+                  </Link>
+                  <Link
+                    href="/movements"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      pathname === '/movements'
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    移動履歴
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 作業報告書（現場DX業務効率化パックが必要） */}
+          {hasDxPackage && (
+            <div>
+              <button
+                onClick={() => toggleMenu('work-reports')}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
+                  (pathname === '/work-reports' || pathname === '/work-reports/new' || (pathname?.startsWith('/work-reports/') && !pathname.startsWith('/work-reports/settings')))
+                    ? 'bg-blue-50 text-blue-700 font-medium'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  <span>作業報告書</span>
+                </div>
+                <svg
+                  className={`w-4 h-4 transition-transform ${
+                    expandedMenu === 'work-reports' ? 'rotate-180' : ''
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {expandedMenu === 'work-reports' && (
+                <div className="ml-4 mt-1 space-y-1 border-l border-gray-200 pl-4">
+                  <Link
+                    href="/work-reports"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg transition-colors text-sm ${
+                      pathname === '/work-reports'
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    報告書一覧
+                  </Link>
+                  <Link
+                    href="/work-reports/new"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg transition-colors text-sm ${
+                      pathname === '/work-reports/new'
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    新規作成
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 勤怠管理（現場DX業務効率化パックが必要） */}
+          {hasDxPackage && (
+            <div>
+              <button
+                onClick={() => toggleMenu('attendance')}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
+                  isActive('/attendance')
+                    ? 'bg-blue-50 text-blue-700 font-medium'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <span>勤怠管理</span>
+                </div>
+                <svg
+                  className={`w-4 h-4 transition-transform ${expandedMenu === 'attendance' ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {expandedMenu === 'attendance' && (
+                <div className="ml-8 mt-1 space-y-1">
+                  {/* 出退勤（全員） */}
+                  <Link
+                    href="/attendance/clock"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive('/attendance/clock')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    出退勤
+                  </Link>
+
+                  {/* 勤怠履歴（全員） */}
+                  <Link
+                    href="/attendance/my-records"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive('/attendance/my-records')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    勤怠履歴
+                  </Link>
+
+                  {/* リーダー以上のみ表示 */}
+                  {isLeaderOrAbove && (
+                    <div>
+                      <Link
+                        href="/attendance/records"
+                        onClick={onClose}
+                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                          isActive('/attendance/records')
+                            ? 'bg-blue-50 text-blue-700 font-medium'
+                            : 'text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        <span className="flex items-center justify-between">
+                          <span>勤怠一覧</span>
+                          <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                        </span>
+                      </Link>
+                      <Link
+                        href="/attendance/qr/leader"
+                        onClick={onClose}
+                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                          isActive('/attendance/qr/leader')
+                            ? 'bg-blue-50 text-blue-700 font-medium'
+                            : 'text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        <span className="flex items-center justify-between">
+                          <span>出退勤QR発行</span>
+                          <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                        </span>
+                      </Link>
+                      <Link
+                        href="/attendance/alerts"
+                        onClick={onClose}
+                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                          isActive('/attendance/alerts')
+                            ? 'bg-blue-50 text-blue-700 font-medium'
+                            : 'text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        <span className="flex items-center justify-between">
+                          <span>アラート通知</span>
+                          <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                        </span>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* マスタ管理（リーダー・管理者） */}
           {isLeaderOrAbove && (
@@ -543,7 +559,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                     現場マスタ
                   </Link>
                   {isAdmin && (
-                    <>
+                    <div>
                       <Link
                         href="/warehouse-locations"
                         onClick={onClose}
@@ -573,6 +589,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                         </span>
                       </Link>
                       {heavyEquipmentEnabled && (
+                        <div>
                         <Link
                           href="/master/equipment-categories"
                           onClick={onClose}
@@ -587,8 +604,8 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                             <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                           </span>
                         </Link>
-                      <Link
-                        href="/master/tools"
+                        <Link
+                          href="/master/tools"
                         onClick={onClose}
                         className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
                           isActive('/master/tools')
@@ -600,16 +617,18 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                           <span>道具マスタ管理</span>
                           <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                         </span>
-                      </Link>
-                    </>
+                        </Link>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
             </div>
           )}
 
-          {/* 帳票管理（管理者） */}
-          {isAdmin && (
+          {/* 帳票管理（管理者 & 現場DX業務効率化パックが必要） */}
+          {isAdmin && hasDxPackage && (
             <div>
               <button
                 onClick={() => toggleMenu('billing')}
@@ -811,7 +830,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                     </span>
                   </Link>
                   {heavyEquipmentEnabled && (
-                    <>
+                    <div>
                       <Link
                         href="/equipment/cost-report"
                         onClick={onClose}
@@ -840,7 +859,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                           <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                         </span>
                       </Link>
-                    </>
+                    </div>
                   )}
                 </div>
               )}
@@ -935,7 +954,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                   アカウント設定
                 </Link>
                 {isAdmin && (
-                  <>
+                  <div>
                     <Link
                       href="/staff"
                       onClick={onClose}
@@ -1020,13 +1039,13 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                         <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                       </span>
                     </Link>
-                  </>
+                  </div>
                 )}
               </div>
             )}
           </div>
         </nav>
       </aside>
-    </Fragment>
+    </div>
   )
 }

@@ -127,9 +127,14 @@ async function EstimateList() {
                       編集
                     </Link>
                   )}
-                  <button className="text-green-600 hover:text-green-900 mr-3">
+                  <a
+                    href={`/api/estimates/${estimate.id}/pdf`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-green-600 hover:text-green-900 mr-3"
+                  >
                     PDF
-                  </button>
+                  </a>
                   {estimate.status === 'accepted' && (
                     <Link
                       href={`/invoices/new?estimate_id=${estimate.id}`}
