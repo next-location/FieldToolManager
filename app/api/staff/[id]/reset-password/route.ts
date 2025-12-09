@@ -3,10 +3,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 
 // POST /api/staff/[id]/reset-password - パスワードリセットトークン発行
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = await createClient()
-    const userId = params.id
+    const { id: userId } = await params
 
     // 認証チェック
     const {

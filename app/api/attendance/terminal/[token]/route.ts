@@ -2,10 +2,10 @@ import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 // GET /api/attendance/terminal/[token] - タブレット用QR表示画面データ取得
-export async function GET(request: NextRequest, { params }: { params: { token: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ token: string }> }) {
   try {
     const supabase = await createClient()
-    const accessToken = params.token
+    const { token: accessToken } = await params
 
     // アクセストークンで端末を検証
     const { data: terminal, error: terminalError } = await supabase

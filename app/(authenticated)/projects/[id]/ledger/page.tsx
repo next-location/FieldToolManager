@@ -389,8 +389,9 @@ async function ProjectLedgerContent({ projectId }: { projectId: string }) {
 export default async function ProjectLedgerPage({
   params
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
+  const { id } = await params
   return (
     <div className="container mx-auto px-4 py-8">
       <Suspense
@@ -400,7 +401,7 @@ export default async function ProjectLedgerPage({
           </div>
         }
       >
-        <ProjectLedgerContent projectId={params.id} />
+        <ProjectLedgerContent projectId={id} />
       </Suspense>
     </div>
   )

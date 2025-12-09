@@ -95,7 +95,14 @@
       "Bash(git ls-tree:*)",
       "Bash(perl:*)",
       "Bash(NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU npx tsx scripts/create-initial-contract.ts)",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "Bash(while read file)",
+      "Bash(do sed -i '' 's/{ params }: { params: { id: string } }/{ params }: { params: Promise<{ id: string }> }/g' \"$file\" sed -i '' 's/const recordId = params\\.id/const { id: recordId } = await params/g' \"$file\" sed -i '' 's/const userId = params\\.id/const { id: userId } = await params/g' \"$file\" sed -i '' 's/const terminalId = params\\.id/const { id: terminalId } = await params/g' \"$file\" sed -i '' 's/const id = params\\.id/const { id } = await params/g' \"$file\" done echo \"API routes params fixed\")",
+      "Bash(for file in \"app/api/attendance/terminals/[id]/route.ts\" \"app/api/tools/by-qr/[qrCode]/route.ts\" \"app/api/staff/[id]/toggle-active/route.ts\" \"app/api/staff/[id]/route.ts\" \"app/api/staff/[id]/history/route.ts\" \"app/api/staff/[id]/reset-password/route.ts\")",
+      "Bash(if [ -f \"$file\" ])",
+      "Bash(then)",
+      "Bash(else)",
+      "Bash(fi)"
     ],
     "deny": [],
     "ask": []

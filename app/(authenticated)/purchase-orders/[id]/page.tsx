@@ -235,8 +235,9 @@ async function PurchaseOrderDetail({ orderId }: { orderId: string }) {
 export default async function PurchaseOrderDetailPage({
   params
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
+  const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -276,7 +277,7 @@ export default async function PurchaseOrderDetailPage({
           </div>
         }
       >
-        <PurchaseOrderDetail orderId={params.id} />
+        <PurchaseOrderDetail orderId={id} />
       </Suspense>
     </div>
   )

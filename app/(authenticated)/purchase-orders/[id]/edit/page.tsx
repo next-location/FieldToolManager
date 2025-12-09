@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 
 interface OrderItem {
   id?: string
@@ -20,15 +20,19 @@ interface OrderItem {
 export default function EditPurchaseOrderPage({
   params
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
   const router = useRouter()
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   const [loading, setLoading] = useState(false)
   const [suppliers, setSuppliers] = useState<any[]>([])
   const [projects, setProjects] = useState<any[]>([])
   const [items, setItems] = useState<OrderItem[]>([])
+  const [orderId, setOrderId] = useState<string>('')
   const [formData, setFormData] = useState({
     order_number: '',
     supplier_id: '',
@@ -43,10 +47,15 @@ export default function EditPurchaseOrderPage({
   })
 
   useEffect(() => {
+    params.then(p => setOrderId(p.id))
+  }, [params])
+
+  useEffect(() => {
+    if (!orderId) return
     fetchSuppliers()
     fetchProjects()
     fetchOrder()
-  }, [])
+  }, [orderId])
 
   const fetchOrder = async () => {
     const { data: order } = await supabase
@@ -55,7 +64,7 @@ export default function EditPurchaseOrderPage({
         *,
         purchase_order_items(*)
       `)
-      .eq('id', params.id)
+      .eq('id', orderId)
       .single()
 
     if (order) {
@@ -194,7 +203,7 @@ export default function EditPurchaseOrderPage({
           total_amount: total,
           updated_at: new Date().toISOString()
         })
-        .eq('id', params.id)
+        .eq('id', orderId)
 
       if (orderError) throw orderError
 
@@ -202,10 +211,10 @@ export default function EditPurchaseOrderPage({
       await supabase
         .from('purchase_order_items')
         .delete()
-        .eq('order_id', params.id)
+        .eq('order_id', orderId)
 
       const itemsToInsert = items.map((item, index) => ({
-        order_id: params.id,
+        order_id: orderId,
         display_order: index + 1,
         item_type: item.item_type,
         item_name: item.item_name,
@@ -223,7 +232,7 @@ export default function EditPurchaseOrderPage({
 
       if (itemsError) throw itemsError
 
-      router.push(`/purchase-orders/${params.id}`)
+      router.push(`/purchase-orders/${orderId}`)
     } catch (error) {
       console.error('Error updating purchase order:', error)
       alert('発注書の更新に失敗しました')
@@ -530,7 +539,7 @@ export default function EditPurchaseOrderPage({
         <div className="flex justify-between">
           <button
             type="button"
-            onClick={() => router.push(`/purchase-orders/${params.id}`)}
+            onClick={() => router.push(`/purchase-orders/${orderId}`)}
             className="bg-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-400"
           >
             キャンセル

@@ -2,10 +2,10 @@ import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 // POST /api/staff/[id]/toggle-active - アカウント有効化/無効化
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = await createClient()
-    const userId = params.id
+    const { id: userId } = await params
 
     // 認証チェック
     const {

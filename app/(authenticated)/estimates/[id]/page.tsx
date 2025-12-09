@@ -6,8 +6,9 @@ import { DownloadPdfButton } from './DownloadPdfButton'
 export default async function EstimateDetailPage({
   params
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
+  const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -37,7 +38,7 @@ export default async function EstimateDetailPage({
       created_by:users!estimates_created_by_fkey(name),
       approved_by:users!estimates_approved_by_fkey(name)
     `)
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('organization_id', userData?.organization_id)
     .single()
 
@@ -95,16 +96,16 @@ export default async function EstimateDetailPage({
         <div className="space-x-2">
           {estimate.status === 'draft' && (
             <Link
-              href={`/estimates/${params.id}/edit`}
+              href={`/estimates/${id}/edit`}
               className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
             >
               編集
             </Link>
           )}
-          <DownloadPdfButton estimateId={params.id} />
+          <DownloadPdfButton estimateId={id} />
           {estimate.status === 'accepted' && (
             <Link
-              href={`/invoices/new?estimate_id=${params.id}`}
+              href={`/invoices/new?estimate_id=${id}`}
               className="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600"
             >
               請求書作成

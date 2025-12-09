@@ -2,10 +2,10 @@ import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 // PATCH /api/attendance/terminals/[id] - タブレット端末更新
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = await createClient()
-    const terminalId = params.id
+    const { id: terminalId } = await params
 
     // 認証チェック
     const {
@@ -88,10 +88,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 }
 
 // DELETE /api/attendance/terminals/[id] - タブレット端末削除
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = await createClient()
-    const terminalId = params.id
+    const { id: terminalId } = await params
 
     // 認証チェック
     const {

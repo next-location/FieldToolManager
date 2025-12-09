@@ -14,106 +14,62 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 async function createTestData() {
   console.log('🚀 テストデータ作成を開始します...\n')
 
-  // 1. 組織を作成
-  console.log('1️⃣ 組織を作成中...')
-  const { data: org, error: orgError } = await supabase
+  // 1. 既存の組織を取得
+  console.log('1️⃣ 組織を取得中...')
+  const { data: orgs, error: orgError } = await supabase
     .from('organizations')
-    .insert({
-      id: '10000000-0000-0000-0000-000000000001',
-      name: 'A建設株式会社',
-      postal_code: '100-0001',
-      address: '東京都千代田区千代田1-1',
-      phone: '03-1234-5678',
-      fax: '03-1234-5679',
-    })
     .select()
-    .single()
+    .limit(1)
 
-  if (orgError) {
-    console.error('❌ 組織作成エラー:', orgError)
+  if (orgError || !orgs || orgs.length === 0) {
+    console.error('❌ 組織取得エラー:', orgError)
     return
   }
-  console.log('✅ 組織作成完了:', org.name)
+  const org = orgs[0]
+  console.log('✅ 組織取得完了:', org.name)
 
-  // 2. テストユーザーを作成
-  console.log('\n2️⃣ テストユーザーを作成中...')
+  // 2. 既存のユーザーを確認
+  console.log('\n2️⃣ ユーザーを確認中...')
+  const { data: existingUsers } = await supabase
+    .from('users')
+    .select('*')
+    .eq('organization_id', org.id)
 
-  const users = [
-    {
-      id: '10000000-0000-0000-0000-000000000001',
-      email: 'admin@test.com',
-      password: 'password123',
-      name: '管理者太郎',
-      role: 'admin',
-    },
-    {
-      id: '10000000-0000-0000-0000-000000000002',
-      email: 'manager@test.com',
-      password: 'password123',
-      name: 'マネージャー次郎',
-      role: 'manager',
-    },
-    {
-      id: '10000000-0000-0000-0000-000000000003',
-      email: 'user@test.com',
-      password: 'password123',
-      name: 'ユーザー三郎',
-      role: 'user',
-    },
-  ]
+  console.log(`✅ ${existingUsers?.length || 0} 人のユーザーが存在します`)
 
-  for (const user of users) {
-    // auth.usersにユーザー作成
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email: user.email,
-      password: user.password,
-      email_confirm: true,
-      user_metadata: {},
-    })
-
-    if (authError) {
-      console.error(`❌ ${user.name} の認証ユーザー作成エラー:`, authError)
-      continue
-    }
-
-    // usersテーブルにユーザー情報を挿入
-    const { error: userError } = await supabase.from('users').insert({
-      id: authData.user.id,
-      organization_id: org.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      is_active: true,
-    })
-
-    if (userError) {
-      console.error(`❌ ${user.name} のユーザー情報作成エラー:`, userError)
-      continue
-    }
-
-    console.log(`✅ ${user.name} (${user.role}) 作成完了 - Email: ${user.email}`)
-  }
-
-  // 3. クライアント（発注者）を作成
-  console.log('\n3️⃣ クライアントを作成中...')
-  const { data: client, error: clientError } = await supabase
+  // 3. クライアント（発注者）を作成または取得
+  console.log('\n3️⃣ クライアントを取得中...')
+  let { data: client } = await supabase
     .from('clients')
-    .insert({
-      organization_id: org.id,
-      code: 'CLI-001',
-      name: 'B商事株式会社',
-      client_type: 'customer',
-      address: '東京都港区赤坂1-1-1',
-      phone: '03-9876-5432',
-    })
     .select()
+    .eq('organization_id', org.id)
+    .eq('client_code', 'CLI-001')
     .single()
 
-  if (clientError) {
-    console.error('❌ クライアント作成エラー:', clientError)
-    return
+  if (!client) {
+    console.log('クライアントが存在しないため作成します...')
+    const { data, error: clientError } = await supabase
+      .from('clients')
+      .insert({
+        organization_id: org.id,
+        client_code: 'CLI-001',
+        name: 'B商事株式会社',
+        client_type: 'customer',
+        address: '東京都港区赤坂1-1-1',
+        phone: '03-9876-5432',
+      })
+      .select()
+      .single()
+
+    if (clientError) {
+      console.error('❌ クライアント作成エラー:', clientError)
+      return
+    }
+    client = data
+    console.log('✅ クライアント作成完了:', client.name)
+  } else {
+    console.log('✅ クライアント取得完了:', client.name)
   }
-  console.log('✅ クライアント作成完了:', client.name)
 
   // 4. 現場を作成
   console.log('\n4️⃣ 現場を作成中...')
@@ -121,12 +77,10 @@ async function createTestData() {
     {
       name: '新宿オフィスビル建設現場',
       address: '東京都新宿区西新宿2-8-1',
-      client_id: client.id,
     },
     {
       name: '渋谷マンション改修工事',
       address: '東京都渋谷区道玄坂1-2-3',
-      client_id: client.id,
     },
   ]
 
@@ -193,16 +147,16 @@ async function createTestData() {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━')
   console.log('\n👨‍💼 管理者アカウント')
   console.log('Email: admin@test.com')
-  console.log('Pass:  password123')
+  console.log('Pass:  Test1234!')
   console.log('Role:  admin (承認権限あり)')
-  console.log('\n👷 マネージャーアカウント')
-  console.log('Email: manager@test.com')
-  console.log('Pass:  password123')
-  console.log('Role:  manager (承認権限あり)')
-  console.log('\n👤 ユーザーアカウント')
-  console.log('Email: user@test.com')
-  console.log('Pass:  password123')
-  console.log('Role:  user (一般ユーザー)')
+  console.log('\n👷 リーダーアカウント')
+  console.log('Email: leader@test.com')
+  console.log('Pass:  Test1234!')
+  console.log('Role:  leader')
+  console.log('\n👤 スタッフアカウント')
+  console.log('Email: staff@test.com')
+  console.log('Pass:  Test1234!')
+  console.log('Role:  staff (一般ユーザー)')
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━')
   console.log('🏢 組織情報')
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━')

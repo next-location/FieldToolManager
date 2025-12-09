@@ -228,8 +228,9 @@ async function InvoiceDetail({ invoiceId }: { invoiceId: string }) {
 export default async function InvoiceDetailPage({
   params
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
+  const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -269,7 +270,7 @@ export default async function InvoiceDetailPage({
           </div>
         }
       >
-        <InvoiceDetail invoiceId={params.id} />
+        <InvoiceDetail invoiceId={id} />
       </Suspense>
     </div>
   )

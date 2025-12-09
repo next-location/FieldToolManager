@@ -2,10 +2,10 @@ import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 // PATCH /api/attendance/records/[id] - 勤怠記録の手動修正（管理者のみ）
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = await createClient()
-    const recordId = params.id
+    const { id: recordId } = await params
 
     // 認証チェック
     const {
@@ -159,10 +159,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 }
 
 // DELETE /api/attendance/records/[id] - 勤怠記録の削除（管理者のみ）
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = await createClient()
-    const recordId = params.id
+    const { id: recordId } = await params
 
     // 認証チェック
     const {

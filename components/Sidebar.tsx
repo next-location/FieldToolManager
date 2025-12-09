@@ -789,30 +789,16 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                         </span>
                       </Link>
                       <Link
-                        href="/analytics/sales"
+                        href="/analytics/financial"
                         onClick={onClose}
                         className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                          isActive('/analytics/sales')
+                          isActive('/analytics/financial')
                             ? 'bg-blue-50 text-blue-700 font-medium'
                             : 'text-gray-600 hover:bg-gray-50'
                         }`}
                       >
                         <span className="flex items-center justify-between">
-                          <span>売上分析</span>
-                          <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                        </span>
-                      </Link>
-                      <Link
-                        href="/analytics/cashflow"
-                        onClick={onClose}
-                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                          isActive('/analytics/cashflow')
-                            ? 'bg-blue-50 text-blue-700 font-medium'
-                            : 'text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span className="flex items-center justify-between">
-                          <span>資金繰り予測</span>
+                          <span>財務分析</span>
                           <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                         </span>
                       </Link>

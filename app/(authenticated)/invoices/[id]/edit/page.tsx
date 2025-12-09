@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 
 interface InvoiceItem {
   id?: string
@@ -20,15 +20,19 @@ interface InvoiceItem {
 export default function EditInvoicePage({
   params
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
   const router = useRouter()
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   const [loading, setLoading] = useState(false)
   const [clients, setClients] = useState<any[]>([])
   const [projects, setProjects] = useState<any[]>([])
   const [items, setItems] = useState<InvoiceItem[]>([])
+  const [invoiceId, setInvoiceId] = useState<string>('')
   const [formData, setFormData] = useState({
     invoice_number: '',
     client_id: '',
@@ -44,10 +48,15 @@ export default function EditInvoicePage({
   })
 
   useEffect(() => {
+    params.then(p => setInvoiceId(p.id))
+  }, [params])
+
+  useEffect(() => {
+    if (!invoiceId) return
     fetchClients()
     fetchProjects()
     fetchInvoice()
-  }, [])
+  }, [invoiceId])
 
   const fetchInvoice = async () => {
     const { data: invoice } = await supabase
@@ -56,7 +65,7 @@ export default function EditInvoicePage({
         *,
         billing_invoice_items(*)
       `)
-      .eq('id', params.id)
+      .eq('id', invoiceId)
       .single()
 
     if (invoice) {
@@ -184,7 +193,7 @@ export default function EditInvoicePage({
           total_amount: total,
           updated_at: new Date().toISOString()
         })
-        .eq('id', params.id)
+        .eq('id', invoiceId)
 
       if (invoiceError) throw invoiceError
 
@@ -192,10 +201,10 @@ export default function EditInvoicePage({
       await supabase
         .from('billing_invoice_items')
         .delete()
-        .eq('invoice_id', params.id)
+        .eq('invoice_id', invoiceId)
 
       const itemsToInsert = items.map((item, index) => ({
-        invoice_id: params.id,
+        invoice_id: invoiceId,
         display_order: index + 1,
         item_type: item.item_type,
         item_name: item.item_name,
@@ -213,7 +222,7 @@ export default function EditInvoicePage({
 
       if (itemsError) throw itemsError
 
-      router.push(`/invoices/${params.id}`)
+      router.push(`/invoices/${invoiceId}`)
     } catch (error) {
       console.error('Error updating invoice:', error)
       alert('請求書の更新に失敗しました')
@@ -529,7 +538,7 @@ export default function EditInvoicePage({
         <div className="flex justify-between">
           <button
             type="button"
-            onClick={() => router.push(`/invoices/${params.id}`)}
+            onClick={() => router.push(`/invoices/${invoiceId}`)}
             className="bg-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-400"
           >
             キャンセル

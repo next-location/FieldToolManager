@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 
 interface EstimateItem {
   id?: string
@@ -20,15 +20,19 @@ interface EstimateItem {
 export default function EditEstimatePage({
   params
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
   const router = useRouter()
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   const [loading, setLoading] = useState(false)
   const [clients, setClients] = useState<any[]>([])
   const [projects, setProjects] = useState<any[]>([])
   const [items, setItems] = useState<EstimateItem[]>([])
+  const [estimateId, setEstimateId] = useState<string>('')
   const [formData, setFormData] = useState({
     estimate_number: '',
     client_id: '',
@@ -42,10 +46,15 @@ export default function EditEstimatePage({
   })
 
   useEffect(() => {
+    params.then(p => setEstimateId(p.id))
+  }, [params])
+
+  useEffect(() => {
+    if (!estimateId) return
     fetchClients()
     fetchProjects()
     fetchEstimate()
-  }, [])
+  }, [estimateId])
 
   const fetchEstimate = async () => {
     const { data: estimate } = await supabase
@@ -54,7 +63,7 @@ export default function EditEstimatePage({
         *,
         estimate_items(*)
       `)
-      .eq('id', params.id)
+      .eq('id', estimateId)
       .single()
 
     if (estimate) {
@@ -165,7 +174,7 @@ export default function EditEstimatePage({
           total_amount: total,
           updated_at: new Date().toISOString()
         })
-        .eq('id', params.id)
+        .eq('id', estimateId)
 
       if (estimateError) throw estimateError
 
@@ -173,10 +182,10 @@ export default function EditEstimatePage({
       await supabase
         .from('estimate_items')
         .delete()
-        .eq('estimate_id', params.id)
+        .eq('estimate_id', estimateId)
 
       const itemsToInsert = items.map((item, index) => ({
-        estimate_id: params.id,
+        estimate_id: estimateId,
         display_order: index + 1,
         item_type: item.item_type,
         item_name: item.item_name,
@@ -194,7 +203,7 @@ export default function EditEstimatePage({
 
       if (itemsError) throw itemsError
 
-      router.push(`/estimates/${params.id}`)
+      router.push(`/estimates/${estimateId}`)
     } catch (error) {
       console.error('Error updating estimate:', error)
       alert('見積書の更新に失敗しました')
@@ -489,7 +498,7 @@ export default function EditEstimatePage({
         <div className="flex justify-between">
           <button
             type="button"
-            onClick={() => router.push(`/estimates/${params.id}`)}
+            onClick={() => router.push(`/estimates/${estimateId}`)}
             className="bg-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-400"
           >
             キャンセル
