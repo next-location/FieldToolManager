@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Fragment } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -27,7 +27,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
   }
 
   return (
-    <>
+    <Fragment>
       {/* オーバーレイ（モバイル・タブレット用） */}
       {isOpen && (
         <div
@@ -1027,6 +1027,6 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
           </div>
         </nav>
       </aside>
-    </>
+    </Fragment>
   )
 }
