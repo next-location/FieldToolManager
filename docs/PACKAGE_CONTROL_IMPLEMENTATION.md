@@ -570,11 +570,29 @@ export function useFeatures(): Features {
     - [x] サーバーサイド機能（lib/features/server.ts）
     - [x] PackageRequiredコンポーネント実装
 
-### Phase 4: テスト実装（3日）
-- [ ] ユニットテスト
-- [ ] 統合テスト
-- [ ] E2Eテスト（Playwright）
-- [ ] パッケージ切り替えテスト
+### Phase 4: テスト実装（3日）✅ 完了
+- [x] ユニットテスト
+  - [x] hooks/useFeatures.ts のテスト（13テストケース）
+  - [x] lib/features/server.ts のテスト（13テストケース）
+  - [x] hasFeature/hasPackage関数のテスト
+  - [x] getMockFeatures関数のテスト
+- [x] 統合テスト
+  - [x] パッケージ切り替えシナリオ（9シナリオ）
+  - [x] Trial → Asset/DX アップグレード
+  - [x] Single → Full アップグレード
+  - [x] Full → Single ダウングレード
+  - [x] 契約期限切れシナリオ
+  - [x] 機能フラグオーバーライド
+  - [x] 多段階アップグレードパス
+- [x] E2Eテスト（Playwright）
+  - [x] Asset Packageメニュー表示テスト
+  - [x] DX Packageメニュー表示テスト
+  - [x] Full Package全機能テスト
+  - [x] Trial modeアップグレード促進テスト
+  - [x] 開発環境パッケージ切り替えテスト
+- [x] パッケージ切り替えテスト（統合テストに含まれる）
+
+**テスト結果**: 全35テスト成功 ✅
 
 ### Phase 5: 本番環境準備（2日）
 - [ ] マイグレーションスクリプト
