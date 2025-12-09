@@ -132,7 +132,7 @@ export function hasPackage(features: OrganizationFeatures, packageType: 'asset' 
 /**
  * 開発環境用のモックデータ
  */
-function getMockFeatures(packageType: string): OrganizationFeatures {
+export function getMockFeatures(packageType: string): OrganizationFeatures {
   const mockData: Record<string, OrganizationFeatures> = {
     asset: {
       organization_id: 'mock-org-id',
