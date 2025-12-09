@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { SealFontStyle } from '@/lib/company-seal/generate-seal'
+import { ContractManagement } from '@/components/ContractManagement'
 
 interface OrganizationData {
   id: string
@@ -237,6 +238,16 @@ export default function OrganizationPage() {
           }`}
         >
           {message.text}
+        </div>
+      )}
+
+      {/* 契約管理セクション（super_adminのみ表示） */}
+      {userRole === 'super_admin' && organization && (
+        <div className="mb-6">
+          <ContractManagement
+            organizationId={organization.id}
+            isSuperAdmin={true}
+          />
         </div>
       )}
 
