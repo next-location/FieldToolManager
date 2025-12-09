@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import { DownloadPdfButton } from './DownloadPdfButton'
 
 export default async function EstimateDetailPage({
   params
@@ -100,12 +101,7 @@ export default async function EstimateDetailPage({
               編集
             </Link>
           )}
-          <button
-            className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
-            onClick={() => window.print()}
-          >
-            PDF出力
-          </button>
+          <DownloadPdfButton estimateId={params.id} />
           {estimate.status === 'accepted' && (
             <Link
               href={`/invoices/new?estimate_id=${params.id}`}

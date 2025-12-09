@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import { DownloadPdfButton } from './DownloadPdfButton'
 
 async function InvoiceDetail({ invoiceId }: { invoiceId: string }) {
   const supabase = await createClient()
@@ -78,9 +79,7 @@ async function InvoiceDetail({ invoiceId }: { invoiceId: string }) {
                 編集
               </Link>
             )}
-            <button className="bg-green-500 text-white px-4 py-2 rounded-md text-sm hover:bg-green-600">
-              PDF出力
-            </button>
+            <DownloadPdfButton invoiceId={invoiceId} />
             <button className="bg-purple-500 text-white px-4 py-2 rounded-md text-sm hover:bg-purple-600">
               メール送信
             </button>
