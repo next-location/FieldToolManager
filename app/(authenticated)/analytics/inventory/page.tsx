@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { analyzeInventoryOptimization } from '@/lib/analytics/inventory-optimization'
+import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
+import { PackageRequired } from '@/components/PackageRequired'
 
 export default async function InventoryOptimizationPage() {
   const supabase = await createClient()
@@ -21,6 +23,14 @@ export default async function InventoryOptimizationPage() {
 
   if (!userData || userData.role === 'staff') {
     redirect('/')
+  }
+
+  // パッケージチェック（現場資産パック必須）
+  if (userData?.organization_id) {
+    const features = await getOrganizationFeatures(userData.organization_id)
+    if (!hasPackage(features, 'asset')) {
+      return <PackageRequired packageType="asset" featureName="在庫最適化" userRole={userData.role} />
+    }
   }
 
   // 消耗品のみ取得

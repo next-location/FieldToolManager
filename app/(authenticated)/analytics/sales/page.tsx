@@ -2,6 +2,8 @@ import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
+import { PackageRequired } from '@/components/PackageRequired'
 
 async function SalesAnalyticsContent() {
   const supabase = await createClient()
@@ -20,6 +22,14 @@ async function SalesAnalyticsContent() {
   // リーダー以上のみアクセス可能
   if (!['leader', 'manager', 'admin', 'super_admin'].includes(userData?.role || '')) {
     redirect('/')
+  }
+
+  // パッケージチェック（現場DX業務効率化パック必須）
+  if (userData?.organization_id) {
+    const features = await getOrganizationFeatures(userData.organization_id)
+    if (!hasPackage(features, 'dx')) {
+      return <PackageRequired packageType="dx" featureName="売上分析" userRole={userData.role} />
+    }
   }
 
   // 請求書データを取得（過去12ヶ月）

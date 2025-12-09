@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import UsageAnalyticsView from './UsageAnalyticsView'
+import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
+import { PackageRequired } from '@/components/PackageRequired'
 
 export default async function UsageAnalyticsPage() {
   const supabase = await createClient()
@@ -27,6 +29,14 @@ export default async function UsageAnalyticsPage() {
   // 権限チェック（リーダー以上のみ）
   if (userData.role === 'staff') {
     redirect('/')
+  }
+
+  // パッケージチェック（現場資産パック必須）
+  if (userData?.organization_id) {
+    const features = await getOrganizationFeatures(userData.organization_id)
+    if (!hasPackage(features, 'asset')) {
+      return <PackageRequired packageType="asset" featureName="使用頻度分析" userRole={userData.role} />
+    }
   }
 
   // 道具マスタ取得（カテゴリ込み）

@@ -1,6 +1,8 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
+import { PackageRequired } from '@/components/PackageRequired'
 
 async function CashflowAnalyticsContent() {
   const supabase = await createClient()
@@ -19,6 +21,14 @@ async function CashflowAnalyticsContent() {
   // リーダー以上のみアクセス可能
   if (!['leader', 'manager', 'admin', 'super_admin'].includes(userData?.role || '')) {
     redirect('/')
+  }
+
+  // パッケージチェック（現場DX業務効率化パック必須）
+  if (userData?.organization_id) {
+    const features = await getOrganizationFeatures(userData.organization_id)
+    if (!hasPackage(features, 'dx')) {
+      return <PackageRequired packageType="dx" featureName="資金繰り予測" userRole={userData.role} />
+    }
   }
 
   // 今日から6ヶ月先までのデータを取得
