@@ -261,6 +261,8 @@ export async function deleteTool(toolId: string) {
  *   - 道具マスタを作成してから個別アイテムを作成
  */
 export async function createToolWithItems(formData: {
+  // プリセット選択時
+  preset_id?: string
   // 既存マスタ選択時
   tool_master_id?: string
   // 新規マスタ作成時
@@ -305,8 +307,39 @@ export async function createToolWithItems(formData: {
   let toolId: string
   let toolData: any
 
-  // モード1: 既存マスタから登録
-  if (formData.tool_master_id) {
+  // モード0: プリセットから登録（プリセットをコピーして組織マスタ作成 → 個別アイテム登録）
+  if (formData.preset_id) {
+    // ストアドプロシージャでプリセットから組織マスタを作成
+    const { data: newToolId, error: copyError } = await supabase.rpc(
+      'copy_preset_to_organization',
+      {
+        p_preset_id: formData.preset_id,
+        p_organization_id: userData.organization_id,
+      }
+    )
+
+    if (copyError || !newToolId) {
+      console.error('Preset copy error:', copyError)
+      return { error: 'プリセットのコピーに失敗しました: ' + (copyError?.message || '') }
+    }
+
+    // 作成された道具マスタを取得
+    const { data: createdTool, error: toolError } = await supabase
+      .from('tools')
+      .select('*')
+      .eq('id', newToolId)
+      .single()
+
+    if (toolError || !createdTool) {
+      console.error('Created tool fetch error:', toolError)
+      return { error: '作成された道具マスタの取得に失敗しました' }
+    }
+
+    toolId = newToolId
+    toolData = createdTool
+
+  } else if (formData.tool_master_id) {
+    // モード1: 既存マスタから登録
     // 既存マスタの情報を取得
     const { data: existingTool, error: toolError } = await supabase
       .from('tools')

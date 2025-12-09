@@ -25,10 +25,18 @@ export default async function NewToolPage() {
     redirect('/login')
   }
 
+  // プリセット（共通マスタ）を取得
+  const { data: presets } = await supabase
+    .from('tool_master_presets')
+    .select('id, name, model_number, manufacturer, unit')
+    .eq('is_active', true)
+    .order('sort_order')
+    .order('name')
+
   // 既存の道具マスタを取得（個別管理のみ）
   const { data: toolMasters } = await supabase
     .from('tools')
-    .select('id, name, model_number, manufacturer, minimum_stock')
+    .select('id, name, model_number, manufacturer, minimum_stock, is_from_preset')
     .eq('organization_id', userData.organization_id)
     .eq('management_type', 'individual')
     .is('deleted_at', null)
@@ -56,6 +64,7 @@ export default async function NewToolPage() {
         <div className="bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <ToolRegistrationForm
+              presets={presets || []}
               toolMasters={toolMasters || []}
               enableLowStockAlert={organizationSettings?.enable_low_stock_alert ?? true}
               organizationId={userData.organization_id}

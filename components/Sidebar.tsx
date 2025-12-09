@@ -587,7 +587,20 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                             <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                           </span>
                         </Link>
-                      )}
+                      <Link
+                        href="/master/tools"
+                        onClick={onClose}
+                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                          isActive('/master/tools')
+                            ? 'bg-blue-50 text-blue-700 font-medium'
+                            : 'text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        <span className="flex items-center justify-between">
+                          <span>道具マスタ管理</span>
+                          <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                        </span>
+                      </Link>
                     </>
                   )}
                 </div>

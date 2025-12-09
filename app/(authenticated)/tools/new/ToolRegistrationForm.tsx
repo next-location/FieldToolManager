@@ -6,24 +6,36 @@ import Link from 'next/link'
 import { createToolWithItems } from '@/app/(authenticated)/tools/actions'
 import { ImageUpload } from '@/components/ImageUpload'
 
+type Preset = {
+  id: string
+  name: string
+  model_number: string | null
+  manufacturer: string | null
+  unit: string
+}
+
 type ToolMaster = {
   id: string
   name: string
   model_number: string | null
   manufacturer: string | null
   minimum_stock: number
+  is_from_preset: boolean
 }
 
 export function ToolRegistrationForm({
+  presets,
   toolMasters,
   enableLowStockAlert,
   organizationId,
 }: {
+  presets: Preset[]
   toolMasters: ToolMaster[]
   enableLowStockAlert: boolean
   organizationId: string
 }) {
-  const [mode, setMode] = useState<'select' | 'new'>('select')
+  const [mode, setMode] = useState<'preset' | 'select' | 'new'>('preset')
+  const [selectedPresetId, setSelectedPresetId] = useState('')
   const [selectedMasterId, setSelectedMasterId] = useState('')
   const [formData, setFormData] = useState({
     name: '',
@@ -44,6 +56,7 @@ export function ToolRegistrationForm({
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
+  const selectedPreset = presets.find(p => p.id === selectedPresetId)
   const selectedMaster = toolMasters.find(m => m.id === selectedMasterId)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,10 +66,11 @@ export function ToolRegistrationForm({
 
     try {
       let result
-      if (mode === 'select' && selectedMasterId) {
-        // 既存マスタから登録
+      if ((mode === 'preset' && selectedPresetId) || (mode === 'select' && selectedMasterId)) {
+        // プリセットまたは既存マスタから登録
         result = await createToolWithItems({
-          tool_master_id: selectedMasterId,
+          tool_master_id: mode === 'preset' ? undefined : selectedMasterId,
+          preset_id: mode === 'preset' ? selectedPresetId : undefined,
           quantity: formData.quantity,
           purchase_date: formData.purchase_date,
           purchase_price: formData.purchase_price,
@@ -124,32 +138,83 @@ export function ToolRegistrationForm({
           道具マスタ <span className="text-red-500">*</span>
         </label>
         <select
-          value={mode === 'select' ? selectedMasterId : 'new'}
+          value={
+            mode === 'preset' ? `preset:${selectedPresetId}` :
+            mode === 'select' ? selectedMasterId :
+            'new'
+          }
           onChange={(e) => {
-            if (e.target.value === 'new') {
+            const value = e.target.value
+            if (value === 'new') {
               setMode('new')
+              setSelectedMasterId('')
+              setSelectedPresetId('')
+            } else if (value.startsWith('preset:')) {
+              setMode('preset')
+              setSelectedPresetId(value.replace('preset:', ''))
               setSelectedMasterId('')
             } else {
               setMode('select')
-              setSelectedMasterId(e.target.value)
+              setSelectedMasterId(value)
+              setSelectedPresetId('')
             }
           }}
           className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
         >
-          <option value="">既存の道具マスタを選択...</option>
-          {toolMasters.map((master) => (
-            <option key={master.id} value={master.id}>
-              {master.name}
-              {master.model_number && ` (${master.model_number})`}
-              {master.manufacturer && ` - ${master.manufacturer}`}
-            </option>
-          ))}
+          <option value="">道具マスタを選択...</option>
+
+          {/* 共通マスタ（プリセット） */}
+          {presets.length > 0 && (
+            <optgroup label="🏢 共通マスタ">
+              {presets.map((preset) => (
+                <option key={preset.id} value={`preset:${preset.id}`}>
+                  {preset.name}
+                  {preset.model_number && ` (${preset.model_number})`}
+                  {preset.manufacturer && ` - ${preset.manufacturer}`}
+                </option>
+              ))}
+            </optgroup>
+          )}
+
+          {/* 自社マスタ */}
+          {toolMasters.length > 0 && (
+            <optgroup label="👥 自社マスタ">
+              {toolMasters.map((master) => (
+                <option key={master.id} value={master.id}>
+                  {master.name}
+                  {master.model_number && ` (${master.model_number})`}
+                  {master.manufacturer && ` - ${master.manufacturer}`}
+                  {master.is_from_preset && ' [プリセット]'}
+                </option>
+              ))}
+            </optgroup>
+          )}
+
           <option value="new">+ 新しい道具マスタを作成</option>
         </select>
         <p className="mt-1 text-xs text-gray-500">
-          既存の道具マスタを選ぶか、新規作成を選択してください
+          共通マスタ・自社マスタから選ぶか、新規作成を選択してください
         </p>
       </div>
+
+      {/* プリセット選択時の情報表示 */}
+      {mode === 'preset' && selectedPreset && (
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+          <h4 className="text-sm font-medium text-blue-900 mb-2 flex items-center">
+            <span className="mr-2">🏢</span>
+            選択した共通マスタ
+          </h4>
+          <dl className="text-sm text-blue-700 space-y-1">
+            <div>道具名: {selectedPreset.name}</div>
+            {selectedPreset.model_number && <div>型番: {selectedPreset.model_number}</div>}
+            {selectedPreset.manufacturer && <div>メーカー: {selectedPreset.manufacturer}</div>}
+            <div>単位: {selectedPreset.unit}</div>
+          </dl>
+          <p className="mt-2 text-xs text-blue-600">
+            ※ このプリセットから自社マスタが自動作成され、個別アイテムが登録されます
+          </p>
+        </div>
+      )}
 
       {/* 新規マスタ作成時のフォーム */}
       {mode === 'new' && (

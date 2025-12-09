@@ -90,7 +90,8 @@
       "Bash(killall:*)",
       "Bash(kill:*)",
       "Bash(xargs curl:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []
