@@ -22,6 +22,7 @@
     "seed:dev": "PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -f scripts/seed-simple.sql",
     "create:users": "PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -f scripts/create-users.sql",
     "seed:all": "npm run seed:dev && npm run create:users",
+    "seed:invoices": "NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU tsx scripts/create-test-data-invoices.ts",
     "check:env": "tsx scripts/check-env.ts",
     "check:all": "npm run lint && npm run type-check && npm run check:env",
     "test": "jest",
