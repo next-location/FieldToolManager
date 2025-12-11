@@ -6,6 +6,7 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
 import ContractDetailView from '@/components/admin/ContractDetailView';
 import CompleteContractButton from '@/components/admin/CompleteContractButton';
+import CreateContractDocumentButton from '@/components/admin/CreateContractDocumentButton';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -42,6 +43,15 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
     .single();
 
   console.log('[Contract Detail] Query result:', { contract, error });
+
+  // 請求書データを取得（契約IDで絞り込み）
+  const { data: invoices, error: invoicesError } = await supabase
+    .from('invoices')
+    .select('*')
+    .eq('contract_id', id)
+    .order('billing_period_start', { ascending: false });
+
+  console.log('[Contract Detail] Invoices result:', { invoices, invoicesError });
 
   if (error || !contract) {
     console.log('[Contract Detail] Contract not found or error:', error);
@@ -102,12 +112,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
               <div className="flex gap-3">
                 {contract.status === 'draft' && (
                   <>
-                    <button
-                      onClick={() => alert('契約書作成機能は近日実装予定です')}
-                      className="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-                    >
-                      契約書を作成
-                    </button>
+                    <CreateContractDocumentButton />
                     <CompleteContractButton
                       contractId={contract.id}
                       contractNumber={contract.contract_number}
@@ -127,7 +132,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
           </div>
 
           {/* 契約詳細ビュー */}
-          <ContractDetailView contract={contract} />
+          <ContractDetailView contract={contract} invoices={invoices || []} />
         </main>
       </div>
     </div>

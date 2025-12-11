@@ -113,6 +113,60 @@ npm run health-check
 
 ## 3. マイグレーション履歴
 
+### 🔒 セキュリティ: スーパーアドミンテーブルRLS有効化（2025-12-09）
+
+#### 20251209000002_enable_super_admins_rls.sql ✅ APPLIED
+```sql
+-- Enable RLS on super_admins table for security
+-- This prevents unauthorized access to super admin data via anon/authenticated roles
+-- Only Service Role Key can access this table
+
+ALTER TABLE super_admins ENABLE ROW LEVEL SECURITY;
+
+-- Restrictive policy: Deny all access to anon and authenticated users
+CREATE POLICY "super_admins_no_access"
+ON super_admins
+AS RESTRICTIVE
+FOR ALL
+TO anon, authenticated
+USING (false);
+
+-- Enable RLS on super_admin_logs table
+ALTER TABLE super_admin_logs ENABLE ROW LEVEL SECURITY;
+
+-- Restrictive policy: Deny all access to anon and authenticated users
+CREATE POLICY "super_admin_logs_no_access"
+ON super_admin_logs
+AS RESTRICTIVE
+FOR ALL
+TO anon, authenticated
+USING (false);
+```
+
+**適用日**: 2025-12-09
+**適用環境**: ローカル開発環境
+**影響範囲**: `super_admins`, `super_admin_logs` テーブル
+**セキュリティ**: 🔒 高（システム管理者情報の保護）
+
+**変更内容**:
+- `super_admins`テーブルにRLSを有効化
+- `super_admin_logs`テーブルにRLSを有効化
+- anon/authenticatedロールからのアクセスを完全に拒否
+- Service Role Keyのみがアクセス可能（RLSをバイパス）
+
+**ロールバック手順**:
+```sql
+-- RLSポリシーを削除
+DROP POLICY IF EXISTS "super_admins_no_access" ON super_admins;
+DROP POLICY IF EXISTS "super_admin_logs_no_access" ON super_admin_logs;
+
+-- RLSを無効化（非推奨）
+ALTER TABLE super_admins DISABLE ROW LEVEL SECURITY;
+ALTER TABLE super_admin_logs DISABLE ROW LEVEL SECURITY;
+```
+
+---
+
 ### Phase 10: 取引先マスタ追加（2025-12-05）
 
 #### 20250105000010_create_clients_master.sql ✨NEW

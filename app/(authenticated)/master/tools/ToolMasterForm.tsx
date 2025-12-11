@@ -9,11 +9,18 @@ type Category = {
   name: string
 }
 
+type Manufacturer = {
+  id: string
+  name: string
+  country?: string
+}
+
 type OrganizationMaster = {
   id: string
   name: string
   model_number: string | null
   manufacturer: string | null
+  manufacturer_id?: string | null
   unit: string
   minimum_stock: number
   image_url: string | null
@@ -22,10 +29,16 @@ type OrganizationMaster = {
     id: string
     name: string
   } | null
+  tool_manufacturers?: {
+    id: string
+    name: string
+    country?: string
+  } | null
 }
 
 type Props = {
   categories: Category[]
+  manufacturers: Manufacturer[]
   organizationId: string
   editingMaster: OrganizationMaster | null
   onCancel: () => void
@@ -34,6 +47,7 @@ type Props = {
 
 export function ToolMasterForm({
   categories,
+  manufacturers,
   organizationId,
   editingMaster,
   onCancel,
@@ -42,7 +56,8 @@ export function ToolMasterForm({
   const [formData, setFormData] = useState({
     name: editingMaster?.name || '',
     model_number: editingMaster?.model_number || '',
-    manufacturer: editingMaster?.manufacturer || '',
+    manufacturer_id: editingMaster?.manufacturer_id || '',
+    manufacturer_name: editingMaster?.tool_manufacturers?.name || editingMaster?.manufacturer || '', // マスタから or 自由入力
     category_id: editingMaster?.tool_categories?.id || '',
     unit: editingMaster?.unit || '個',
     minimum_stock: editingMaster?.minimum_stock?.toString() || '1',
@@ -58,10 +73,14 @@ export function ToolMasterForm({
     setError(null)
 
     try {
+      // メーカーマスタから選択されたかチェック
+      const selectedManufacturer = manufacturers.find(m => m.name === formData.manufacturer_name);
+
       const data = {
         name: formData.name,
         model_number: formData.model_number || undefined,
-        manufacturer: formData.manufacturer || undefined,
+        manufacturer_id: selectedManufacturer?.id || undefined,
+        manufacturer: selectedManufacturer ? undefined : (formData.manufacturer_name || undefined),
         category_id: formData.category_id || undefined,
         unit: formData.unit,
         minimum_stock: parseInt(formData.minimum_stock, 10),
@@ -127,35 +146,46 @@ export function ToolMasterForm({
             />
           </div>
 
-          {/* 型番・メーカー */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <div>
-              <label htmlFor="model_number" className="block text-sm font-medium text-gray-700">
-                型番
-              </label>
-              <input
-                type="text"
-                name="model_number"
-                id="model_number"
-                value={formData.model_number}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
+          {/* メーカー（datalist対応） */}
+          <div>
+            <label htmlFor="manufacturer_name" className="block text-sm font-medium text-gray-700">
+              メーカー
+            </label>
+            <input
+              type="text"
+              name="manufacturer_name"
+              id="manufacturer_name"
+              list="manufacturers-list"
+              value={formData.manufacturer_name}
+              onChange={handleChange}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              placeholder="メーカー名を入力または選択..."
+            />
+            <datalist id="manufacturers-list">
+              {manufacturers.map((mfr) => (
+                <option key={mfr.id} value={mfr.name}>
+                  {mfr.country && `(${mfr.country})`}
+                </option>
+              ))}
+            </datalist>
+            <p className="mt-1 text-xs text-gray-500">
+              候補から選択するか、新しいメーカー名を入力できます
+            </p>
+          </div>
 
-            <div>
-              <label htmlFor="manufacturer" className="block text-sm font-medium text-gray-700">
-                メーカー
-              </label>
-              <input
-                type="text"
-                name="manufacturer"
-                id="manufacturer"
-                value={formData.manufacturer}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
+          {/* 型番 */}
+          <div>
+            <label htmlFor="model_number" className="block text-sm font-medium text-gray-700">
+              型番
+            </label>
+            <input
+              type="text"
+              name="model_number"
+              id="model_number"
+              value={formData.model_number}
+              onChange={handleChange}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
           </div>
 
           {/* カテゴリ */}

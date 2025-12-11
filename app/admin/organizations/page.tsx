@@ -30,7 +30,9 @@ export default async function OrganizationsPage() {
       phone,
       address,
       billing_contact_name,
-      billing_contact_email
+      billing_contact_email,
+      sales_status,
+      next_appointment_date
     `)
     .order('created_at', { ascending: false });
 

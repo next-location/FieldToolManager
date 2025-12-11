@@ -17,6 +17,8 @@ interface Organization {
   billing_contact_email: string | null;
   user_count: number;
   has_active_contract: boolean;
+  sales_status: string;
+  next_appointment_date: string | null;
 }
 
 interface OrganizationsTableProps {
@@ -28,6 +30,7 @@ export default function OrganizationsTable({ initialOrganizations }: Organizatio
     searchWord: '',
     status: 'all',
     hasContract: 'all',
+    salesStatus: 'all',
     sortBy: 'newest',
   });
 
@@ -60,6 +63,11 @@ export default function OrganizationsTable({ initialOrganizations }: Organizatio
         if (filters.hasContract === 'no') return !org.has_active_contract;
         return true;
       });
+    }
+
+    // 営業ステータスフィルター
+    if (filters.salesStatus !== 'all') {
+      result = result.filter((org) => org.sales_status === filters.salesStatus);
     }
 
     // ソート処理
@@ -96,9 +104,29 @@ export default function OrganizationsTable({ initialOrganizations }: Organizatio
       <OrganizationsFilter
         filters={filters}
         onFilterChange={setFilters}
-        totalCount={initialOrganizations.length}
-        filteredCount={filteredAndSortedOrganizations.length}
       />
+
+      {/* 表示件数と並び替え */}
+      <div className="mb-4 flex justify-between items-center">
+        <p className="text-sm text-gray-600">
+          全{initialOrganizations.length}件中 {filteredAndSortedOrganizations.length}件を表示
+        </p>
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-gray-600">並び替え:</label>
+          <select
+            value={filters.sortBy}
+            onChange={(e) => setFilters({ ...filters, sortBy: e.target.value })}
+            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="newest">新しい順</option>
+            <option value="oldest">古い順</option>
+            <option value="name_asc">組織名 (昇順)</option>
+            <option value="name_desc">組織名 (降順)</option>
+            <option value="users_desc">ユーザー数 (多い順)</option>
+            <option value="users_asc">ユーザー数 (少ない順)</option>
+          </select>
+        </div>
+      </div>
 
       {/* テーブル */}
       <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
@@ -127,76 +155,79 @@ export default function OrganizationsTable({ initialOrganizations }: Organizatio
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   登録日
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  操作
-                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredAndSortedOrganizations.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                     組織が見つかりませんでした
                   </td>
                 </tr>
               ) : (
                 filteredAndSortedOrganizations.map((org) => (
-                  <tr key={org.id} className="hover:bg-gray-50">
+                  <tr key={org.id} className="hover:bg-gray-50 cursor-pointer transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{org.name}</div>
-                        {org.address && (
-                          <div className="text-xs text-gray-500">{org.address}</div>
-                        )}
-                      </div>
+                      <Link href={`/admin/organizations/${org.id}`} className="block">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{org.name}</div>
+                          {org.address && (
+                            <div className="text-xs text-gray-500">{org.address}</div>
+                          )}
+                        </div>
+                      </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900 font-mono">{org.subdomain || '-'}</div>
+                      <Link href={`/admin/organizations/${org.id}`} className="block">
+                        <div className="text-sm text-gray-900 font-mono">{org.subdomain || '-'}</div>
+                      </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        {org.billing_contact_name && (
-                          <div className="text-sm text-gray-900">{org.billing_contact_name}</div>
-                        )}
-                        {org.phone && (
-                          <div className="text-xs text-gray-500">TEL: {org.phone}</div>
-                        )}
-                        {org.billing_contact_email && (
-                          <div className="text-xs text-gray-500">{org.billing_contact_email}</div>
-                        )}
-                        {!org.billing_contact_name && !org.phone && !org.billing_contact_email && (
-                          <div className="text-sm text-gray-400">-</div>
-                        )}
-                      </div>
+                      <Link href={`/admin/organizations/${org.id}`} className="block">
+                        <div>
+                          {org.billing_contact_name && (
+                            <div className="text-sm text-gray-900">{org.billing_contact_name}</div>
+                          )}
+                          {org.phone && (
+                            <div className="text-xs text-gray-500">TEL: {org.phone}</div>
+                          )}
+                          {org.billing_contact_email && (
+                            <div className="text-xs text-gray-500">{org.billing_contact_email}</div>
+                          )}
+                          {!org.billing_contact_name && !org.phone && !org.billing_contact_email && (
+                            <div className="text-sm text-gray-400">-</div>
+                          )}
+                        </div>
+                      </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{org.user_count}名</div>
+                      <Link href={`/admin/organizations/${org.id}`} className="block">
+                        <div className="text-sm text-gray-900">{org.user_count}名</div>
+                      </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {org.has_active_contract ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          契約中
+                      <Link href={`/admin/organizations/${org.id}`} className="block">
+                        {org.has_active_contract ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            契約中
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                            契約なし
+                          </span>
+                        )}
+                      </Link>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <Link href={`/admin/organizations/${org.id}`} className="block">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(org.is_active)}`}>
+                          {org.is_active ? '有効' : '無効'}
                         </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                          契約なし
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(org.is_active)}`}>
-                        {org.is_active ? '有効' : '無効'}
-                      </span>
+                      </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(org.created_at).toLocaleDateString('ja-JP')}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <Link
-                        href={`/admin/organizations/${org.id}`}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        詳細
+                      <Link href={`/admin/organizations/${org.id}`} className="block">
+                        {new Date(org.created_at).toLocaleDateString('ja-JP')}
                       </Link>
                     </td>
                   </tr>

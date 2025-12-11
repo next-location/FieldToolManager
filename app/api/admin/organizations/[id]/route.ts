@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
+import { setSuperAdminAuditContext } from '@/lib/supabase/audit-context';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,6 +31,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         return NextResponse.json({ error: 'このサブドメインは既に使用されています' }, { status: 400 });
       }
     }
+
+    // スーパーアドミンの監査コンテキストを設定
+    await setSuperAdminAuditContext(supabase, session.id, session.name);
 
     // 組織を更新
     const { data: organization, error } = await supabase

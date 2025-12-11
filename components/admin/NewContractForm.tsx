@@ -15,8 +15,28 @@ interface Organization {
   billing_address?: string;
 }
 
+interface PackageFeature {
+  id: string;
+  feature_name: string;
+  feature_key?: string;
+  is_header: boolean;
+  display_order: number;
+}
+
+interface Package {
+  id: string;
+  name: string;
+  description: string;
+  monthly_fee: number;
+  package_key: string;
+  is_active: boolean;
+  display_order: number;
+  features: PackageFeature[];
+}
+
 interface NewContractFormProps {
   organizations: Organization[];
+  packages: Package[];
   superAdminId: string;
 }
 
@@ -28,13 +48,7 @@ const PLAN_PRICING = {
   pro: { userLimit: 100, monthlyFee: 120000, annualFee: 1296000, setupFee: 80000 },
 };
 
-const PACKAGE_PRICING = {
-  asset_only: { name: '現場資産パック', monthly: 18000, annual: 194400, description: '道具管理・消耗品管理・重機管理・各種アラート機能・QRコード一括生成・棚卸し機能' },
-  dx_only: { name: '現場DX業務効率化パック', monthly: 22000, annual: 237600, description: '出退勤管理・作業報告書作成・見積/請求/領収書・売上管理・承認ワークフロー' },
-  full: { name: 'フル機能統合パック', monthly: 32000, annual: 345600, description: '全機能利用可能（複数パック割引適用）' },
-};
-
-export default function NewContractForm({ organizations, superAdminId }: NewContractFormProps) {
+export default function NewContractForm({ organizations, packages, superAdminId }: NewContractFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -50,7 +64,7 @@ export default function NewContractForm({ organizations, superAdminId }: NewCont
     organizationId: '',
     contractType: 'monthly' as 'monthly' | 'annual',
     plan: 'start' as keyof typeof PLAN_PRICING,
-    packageType: 'asset_only' as 'asset_only' | 'dx_only' | 'full',
+    selectedPackageIds: [] as string[],
     userLimit: 10,
     startDate: new Date().toISOString().split('T')[0],
     endDate: '',
@@ -125,19 +139,23 @@ export default function NewContractForm({ organizations, superAdminId }: NewCont
 
   const calculateFees = () => {
     const planConfig = PLAN_PRICING[formData.plan];
-    const isAnnual = formData.contractType === 'annual';
-    let baseFee = isAnnual ? planConfig.annualFee / 12 : planConfig.monthlyFee;
+    const baseFee = planConfig.monthlyFee;
+
+    // 選択されたパッケージの合計料金を計算
     let packageFee = 0;
-    if (formData.packageType && PACKAGE_PRICING[formData.packageType]) {
-      const packageConfig = PACKAGE_PRICING[formData.packageType];
-      packageFee = isAnnual ? packageConfig.annual / 12 : packageConfig.monthly;
-    }
+    formData.selectedPackageIds.forEach(packageId => {
+      const pkg = packages.find(p => p.id === packageId);
+      if (pkg) {
+        packageFee += pkg.monthly_fee;
+      }
+    });
+
     const totalMonthlyFee = baseFee + packageFee;
-    const totalInitialFee = formData.initialSetupFee + 
-      (parseFloat(formData.initialDataRegistrationFee as string) || 0) + 
-      (parseFloat(formData.initialOnsiteFee as string) || 0) + 
-      (parseFloat(formData.initialTrainingFee as string) || 0) + 
-      (parseFloat(formData.initialOtherFee as string) || 0) - 
+    const totalInitialFee = formData.initialSetupFee +
+      (parseFloat(formData.initialDataRegistrationFee as string) || 0) +
+      (parseFloat(formData.initialOnsiteFee as string) || 0) +
+      (parseFloat(formData.initialTrainingFee as string) || 0) +
+      (parseFloat(formData.initialOtherFee as string) || 0) -
       (parseFloat(formData.initialDiscount as string) || 0);
     return { baseFee, packageFee, totalMonthlyFee, totalInitialFee };
   };
@@ -179,8 +197,6 @@ export default function NewContractForm({ organizations, superAdminId }: NewCont
           initialTrainingFee: parseFloat(formData.initialTrainingFee as string) || 0,
           initialOtherFee: parseFloat(formData.initialOtherFee as string) || 0,
           initialDiscount: parseFloat(formData.initialDiscount as string) || 0,
-          hasAssetPackage: formData.packageType === 'asset_only' || formData.packageType === 'full',
-          hasDxPackage: formData.packageType === 'dx_only' || formData.packageType === 'full',
           baseMonthlyFee: baseFee,
           packageMonthlyFee: packageFee,
           totalMonthlyFee,
@@ -308,18 +324,40 @@ export default function NewContractForm({ organizations, superAdminId }: NewCont
           <input type="number" value={formData.userLimit} onChange={(e) => setFormData({ ...formData, userLimit: parseInt(e.target.value) })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E6FFF]"/>
         </div>
         <div className="space-y-3">
-          <label className="block text-sm font-medium text-gray-700">機能パック</label>
+          <label className="block text-sm font-medium text-gray-700">機能パック（複数選択可）</label>
           <div className="space-y-3">
-            {Object.entries(PACKAGE_PRICING).map(([key, pkg]) => (
-              <label key={key} className="flex items-start cursor-pointer">
-                <input type="radio" name="packageType" value={key} checked={formData.packageType === key} onChange={() => setFormData({ ...formData, packageType: key as any })} className="mt-1 h-4 w-4 text-[#1E6FFF] focus:ring-[#1E6FFF] border-gray-300"/>
+            {packages.map((pkg) => (
+              <label key={pkg.id} className="flex items-start cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.selectedPackageIds.includes(pkg.id)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setFormData({
+                        ...formData,
+                        selectedPackageIds: [...formData.selectedPackageIds, pkg.id]
+                      });
+                    } else {
+                      setFormData({
+                        ...formData,
+                        selectedPackageIds: formData.selectedPackageIds.filter(id => id !== pkg.id)
+                      });
+                    }
+                  }}
+                  className="mt-1 h-4 w-4 text-[#1E6FFF] focus:ring-[#1E6FFF] border-gray-300 rounded"
+                />
                 <div className="ml-3">
-                  <span className="text-sm font-medium text-gray-900">{pkg.name}（¥{(formData.contractType === 'annual' ? pkg.annual / 12 : pkg.monthly).toLocaleString()}/月）</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {pkg.name}（¥{pkg.monthly_fee.toLocaleString()}/月）
+                  </span>
                   <p className="text-xs text-gray-500">{pkg.description}</p>
                 </div>
               </label>
             ))}
           </div>
+          {packages.length === 0 && (
+            <p className="text-sm text-gray-500">パッケージが登録されていません</p>
+          )}
         </div>
       </div>
 

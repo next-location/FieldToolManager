@@ -773,36 +773,37 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                     </Link>
                   )}
                   {isAdmin && hasDxPackage && (
-                    <>
-                      <Link
-                        href="/clients/stats"
-                        onClick={onClose}
-                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                          isActive('/clients/stats')
-                            ? 'bg-blue-50 text-blue-700 font-medium'
-                            : 'text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span className="flex items-center justify-between">
-                          <span>取引先統計・分析</span>
-                          <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                        </span>
-                      </Link>
-                      <Link
-                        href="/analytics/financial"
-                        onClick={onClose}
-                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                          isActive('/analytics/financial')
-                            ? 'bg-blue-50 text-blue-700 font-medium'
-                            : 'text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span className="flex items-center justify-between">
-                          <span>財務分析</span>
-                          <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                        </span>
-                      </Link>
-                    </>
+                    <Link
+                      href="/clients/stats"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive('/clients/stats')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="flex items-center justify-between">
+                        <span>取引先統計・分析</span>
+                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      </span>
+                    </Link>
+                  )}
+                  {/* 財務分析: Admin専用・パッケージ不要（ページ内で機能制御） */}
+                  {isAdmin && (
+                    <Link
+                      href="/analytics/financial"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive('/analytics/financial')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="flex items-center justify-between">
+                        <span>財務分析</span>
+                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      </span>
+                    </Link>
                   )}
 
                   {/* 現場資産パック必須の分析 */}

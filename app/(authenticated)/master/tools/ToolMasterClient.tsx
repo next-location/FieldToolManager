@@ -39,10 +39,17 @@ type Category = {
   name: string
 }
 
+type Manufacturer = {
+  id: string
+  name: string
+  country?: string
+}
+
 type Props = {
   presets: Preset[]
   organizationMasters: OrganizationMaster[]
   categories: Category[]
+  manufacturers: Manufacturer[]
   isAdmin: boolean
   organizationId: string
 }
@@ -51,6 +58,7 @@ export function ToolMasterClient({
   presets,
   organizationMasters,
   categories,
+  manufacturers,
   isAdmin,
   organizationId,
 }: Props) {
@@ -169,6 +177,7 @@ export function ToolMasterClient({
         <div className="mb-6">
           <ToolMasterForm
             categories={categories}
+            manufacturers={manufacturers}
             organizationId={organizationId}
             editingMaster={editingMaster}
             onCancel={() => {

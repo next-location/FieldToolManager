@@ -29,6 +29,25 @@ export async function POST(
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
     }
 
+    // Super Admin の権限を確認
+    const { data: adminData, error: adminError } = await supabase
+      .from('super_admins')
+      .select('role')
+      .eq('id', session.id)
+      .single();
+
+    if (adminError || !adminData) {
+      return NextResponse.json({ error: '管理者が見つかりません' }, { status: 404 });
+    }
+
+    // Owner権限チェック
+    if (adminData.role !== 'owner') {
+      return NextResponse.json(
+        { error: '契約の完了はオーナーのみ実行できます' },
+        { status: 403 }
+      );
+    }
+
     const { id: contractId } = await params;
 
     // 契約情報を取得
@@ -136,15 +155,26 @@ export async function POST(
       }, { status: 500 });
     }
 
-    // 組織のプラン情報を更新
+    // 組織のプラン情報と営業ステータスを更新
     await supabase
       .from('organizations')
       .update({
         plan: contract.plan,
         max_users: contract.user_limit,
         is_active: true,
+        sales_status: 'contracted', // 営業ステータスを「契約中」に更新
       })
       .eq('id', contract.organization_id);
+
+    // 営業活動ログを追加
+    await supabase.from('sales_activities').insert({
+      organization_id: contract.organization_id,
+      activity_type: 'other',
+      title: '契約完了',
+      description: `契約が完了しました（契約番号: ${contract.contract_number}、プラン: ${contract.plan}）`,
+      created_by: session.id,
+      created_by_name: session.name,
+    });
 
     // ログを記録
     await supabase

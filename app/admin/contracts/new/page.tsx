@@ -26,14 +26,33 @@ export default async function NewContractPage() {
   const activeOrgIds = activeContracts?.map(c => c.organization_id) || [];
 
   // 組織一覧を取得（請求情報・住所も含む、既に契約中の組織を除外）
-  const { data: organizations, error } = await supabase
+  let query = supabase
     .from('organizations')
-    .select('id, name, subdomain, address, billing_contact_name, billing_contact_email, billing_contact_phone, billing_address')
-    .not('id', 'in', `(${activeOrgIds.join(',') || 'null'})`)
-    .order('name', { ascending: true });
+    .select('id, name, subdomain, address, billing_contact_name, billing_contact_email, billing_contact_phone, billing_address');
+
+  // activeOrgIdsが空でない場合のみ除外条件を追加
+  if (activeOrgIds.length > 0) {
+    query = query.not('id', 'in', `(${activeOrgIds.join(',')})`);
+  }
+
+  const { data: organizations, error } = await query.order('name', { ascending: true });
 
   if (error) {
     console.error('Error fetching organizations:', error);
+  }
+
+  // パッケージ一覧を取得
+  const { data: packages, error: packagesError } = await supabase
+    .from('packages')
+    .select(`
+      *,
+      features:package_features(*)
+    `)
+    .eq('is_active', true)
+    .order('display_order', { ascending: true });
+
+  if (packagesError) {
+    console.error('Error fetching packages:', packagesError);
   }
 
   return (
@@ -52,7 +71,11 @@ export default async function NewContractPage() {
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-4xl">
             <h1 className="text-2xl font-bold text-gray-900 mb-6">新規契約作成</h1>
-            <NewContractForm organizations={organizations || []} superAdminId={session.id} />
+            <NewContractForm
+              organizations={organizations || []}
+              packages={packages || []}
+              superAdminId={session.id}
+            />
           </div>
         </main>
       </div>

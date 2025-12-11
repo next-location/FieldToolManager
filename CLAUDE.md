@@ -239,3 +239,17 @@ Failure to update these files will result in:
 - Difficulty in troubleshooting issues
 - Migration conflicts in team development
 - Production deployment failures
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+
+### 🔐 Super Admin Management
+
+For super admin (システム管理者) related development and operations:
+- **Reference**: Always refer to `docs/SUPER_ADMIN_GUIDE.md`
+- **Content**: Complete guide for super admin login, dashboard, contract management, and all admin features
+- **Usage**: This document contains detailed specifications, API endpoints, database schemas, and troubleshooting for the admin system
+

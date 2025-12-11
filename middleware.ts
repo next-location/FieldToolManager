@@ -8,8 +8,9 @@ export async function middleware(request: NextRequest) {
   // セッション更新（クッキーの設定のみ）
   let response = await updateSession(request)
 
-  // ログイン・公開ページ・API・静的ファイルはスキップ
+  // ログイン・公開ページ・API・静的ファイル・スーパーアドミンはスキップ
   if (request.nextUrl.pathname.startsWith('/login') ||
+      request.nextUrl.pathname.startsWith('/admin') ||
       request.nextUrl.pathname.startsWith('/api') ||
       request.nextUrl.pathname.startsWith('/_next') ||
       request.nextUrl.pathname.startsWith('/favicon') ||

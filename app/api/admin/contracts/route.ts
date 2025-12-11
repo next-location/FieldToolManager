@@ -18,6 +18,25 @@ export async function POST(request: NextRequest) {
     }
     console.log('[API /api/admin/contracts] Session found, user:', session.email);
 
+    // Super Admin の権限を確認
+    const { data: adminData, error: adminError } = await supabase
+      .from('super_admins')
+      .select('role')
+      .eq('id', session.id)
+      .single();
+
+    if (adminError || !adminData) {
+      return NextResponse.json({ error: '管理者が見つかりません' }, { status: 404 });
+    }
+
+    // Owner権限チェック
+    if (adminData.role !== 'owner') {
+      return NextResponse.json(
+        { error: '契約の作成はオーナーのみ実行できます' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
 
     // 管理者情報のバリデーション
@@ -91,6 +110,23 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Contract creation error:', error);
       return NextResponse.json({ error: '契約の作成に失敗しました', details: error.message }, { status: 500 });
+    }
+
+    // 選択されたパッケージをcontract_packagesテーブルに保存
+    if (body.selectedPackageIds && Array.isArray(body.selectedPackageIds) && body.selectedPackageIds.length > 0) {
+      const contractPackages = body.selectedPackageIds.map((packageId: string) => ({
+        contract_id: contract.id,
+        package_id: packageId,
+      }));
+
+      const { error: packageError } = await supabase
+        .from('contract_packages')
+        .insert(contractPackages);
+
+      if (packageError) {
+        console.error('Error saving contract packages:', packageError);
+        // エラーでも契約は作成されているので、警告ログのみ
+      }
     }
 
     // 組織のプラン情報は更新しない（契約完了時に更新）

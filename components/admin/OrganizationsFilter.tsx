@@ -4,21 +4,18 @@ export interface FilterState {
   searchWord: string;
   status: string;
   hasContract: string;
+  salesStatus: string;
   sortBy: string;
 }
 
 interface OrganizationsFilterProps {
   filters: FilterState;
   onFilterChange: (filters: FilterState) => void;
-  totalCount: number;
-  filteredCount: number;
 }
 
 export default function OrganizationsFilter({
   filters,
   onFilterChange,
-  totalCount,
-  filteredCount,
 }: OrganizationsFilterProps) {
   const handleChange = (key: keyof FilterState, value: string) => {
     onFilterChange({ ...filters, [key]: value });
@@ -59,7 +56,7 @@ export default function OrganizationsFilter({
         </div>
       </div>
 
-      {/* 第2行: 契約有無、ソート */}
+      {/* 第2行: 契約有無と営業ステータス */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* 契約有無 */}
         <div>
@@ -77,29 +74,28 @@ export default function OrganizationsFilter({
           </select>
         </div>
 
-        {/* ソート */}
+        {/* 営業ステータス */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            並び替え
+            営業ステータス
           </label>
           <select
-            value={filters.sortBy}
-            onChange={(e) => handleChange('sortBy', e.target.value)}
+            value={filters.salesStatus}
+            onChange={(e) => handleChange('salesStatus', e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="newest">新しい順</option>
-            <option value="oldest">古い順</option>
-            <option value="name_asc">組織名 (昇順)</option>
-            <option value="name_desc">組織名 (降順)</option>
-            <option value="users_desc">ユーザー数 (多い順)</option>
-            <option value="users_asc">ユーザー数 (少ない順)</option>
+            <option value="all">全て</option>
+            <option value="not_contacted">未接触</option>
+            <option value="appointment">アポ取得</option>
+            <option value="prospect">見込み客</option>
+            <option value="proposal">提案中</option>
+            <option value="negotiation">商談中</option>
+            <option value="contracting">契約手続き中</option>
+            <option value="contracted">契約中</option>
+            <option value="cancelled">契約解除</option>
+            <option value="do_not_contact">連絡不要</option>
           </select>
         </div>
-      </div>
-
-      {/* 検索結果表示 */}
-      <div className="mt-4 text-sm text-gray-600">
-        全{totalCount}件中 <span className="font-semibold text-gray-900">{filteredCount}件</span>を表示
       </div>
     </div>
   );

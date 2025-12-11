@@ -7,6 +7,7 @@ import { includesKana } from '@/lib/utils/kana';
 
 interface Contract {
   id: string;
+  contract_number?: string;
   organizations: {
     id: string;
     name: string;
@@ -139,111 +140,113 @@ export default function ContractsTable({ initialContracts }: ContractsTableProps
         </div>
       </div>
 
-      {/* テーブル */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  組織名
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  基本プラン
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  機能パック
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ステータス
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  契約日
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  月額料金
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  操作
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredAndSortedContracts.length > 0 ? (
-                filteredAndSortedContracts.map((contract) => (
-                  <tr key={contract.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {contract.organizations?.name || '不明'}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {contract.organizations?.subdomain || '-'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {planLabels[contract.plan] || contract.plan}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col gap-1">
-                        {contract.has_asset_package && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                            資産管理
-                          </span>
-                        )}
-                        {contract.has_dx_efficiency_package && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                            DX効率化
-                          </span>
-                        )}
-                        {!contract.has_asset_package && !contract.has_dx_efficiency_package && (
-                          <span className="text-xs text-gray-400">なし</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          statusColors[contract.status] || 'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        {statusLabels[contract.status] || contract.status}
+      {/* 横長カード形式の契約一覧 */}
+      {filteredAndSortedContracts.length > 0 ? (
+        <div className="space-y-2">
+          {filteredAndSortedContracts.map((contract) => (
+            <Link
+              key={contract.id}
+              href={`/admin/contracts/${contract.id}`}
+              className="block bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-[#1E6FFF] transition-all duration-200 cursor-pointer"
+            >
+              <div className="px-5 py-3">
+                <div className="flex items-center gap-6">
+                  {/* 組織名 */}
+                  <div className="flex-1 min-w-0 max-w-[280px]">
+                    <h3 className="text-sm font-bold text-gray-900 truncate">
+                      {contract.organizations?.name || '不明'}
+                    </h3>
+                    <p className="text-xs text-gray-400 font-mono truncate">
+                      {contract.contract_number || contract.id.slice(0, 13)}
+                    </p>
+                  </div>
+
+                  {/* ステータス */}
+                  <div className="flex items-center min-w-[100px]">
+                    <span
+                      className={`px-3 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${
+                        statusColors[contract.status] || 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      {statusLabels[contract.status] || contract.status}
+                    </span>
+                  </div>
+
+                  {/* プラン */}
+                  <div className="min-w-[140px]">
+                    <p className="text-xs text-gray-500 mb-0.5">プラン</p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {planLabels[contract.plan] || contract.plan}
+                    </p>
+                  </div>
+
+                  {/* 機能パック */}
+                  <div className="flex items-center gap-1.5 min-w-[180px]">
+                    {contract.has_asset_package && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                        📦 資産
                       </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(contract.start_date).toLocaleDateString('ja-JP')}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      ¥{contract.monthly_fee?.toLocaleString() || 0}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <Link
-                        href={`/admin/contracts/${contract.id}`}
-                        className="text-[#1E6FFF] hover:text-[#0D4FCC]"
-                      >
-                        詳細
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-gray-500">
-                    {filters.searchWord ||
-                    filters.status !== 'all' ||
-                    filters.plan !== 'all' ||
-                    filters.assetPackage !== 'all' ||
-                    filters.dxPackage !== 'all'
-                      ? '条件に一致する契約が見つかりませんでした'
-                      : '契約データがありません'}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                    )}
+                    {contract.has_dx_efficiency_package && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                        ⚡ DX
+                      </span>
+                    )}
+                    {!contract.has_asset_package && !contract.has_dx_efficiency_package && (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
+                  </div>
+
+                  {/* 契約開始日 */}
+                  <div className="min-w-[110px] text-sm text-gray-700">
+                    {new Date(contract.start_date).toLocaleDateString('ja-JP', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit'
+                    })}
+                  </div>
+
+                  {/* 月額料金 */}
+                  <div className="min-w-[140px] text-right">
+                    <p className="text-base font-bold text-[#1E6FFF]">
+                      ¥{contract.monthly_fee?.toLocaleString() || 0} <span className="text-xs text-gray-500 font-normal">/ 月 (税込)</span>
+                    </p>
+                  </div>
+
+                  {/* 矢印アイコン */}
+                  <div className="flex-shrink-0">
+                    <svg
+                      className="w-5 h-5 text-gray-300"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
         </div>
-      </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow border border-gray-200 p-12 text-center">
+          <p className="text-gray-500">
+            {filters.searchWord ||
+            filters.status !== 'all' ||
+            filters.plan !== 'all' ||
+            filters.assetPackage !== 'all' ||
+            filters.dxPackage !== 'all'
+              ? '条件に一致する契約が見つかりませんでした'
+              : '契約データがありません'}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

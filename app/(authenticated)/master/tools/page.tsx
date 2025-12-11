@@ -47,6 +47,11 @@ export default async function ToolMasterPage() {
       tool_categories (
         id,
         name
+      ),
+      tool_manufacturers (
+        id,
+        name,
+        country
       )
     `)
     .eq('organization_id', userData.organization_id)
@@ -58,7 +63,13 @@ export default async function ToolMasterPage() {
   const { data: categories } = await supabase
     .from('tool_categories')
     .select('id, name')
-    .eq('organization_id', userData.organization_id)
+    .is('deleted_at', null)
+    .order('name')
+
+  // メーカー一覧を取得（システム共通 + 組織独自）
+  const { data: manufacturers } = await supabase
+    .from('tool_manufacturers')
+    .select('id, name, country')
     .is('deleted_at', null)
     .order('name')
 
@@ -69,6 +80,7 @@ export default async function ToolMasterPage() {
           presets={presets || []}
           organizationMasters={organizationMasters || []}
           categories={categories || []}
+          manufacturers={manufacturers || []}
           isAdmin={isAdmin}
           organizationId={userData.organization_id}
         />
