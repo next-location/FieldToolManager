@@ -21,6 +21,7 @@ async function createSuperAdmin() {
       name: 'スーパー管理者',
       password_hash: passwordHash,
       permission_level: 'admin',
+      role: 'owner', // デフォルトでownerに設定
     })
     .select()
     .single();
