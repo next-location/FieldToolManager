@@ -745,3 +745,105 @@ export const FEATURE_ERROR_MESSAGES = {
 
 *このドキュメントはパッケージ制御システムの実装計画を定義しています。*
 *実装の進捗に応じて随時更新してください。*
+## 付録C: 実装完了状況 (2025-12-12更新)
+
+### ✅ 完了した実装
+
+#### 1. データベース
+- ✅ `contracts`テーブルに`has_asset_package`, `has_dx_efficiency_package`カラム追加
+- ✅ `organization_features`ビュー作成（契約情報の集約）
+- ✅ テスト用組織データ作成（資産パック、DXパック）
+
+#### 2. API実装
+- ✅ `/api/organization/features` - 組織の契約パッケージ情報を取得
+- ✅ パッケージ情報をJSONで返却（asset_management, dx_efficiency）
+
+#### 3. フロントエンド実装
+
+**Hooks:**
+- ✅ `useFeatures` - パッケージ情報取得フック
+- ✅ 開発モード用のモックデータ対応
+
+**ダッシュボード (`app/(authenticated)/page.tsx`):**
+- ✅ 契約情報カード表示（プラン名、月額料金、有効パッケージ）
+- ✅ 出退勤ウィジェット - DXパッケージ契約時のみ表示
+
+**サイドバー (`components/Sidebar.tsx`):**
+- ✅ 道具管理メニュー - 資産パッケージ契約時のみ
+- ✅ 重機管理メニュー - 資産パッケージ契約時のみ
+- ✅ 勤怠管理メニュー - DXパッケージ契約時のみ
+- ✅ 作業報告書メニュー - DXパッケージ契約時のみ
+- ✅ 帳票管理メニュー - DXパッケージ契約時のみ
+- ✅ **設定メニューの制御**:
+  - 出退勤設定 - DXパッケージ契約時のみ
+  - 作業報告書設定 - DXパッケージ契約時のみ
+  - タブレット端末管理 - DXパッケージ契約時のみ
+
+#### 4. テストデータ
+
+**資産管理パック組織:**
+- 組織名: テスト建設株式会社
+- サブドメイン: `test-kensetsu`
+- URL: http://test-kensetsu.localhost:3000
+- 契約: Premium + 資産管理パッケージ (¥18,000/月)
+- Admin: admin@test.com / Test1234!
+- Staff: staff@test.com / Test1234!
+
+**DX業務効率化パック組織:**
+- 組織名: テスト塗装株式会社
+- サブドメイン: `test-tosou`
+- URL: http://test-tosou.localhost:3000
+- 契約: Premium + DX業務効率化パッケージ (¥18,000/月)
+- Admin: dx-admin@test.com / Test1234!
+- Staff: dx-staff@test.com / Test1234!
+
+### 📋 未実装（今後の課題）
+
+#### ページレベルのアクセス制御
+- ⏳ 直接URL入力時のリダイレクト処理
+- ⏳ 403エラーページの実装
+
+#### APIレベルの制御
+- ⏳ 各APIエンドポイントでのパッケージチェック
+- ⏳ エラーレスポンスの統一
+
+#### その他
+- ⏳ パッケージアップグレード/ダウングレード機能
+- ⏳ トライアル期間管理
+- ⏳ 使用量制限の実装
+
+### 📝 変更されたファイル一覧
+
+```
+app/(authenticated)/page.tsx          # ダッシュボード - 契約情報カード、出退勤ウィジェット制御
+components/Sidebar.tsx                # サイドバー - 設定メニューのパッケージ制御
+hooks/useFeatures.ts                  # パッケージ情報取得フック
+app/api/organization/features/route.ts # パッケージ情報API
+scripts/add-test-contract.sql         # 資産パック組織の契約データ作成
+scripts/create-dx-organization.sql    # DXパック組織の作成
+docs/PACKAGE_CONTROL_IMPLEMENTATION.md # このドキュメント
+```
+
+### 🧪 テスト方法
+
+1. **資産パック組織でログイン**
+   ```bash
+   # http://test-kensetsu.localhost:3000
+   # admin@test.com / Test1234!
+   ```
+   - ダッシュボードに契約情報カード表示確認
+   - 出退勤ウィジェットが**表示されない**ことを確認
+   - サイドバーに道具管理、重機管理があることを確認
+   - サイドバーに勤怠管理が**ない**ことを確認
+   - 設定メニューに出退勤設定が**ない**ことを確認
+
+2. **DXパック組織でログイン**
+   ```bash
+   # http://test-tosou.localhost:3000
+   # dx-admin@test.com / Test1234!
+   ```
+   - ダッシュボードに契約情報カード表示確認
+   - 出退勤ウィジェットが**表示される**ことを確認
+   - サイドバーに勤怠管理があることを確認
+   - サイドバーに道具管理、重機管理が**ない**ことを確認
+   - 設定メニューに出退勤設定、作業報告書設定があることを確認

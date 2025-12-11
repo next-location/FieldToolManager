@@ -2119,3 +2119,79 @@ Super Admin自身のアカウント情報とシステム情報を確認できる
 
 ---
 
+## 20. 通知ページ（動的化完了） ✅ **実装済み**（2025-12-12更新）
+
+### 20.1 概要
+
+Super Adminが行った重要な操作を時系列で確認できる通知ページです。`super_admin_logs`テーブルのデータを元に動的に表示されます。
+
+### 20.2 アクセス方法
+
+**URL**: `http://localhost:3000/admin/notifications`
+
+**権限**: 全員
+
+### 20.3 主な機能
+
+#### 表示される通知タイプ
+
+以下のアクションが通知として表示されます：
+
+1. **新規契約作成** (`create_contract`, `create_contract_draft`)
+   - アイコン: 青色の情報マーク
+   - メッセージ: 組織名、プラン名
+
+2. **契約完了** (`complete_contract`)
+   - アイコン: 緑色のチェックマーク
+   - メッセージ: 組織名、契約ID
+
+3. **新規組織登録** (`create_organization`)
+   - アイコン: 青色の情報マーク
+   - メッセージ: 組織名、業種
+
+4. **管理者追加** (`create_super_admin`)
+   - アイコン: 黄色の警告マーク
+   - メッセージ: 管理者名、メールアドレス、権限レベル（オーナー/営業）
+
+### 20.4 表示内容
+
+- **最大20件**の重要な操作を新しい順に表示
+- 各通知には以下が含まれます：
+  - タイトル（操作種別）
+  - 詳細メッセージ（操作の具体的な内容）
+  - 日時（日本時間フォーマット）
+  - 種別を示すアイコン（info/success/warning）
+
+### 20.5 データソース
+
+- `super_admin_logs` テーブル
+- フィルタ条件: `action IN ('create_contract', 'complete_contract', 'create_organization', 'create_super_admin')`
+- ソート: `created_at DESC`（新しい順）
+- 件数制限: 20件
+
+### 20.6 技術仕様
+
+**ファイルパス**: `app/admin/notifications/page.tsx`
+
+**データ取得ロジック**:
+```typescript
+const { data: logs } = await supabase
+  .from('super_admin_logs')
+  .select('*')
+  .in('action', ['create_contract', 'complete_contract', 'create_organization', 'create_super_admin'])
+  .order('created_at', { ascending: false })
+  .limit(20);
+```
+
+**メッセージ生成ロジック**:
+- `log.details`からJSONデータを取得し、人間が読める形式に変換
+- 各操作タイプに応じて適切な情報を抽出して表示
+
+### 20.7 注意事項
+
+- 全ての通知は「既読」として扱われます（ログベースのため）
+- 詳細情報は操作ログページ（`/admin/logs`）で確認可能
+- 通知データは自動的に更新されます（ページリロード時）
+
+---
+

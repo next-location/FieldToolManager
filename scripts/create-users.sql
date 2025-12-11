@@ -1,10 +1,6 @@
 -- テストユーザーを作成するSQLスクリプト
 -- パスワード: Test1234! のハッシュ値を使用
 
--- usersテーブルのrole制約を修正
-ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
-ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('admin', 'staff', 'leader', 'super_admin'));
-
 -- まず既存のユーザーを削除
 DELETE FROM auth.identities WHERE user_id IN (
   '10000000-0000-0000-0000-000000000001',

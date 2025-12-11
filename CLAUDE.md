@@ -204,6 +204,18 @@ The project will use a dedicated `docs/` folder for comprehensive documentation,
 - **Usage**: 帳票管理機能の実装時に必ず参照
 - **Note**: 建築系企業の見積・請求・支払業務をデジタル化し、工事単位での収支管理を実現
 
+#### 15. **`docs/PACKAGE_CONTROL_IMPLEMENTATION.md`** ⭐ パッケージ制御実装ガイド
+- **Purpose**: 機能パッケージに応じたUI/機能制御の実装方法
+- **Content**:
+  - 2つの主要パッケージ（現場資産パック、現場DX業務効率化パック）
+  - データベース構造（contracts テーブル、organization_features ビュー）
+  - フロントエンド実装（useFeatures フック、条件分岐）
+  - サーバーコンポーネントでの実装方法
+  - テスト用組織のログイン情報
+  - 実装完了状況（2025-12-12更新）
+- **Usage**: 新機能追加時にパッケージ制御が必要か確認
+- **Note**: ダッシュボード、サイドバー、設定メニューでパッケージ制御実装済み
+
 ### Development Priority
 
 1. **Environment Setup**: Follow `docs/ENVIRONMENT_SETUP.md` FIRST

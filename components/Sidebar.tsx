@@ -1007,48 +1007,52 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                         <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                       </span>
                     </Link>
-                    <Link
-                      href="/attendance/settings"
-                      onClick={onClose}
-                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive('/attendance/settings')
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className="flex items-center justify-between">
-                        <span>出退勤設定</span>
-                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                      </span>
-                    </Link>
-                    <Link
-                      href="/work-reports/settings"
-                      onClick={onClose}
-                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive('/work-reports/settings')
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className="flex items-center justify-between">
-                        <span>作業報告書設定</span>
-                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                      </span>
-                    </Link>
-                    <Link
-                      href="/attendance/terminals"
-                      onClick={onClose}
-                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive('/attendance/terminals')
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className="flex items-center justify-between">
-                        <span>タブレット端末管理</span>
-                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                      </span>
-                    </Link>
+                    {hasDxPackage && (
+                      <>
+                        <Link
+                          href="/attendance/settings"
+                          onClick={onClose}
+                          className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                            isActive('/attendance/settings')
+                              ? 'bg-blue-50 text-blue-700 font-medium'
+                              : 'text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          <span className="flex items-center justify-between">
+                            <span>出退勤設定</span>
+                            <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                          </span>
+                        </Link>
+                        <Link
+                          href="/work-reports/settings"
+                          onClick={onClose}
+                          className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                            isActive('/work-reports/settings')
+                              ? 'bg-blue-50 text-blue-700 font-medium'
+                              : 'text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          <span className="flex items-center justify-between">
+                            <span>作業報告書設定</span>
+                            <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                          </span>
+                        </Link>
+                        <Link
+                          href="/attendance/terminals"
+                          onClick={onClose}
+                          className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                            isActive('/attendance/terminals')
+                              ? 'bg-blue-50 text-blue-700 font-medium'
+                              : 'text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          <span className="flex items-center justify-between">
+                            <span>タブレット端末管理</span>
+                            <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                          </span>
+                        </Link>
+                      </>
+                    )}
                     <Link
                       href="/admin/audit-logs"
                       onClick={onClose}

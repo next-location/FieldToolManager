@@ -60,8 +60,16 @@ export default async function Home() {
   // 重機管理機能が有効かチェック
   const { data: orgData } = await supabase
     .from('organizations')
-    .select('heavy_equipment_enabled')
+    .select('heavy_equipment_enabled, name')
     .eq('id', userData?.organization_id)
+    .single()
+
+  // 契約情報を取得
+  const { data: contractData } = await supabase
+    .from('contracts')
+    .select('plan, plan_type, monthly_fee, base_monthly_fee, package_monthly_fee, has_asset_package, has_dx_efficiency_package')
+    .eq('organization_id', userData?.organization_id)
+    .eq('status', 'active')
     .single()
 
   // 出退勤設定を取得
@@ -151,12 +159,71 @@ export default async function Home() {
     })
   }
 
+  // プラン名の表示
+  const getPlanName = (plan: string) => {
+    switch (plan) {
+      case 'basic': return 'ベーシック'
+      case 'premium': return 'プレミアム'
+      case 'enterprise': return 'エンタープライズ'
+      default: return plan
+    }
+  }
+
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">
           ダッシュボード
         </h2>
+
+        {/* 契約情報カード */}
+        {contractData && (
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-5">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-blue-900 mb-3">
+                  ご契約プラン
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-blue-700 mb-1">基本プラン</p>
+                    <p className="text-2xl font-bold text-blue-900">
+                      {getPlanName(contractData.plan)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-blue-700 mb-1">月額料金</p>
+                    <p className="text-2xl font-bold text-blue-900">
+                      ¥{contractData.monthly_fee?.toLocaleString()}
+                    </p>
+                    {contractData.package_monthly_fee > 0 && (
+                      <p className="text-xs text-blue-600 mt-1">
+                        (基本: ¥{contractData.base_monthly_fee?.toLocaleString()} + パッケージ: ¥{contractData.package_monthly_fee?.toLocaleString()})
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {(contractData.has_asset_package || contractData.has_dx_efficiency_package) && (
+                  <div className="mt-4 pt-4 border-t border-blue-200">
+                    <p className="text-sm text-blue-700 mb-2">有効な機能パッケージ</p>
+                    <div className="flex flex-wrap gap-2">
+                      {contractData.has_asset_package && (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                          📦 資産管理パッケージ
+                        </span>
+                      )}
+                      {contractData.has_dx_efficiency_package && (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                          🚀 DX効率化パッケージ
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 重機アラート */}
         {equipmentAlerts.length > 0 && (
@@ -247,8 +314,10 @@ export default async function Home() {
         )}
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {/* 出退勤ウィジェット */}
-          <AttendanceWidget attendanceSettings={attendanceSettings} sites={sites || []} />
+          {/* 出退勤ウィジェット（DXパッケージが必要） */}
+          {contractData?.has_dx_efficiency_package && (
+            <AttendanceWidget attendanceSettings={attendanceSettings} sites={sites || []} />
+          )}
 
           {/* 道具管理 */}
           <Link

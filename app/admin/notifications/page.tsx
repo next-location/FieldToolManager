@@ -1,7 +1,13 @@
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
 import { redirect } from 'next/navigation';
+import { createClient } from '@supabase/supabase-js';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export default async function NotificationsPage() {
   const session = await getSuperAdminSession();
@@ -10,33 +16,59 @@ export default async function NotificationsPage() {
     redirect('/admin/login');
   }
 
-  // 仮の通知データ（後でDBから取得）
-  const notifications = [
-    {
-      id: '1',
-      title: '新規組織が登録されました',
-      message: 'ABC建設株式会社が新規登録しました。契約承認が必要です。',
-      type: 'info',
-      createdAt: new Date(),
-      isRead: false,
-    },
-    {
-      id: '2',
-      title: '契約更新リマインダー',
-      message: 'XYZ工業の契約が30日後に更新日を迎えます。',
-      type: 'warning',
-      createdAt: new Date(Date.now() - 3600000),
-      isRead: false,
-    },
-    {
-      id: '3',
-      title: 'システムアップデート完了',
-      message: 'バージョン2.1.0へのアップデートが完了しました。',
-      type: 'success',
-      createdAt: new Date(Date.now() - 86400000),
-      isRead: true,
-    },
-  ];
+  // 重要な操作ログを通知として取得
+  const { data: logs } = await supabase
+    .from('super_admin_logs')
+    .select('*')
+    .in('action', ['create_contract', 'complete_contract', 'create_organization', 'create_super_admin'])
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  // ログを通知形式に変換
+  const notifications = (logs || []).map((log: any) => {
+    let title = '';
+    let message = '';
+    let type = 'info';
+
+    const details = log.details || {};
+
+    switch (log.action) {
+      case 'create_contract':
+      case 'create_contract_draft':
+        title = '新規契約が作成されました';
+        message = `組織: ${details.organization_name || '不明'} / プラン: ${details.plan_name || '不明'}`;
+        type = 'info';
+        break;
+      case 'complete_contract':
+        title = '契約が完了しました';
+        message = `組織: ${details.organization_name || '不明'} / 契約ID: ${details.contract_id || '不明'}`;
+        type = 'success';
+        break;
+      case 'create_organization':
+        title = '新規組織が登録されました';
+        message = `組織名: ${details.name || '不明'} / 業種: ${details.industry || '不明'}`;
+        type = 'info';
+        break;
+      case 'create_super_admin':
+        title = '新しい管理者が追加されました';
+        message = `名前: ${details.name || '不明'} / メール: ${details.email || '不明'} / 権限: ${details.role === 'owner' ? 'オーナー' : '営業'}`;
+        type = 'warning';
+        break;
+      default:
+        title = log.action;
+        message = details ? Object.entries(details).map(([k, v]) => `${k}: ${v}`).join(' / ') : '詳細なし';
+        type = 'info';
+    }
+
+    return {
+      id: log.id,
+      title,
+      message,
+      type,
+      createdAt: new Date(log.created_at),
+      isRead: true, // ログは全て既読扱い
+    };
+  });
 
   const typeColors: Record<string, string> = {
     info: 'bg-blue-100 text-blue-800',
@@ -84,15 +116,13 @@ export default async function NotificationsPage() {
         <main className="flex-1 overflow-y-auto p-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-6">通知管理</h1>
 
-          <div className="mb-6 flex justify-between items-center">
-            <div>
-              <p className="text-sm text-gray-600">
-                未読 {notifications.filter(n => !n.isRead).length}件
-              </p>
-            </div>
-            <button className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-              すべて既読にする
-            </button>
+          <div className="mb-6">
+            <p className="text-sm text-gray-600">
+              最近の重要な操作を表示しています（最大20件）
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              全ての操作履歴は「操作ログ」ページで確認できます
+            </p>
           </div>
 
           {/* 通知一覧 */}
@@ -122,13 +152,10 @@ export default async function NotificationsPage() {
                         </span>
                       )}
                     </div>
-                    <div className="mt-2 flex items-center justify-between">
+                    <div className="mt-2">
                       <p className="text-xs text-gray-500">
                         {notification.createdAt.toLocaleString('ja-JP')}
                       </p>
-                      <button className="text-xs text-[#1E6FFF] hover:text-[#0D4FCC]">
-                        詳細を見る
-                      </button>
                     </div>
                   </div>
                 </div>

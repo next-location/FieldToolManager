@@ -24,9 +24,13 @@ export function NotificationBell({ organizationId }: NotificationBellProps) {
       if (response.ok) {
         const data = await response.json()
         setUnreadCount(data.count)
+      } else if (response.status === 401) {
+        // 認証エラーの場合はサイレントに処理（ログインページなどで表示される可能性があるため）
+        setUnreadCount(0)
       }
     } catch (error) {
-      console.error('Failed to fetch unread count:', error)
+      // ネットワークエラーなどはサイレントに処理
+      setUnreadCount(0)
     } finally {
       setIsLoading(false)
     }
