@@ -71,7 +71,8 @@ export async function POST(request: NextRequest) {
       .insert({
         name,
         email,
-        password: hashedPassword,
+        password_hash: hashedPassword,
+        permission_level: 'admin', // 全てのSuper Adminはadminレベル
         role,
       })
       .select()
