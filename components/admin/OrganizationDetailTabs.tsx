@@ -134,9 +134,36 @@ export default function OrganizationDetailTabs({
                     <dt className="text-gray-600 w-32">組織名:</dt>
                     <dd className="text-gray-900 font-medium">{organization.name}</dd>
                   </div>
-                  <div className="flex">
-                    <dt className="text-gray-600 w-32">サブドメイン:</dt>
-                    <dd className="text-gray-900 font-mono">{organization.subdomain || '-'}</dd>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex">
+                      <dt className="text-gray-600 w-32">サブドメイン:</dt>
+                      <dd className="text-gray-900 font-mono">{organization.subdomain || '-'}</dd>
+                    </div>
+                    {organization.subdomain && (
+                      <div className="flex">
+                        <dt className="text-gray-600 w-32">ログインURL:</dt>
+                        <dd className="flex items-center gap-2">
+                          <a
+                            href={`http://${organization.subdomain}.localhost:3000`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-700 underline font-mono text-sm"
+                          >
+                            {`${organization.subdomain}.localhost:3000`}
+                          </a>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(`http://${organization.subdomain}.localhost:3000`);
+                              alert('ログインURLをコピーしました');
+                            }}
+                            className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded border border-gray-300 transition-colors"
+                            title="URLをコピー"
+                          >
+                            📋 コピー
+                          </button>
+                        </dd>
+                      </div>
+                    )}
                   </div>
                   <div className="flex">
                     <dt className="text-gray-600 w-32">ユーザー数:</dt>
