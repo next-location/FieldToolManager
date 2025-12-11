@@ -75,7 +75,7 @@ export default async function Home() {
   // 出退勤設定を取得
   const { data: attendanceSettings } = await supabase
     .from('organization_attendance_settings')
-    .select('clock_method, allow_manual, allow_qr, allow_location')
+    .select('office_attendance_enabled, site_attendance_enabled, office_clock_methods, site_clock_methods, site_qr_type')
     .eq('organization_id', userData?.organization_id)
     .single()
 

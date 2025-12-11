@@ -117,6 +117,29 @@ INSERT INTO contracts (
   NOW()
 );
 
+-- 出退勤設定を作成
+INSERT INTO organization_attendance_settings (
+  organization_id,
+  office_attendance_enabled,
+  office_clock_methods,
+  site_attendance_enabled,
+  site_clock_methods,
+  site_qr_type,
+  created_at,
+  updated_at
+) VALUES (
+  '00000000-0000-0000-0000-000000000002',
+  true,
+  '{"manual": true, "qr_scan": true, "qr_display": false}'::jsonb,
+  true,
+  '{"manual": false, "qr_scan": true, "qr_display": false}'::jsonb,
+  'leader',
+  NOW(),
+  NOW()
+) ON CONFLICT (organization_id) DO UPDATE SET
+  office_clock_methods = '{"manual": true, "qr_scan": true, "qr_display": false}'::jsonb,
+  site_clock_methods = '{"manual": false, "qr_scan": true, "qr_display": false}'::jsonb;
+
 -- 確認
 SELECT '=== 組織情報 ===' as info;
 SELECT name, subdomain FROM organizations WHERE id = '00000000-0000-0000-0000-000000000002';
