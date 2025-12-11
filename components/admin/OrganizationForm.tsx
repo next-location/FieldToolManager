@@ -8,7 +8,6 @@ interface OrganizationFormProps {
   initialData?: {
     id?: string;
     name: string;
-    subdomain: string;
     phone: string;
     fax: string;
     postal_code: string;
@@ -35,7 +34,6 @@ export default function OrganizationForm({ mode, initialData }: OrganizationForm
   }>({ checked: false, isDuplicate: false, similarOrganizations: [], confirmed: false });
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
-    subdomain: initialData?.subdomain || '',
     phone: initialData?.phone || '',
     fax: initialData?.fax || '',
     postal_code: initialData?.postal_code || '',
@@ -237,22 +235,12 @@ export default function OrganizationForm({ mode, initialData }: OrganizationForm
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="株式会社〇〇"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                サブドメイン <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="subdomain"
-                value={formData.subdomain}
-                onChange={handleChange}
-                required
-                pattern="[a-z0-9-]+"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono"
-                placeholder="example-company"
-              />
-              <p className="text-xs text-gray-500 mt-1">半角英数字とハイフンのみ</p>
+              <p className="text-xs text-gray-500 mt-1">
+                <span className="inline-flex items-center px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-medium">
+                  💡 ヒント
+                </span>
+                <span className="ml-2">サブドメインは自動生成されます（セキュリティ向上のため）</span>
+              </p>
             </div>
           </div>
         </div>
