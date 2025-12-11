@@ -12,10 +12,11 @@ interface Site {
 
 interface AttendanceWidgetProps {
   attendanceSettings: {
-    clock_method: 'manual' | 'qr_code' | 'location'
-    allow_manual: boolean
-    allow_qr: boolean
-    allow_location: boolean
+    office_attendance_enabled: boolean
+    site_attendance_enabled: boolean
+    office_clock_methods: any  // jsonb型
+    site_clock_methods: any    // jsonb型
+    site_qr_type: string
   } | null
   sites: Site[]
 }
@@ -41,8 +42,11 @@ export function AttendanceWidget({ attendanceSettings, sites }: AttendanceWidget
   const [location, setLocation] = useState<'office' | 'site' | ''>('')
   const [selectedSiteId, setSelectedSiteId] = useState<string>('')
 
-  const canUseManual = attendanceSettings?.allow_manual || false
-  const canUseQR = attendanceSettings?.allow_qr || false
+  // 新しい構造から判定：office_clock_methodsまたはsite_clock_methodsでmanualまたはqr_scanが有効か
+  const canUseManual = attendanceSettings ?
+    (attendanceSettings.office_clock_methods?.manual || attendanceSettings.site_clock_methods?.manual) : false
+  const canUseQR = attendanceSettings ?
+    (attendanceSettings.office_clock_methods?.qr_scan || attendanceSettings.site_clock_methods?.qr_scan) : false
 
   // 当日の出退勤記録を取得
   useEffect(() => {

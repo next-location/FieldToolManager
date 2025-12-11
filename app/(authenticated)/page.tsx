@@ -73,11 +73,15 @@ export default async function Home() {
     .single()
 
   // 出退勤設定を取得
-  const { data: attendanceSettings } = await supabase
+  const { data: attendanceSettings, error: attendanceError } = await supabase
     .from('organization_attendance_settings')
     .select('office_attendance_enabled, site_attendance_enabled, office_clock_methods, site_clock_methods, site_qr_type')
     .eq('organization_id', userData?.organization_id)
     .single()
+
+  if (attendanceError) {
+    console.error('[DASHBOARD] Error fetching attendance settings:', attendanceError)
+  }
 
   // アクティブな現場リストを取得（出退勤用）
   const { data: sites } = await supabase
