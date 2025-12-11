@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
 import { setSuperAdminAuditContext } from '@/lib/supabase/audit-context';
+import { generateUniqueSubdomain } from '@/lib/utils/subdomain';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,18 +18,8 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    // サブドメインの重複チェック
-    if (body.subdomain) {
-      const { data: existing } = await supabase
-        .from('organizations')
-        .select('id')
-        .eq('subdomain', body.subdomain)
-        .maybeSingle();
-
-      if (existing) {
-        return NextResponse.json({ error: 'このサブドメインは既に使用されています' }, { status: 400 });
-      }
-    }
+    // サブドメインを自動生成（セキュリティのため組織名は使わず、ランダムな文字列を生成）
+    const subdomain = await generateUniqueSubdomain(supabase);
 
     // スーパーアドミンの監査コンテキストを設定
     await setSuperAdminAuditContext(supabase, session.id, session.name);
@@ -38,7 +29,7 @@ export async function POST(request: NextRequest) {
       .from('organizations')
       .insert({
         name: body.name,
-        subdomain: body.subdomain,
+        subdomain,
         phone: body.phone || null,
         fax: body.fax || null,
         postal_code: body.postal_code || null,

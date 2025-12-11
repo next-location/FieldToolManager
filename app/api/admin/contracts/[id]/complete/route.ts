@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
+import { sendWelcomeEmail } from '@/lib/email/welcome';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -192,11 +193,35 @@ export async function POST(
         user_agent: request.headers.get('user-agent'),
       });
 
+
     console.log('[API /api/admin/contracts/complete] Contract completed successfully');
 
-    // TODO: ウェルカムメール送信（本番環境移行後に実装）
-    // sendWelcomeEmail(contract.admin_email, contract.admin_name, newPassword);
+    // 組織情報を取得してウェルカムメール送信
+    const { data: orgData } = await supabase
+      .from('organizations')
+      .select('name, subdomain')
+      .eq('id', contract.organization_id)
+      .single();
 
+    if (orgData && process.env.RESEND_API_KEY) {
+      try {
+        const loginUrl = `http://${orgData.subdomain}.localhost:3000`;
+        await sendWelcomeEmail({
+          toEmail: contract.admin_email,
+          adminName: contract.admin_name,
+          organizationName: orgData.name,
+          subdomain: orgData.subdomain,
+          loginUrl,
+          password: newPassword,
+        });
+        console.log('[API /api/admin/contracts/complete] Welcome email sent successfully');
+      } catch (emailError) {
+        console.error('[API /api/admin/contracts/complete] Failed to send welcome email:', emailError);
+        // メール送信失敗はエラーにしない（アカウントは既に作成済み）
+      }
+    } else {
+      console.warn('[API /api/admin/contracts/complete] Skipping welcome email (RESEND_API_KEY not set)');
+    }
     return NextResponse.json({
       success: true,
       message: '契約が完了しました。初期管理者アカウントが作成されました。',
