@@ -558,7 +558,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                   >
                     現場マスタ
                   </Link>
-                  {isAdmin && (
+                  {isAdmin && hasAssetPackage && (
                     <div>
                       <Link
                         href="/warehouse-locations"
