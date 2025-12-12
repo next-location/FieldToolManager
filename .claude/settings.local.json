@@ -6,7 +6,10 @@
       "Bash(npm install:*)",
       "Bash(mkdir:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(cat:*)",
+      "Bash(docker ps:*)",
+      "Bash(npx tsx:*)"
     ],
     "deny": [],
     "ask": []
