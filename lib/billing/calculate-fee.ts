@@ -2,32 +2,40 @@
  * 契約情報から月額料金を計算
  *
  * 料金体系:
- * - 基本料金（人数ベース）: 契約で個別設定
- * - パッケージ料金:
- *   - 現場資産パック: ¥18,000
- *   - 現場DX業務効率化パック: ¥22,000
- *   - フル機能統合パック: ¥32,000（両方の割引適用）
- * - 初期費用: 初回のみ（契約で個別設定）
- * - 割引: 初回のみ（契約で個別設定）
+ * 月額料金 = 基本プラン料金（人数ベース） + 機能パック料金
+ *
+ * 【基本プラン】（いずれか1つ）:
+ * - スタート（~10名）: ¥18,000
+ * - スタンダード（11~30名）: ¥45,000
+ * - ビジネス（31~50名）: ¥70,000
+ * - プロ（51~100名）: ¥120,000
+ * - エンタープライズ（101名~）: 要相談
+ *
+ * 【機能パック】（いずれか1つ）:
+ * - 現場資産パックのみ: ¥18,000
+ * - 現場DXパックのみ: ¥22,000
+ * - フル機能統合パック: ¥32,000
+ *
+ * 初期費用・割引: 初回請求のみ適用
  */
 
 export interface Contract {
   id: string;
   organization_id: string;
-  plan: 'basic' | 'standard' | 'premium';
+  plan: 'start' | 'standard' | 'business' | 'pro' | 'enterprise' | 'basic' | 'premium'; // basic,premiumは旧データ用
   user_count: number;
 
-  // パッケージ選択
-  has_asset_package: boolean;
-  has_dx_efficiency_package: boolean;
-  has_both_packages: boolean;
+  // パッケージ選択（いずれか1つのみtrue）
+  has_asset_package: boolean;         // 現場資産パックのみ
+  has_dx_efficiency_package: boolean; // 現場DXパックのみ
+  has_both_packages: boolean;         // フル機能統合パック
 
-  // 初期費用・割引
+  // 初期費用・割引（初回のみ）
   initial_setup_fee: number;
   initial_discount: number; // パーセンテージ（例: 10 = 10%）
 
-  // 個別設定料金
-  monthly_base_fee?: number; // 人数ベース基本料金（個別設定）
+  // 基本プラン料金（契約で個別設定）
+  monthly_base_fee?: number; // 人数ベース基本料金
 
   // Stripe情報
   stripe_customer_id: string | null;
@@ -85,7 +93,28 @@ export function calculateMonthlyFee(contract: Contract): MonthlyFeeCalculation {
   let subtotal = 0;
   const firstInvoice = isFirstInvoice(contract);
 
-  // 1. パッケージ料金
+  // 1. 基本プラン料金（人数ベース）
+  if (contract.monthly_base_fee && contract.monthly_base_fee > 0) {
+    const planNames: Record<string, string> = {
+      start: 'スタート',
+      standard: 'スタンダード',
+      business: 'ビジネス',
+      pro: 'プロ',
+      enterprise: 'エンタープライズ',
+      basic: 'ベーシック（旧）',
+      premium: 'プレミアム（旧）',
+    };
+    const planName = planNames[contract.plan] || contract.plan;
+
+    items.push({
+      description: `基本プラン（${planName}・${contract.user_count}名）`,
+      amount: contract.monthly_base_fee,
+      type: 'base_fee',
+    });
+    subtotal += contract.monthly_base_fee;
+  }
+
+  // 2. 機能パッケージ料金（いずれか1つのみ）
   if (contract.has_both_packages) {
     // フル機能統合パック
     items.push({
@@ -94,35 +123,22 @@ export function calculateMonthlyFee(contract: Contract): MonthlyFeeCalculation {
       type: 'package',
     });
     subtotal += PACKAGE_PRICING.both;
-  } else {
-    // 個別パッケージ
-    if (contract.has_asset_package) {
-      items.push({
-        description: '現場資産パック',
-        amount: PACKAGE_PRICING.asset,
-        type: 'package',
-      });
-      subtotal += PACKAGE_PRICING.asset;
-    }
-
-    if (contract.has_dx_efficiency_package) {
-      items.push({
-        description: '現場DX業務効率化パック',
-        amount: PACKAGE_PRICING.dx,
-        type: 'package',
-      });
-      subtotal += PACKAGE_PRICING.dx;
-    }
-  }
-
-  // 2. 基本料金（人数ベース、個別設定）
-  if (contract.monthly_base_fee && contract.monthly_base_fee > 0) {
+  } else if (contract.has_asset_package) {
+    // 現場資産パックのみ
     items.push({
-      description: `基本料金（${contract.user_count}名）`,
-      amount: contract.monthly_base_fee,
-      type: 'base_fee',
+      description: '現場資産パック',
+      amount: PACKAGE_PRICING.asset,
+      type: 'package',
     });
-    subtotal += contract.monthly_base_fee;
+    subtotal += PACKAGE_PRICING.asset;
+  } else if (contract.has_dx_efficiency_package) {
+    // 現場DXパックのみ
+    items.push({
+      description: '現場DX業務効率化パック',
+      amount: PACKAGE_PRICING.dx,
+      type: 'package',
+    });
+    subtotal += PACKAGE_PRICING.dx;
   }
 
   // 3. 初期費用（初回のみ）
