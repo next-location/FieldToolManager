@@ -113,6 +113,75 @@ npm run health-check
 
 ## 3. マイグレーション履歴
 
+### 💳 Stripe Billing統合（2025-12-12）
+
+#### 20251212000012_stripe_integration.sql ✨NEW
+```sql
+-- Stripe Billing統合のためのデータベース拡張
+-- organizationsテーブル拡張、stripe_events、plan_change_requests、invoice_schedulesテーブル追加
+```
+
+**適用日**: 2025-12-12
+**適用環境**: 未適用（Docker起動後に実行予定）
+**影響範囲**: `organizations`, `invoices`テーブルの拡張、新規テーブル3つ追加
+**実装計画書**: `docs/STRIPE_BILLING_IMPLEMENTATION_PLAN.md`
+
+**変更内容**:
+1. **organizationsテーブル拡張**:
+   - `stripe_customer_id` (TEXT UNIQUE): Stripe Customer ID
+   - `stripe_subscription_id` (TEXT): Stripe Subscription ID
+   - `billing_cycle_day` (INTEGER): 毎月の請求日（1-28）
+   - `initial_setup_fee_paid` (BOOLEAN): 初回導入費用支払済みフラグ
+   - `payment_method` (TEXT): 支払方法（invoice/card）
+
+2. **stripe_eventsテーブル作成**:
+   - Stripe Webhookイベントの記録
+   - 重複処理防止とリトライ管理
+
+3. **plan_change_requestsテーブル作成**:
+   - プラン変更申請の管理
+   - アップグレード・ダウングレード対応
+
+4. **invoice_schedulesテーブル作成**:
+   - 次回請求スケジュールの管理
+   - 請求日・金額の追跡
+
+5. **Row Level Security (RLS)**:
+   - 全テーブルにRLSを設定
+   - 組織単位のアクセス制御
+
+6. **invoicesテーブル拡張**:
+   - `stripe_invoice_id` (TEXT UNIQUE): Stripe Invoice IDとの連携
+
+**ロールバック手順**:
+```sql
+-- テーブル削除
+DROP TABLE IF EXISTS invoice_schedules CASCADE;
+DROP TABLE IF EXISTS plan_change_requests CASCADE;
+DROP TABLE IF EXISTS stripe_events CASCADE;
+
+-- organizationsテーブルのカラム削除
+ALTER TABLE organizations
+  DROP COLUMN IF EXISTS stripe_customer_id,
+  DROP COLUMN IF EXISTS stripe_subscription_id,
+  DROP COLUMN IF EXISTS billing_cycle_day,
+  DROP COLUMN IF EXISTS initial_setup_fee_paid,
+  DROP COLUMN IF EXISTS payment_method;
+
+-- invoicesテーブルのカラム削除
+ALTER TABLE invoices
+  DROP COLUMN IF EXISTS stripe_invoice_id;
+```
+
+**関連ファイル**:
+- `lib/stripe/client.ts`: Stripe Client初期化
+- `app/api/stripe/customers/create/route.ts`: Customer作成API
+- `app/api/stripe/subscriptions/create/route.ts`: Subscription作成API
+- `app/api/webhooks/stripe/route.ts`: Webhook受信エンドポイント
+- `scripts/setup-stripe-products.ts`: Products & Prices作成スクリプト
+
+---
+
 ### 🔒 セキュリティ: スーパーアドミンテーブルRLS有効化（2025-12-09）
 
 #### 20251209000002_enable_super_admins_rls.sql ✅ APPLIED
