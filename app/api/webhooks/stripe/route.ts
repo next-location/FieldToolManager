@@ -191,9 +191,61 @@ async function handleInvoiceCreated(invoice: Stripe.Invoice) {
     logger.error('Failed to insert invoice', { invoiceId: invoice.id, error: insertError });
   }
 
-  // TODO: カスタムPDF生成とメール送信
-  // これは後続のPhaseで実装します
-  logger.info('Custom PDF generation and email sending will be implemented in next phase');
+  // カスタムPDF生成とメール送信
+  try {
+    const { generateStripeInvoicePDF } = await import('@/lib/pdf/stripe-invoice-generator');
+    const { sendStripeInvoiceEmail } = await import('@/lib/email/stripe-billing');
+
+    // 組織情報を取得
+    const { data: org } = await supabase
+      .from('organizations')
+      .select('name, billing_address, email, phone, payment_method')
+      .eq('id', organizationId)
+      .single();
+
+    if (!org) {
+      logger.error('Organization not found', { organizationId });
+      return;
+    }
+
+    // PDF生成
+    const pdfBuffer = await generateStripeInvoicePDF({
+      invoiceNumber: invoice.number || `STRIPE-${invoice.id}`,
+      invoiceDate: new Date(invoice.created * 1000).toISOString().split('T')[0],
+      dueDate: invoice.due_date ? new Date(invoice.due_date * 1000).toISOString().split('T')[0] : '',
+      paymentMethod: org.payment_method || 'invoice',
+      organization: {
+        name: org.name,
+        email: org.email,
+        phone: org.phone,
+      },
+      items: invoice.lines.data.map((line) => ({
+        description: line.description || '',
+        quantity: line.quantity || 1,
+        unitPrice: (line.price?.unit_amount || 0) / 100,
+        amount: (line.amount || 0) / 100,
+      })),
+      subtotal: (invoice.subtotal || 0) / 100,
+      tax: (invoice.tax || 0) / 100,
+      total: (invoice.total || 0) / 100,
+    });
+
+    // メール送信
+    await sendStripeInvoiceEmail({
+      to: org.email || invoice.customer_email || '',
+      organizationName: org.name,
+      invoiceNumber: invoice.number || `STRIPE-${invoice.id}`,
+      amount: invoice.total / 100,
+      dueDate: invoice.due_date ? new Date(invoice.due_date * 1000).toISOString().split('T')[0] : '',
+      pdfBuffer,
+      paymentMethod: org.payment_method || 'invoice',
+    });
+
+    logger.info('Invoice PDF and email sent successfully', { invoiceId: invoice.id });
+
+  } catch (error) {
+    logger.error('Failed to generate PDF or send email', { invoiceId: invoice.id, error });
+  }
 }
 
 /**
@@ -238,8 +290,64 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
       });
   }
 
-  // TODO: 領収書メール送信
-  logger.info('Receipt email will be sent in next phase');
+  // 領収書PDF生成とメール送信
+  if (invoiceData) {
+    try {
+      const { generateStripeReceiptPDF } = await import('@/lib/pdf/stripe-receipt-generator');
+      const { sendStripeReceiptEmail } = await import('@/lib/email/stripe-billing');
+
+      // 組織情報を取得
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('name, billing_address, email, payment_method')
+        .eq('id', invoiceData.organization_id)
+        .single();
+
+      if (!org) {
+        logger.error('Organization not found', { organizationId: invoiceData.organization_id });
+        return;
+      }
+
+      // 領収書番号を生成（請求書番号 + 接尾辞）
+      const { data: invoiceRecord } = await supabase
+        .from('invoices')
+        .select('invoice_number')
+        .eq('id', invoiceData.id)
+        .single();
+
+      const receiptNumber = `${invoiceRecord?.invoice_number || 'R'}-${new Date().getFullYear()}`;
+
+      // PDF生成
+      const pdfBuffer = await generateStripeReceiptPDF({
+        receiptNumber,
+        receiptDate: new Date().toISOString().split('T')[0],
+        organization: {
+          name: org.name,
+        },
+        amount: invoiceData.amount * 0.9091, // 税抜き金額（逆算）
+        tax: invoiceData.amount * 0.0909, // 消費税
+        total: invoiceData.amount,
+        paymentMethod: org.payment_method === 'invoice' ? 'bank_transfer' : 'card',
+        paymentMethodLabel: org.payment_method === 'invoice' ? '銀行振込' : 'クレジットカード',
+        purpose: 'Field Tool Manager 月額利用料として',
+      });
+
+      // メール送信
+      await sendStripeReceiptEmail({
+        to: org.email || '',
+        organizationName: org.name,
+        receiptNumber,
+        amount: invoiceData.amount,
+        pdfBuffer,
+        paymentMethod: org.payment_method === 'invoice' ? 'bank_transfer' : 'card',
+      });
+
+      logger.info('Receipt PDF and email sent successfully', { invoiceId: invoice.id });
+
+    } catch (error) {
+      logger.error('Failed to generate receipt PDF or send email', { invoiceId: invoice.id, error });
+    }
+  }
 }
 
 /**
