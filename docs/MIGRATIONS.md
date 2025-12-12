@@ -189,6 +189,72 @@ ALTER TABLE invoices
 
 ---
 
+#### 20251212000014_add_stripe_to_contracts.sql ✨NEW
+```sql
+-- contractsテーブルにStripe Billing関連カラムを追加
+-- 請求日、月額料金、パッケージ情報、初期費用・割引を管理
+```
+
+**適用日**: 2025-12-12
+**適用環境**: ローカル開発環境（適用済み）
+**影響範囲**: `contracts`テーブルに9カラム追加
+
+**変更内容**:
+1. **contractsテーブル拡張**:
+   - `stripe_customer_id` (TEXT): Stripe Customer ID
+   - `billing_day` (INTEGER): 毎月の請求日（1-28、デフォルト1）
+   - `monthly_base_fee` (NUMERIC(10, 2)): 月額基本料金
+   - `has_both_packages` (BOOLEAN): 現場資産+DX効率化パック両方選択フラグ
+   - `initial_fee` (NUMERIC(10, 2)): 初期導入費用（デフォルト0）
+   - `first_month_discount` (NUMERIC(10, 2)): 初月割引額（デフォルト0）
+   - `user_count` (INTEGER): ユーザー数（デフォルト10）
+   - `has_asset_package` (BOOLEAN): 現場資産パック選択フラグ
+   - `has_dx_efficiency_package` (BOOLEAN): DX効率化パック選択フラグ
+
+**ロールバック手順**:
+```sql
+ALTER TABLE contracts
+  DROP COLUMN IF EXISTS stripe_customer_id,
+  DROP COLUMN IF EXISTS billing_day,
+  DROP COLUMN IF EXISTS monthly_base_fee,
+  DROP COLUMN IF EXISTS has_both_packages,
+  DROP COLUMN IF EXISTS initial_fee,
+  DROP COLUMN IF EXISTS first_month_discount,
+  DROP COLUMN IF EXISTS user_count,
+  DROP COLUMN IF EXISTS has_asset_package,
+  DROP COLUMN IF EXISTS has_dx_efficiency_package;
+```
+
+---
+
+#### 20251212000015_add_stripe_columns_to_invoices.sql ✨NEW
+```sql
+-- invoicesテーブルにStripe Billing連携カラムを追加
+-- 請求タイプ、支払ステータス、決済方法を管理
+```
+
+**適用日**: 2025-12-12
+**適用環境**: ローカル開発環境（適用済み）
+**影響範囲**: `invoices`テーブルに4カラム追加
+
+**変更内容**:
+1. **invoicesテーブル拡張**:
+   - `invoice_type` (TEXT): 請求タイプ（manual/stripe、デフォルトstripe）
+   - `payment_status` (TEXT): 支払ステータス（unpaid/paid/failed/pending、デフォルトunpaid）
+   - `payment_method` (TEXT): 支払方法（invoice/card）
+   - `stripe_payment_intent_id` (TEXT): Stripe Payment Intent ID
+
+**ロールバック手順**:
+```sql
+ALTER TABLE invoices
+  DROP COLUMN IF EXISTS invoice_type,
+  DROP COLUMN IF EXISTS payment_status,
+  DROP COLUMN IF EXISTS payment_method,
+  DROP COLUMN IF EXISTS stripe_payment_intent_id;
+```
+
+---
+
 #### 20251212000013_add_reminder_sent_flag.sql ✨NEW
 ```sql
 -- invoice_schedulesテーブルにreminder_sentフラグを追加

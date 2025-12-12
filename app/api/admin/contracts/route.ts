@@ -94,16 +94,20 @@ export async function POST(request: NextRequest) {
         plan: body.plan,
         has_asset_package: hasAssetPackage,
         has_dx_efficiency_package: hasDxPackage,
+        has_both_packages: hasFullIntegrationPackage, // フル機能統合パック
         user_limit: body.userLimit,
+        user_count: body.userLimit, // Stripe請求用
         base_monthly_fee: body.baseMonthlyFee,
         package_monthly_fee: body.packageMonthlyFee,
         total_monthly_fee: body.totalMonthlyFee,
         monthly_fee: body.totalMonthlyFee, // 後方互換性のため
+        monthly_base_fee: body.baseMonthlyFee, // Stripe請求用
         start_date: body.startDate,
         end_date: body.endDate || null,
         auto_renew: body.autoRenew,
         trial_end_date: body.trialEndDate || null,
         billing_cycle: body.contractType,
+        billing_day: body.billingDay || 1, // 請求日（デフォルト1日）
         status: 'draft', // 🔥 契約準備中ステータス
 
         // 初期費用
@@ -113,6 +117,8 @@ export async function POST(request: NextRequest) {
         initial_training_fee: body.initialTrainingFee || 0,
         initial_other_fee: body.initialOtherFee || 0,
         initial_discount: body.initialDiscount || 0,
+        initial_fee: body.totalInitialFee || 0, // Stripe請求用
+        first_month_discount: body.initialDiscount || 0, // Stripe請求用
         total_initial_fee: body.totalInitialFee || 0,
 
         // 請求情報
@@ -129,6 +135,7 @@ export async function POST(request: NextRequest) {
 
         notes: body.notes || null,
         super_admin_created_by: session.id, // スーパーアドミンが作成
+        // stripe_customer_idは契約完了時に設定
       })
       .select()
       .single();

@@ -9,7 +9,13 @@
       "Bash(git commit:*)",
       "Bash(cat:*)",
       "Bash(docker ps:*)",
-      "Bash(npx tsx:*)"
+      "Bash(npx tsx:*)",
+      "Bash(sudo rm:*)",
+      "Bash(sudo xcode-select:*)",
+      "Read(//Users/youichiakashi/Desktop/**)",
+      "Bash(docker exec:*)",
+      "Bash(docker logs:*)",
+      "Bash(psql:*)"
     ],
     "deny": [],
     "ask": []

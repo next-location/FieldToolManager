@@ -2,8 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import { stripe } from '@/lib/stripe/client';
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 /**
  * Stripe Webhook受信エンドポイント
@@ -56,7 +61,6 @@ export async function POST(request: NextRequest) {
   }
 
   // イベントIDの重複チェック（べき等性確保）
-  const supabase = await createClient();
   const { data: existingEvent } = await supabase
     .from('stripe_events')
     .select('id')
@@ -164,7 +168,6 @@ export async function POST(request: NextRequest) {
 async function handleInvoiceCreated(invoice: Stripe.Invoice) {
   logger.info('Handling invoice.created', { invoiceId: invoice.id });
 
-  const supabase = await createClient();
 
   // 組織IDを取得
   const organizationId = invoice.metadata?.organization_id;
@@ -255,7 +258,6 @@ async function handleInvoiceCreated(invoice: Stripe.Invoice) {
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
   logger.info('Handling invoice.payment_succeeded', { invoiceId: invoice.id });
 
-  const supabase = await createClient();
 
   // invoicesテーブルを更新
   const { error: updateError } = await supabase
@@ -357,7 +359,6 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
 async function handlePaymentFailed(invoice: Stripe.Invoice) {
   logger.error('Payment failed', { invoiceId: invoice.id });
 
-  const supabase = await createClient();
 
   // invoicesテーブルを更新
   await supabase
@@ -379,7 +380,6 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   logger.info('Handling subscription.updated', { subscriptionId: subscription.id });
 
-  const supabase = await createClient();
   const organizationId = subscription.metadata?.organization_id;
 
   if (!organizationId) {
@@ -408,7 +408,6 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   logger.info('Handling subscription.deleted', { subscriptionId: subscription.id });
 
-  const supabase = await createClient();
   const organizationId = subscription.metadata?.organization_id;
 
   if (!organizationId) {

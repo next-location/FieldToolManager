@@ -154,9 +154,9 @@ export function calculateMonthlyFee(contract: Contract): MonthlyFeeCalculation {
   // 4. 割引計算（初回のみ）
   let discount = 0;
   if (firstInvoice && contract.initial_discount > 0) {
-    discount = Math.floor(subtotal * (contract.initial_discount / 100));
+    discount = contract.initial_discount; // 金額をそのまま使用
     items.push({
-      description: `初回割引（${contract.initial_discount}%）`,
+      description: `初回割引`,
       amount: -discount,
       type: 'discount',
     });

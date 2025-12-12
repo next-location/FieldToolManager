@@ -70,6 +70,7 @@ export default function NewContractForm({ organizations, packages, superAdminId 
     endDate: '',
     autoRenew: true,
     trialEndDate: '',
+    billingDay: new Date().getDate(), // 請求日（今日の日付をデフォルト）
     initialSetupFee: 10000,
     initialDataRegistrationFee: '',
     initialOnsiteFee: '',
@@ -374,6 +375,20 @@ export default function NewContractForm({ organizations, packages, superAdminId 
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">請求日（毎月） <span className="text-red-500">*</span></label>
+            <select
+              required
+              value={formData.billingDay}
+              onChange={(e) => setFormData({ ...formData, billingDay: parseInt(e.target.value) })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E6FFF]"
+            >
+              {Array.from({ length: 28 }, (_, i) => i + 1).map(day => (
+                <option key={day} value={day}>{day}日</option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 mt-1">毎月この日に請求書が自動生成されます</p>
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">トライアル終了日（任意）</label>
             <input type="date" value={formData.trialEndDate} onChange={(e) => setFormData({ ...formData, trialEndDate: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E6FFF]"/>

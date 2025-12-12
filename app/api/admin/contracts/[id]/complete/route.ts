@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
 import { sendWelcomeEmail } from '@/lib/email/welcome';
+import { setupContractBilling } from '@/lib/billing/setup-contract-billing';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -135,6 +136,38 @@ export async function POST(
 
     console.log('[API /api/admin/contracts/complete] User record created successfully');
 
+    // 組織情報を取得（Stripe Customer作成用）
+    const { data: orgData, error: orgError } = await supabase
+      .from('organizations')
+      .select('name, subdomain, payment_method')
+      .eq('id', contract.organization_id)
+      .single();
+
+    if (orgError || !orgData) {
+      console.error('[API /api/admin/contracts/complete] Organization not found:', orgError);
+      return NextResponse.json({
+        error: '組織情報の取得に失敗しました',
+        details: orgError?.message,
+      }, { status: 500 });
+    }
+
+    // Stripe Customerを作成
+    console.log('[API /api/admin/contracts/complete] Creating Stripe customer...');
+    const billingResult = await setupContractBilling({
+      contractId,
+      organizationId: contract.organization_id,
+      organizationName: orgData.name,
+      email: contract.admin_email,
+      paymentMethod: orgData.payment_method || 'invoice',
+    });
+
+    if (!billingResult.success) {
+      console.error('[API /api/admin/contracts/complete] Stripe customer creation failed:', billingResult.error);
+      // Stripe作成失敗はエラーにしない（後で手動で作成可能）
+    } else {
+      console.log('[API /api/admin/contracts/complete] Stripe customer created:', billingResult.customerId);
+    }
+
     // 契約を更新: ステータスをactiveに、管理者情報をクリア、完了日時を記録
     const { error: updateError } = await supabase
       .from('contracts')
@@ -196,13 +229,7 @@ export async function POST(
 
     console.log('[API /api/admin/contracts/complete] Contract completed successfully');
 
-    // 組織情報を取得してウェルカムメール送信
-    const { data: orgData } = await supabase
-      .from('organizations')
-      .select('name, subdomain')
-      .eq('id', contract.organization_id)
-      .single();
-
+    // ウェルカムメール送信（orgDataは既に取得済み）
     if (orgData && (process.env.RESEND_API_KEY || process.env.SMTP_HOST)) {
       try {
         const loginUrl = `http://${orgData.subdomain}.localhost:3000`;

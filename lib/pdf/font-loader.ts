@@ -9,26 +9,14 @@ import path from 'path';
  */
 export async function loadNotoSansJP(doc: jsPDF): Promise<void> {
   try {
-    const fontPath = path.join(process.cwd(), 'public', 'fonts', 'NotoSansJP-Regular.ttf');
+    const fontPath = path.join(process.cwd(), 'lib', 'pdf', 'fonts', 'NotoSansJP-Regular.ttf');
     const fontData = fs.readFileSync(fontPath);
     const fontBase64 = fontData.toString('base64');
 
-    // 日本語フォントを登録
+    // 日本語フォントを登録（normalとbold両方に同じフォントを使用）
     doc.addFileToVFS('NotoSansJP-Regular.ttf', fontBase64);
     doc.addFont('NotoSansJP-Regular.ttf', 'NotoSansJP', 'normal');
-
-    // 必要に応じてBoldフォントも読み込む
-    try {
-      const fontBoldPath = path.join(process.cwd(), 'public', 'fonts', 'NotoSansJP-Bold.ttf');
-      const fontBoldData = fs.readFileSync(fontBoldPath);
-      const fontBoldBase64 = fontBoldData.toString('base64');
-
-      doc.addFileToVFS('NotoSansJP-Bold.ttf', fontBoldBase64);
-      doc.addFont('NotoSansJP-Bold.ttf', 'NotoSansJP', 'bold');
-    } catch {
-      // Boldフォントがない場合はスキップ
-      console.warn('NotoSansJP-Bold.ttf not found, using normal font for bold');
-    }
+    doc.addFont('NotoSansJP-Regular.ttf', 'NotoSansJP', 'bold');
 
   } catch (error) {
     console.error('Failed to load Japanese font:', error);

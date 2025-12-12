@@ -901,12 +901,29 @@ CREATE TABLE contracts (
   end_date DATE,
   auto_renew BOOLEAN DEFAULT false,
   monthly_fee DECIMAL(10, 2) NOT NULL,
-  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'expired', 'cancelled')),
+  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'expired', 'cancelled', 'draft', 'pending')),
   billing_contact_name TEXT,
   billing_contact_email TEXT,
   billing_contact_phone TEXT,
   billing_address TEXT,
   notes TEXT,
+
+  -- Stripe Billing統合（2025-12-12追加）
+  stripe_customer_id TEXT UNIQUE,
+  billing_day INTEGER DEFAULT 1 CHECK (billing_day BETWEEN 1 AND 28),
+  monthly_base_fee DECIMAL(10, 2),
+  has_both_packages BOOLEAN DEFAULT false,
+  initial_fee DECIMAL(10, 2) DEFAULT 0,
+  first_month_discount DECIMAL(10, 2) DEFAULT 0,
+  user_count INTEGER DEFAULT 10,
+
+  -- パッケージ選択（2025-12-12追加）
+  has_asset_package BOOLEAN DEFAULT false,
+  has_dx_efficiency_package BOOLEAN DEFAULT false,
+  admin_email TEXT,
+  initial_setup_fee DECIMAL(10, 2) DEFAULT 0,
+  initial_discount DECIMAL(10, 2) DEFAULT 0,
+
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -926,13 +943,14 @@ CREATE TABLE invoices (
   organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   contract_id UUID REFERENCES contracts(id) ON DELETE SET NULL,
   invoice_number TEXT UNIQUE NOT NULL,
-  billing_period_start DATE NOT NULL,
-  billing_period_end DATE NOT NULL,
-  subtotal DECIMAL(10, 2) NOT NULL,
-  tax DECIMAL(10, 2) NOT NULL,
-  total DECIMAL(10, 2) NOT NULL,
+  invoice_date DATE NOT NULL,
+  billing_period_start DATE,
+  billing_period_end DATE,
   due_date DATE NOT NULL,
-  status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'sent', 'paid', 'overdue', 'cancelled')),
+  subtotal DECIMAL(10, 2) NOT NULL DEFAULT 0,
+  tax DECIMAL(10, 2) NOT NULL DEFAULT 0,
+  total DECIMAL(10, 2) NOT NULL DEFAULT 0,
+  status TEXT DEFAULT 'pending' CHECK (status IN ('draft', 'sent', 'paid', 'overdue', 'cancelled', 'pending')),
   sent_date TIMESTAMP,
   paid_date TIMESTAMP,
   pdf_url TEXT,
@@ -940,6 +958,10 @@ CREATE TABLE invoices (
 
   -- Stripe Billing統合（2025-12-12追加）
   stripe_invoice_id TEXT UNIQUE,
+  invoice_type TEXT DEFAULT 'stripe' CHECK (invoice_type IN ('manual', 'stripe')),
+  payment_status TEXT DEFAULT 'unpaid' CHECK (payment_status IN ('unpaid', 'paid', 'failed', 'pending')),
+  payment_method TEXT CHECK (payment_method IN ('invoice', 'card')),
+  stripe_payment_intent_id TEXT,
 
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()

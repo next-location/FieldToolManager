@@ -34,13 +34,13 @@ export async function sendStripeInvoiceEmail(params: {
     } : undefined,
   });
 
-  const subject = `【Field Tool Manager】ご請求書（${invoiceNumber}）`;
+  const subject = `【ザイロク】ご請求書（${invoiceNumber}）`;
 
   const bodyText = paymentMethod === 'invoice'
     ? `
 ${organizationName} 御中
 
-いつもField Tool Managerをご利用いただき、誠にありがとうございます。
+いつもザイロクをご利用いただき、誠にありがとうございます。
 
 今月分のご請求書をお送りいたします。
 添付のPDFファイルをご確認の上、期日までにお支払いくださいますようお願い申し上げます。
@@ -61,7 +61,7 @@ ${organizationName} 御中
 支店名: ○○支店
 口座種別: 普通預金
 口座番号: 1234567
-口座名義: カ）フィールドツールマネージャー
+口座名義: カ）ザイロク
 
 ※ 振込手数料はお客様ご負担でお願いいたします
 
@@ -69,14 +69,14 @@ ${organizationName} 御中
 
 ご不明な点がございましたら、お気軽にお問い合わせください。
 
-今後ともField Tool Managerをよろしくお願いいたします。
+今後ともザイロクをよろしくお願いいたします。
 
 ────────────────────────────
-株式会社Field Tool Manager
+株式会社ザイロク
 〒100-0001 東京都千代田区○○1-2-3
 TEL: 03-1234-5678
-Email: billing@fieldtool.com
-Web: https://fieldtool.com
+Email: billing@zairoku.com
+Web: https://zairoku.com
 ────────────────────────────
 
 ※ このメールは自動送信されています。
@@ -84,7 +84,7 @@ Web: https://fieldtool.com
     : `
 ${organizationName} 御中
 
-いつもField Tool Managerをご利用いただき、誠にありがとうございます。
+いつもザイロクをご利用いただき、誠にありがとうございます。
 
 今月分のお支払いが完了いたしました。
 領収書は別途お送りいたします。
@@ -102,14 +102,14 @@ ${organizationName} 御中
 
 ご不明な点がございましたら、お気軽にお問い合わせください。
 
-今後ともField Tool Managerをよろしくお願いいたします。
+今後ともザイロクをよろしくお願いいたします。
 
 ────────────────────────────
-株式会社Field Tool Manager
+株式会社ザイロク
 〒100-0001 東京都千代田区○○1-2-3
 TEL: 03-1234-5678
-Email: billing@fieldtool.com
-Web: https://fieldtool.com
+Email: billing@zairoku.com
+Web: https://zairoku.com
 ────────────────────────────
 
 ※ このメールは自動送信されています。
@@ -177,7 +177,7 @@ export async function sendStripeReceiptEmail(params: {
     } : undefined,
   });
 
-  const subject = `【Field Tool Manager】領収書（${receiptNumber}）`;
+  const subject = `【ザイロク】領収書（${receiptNumber}）`;
 
   const paymentMethodLabel =
     paymentMethod === 'bank_transfer' ? '銀行振込' :
@@ -187,7 +187,7 @@ export async function sendStripeReceiptEmail(params: {
   const bodyText = `
 ${organizationName} 御中
 
-いつもField Tool Managerをご利用いただき、誠にありがとうございます。
+いつもザイロクをご利用いただき、誠にありがとうございます。
 
 ご入金を確認いたしましたので、領収書をお送りいたします。
 添付のPDFファイルをご確認ください。
@@ -206,14 +206,14 @@ ${organizationName} 御中
 
 ご不明な点がございましたら、お気軽にお問い合わせください。
 
-今後ともField Tool Managerをよろしくお願いいたします。
+今後ともザイロクをよろしくお願いいたします。
 
 ────────────────────────────
-株式会社Field Tool Manager
+株式会社ザイロク
 〒100-0001 東京都千代田区○○1-2-3
 TEL: 03-1234-5678
-Email: billing@fieldtool.com
-Web: https://fieldtool.com
+Email: billing@zairoku.com
+Web: https://zairoku.com
 ────────────────────────────
 
 ※ このメールは自動送信されています。

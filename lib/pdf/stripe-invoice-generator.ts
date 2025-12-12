@@ -252,9 +252,9 @@ export async function generateStripeInvoicePDF(data: StripeInvoiceData): Promise
   const footerY = 280;
   doc.setFontSize(9);
   doc.setFont('NotoSansJP', 'normal');
-  doc.text('株式会社Field Tool Manager', 15, footerY);
+  doc.text('株式会社ザイロク', 15, footerY);
   doc.text('〒100-0001 東京都千代田区○○1-2-3', 15, footerY + 5);
-  doc.text('TEL: 03-1234-5678  Email: billing@fieldtool.com', 15, footerY + 10);
+  doc.text('TEL: 03-1234-5678  Email: billing@zairoku.com', 15, footerY + 10);
 
   // PDFをBufferに変換
   const pdfBuffer = Buffer.from(doc.output('arraybuffer'));

@@ -1,4 +1,12 @@
-# Field Tool Management Web App Development Plan
+# ザイロク (Zairoku) - Field Tool Management Web App Development Plan
+
+## Service Name 📛
+
+**公式サービス名: ザイロク (Zairoku)**
+
+- すべてのコード、メール、ドキュメント、UI表示で「ザイロク」を使用してください
+- 英語表記が必要な場合は「Zairoku」を使用してください
+- 旧称「Field Tool Manager」は使用しないでください
 
 ## Language Instruction 🗣️
 

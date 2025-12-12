@@ -6,8 +6,13 @@
  */
 
 import { stripe } from '@/lib/stripe/client';
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export interface SetupContractBillingParams {
   contractId: string;
@@ -42,7 +47,6 @@ export async function setupContractBilling(
     });
 
     // 既存のStripe Customerがあるか確認
-    const supabase = await createClient();
     const { data: existingContract } = await supabase
       .from('contracts')
       .select('stripe_customer_id')
