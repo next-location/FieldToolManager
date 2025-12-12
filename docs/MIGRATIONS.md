@@ -115,6 +115,13 @@ npm run health-check
 
 ### 💳 Stripe Billing統合（2025-12-12）
 
+> **実装方式**: A方式（Invoice Item方式）
+>
+> - Stripe Subscriptionは使用しない
+> - 毎月の請求は`/api/cron/create-monthly-invoices`で自動生成
+> - 料金計算: `lib/billing/calculate-fee.ts`で動的計算
+> - 完全ドキュメント: [docs/STRIPE_BILLING_A_METHOD.md](./STRIPE_BILLING_A_METHOD.md)
+
 #### 20251212000012_stripe_integration.sql ✨NEW
 ```sql
 -- Stripe Billing統合のためのデータベース拡張
@@ -124,7 +131,7 @@ npm run health-check
 **適用日**: 2025-12-12
 **適用環境**: 未適用（Docker起動後に実行予定）
 **影響範囲**: `organizations`, `invoices`テーブルの拡張、新規テーブル3つ追加
-**実装計画書**: `docs/STRIPE_BILLING_IMPLEMENTATION_PLAN.md`
+**実装方式**: A方式（Invoice Item方式） - `docs/STRIPE_BILLING_A_METHOD.md`参照
 
 **変更内容**:
 1. **organizationsテーブル拡張**:

@@ -983,6 +983,13 @@ ALTER TABLE payment_records ENABLE ROW LEVEL SECURITY;
 
 ### 2.8 Stripe Billing統合テーブル（2025-12-12追加）
 
+> **実装方式**: A方式（Invoice Item方式）
+>
+> - Stripe Subscriptionは使用しない
+> - 毎月の請求は`/api/cron/create-monthly-invoices`で自動生成
+> - 料金計算: `lib/billing/calculate-fee.ts`で動的計算
+> - 詳細: [docs/STRIPE_BILLING_A_METHOD.md](./STRIPE_BILLING_A_METHOD.md)
+
 #### stripe_events (Stripe Webhookイベント記録)
 ```sql
 CREATE TABLE stripe_events (
