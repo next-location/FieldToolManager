@@ -109,6 +109,31 @@ export async function POST(request: NextRequest) {
       paymentMethod,
     });
 
+    // 初期導入費用の追加（一回限り）
+    const { data: org } = await supabase
+      .from('organizations')
+      .select('initial_setup_fee_paid')
+      .eq('id', organizationId)
+      .single();
+
+    if (!org?.initial_setup_fee_paid) {
+      logger.info('Adding initial setup fee', { organizationId });
+
+      // 初期導入費用を追加（¥50,000）
+      await stripe.invoiceItems.create({
+        customer: organization.stripe_customer_id,
+        amount: 50000, // ¥50,000
+        currency: 'jpy',
+        description: '初期導入費用（一回限り）',
+      });
+
+      // フラグ更新
+      await supabase
+        .from('organizations')
+        .update({ initial_setup_fee_paid: true })
+        .eq('id', organizationId);
+    }
+
     // Stripe Subscription作成
     const subscription = await stripe.subscriptions.create({
       customer: organization.stripe_customer_id,

@@ -1090,6 +1090,7 @@ CREATE TABLE invoice_schedules (
   next_amount DECIMAL(10, 2) NOT NULL,
   stripe_subscription_id TEXT NOT NULL,
   stripe_price_id TEXT NOT NULL,
+  reminder_sent BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -1097,6 +1098,7 @@ CREATE TABLE invoice_schedules (
 COMMENT ON TABLE invoice_schedules IS '次回請求スケジュール';
 COMMENT ON COLUMN invoice_schedules.billing_day IS '毎月の請求日（1-28日）';
 COMMENT ON COLUMN invoice_schedules.next_invoice_date IS '次回請求予定日';
+COMMENT ON COLUMN invoice_schedules.reminder_sent IS '請求書発行前リマインダーメール送信済みフラグ（3日前に送信）';
 
 CREATE INDEX idx_invoice_schedules_organization_id ON invoice_schedules(organization_id);
 CREATE INDEX idx_invoice_schedules_next_invoice_date ON invoice_schedules(next_invoice_date);

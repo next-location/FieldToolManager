@@ -182,6 +182,42 @@ ALTER TABLE invoices
 
 ---
 
+#### 20251212000013_add_reminder_sent_flag.sql ✨NEW
+```sql
+-- invoice_schedulesテーブルにreminder_sentフラグを追加
+-- リマインダーメール送信の重複防止のため
+```
+
+**適用日**: 2025-12-12
+**適用環境**: 未適用（Docker起動後に実行予定）
+**影響範囲**: `invoice_schedules`テーブルにカラム追加、トリガー追加
+
+**変更内容**:
+1. **invoice_schedulesテーブル拡張**:
+   - `reminder_sent` (BOOLEAN DEFAULT false): 請求書発行前リマインダーメール送信済みフラグ
+
+2. **トリガー追加**:
+   - `reset_reminder_sent_on_date_change()`: next_invoice_dateが変更されたらreminder_sentをfalseにリセット
+   - リマインダーメールの重複送信を防ぐ
+
+**ロールバック手順**:
+```sql
+-- トリガー削除
+DROP TRIGGER IF EXISTS reset_reminder_sent_trigger ON invoice_schedules;
+DROP FUNCTION IF EXISTS reset_reminder_sent_on_date_change();
+
+-- カラム削除
+ALTER TABLE invoice_schedules
+  DROP COLUMN IF EXISTS reminder_sent;
+```
+
+**関連ファイル**:
+- `app/api/cron/send-invoice-reminders/route.ts`: リマインダーメール送信cron
+- `lib/email/invoice.ts`: sendInvoiceReminderEmail()関数
+- `vercel.json`: Vercel Cron設定（毎日9:00実行）
+
+---
+
 ### 🔒 セキュリティ: スーパーアドミンテーブルRLS有効化（2025-12-09）
 
 #### 20251209000002_enable_super_admins_rls.sql ✅ APPLIED
