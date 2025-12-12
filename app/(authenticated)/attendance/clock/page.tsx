@@ -24,14 +24,14 @@ export default async function AttendanceClockPage() {
   const { data: orgSettings } = await supabase
     .from('organization_attendance_settings')
     .select('clock_method, allow_manual, allow_qr, allow_location')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .single()
 
   // アクティブな現場リストを取得
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('is_active', true)
     .order('name')
 

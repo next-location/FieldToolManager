@@ -39,7 +39,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .from('attendance_records')
       .select('*')
       .eq('id', recordId)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .single()
 
     if (fetchError || !existingRecord) {
@@ -95,7 +95,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         .from('sites')
         .select('id')
         .eq('id', clock_in_site_id)
-        .eq('organization_id', userData.organization_id)
+        .eq('organization_id', userData?.organization_id)
         .is('deleted_at', null)
         .single()
 
@@ -109,7 +109,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         .from('sites')
         .select('id')
         .eq('id', clock_out_site_id)
-        .eq('organization_id', userData.organization_id)
+        .eq('organization_id', userData?.organization_id)
         .is('deleted_at', null)
         .single()
 
@@ -142,7 +142,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .from('attendance_records')
       .update(updateData)
       .eq('id', recordId)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .select()
       .single()
 
@@ -196,7 +196,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       .from('attendance_records')
       .select('id')
       .eq('id', recordId)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .single()
 
     if (fetchError || !existingRecord) {
@@ -208,7 +208,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       .from('attendance_records')
       .delete()
       .eq('id', recordId)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
 
     if (deleteError) {
       console.error('Attendance record delete error:', deleteError)

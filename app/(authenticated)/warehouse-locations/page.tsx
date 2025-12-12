@@ -33,7 +33,7 @@ export default async function WarehouseLocationsPage() {
   const { data: locations } = await supabase
     .from('warehouse_locations')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .order('code')
 

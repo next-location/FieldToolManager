@@ -48,7 +48,7 @@ export default async function WorkReportsPage({
 
   // パッケージチェック
   if (userData?.organization_id) {
-    const features = await getOrganizationFeatures(userData.organization_id)
+    const features = await getOrganizationFeatures(userData?.organization_id)
     if (!hasPackage(features, 'dx')) {
       return <PackageRequired packageType="dx" featureName="作業報告書" userRole={userData.role} />
     }
@@ -123,7 +123,7 @@ export default async function WorkReportsPage({
   const { data: users } = await supabase
     .from('users')
     .select('id, name')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('is_active', true)
     .is('deleted_at', null)
     .order('name')

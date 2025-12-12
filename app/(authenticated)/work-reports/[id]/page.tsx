@@ -81,7 +81,7 @@ export default async function WorkReportDetailPage({
   const { data: orgSettings } = await supabase
     .from('organization_report_settings')
     .select('custom_fields')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .single()
 
   // カスタムフィールドのキーと表示名のマップを作成

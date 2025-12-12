@@ -29,7 +29,7 @@ export default async function EquipmentBulkQRPage() {
   const { data: orgData } = await supabase
     .from('organizations')
     .select('heavy_equipment_enabled, qr_print_size')
-    .eq('id', userData.organization_id)
+    .eq('id', userData?.organization_id)
     .single()
 
   if (!orgData?.heavy_equipment_enabled) {
@@ -48,7 +48,7 @@ export default async function EquipmentBulkQRPage() {
       qr_code,
       heavy_equipment_categories (name)
     `)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .order('name')
 

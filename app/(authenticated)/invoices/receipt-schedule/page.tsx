@@ -35,7 +35,7 @@ async function ReceiptScheduleContent() {
       status,
       client:clients(name)
     `)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .neq('status', 'cancelled')
     .order('due_date', { ascending: true })
 

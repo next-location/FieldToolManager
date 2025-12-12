@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     const { data: customFields, error } = await supabase
       .from('work_report_custom_fields')
       .select('*')
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .or(siteId ? `site_id.eq.${siteId},site_id.is.null` : 'site_id.is.null')
       .order('display_order', { ascending: true })
 
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from('work_report_custom_fields')
       .insert({
-        organization_id: userData.organization_id,
+        organization_id: userData?.organization_id,
         site_id: site_id || null,
         field_key,
         field_label,

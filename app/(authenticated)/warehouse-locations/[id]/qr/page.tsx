@@ -40,7 +40,7 @@ export default async function WarehouseLocationQRPage({
     .from('warehouse_locations')
     .select('*')
     .eq('id', id)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .single()
 

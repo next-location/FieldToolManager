@@ -42,7 +42,7 @@ export async function createTool(formData: {
   const { data: toolData, error: insertError } = await supabase
     .from('tools')
     .insert({
-      organization_id: userData.organization_id,
+      organization_id: userData?.organization_id,
       name: formData.name,
       model_number: formData.model_number || null,
       manufacturer: formData.manufacturer || null,
@@ -71,7 +71,7 @@ export async function createTool(formData: {
   for (let i = 1; i <= quantity; i++) {
     toolItems.push({
       tool_id: toolData.id,
-      organization_id: userData.organization_id,
+      organization_id: userData?.organization_id,
       serial_number: String(i).padStart(3, '0'), // "001", "002", "003"...
       current_location: 'warehouse',
       status: 'available',
@@ -314,7 +314,7 @@ export async function createToolWithItems(formData: {
       'copy_preset_to_organization',
       {
         p_preset_id: formData.preset_id,
-        p_organization_id: userData.organization_id,
+        p_organization_id: userData?.organization_id,
       }
     )
 
@@ -345,7 +345,7 @@ export async function createToolWithItems(formData: {
       .from('tools')
       .select('*')
       .eq('id', formData.tool_master_id)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .is('deleted_at', null)
       .single()
 
@@ -381,7 +381,7 @@ export async function createToolWithItems(formData: {
     const { data: newTool, error: insertError } = await supabase
       .from('tools')
       .insert({
-        organization_id: userData.organization_id,
+        organization_id: userData?.organization_id,
         name: formData.name,
         model_number: formData.model_number || null,
         manufacturer: formData.manufacturer || null,
@@ -411,7 +411,7 @@ export async function createToolWithItems(formData: {
     const { error: inventoryError } = await supabase
       .from('consumable_inventory')
       .insert({
-        organization_id: userData.organization_id,
+        organization_id: userData?.organization_id,
         tool_id: toolId,
         location_type: 'warehouse',
         site_id: null,
@@ -448,7 +448,7 @@ export async function createToolWithItems(formData: {
     for (let i = 0; i < quantity; i++) {
       toolItems.push({
         tool_id: toolId,
-        organization_id: userData.organization_id,
+        organization_id: userData?.organization_id,
         serial_number: String(startNumber + i).padStart(3, '0'), // "001", "002", "003"...
         current_location: 'warehouse',
         status: 'available',
@@ -471,7 +471,7 @@ export async function createToolWithItems(formData: {
     const { error: movementError } = await supabase
       .from('tool_movements')
       .insert({
-        organization_id: userData.organization_id,
+        organization_id: userData?.organization_id,
         tool_id: toolId,
         movement_type: 'adjustment',
         quantity: quantity,

@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     const { data: settings, error: settingsError } = await supabase
       .from('organization_attendance_settings')
       .select('*')
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .single()
 
     // 設定が存在しない場合はnullを返す（初期設定前）
@@ -201,7 +201,7 @@ export async function PUT(request: NextRequest) {
     // 更新データ準備
     const updateData = {
       ...body,
-      organization_id: userData.organization_id,
+      organization_id: userData?.organization_id,
       updated_at: new Date().toISOString(),
     }
 

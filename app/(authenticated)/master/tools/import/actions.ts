@@ -61,7 +61,7 @@ export async function importToolMastersFromCSV(toolMasters: ToolMasterImportData
 
   // 一括登録
   const insertData = toolMasters.map((tool) => ({
-    organization_id: userData.organization_id,
+    organization_id: userData?.organization_id,
     name: tool.name.trim(),
     model_number: tool.model_number?.trim() || null,
     manufacturer: tool.manufacturer?.trim() || null,

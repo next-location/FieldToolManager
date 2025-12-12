@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     const { data: todayRecord, error: recordError } = await supabase
       .from('attendance_records')
       .select('*')
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .eq('user_id', user.id)
       .eq('date', dateString)
       .single()
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     const { data: settings } = await supabase
       .from('organization_attendance_settings')
       .select('break_time_mode')
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .single()
 
     const breakMode = settings?.break_time_mode || 'simple'

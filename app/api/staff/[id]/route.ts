@@ -41,7 +41,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .from('users')
       .select('*')
       .eq('id', userId)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .single()
 
     if (fetchError || !oldData) {
@@ -67,7 +67,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       const { count: adminCount } = await supabase
         .from('users')
         .select('id', { count: 'exact', head: true })
-        .eq('organization_id', userData.organization_id)
+        .eq('organization_id', userData?.organization_id)
         .eq('role', 'admin')
         .is('deleted_at', null)
         .eq('is_active', true)
@@ -90,7 +90,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         updated_at: new Date().toISOString(),
       })
       .eq('id', userId)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .select()
       .single()
 
@@ -121,7 +121,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (changes.length > 0 || oldData.name !== name || oldData.email !== email) {
       for (const change of changes) {
         await supabase.from('user_history').insert({
-          organization_id: userData.organization_id,
+          organization_id: userData?.organization_id,
           user_id: userId,
           changed_by: user.id,
           ...change,
@@ -131,7 +131,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       // 基本情報の変更も記録
       if (oldData.name !== name || oldData.email !== email || oldData.employee_id !== employee_id || oldData.phone !== phone) {
         await supabase.from('user_history').insert({
-          organization_id: userData.organization_id,
+          organization_id: userData?.organization_id,
           user_id: userId,
           changed_by: user.id,
           change_type: 'updated',
@@ -193,7 +193,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       .from('users')
       .select('role')
       .eq('id', userId)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .single()
 
     if (fetchError || !targetUser) {
@@ -210,7 +210,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       const { count: adminCount } = await supabase
         .from('users')
         .select('id', { count: 'exact', head: true })
-        .eq('organization_id', userData.organization_id)
+        .eq('organization_id', userData?.organization_id)
         .eq('role', 'admin')
         .is('deleted_at', null)
         .eq('is_active', true)
@@ -225,7 +225,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       .from('users')
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', userId)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
 
     if (deleteError) {
       console.error('User delete error:', deleteError)
@@ -234,7 +234,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     // 変更履歴記録
     await supabase.from('user_history').insert({
-      organization_id: userData.organization_id,
+      organization_id: userData?.organization_id,
       user_id: userId,
       changed_by: user.id,
       change_type: 'deleted',

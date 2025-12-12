@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
         *,
         site:clock_in_site_id(name)
       `)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .eq('user_id', user.id)
       .eq('date', dateString)
       .maybeSingle()

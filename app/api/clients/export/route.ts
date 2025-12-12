@@ -39,7 +39,7 @@ export async function GET(request: Request) {
     let query = supabase
       .from('clients')
       .select('*')
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .is('deleted_at', null)
       .order('code')
 

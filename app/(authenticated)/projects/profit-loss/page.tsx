@@ -35,7 +35,7 @@ async function ProfitLossContent() {
       end_date,
       client:clients(name)
     `)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .order('start_date', { ascending: false })
 
   if (!projects) {
@@ -50,14 +50,14 @@ async function ProfitLossContent() {
         .from('billing_invoices')
         .select('total_amount, paid_amount')
         .eq('project_id', project.id)
-        .eq('organization_id', userData.organization_id)
+        .eq('organization_id', userData?.organization_id)
 
       // 発注書データ
       const { data: purchaseOrders } = await supabase
         .from('purchase_orders')
         .select('total_amount, paid_amount')
         .eq('project_id', project.id)
-        .eq('organization_id', userData.organization_id)
+        .eq('organization_id', userData?.organization_id)
 
       const revenue = invoices?.reduce((sum, i) => sum + (i.total_amount || 0), 0) || 0
       const receivedAmount = invoices?.reduce((sum, i) => sum + (i.paid_amount || 0), 0) || 0

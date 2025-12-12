@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
           department
         )
       `)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .gte('date', startDateStr)
       .lte('date', endDateStr)
       .order('date', { ascending: true })

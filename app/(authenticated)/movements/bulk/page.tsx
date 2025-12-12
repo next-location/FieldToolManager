@@ -42,7 +42,7 @@ export default async function BulkMovementPage() {
         model_number
       )
     `)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .order('serial_number')
 
@@ -50,7 +50,7 @@ export default async function BulkMovementPage() {
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name, is_active')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('is_active', true)
     .is('deleted_at', null)
     .order('name')
@@ -59,7 +59,7 @@ export default async function BulkMovementPage() {
   const { data: warehouseLocations } = await supabase
     .from('warehouse_locations')
     .select('id, code, display_name')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('is_active', true)
     .is('deleted_at', null)
     .order('code')

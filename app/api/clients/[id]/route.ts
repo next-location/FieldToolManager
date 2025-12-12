@@ -40,7 +40,7 @@ export async function GET(
       .from('clients')
       .select('*')
       .eq('id', id)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .is('deleted_at', null)
       .single()
 
@@ -97,7 +97,7 @@ export async function PATCH(
       .from('clients')
       .select('id')
       .eq('id', id)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .is('deleted_at', null)
       .single()
 
@@ -159,7 +159,7 @@ export async function PATCH(
       .from('clients')
       .update(updateData)
       .eq('id', id)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .select()
       .single()
 
@@ -239,7 +239,7 @@ export async function DELETE(
       .from('clients')
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
 
     if (error) {
       console.error('Error deleting client:', error)

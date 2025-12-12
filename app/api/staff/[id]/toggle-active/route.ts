@@ -38,7 +38,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       .from('users')
       .select('is_active, role')
       .eq('id', userId)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .single()
 
     if (fetchError || !targetUser) {
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       const { count: activeAdminCount } = await supabase
         .from('users')
         .select('id', { count: 'exact', head: true })
-        .eq('organization_id', userData.organization_id)
+        .eq('organization_id', userData?.organization_id)
         .eq('role', 'admin')
         .is('deleted_at', null)
         .eq('is_active', true)
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       .from('users')
       .update({ is_active: newStatus })
       .eq('id', userId)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
 
     if (updateError) {
       console.error('User toggle-active error:', updateError)
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // 変更履歴記録
     await supabase.from('user_history').insert({
-      organization_id: userData.organization_id,
+      organization_id: userData?.organization_id,
       user_id: userId,
       changed_by: user.id,
       change_type: newStatus ? 'activated' : 'deactivated',

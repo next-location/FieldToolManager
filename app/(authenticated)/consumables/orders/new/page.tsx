@@ -28,7 +28,7 @@ export default async function NewConsumableOrderPage() {
   const { data: consumables } = await supabase
     .from('tools')
     .select('id, name, model_number, manufacturer')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('is_consumable', true)
     .is('deleted_at', null)
     .order('name')
@@ -37,7 +37,7 @@ export default async function NewConsumableOrderPage() {
   const { data: lastOrder } = await supabase
     .from('consumable_orders')
     .select('order_number')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .order('created_at', { ascending: false })
     .limit(1)
     .single()

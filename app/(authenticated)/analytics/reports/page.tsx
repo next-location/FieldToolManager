@@ -26,32 +26,32 @@ async function ReportsContent() {
   const { count: estimateCount } = await supabase
     .from('estimates')
     .select('*', { count: 'exact', head: true })
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
 
   const { count: invoiceCount } = await supabase
     .from('billing_invoices')
     .select('*', { count: 'exact', head: true })
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
 
   const { count: poCount } = await supabase
     .from('purchase_orders')
     .select('*', { count: 'exact', head: true })
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
 
   const { count: paymentCount } = await supabase
     .from('payments')
     .select('*', { count: 'exact', head: true })
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
 
   const { count: clientCount } = await supabase
     .from('clients')
     .select('*', { count: 'exact', head: true })
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
 
   const { count: projectCount } = await supabase
     .from('projects')
     .select('*', { count: 'exact', head: true })
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
 
   const reports = [
     {

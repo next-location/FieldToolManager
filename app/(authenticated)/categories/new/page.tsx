@@ -44,7 +44,7 @@ export default async function NewCategoryPage() {
 
         <div className="bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
-            <CategoryForm organizationId={userData.organization_id} />
+            <CategoryForm organizationId={userData?.organization_id} />
           </div>
         </div>
       </div>

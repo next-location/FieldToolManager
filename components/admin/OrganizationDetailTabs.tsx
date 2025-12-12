@@ -45,7 +45,39 @@ interface OrganizationDetailTabsProps {
   auditLogs: AuditLog[];
 }
 
-type TabType = 'basic';
+type TabType = 'basic' | 'contracts' | 'invoices' | 'payments';
+
+interface Contract {
+  id: string;
+  contract_number: string;
+  contract_type: string;
+  start_date: string;
+  end_date: string | null;
+  status: string;
+  total_monthly_fee: number;
+}
+
+interface Invoice {
+  id: string;
+  invoice_number: string;
+  invoice_date: string;
+  due_date: string;
+  amount: number;
+  tax_amount: number;
+  total_amount: number;
+  status: string;
+}
+
+interface Payment {
+  id: string;
+  payment_date: string;
+  amount: number;
+  payment_method: string;
+  reference_number: string | null;
+  invoices: {
+    invoice_number: string;
+  };
+}
 
 export default function OrganizationDetailTabs({
   organization,
@@ -54,6 +86,62 @@ export default function OrganizationDetailTabs({
   auditLogs,
 }: OrganizationDetailTabsProps) {
   const [activeTab, setActiveTab] = useState<TabType>('basic');
+  const [contracts, setContracts] = useState<Contract[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // データ取得関数
+  const fetchContracts = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/contracts?organization_id=${organization.id}`);
+      const data = await res.json();
+      setContracts(data.contracts || []);
+    } catch (error) {
+      console.error('契約履歴の取得エラー:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchInvoices = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/invoices?organization_id=${organization.id}&limit=100`);
+      const data = await res.json();
+      setInvoices(data.invoices || []);
+    } catch (error) {
+      console.error('請求書の取得エラー:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPayments = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/payments?organization_id=${organization.id}&limit=100`);
+      const data = await res.json();
+      setPayments(data.payments || []);
+    } catch (error) {
+      console.error('入金履歴の取得エラー:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // タブ切り替え時にデータ取得
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    if (tab === 'contracts' && contracts.length === 0) {
+      fetchContracts();
+    } else if (tab === 'invoices' && invoices.length === 0) {
+      fetchInvoices();
+    } else if (tab === 'payments' && payments.length === 0) {
+      fetchPayments();
+    }
+  };
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return '-';
@@ -100,8 +188,87 @@ export default function OrganizationDetailTabs({
     return String(value);
   };
 
+  const formatCurrency = (amount: number) => {
+    return `¥${new Intl.NumberFormat('ja-JP').format(amount)}`;
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      active: '有効',
+      inactive: '無効',
+      cancelled: 'キャンセル',
+      draft: '下書き',
+      sent: '送付済み',
+      paid: '支払済み',
+      overdue: '期限超過',
+      bank_transfer: '銀行振込',
+      cash: '現金',
+      other: 'その他',
+    };
+    return labels[status] || status;
+  };
+
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      active: 'bg-green-100 text-green-800',
+      inactive: 'bg-gray-100 text-gray-600',
+      cancelled: 'bg-red-100 text-red-800',
+      draft: 'bg-gray-100 text-gray-600',
+      sent: 'bg-blue-100 text-blue-800',
+      paid: 'bg-green-100 text-green-800',
+      overdue: 'bg-red-100 text-red-800',
+    };
+    return colors[status] || 'bg-gray-100 text-gray-600';
+  };
+
   return (
     <div>
+      {/* タブナビゲーション */}
+      <div className="border-b border-gray-200 mb-6">
+        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+          <button
+            onClick={() => setActiveTab('basic')}
+            className={`${
+              activeTab === 'basic'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+          >
+            基本情報
+          </button>
+          <button
+            onClick={() => handleTabChange('contracts')}
+            className={`${
+              activeTab === 'contracts'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+          >
+            契約履歴
+          </button>
+          <button
+            onClick={() => handleTabChange('invoices')}
+            className={`${
+              activeTab === 'invoices'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+          >
+            請求書
+          </button>
+          <button
+            onClick={() => handleTabChange('payments')}
+            className={`${
+              activeTab === 'payments'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+          >
+            入金履歴
+          </button>
+        </nav>
+      </div>
+
       {/* タブコンテンツ */}
       {activeTab === 'basic' && (
         <div className="space-y-6">
@@ -368,6 +535,178 @@ export default function OrganizationDetailTabs({
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* 契約履歴タブ */}
+      {activeTab === 'contracts' && (
+        <div className="bg-white rounded-lg shadow-md border border-gray-200">
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <p className="mt-2 text-gray-600">読み込み中...</p>
+            </div>
+          ) : contracts.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">契約履歴がありません</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">契約番号</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">契約タイプ</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">開始日</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">終了日</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">月額料金</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ステータス</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {contracts.map((contract) => (
+                    <tr key={contract.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                        {contract.contract_number}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {contract.contract_type === 'monthly' ? '月契約' : '年契約'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatDate(contract.start_date)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatDate(contract.end_date)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                        {formatCurrency(contract.total_monthly_fee)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(contract.status)}`}>
+                          {getStatusLabel(contract.status)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <a
+                          href={`/admin/contracts/${contract.id}`}
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          詳細
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 請求書タブ */}
+      {activeTab === 'invoices' && (
+        <div className="bg-white rounded-lg shadow-md border border-gray-200">
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <p className="mt-2 text-gray-600">読み込み中...</p>
+            </div>
+          ) : invoices.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">請求書がありません</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">請求書番号</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">請求日</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払期限</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">金額</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">消費税</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">合計</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ステータス</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {invoices.map((invoice) => (
+                    <tr key={invoice.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                        {invoice.invoice_number}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatDate(invoice.invoice_date)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatDate(invoice.due_date)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatCurrency(invoice.amount)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatCurrency(invoice.tax_amount)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                        {formatCurrency(invoice.total_amount)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(invoice.status)}`}>
+                          {getStatusLabel(invoice.status)}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 入金履歴タブ */}
+      {activeTab === 'payments' && (
+        <div className="bg-white rounded-lg shadow-md border border-gray-200">
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <p className="mt-2 text-gray-600">読み込み中...</p>
+            </div>
+          ) : payments.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">入金履歴がありません</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">入金日</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">請求書番号</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">入金額</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払方法</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">参照番号</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {payments.map((payment) => (
+                    <tr key={payment.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatDate(payment.payment_date)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                        {payment.invoices.invoice_number}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                        {formatCurrency(payment.amount)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {getStatusLabel(payment.payment_method)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {payment.reference_number || '-'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -40,7 +40,7 @@ export default async function MovementsPage() {
       users!inner (name)
     `
     )
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .order('created_at', { ascending: false })
     .limit(100)
 
@@ -71,7 +71,7 @@ export default async function MovementsPage() {
       )
     `
     )
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .order('created_at', { ascending: false })
     .limit(100)
 
@@ -79,7 +79,7 @@ export default async function MovementsPage() {
   const { data: orgData } = await supabase
     .from('organizations')
     .select('heavy_equipment_enabled')
-    .eq('id', userData.organization_id)
+    .eq('id', userData?.organization_id)
     .single()
 
   // 重機移動履歴を取得（重機管理が有効な場合のみ）
@@ -96,7 +96,7 @@ export default async function MovementsPage() {
         users!inner (name)
       `
       )
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .order('action_at', { ascending: false })
       .limit(100)
 

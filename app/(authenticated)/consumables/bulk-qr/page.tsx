@@ -29,7 +29,7 @@ export default async function ConsumablesBulkQRPage() {
   const { data: organization } = await supabase
     .from('organizations')
     .select('qr_print_size')
-    .eq('id', userData.organization_id)
+    .eq('id', userData?.organization_id)
     .single()
 
   const qrSize = organization?.qr_print_size || 25

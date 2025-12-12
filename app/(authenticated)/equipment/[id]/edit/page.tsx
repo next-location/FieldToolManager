@@ -51,7 +51,7 @@ export default async function EditEquipmentPage({
   const { data: orgData } = await supabase
     .from('organizations')
     .select('heavy_equipment_enabled, heavy_equipment_settings')
-    .eq('id', userData.organization_id)
+    .eq('id', userData?.organization_id)
     .single()
 
   if (!orgData?.heavy_equipment_enabled) {
@@ -62,7 +62,7 @@ export default async function EditEquipmentPage({
   const { data: categories } = await supabase
     .from('heavy_equipment_categories')
     .select('id, name, code_prefix, icon')
-    .or(`organization_id.is.null,organization_id.eq.${userData.organization_id}`)
+    .or(`organization_id.is.null,organization_id.eq.${userData?.organization_id}`)
     .eq('is_active', true)
     .order('sort_order')
 
@@ -70,7 +70,7 @@ export default async function EditEquipmentPage({
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .order('name')
 

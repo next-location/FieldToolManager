@@ -42,7 +42,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       `
       )
       .eq('id', id)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .is('deleted_at', null)
       .single()
 
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     // 通知を送信
     try {
       await notifyWorkReportSubmitted({
-        organizationId: userData.organization_id,
+        organizationId: userData?.organization_id,
         workReportId: id,
         reportDate: report.report_date,
         siteName: report.site?.name || '不明な現場',

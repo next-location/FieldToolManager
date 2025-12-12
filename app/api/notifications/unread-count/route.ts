@@ -29,7 +29,7 @@ export async function GET() {
     const { count, error } = await supabase
       .from('notifications')
       .select('*', { count: 'exact', head: true })
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .eq('is_read', false)
       .is('deleted_at', null)
 

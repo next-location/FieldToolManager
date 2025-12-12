@@ -41,7 +41,7 @@ export async function GET(
     const { data: organization } = await supabase
       .from('organizations')
       .select('name, postal_code, address, phone, fax, company_seal_url')
-      .eq('id', userData.organization_id)
+      .eq('id', userData?.organization_id)
       .single()
 
     if (!organization) {
@@ -58,7 +58,7 @@ export async function GET(
         estimate_items(*)
       `)
       .eq('id', id)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .single()
 
     if (error || !estimate) {

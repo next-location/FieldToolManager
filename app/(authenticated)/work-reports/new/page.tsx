@@ -36,7 +36,7 @@ export default async function NewWorkReportPage() {
   const { data: organizationUsers } = await supabase
     .from('users')
     .select('id, name, email')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .order('name')
 
@@ -44,7 +44,7 @@ export default async function NewWorkReportPage() {
   const { data: organizationTools } = await supabase
     .from('tools')
     .select('id, name, model_number')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .order('name')
 
@@ -52,7 +52,7 @@ export default async function NewWorkReportPage() {
   const { data: settings } = await supabase
     .from('organization_report_settings')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .single()
 
   // 設定がない場合はデフォルト値
@@ -69,7 +69,7 @@ export default async function NewWorkReportPage() {
   const { data: customFields } = await supabase
     .from('work_report_custom_fields')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('site_id', null)
     .order('display_order', { ascending: true })
 

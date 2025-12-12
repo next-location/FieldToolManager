@@ -34,7 +34,7 @@ export default async function ConsumableAdjustPage({
     .from('tools')
     .select('id, name, unit, minimum_stock')
     .eq('id', id)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('management_type', 'consumable')
     .is('deleted_at', null)
     .single()

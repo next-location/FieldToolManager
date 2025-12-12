@@ -43,7 +43,7 @@ export default async function PendingWorkReportsPage() {
       workers
     `
     )
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('status', 'submitted')
     .is('deleted_at', null)
     .order('report_date', { ascending: false })

@@ -34,7 +34,7 @@ export async function GET() {
     const { data: clients, error: clientsError } = await supabase
       .from('clients')
       .select('*')
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .is('deleted_at', null)
 
     if (clientsError) {

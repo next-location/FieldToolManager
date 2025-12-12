@@ -29,14 +29,14 @@ export default async function AttendanceSettingsPage() {
   const { data: organization } = await supabase
     .from('organizations')
     .select('name')
-    .eq('id', userData.organization_id)
+    .eq('id', userData?.organization_id)
     .single()
 
   // 出退勤設定を取得
   const { data: attendanceSettings } = await supabase
     .from('organization_attendance_settings')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .maybeSingle()
 
   return (
@@ -52,7 +52,7 @@ export default async function AttendanceSettingsPage() {
         <div className="bg-white shadow sm:rounded-lg">
           <AttendanceSettingsFormSimple
             initialSettings={attendanceSettings}
-            organizationId={userData.organization_id}
+            organizationId={userData?.organization_id}
           />
         </div>
       </div>

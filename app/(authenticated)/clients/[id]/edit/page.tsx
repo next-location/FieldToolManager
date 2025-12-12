@@ -41,7 +41,7 @@ export default async function EditClientPage({
     .from('clients')
     .select('*')
     .eq('id', id)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .single()
 

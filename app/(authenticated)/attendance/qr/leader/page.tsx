@@ -40,7 +40,7 @@ export default async function AttendanceQRPage() {
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .order('name')
 
@@ -59,7 +59,7 @@ export default async function AttendanceQRPage() {
         name
       )
     `)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('is_active', true)
     .gte('expires_at', now)
     .order('generated_at', { ascending: false })

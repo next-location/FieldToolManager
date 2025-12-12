@@ -33,7 +33,7 @@ export default async function CSVImportPage() {
   const { data: categories } = await supabase
     .from('tool_categories')
     .select('id, name')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .order('name')
 
@@ -42,7 +42,7 @@ export default async function CSVImportPage() {
       <div className="px-4 py-6 sm:px-0">
         <CSVImportClient
           categories={categories || []}
-          organizationId={userData.organization_id}
+          organizationId={userData?.organization_id}
         />
       </div>
     </div>

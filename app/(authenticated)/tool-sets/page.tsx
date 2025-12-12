@@ -21,7 +21,7 @@ export default async function ToolSetsPage() {
   const { data: toolSets, error } = await supabase
     .from('tool_sets')
     .select('id, name, description, created_at, created_by, users:created_by (name)')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
 

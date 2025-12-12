@@ -33,7 +33,7 @@ export default async function CostAnalyticsPage() {
 
   // パッケージチェック（現場資産パック必須）
   if (userData?.organization_id) {
-    const features = await getOrganizationFeatures(userData.organization_id)
+    const features = await getOrganizationFeatures(userData?.organization_id)
     if (!hasPackage(features, 'asset')) {
       return <PackageRequired packageType="asset" featureName="コスト分析" userRole={userData.role} />
     }
@@ -49,7 +49,7 @@ export default async function CostAnalyticsPage() {
         name
       )
     `)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .order('name')
 
@@ -57,7 +57,7 @@ export default async function CostAnalyticsPage() {
   const { data: toolItems } = await supabase
     .from('tool_items')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
 
   // 移動履歴取得（過去1年）
@@ -67,34 +67,34 @@ export default async function CostAnalyticsPage() {
   const { data: movements } = await supabase
     .from('tool_movements')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .gte('created_at', oneYearAgo.toISOString())
 
   // 消耗品移動履歴
   const { data: consumableMovements } = await supabase
     .from('consumable_movements')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .gte('created_at', oneYearAgo.toISOString())
 
   // 発注履歴取得
   const { data: orders } = await supabase
     .from('consumable_orders')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
 
   // 点検記録取得（コスト情報付き）
   const { data: maintenanceRecords } = await supabase
     .from('tool_item_maintenance_records')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
 
   // 消耗品在庫取得
   const { data: consumableInventory } = await supabase
     .from('consumable_inventory')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
 
   // ツールにカテゴリ名を追加
   const toolsWithCategory = (tools || []).map((tool: any) => ({

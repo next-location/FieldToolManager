@@ -330,25 +330,68 @@ export default function TwoFactorSetup({ isEnabled, onComplete }: TwoFactorSetup
           </div>
 
           <div>
-            <h4 className="font-medium mb-2">ステップ2: バックアップコードを保存</h4>
-            <p className="text-sm text-gray-600 mb-3">
-              認証アプリが使えない場合に使用できるバックアップコードです。安全な場所に保管してください。
-            </p>
+            <h4 className="font-medium mb-2">ステップ2: バックアップコードを保存 【重要】</h4>
+
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
+              <p className="text-sm text-red-800 font-medium mb-2">
+                ⚠️ これらのバックアップコードは必ず保存してください
+              </p>
+              <ul className="text-sm text-red-700 space-y-1 list-disc list-inside">
+                <li>認証アプリを削除・紛失した場合、これらのコードだけが復旧手段です</li>
+                <li>各コードは1回のみ使用可能です</li>
+                <li>安全な場所に保管してください（パスワードマネージャー推奨）</li>
+              </ul>
+            </div>
+
             <div className="bg-gray-50 p-4 rounded mb-3">
               <div className="grid grid-cols-2 gap-2 font-mono text-sm">
                 {backupCodes.map((code, index) => (
-                  <div key={index} className="bg-white p-2 rounded border">
-                    {code}
+                  <div key={index} className="bg-white p-2 rounded border flex items-center justify-between">
+                    <span>{code}</span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(code);
+                        alert(`コード ${index + 1} をコピーしました`);
+                      }}
+                      className="text-gray-500 hover:text-gray-700 ml-2"
+                      title="コピー"
+                    >
+                      📋
+                    </button>
                   </div>
                 ))}
               </div>
             </div>
-            <button
-              onClick={downloadBackupCodes}
-              className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-            >
-              バックアップコードをダウンロード
-            </button>
+
+            <div className="flex gap-3 mb-3">
+              <button
+                onClick={downloadBackupCodes}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                📥 バックアップコードをダウンロード
+              </button>
+              <button
+                onClick={() => {
+                  const allCodes = backupCodes.join('\n');
+                  navigator.clipboard.writeText(allCodes);
+                  alert('すべてのバックアップコードをコピーしました');
+                }}
+                className="flex-1 px-4 py-2 border border-blue-600 text-blue-600 rounded hover:bg-blue-50"
+              >
+                📋 すべてコピー
+              </button>
+            </div>
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+              <p className="text-sm text-yellow-800">
+                💡 保存方法の例：
+              </p>
+              <ul className="text-sm text-yellow-700 mt-1 list-disc list-inside">
+                <li>パスワードマネージャーに保存</li>
+                <li>印刷して金庫に保管</li>
+                <li>暗号化されたメモアプリに保存</li>
+              </ul>
+            </div>
           </div>
 
           <button

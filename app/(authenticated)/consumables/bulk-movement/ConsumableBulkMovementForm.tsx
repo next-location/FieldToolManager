@@ -132,7 +132,7 @@ export function ConsumableBulkMovementForm({
           .from('consumable_inventory')
           .select('*')
           .eq('tool_id', consumableId)
-          .eq('organization_id', userData.organization_id)
+          .eq('organization_id', userData?.organization_id)
           .eq('location_type', fromLocationType)
 
         if (fromSiteId) {
@@ -162,7 +162,7 @@ export function ConsumableBulkMovementForm({
           .from('consumable_inventory')
           .select('*')
           .eq('tool_id', consumableId)
-          .eq('organization_id', userData.organization_id)
+          .eq('organization_id', userData?.organization_id)
           .eq('location_type', toLocationType)
 
         if (toSiteId) {
@@ -201,7 +201,7 @@ export function ConsumableBulkMovementForm({
             .eq('id', destInventory.id)
         } else {
           await supabase.from('consumable_inventory').insert({
-            organization_id: userData.organization_id,
+            organization_id: userData?.organization_id,
             tool_id: consumableId,
             location_type: toLocationType,
             site_id: toSiteId,
@@ -212,7 +212,7 @@ export function ConsumableBulkMovementForm({
 
         // 移動履歴を記録
         await supabase.from('consumable_movements').insert({
-          organization_id: userData.organization_id,
+          organization_id: userData?.organization_id,
           tool_id: consumableId,
           movement_type: '一括移動',
           from_location_type: fromLocationType,

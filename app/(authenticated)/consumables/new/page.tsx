@@ -29,7 +29,7 @@ export default async function NewConsumablePage() {
   const { data: consumableCategory } = await supabase
     .from('tool_categories')
     .select('id')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('name', '消耗品')
     .single()
 
@@ -48,7 +48,7 @@ export default async function NewConsumablePage() {
         <div className="bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <ConsumableRegistrationForm
-              organizationId={userData.organization_id}
+              organizationId={userData?.organization_id}
               consumableCategoryId={consumableCategory?.id || null}
             />
           </div>

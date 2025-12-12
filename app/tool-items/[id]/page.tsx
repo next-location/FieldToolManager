@@ -60,7 +60,7 @@ export default async function ToolItemDetailPage({
     `
     )
     .eq('id', id)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .single()
 
@@ -94,7 +94,7 @@ export default async function ToolItemDetailPage({
     `
     )
     .eq('tool_item_id', id)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
     .limit(20)

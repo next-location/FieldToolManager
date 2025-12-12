@@ -94,6 +94,15 @@ export default function LoginPage() {
               {loading ? 'ログイン中...' : 'ログイン'}
             </button>
           </div>
+
+          <div className="text-center text-sm">
+            <a
+              href="/auth/reset-2fa/request"
+              className="text-blue-600 hover:text-blue-700"
+            >
+              2FA（二要素認証）でログインできない場合
+            </a>
+          </div>
         </form>
       </div>
     </div>

@@ -54,7 +54,7 @@ export default async function ConsumableOrderDetailPage({ params }: Props) {
       )
     `)
     .eq('id', id)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .single()
 

@@ -30,7 +30,7 @@ async function ProjectLedgerContent({ projectId }: { projectId: string }) {
       client:clients(name)
     `)
     .eq('id', projectId)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .single()
 
   if (!project) {
@@ -42,14 +42,14 @@ async function ProjectLedgerContent({ projectId }: { projectId: string }) {
     .from('estimates')
     .select('id, estimate_number, estimate_date, total_amount, status')
     .eq('project_id', projectId)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .order('estimate_date', { ascending: false })
 
   const { data: invoices } = await supabase
     .from('billing_invoices')
     .select('id, invoice_number, invoice_date, total_amount, paid_amount, status')
     .eq('project_id', projectId)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .order('invoice_date', { ascending: false })
 
   // 原価データ（発注書）
@@ -65,7 +65,7 @@ async function ProjectLedgerContent({ projectId }: { projectId: string }) {
       supplier:clients(name)
     `)
     .eq('project_id', projectId)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .order('order_date', { ascending: false })
 
   // 収支計算

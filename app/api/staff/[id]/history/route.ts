@@ -38,7 +38,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       .from('users')
       .select('id')
       .eq('id', userId)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .single()
 
     if (targetError || !targetUser) {
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         changed_by_user:users!user_history_changed_by_fkey(name, email)
       `
       )
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
 

@@ -25,7 +25,7 @@ export default async function ToolsPage() {
 
   // パッケージチェック
   if (userData?.organization_id) {
-    const features = await getOrganizationFeatures(userData.organization_id)
+    const features = await getOrganizationFeatures(userData?.organization_id)
     if (!hasPackage(features, 'asset')) {
       return <PackageRequired packageType="asset" featureName="道具管理" userRole={userData.role} />
     }

@@ -54,7 +54,7 @@ export default async function ToolMasterPage() {
         country
       )
     `)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('management_type', 'individual')
     .is('deleted_at', null)
     .order('name')
@@ -82,7 +82,7 @@ export default async function ToolMasterPage() {
           categories={categories || []}
           manufacturers={manufacturers || []}
           isAdmin={isAdmin}
-          organizationId={userData.organization_id}
+          organizationId={userData?.organization_id}
         />
       </div>
     </div>

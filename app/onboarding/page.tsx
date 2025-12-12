@@ -34,7 +34,7 @@ export default async function OnboardingPage() {
   const { data: organization } = await supabase
     .from('organizations')
     .select('setup_completed_at')
-    .eq('id', userData.organization_id)
+    .eq('id', userData?.organization_id)
     .single()
 
   if (organization?.setup_completed_at) {
@@ -44,7 +44,7 @@ export default async function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <OnboardingWizard organizationId={userData.organization_id} />
+      <OnboardingWizard organizationId={userData?.organization_id} />
     </div>
   )
 }

@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     const { data: settings, error: settingsError } = await supabase
       .from('organization_attendance_settings')
       .select('office_qr_rotation_days')
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .single()
 
     if (settingsError) {
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     await supabase
       .from('office_qr_codes')
       .update({ is_active: false })
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .eq('is_active', true)
 
     // 新しいQRコードを生成
@@ -61,13 +61,13 @@ export async function POST(request: NextRequest) {
     const validUntil = new Date(now.getTime() + rotationDays * 24 * 60 * 60 * 1000)
 
     // QRデータフォーマット: ATT|${organization_id}|${random_token}|${valid_until}
-    const qrData = `ATT|${userData.organization_id}|${randomToken}|${validUntil.toISOString()}`
+    const qrData = `ATT|${userData?.organization_id}|${randomToken}|${validUntil.toISOString()}`
 
     // データベースに保存
     const { data: newQrCode, error: insertError } = await supabase
       .from('office_qr_codes')
       .insert({
-        organization_id: userData.organization_id,
+        organization_id: userData?.organization_id,
         qr_data: qrData,
         valid_from: validFrom.toISOString(),
         valid_until: validUntil.toISOString(),

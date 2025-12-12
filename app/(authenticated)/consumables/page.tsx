@@ -36,7 +36,7 @@ export default async function ConsumablesPage() {
         name
       )
     `)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('management_type', 'consumable')
     .is('deleted_at', null)
     .order('name')

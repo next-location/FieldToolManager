@@ -40,7 +40,7 @@ export default async function DeleteCategoryPage({
     .from('tool_categories')
     .select('*')
     .eq('id', id)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .single()
 
   if (!category) {

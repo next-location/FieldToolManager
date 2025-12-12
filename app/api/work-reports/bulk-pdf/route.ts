@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       `
       )
       .in('id', report_ids)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .is('deleted_at', null)
 
     if (error || !reports) {

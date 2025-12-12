@@ -40,7 +40,7 @@ export async function adjustConsumableInventory({
     .from('consumable_inventory')
     .select('*')
     .eq('tool_id', consumableId)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('location_type', 'warehouse')
     .single()
 
@@ -78,7 +78,7 @@ export async function adjustConsumableInventory({
     const { error } = await supabase
       .from('consumable_inventory')
       .insert({
-        organization_id: userData.organization_id,
+        organization_id: userData?.organization_id,
         tool_id: consumableId,
         location_type: 'warehouse',
         site_id: null,
@@ -102,7 +102,7 @@ export async function adjustConsumableInventory({
   const { error: movementError } = await supabase
     .from('consumable_movements')
     .insert({
-      organization_id: userData.organization_id,
+      organization_id: userData?.organization_id,
       tool_id: consumableId,
       movement_type: '調整',
       from_location_type: 'warehouse',

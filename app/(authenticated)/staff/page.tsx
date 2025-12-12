@@ -25,14 +25,14 @@ export default async function StaffPage() {
   const { data: organization } = await supabase
     .from('organizations')
     .select('max_users, plan')
-    .eq('id', userData.organization_id)
+    .eq('id', userData?.organization_id)
     .single()
 
   // 現在のスタッフ数取得
   const { count: currentStaffCount } = await supabase
     .from('users')
     .select('id', { count: 'exact', head: true })
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .eq('is_active', true)
 
@@ -40,7 +40,7 @@ export default async function StaffPage() {
   const { data: departments } = await supabase
     .from('users')
     .select('department')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .not('department', 'is', null)
     .is('deleted_at', null)
 

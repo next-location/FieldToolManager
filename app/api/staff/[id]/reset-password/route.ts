@@ -39,7 +39,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       .from('users')
       .select('id, email, name')
       .eq('id', userId)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .single()
 
     if (targetError || !targetUser) {
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         password_reset_expires_at: expiresAt.toISOString(),
       })
       .eq('id', userId)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
 
     if (updateError) {
       console.error('Token update error:', updateError)
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // 変更履歴記録
     await supabase.from('user_history').insert({
-      organization_id: userData.organization_id,
+      organization_id: userData?.organization_id,
       user_id: userId,
       changed_by: user.id,
       change_type: 'password_reset',

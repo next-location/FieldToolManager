@@ -37,7 +37,7 @@ export async function updateOrganizationSettings(
     return { error: '管理者権限が必要です' }
   }
 
-  if (userData.organization_id !== organizationId) {
+  if (userData?.organization_id !== organizationId) {
     return { error: '他の組織の設定は変更できません' }
   }
 
@@ -114,7 +114,7 @@ export async function saveWarehouseHierarchyTemplates(
     throw new Error('管理者権限が必要です')
   }
 
-  if (userData.organization_id !== organizationId) {
+  if (userData?.organization_id !== organizationId) {
     throw new Error('他の組織の設定は変更できません')
   }
 
@@ -176,7 +176,7 @@ export async function deleteWarehouseHierarchyTemplate(templateId: string) {
     .from('warehouse_location_templates')
     .delete()
     .eq('id', templateId)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
 
   if (error) {
     throw new Error('削除に失敗しました: ' + error.message)

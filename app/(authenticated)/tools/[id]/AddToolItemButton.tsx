@@ -57,7 +57,7 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
         .from('tool_items')
         .insert({
           tool_id: toolId,
-          organization_id: userData.organization_id,
+          organization_id: userData?.organization_id,
           serial_number: serialNumber,
           qr_code: qrCode,
           current_location: 'warehouse',
@@ -75,7 +75,7 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
       const { error: movementError } = await supabase
         .from('tool_movements')
         .insert({
-          organization_id: userData.organization_id,
+          organization_id: userData?.organization_id,
           tool_id: toolId,
           movement_type: 'adjustment',
           quantity: 1,

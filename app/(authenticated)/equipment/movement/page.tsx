@@ -26,7 +26,7 @@ export default async function EquipmentMovementPage() {
   const { data: orgData } = await supabase
     .from('organizations')
     .select('heavy_equipment_enabled, heavy_equipment_settings')
-    .eq('id', userData.organization_id)
+    .eq('id', userData?.organization_id)
     .single()
 
   if (!orgData?.heavy_equipment_enabled) {
@@ -52,7 +52,7 @@ export default async function EquipmentMovementPage() {
         name
       )
     `)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .order('name')
 
@@ -60,7 +60,7 @@ export default async function EquipmentMovementPage() {
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name, site_type')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .order('name')
 

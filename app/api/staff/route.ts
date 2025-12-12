@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from('users')
       .select('*', { count: 'exact' })
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
 
     // 検索フィルタ（名前またはメール）
     if (search) {
@@ -159,34 +159,38 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'マネージャーは管理者またはマネージャーアカウントを作成できません' }, { status: 403 })
     }
 
-    // プラン上限チェック
-    const { data: organization } = await supabase
-      .from('organizations')
-      .select('plan')
-      .eq('id', userData.organization_id)
+    // プラン上限チェック（契約情報から取得）
+    const { data: contract } = await supabase
+      .from('contracts')
+      .select(`
+        id,
+        packages!inner(
+          id,
+          name,
+          user_limit
+        )
+      `)
+      .eq('organization_id', userData?.organization_id)
+      .eq('status', 'active')
       .single()
 
-    // プラン別の上限定義
-    const planLimits: Record<string, number> = {
-      basic: 10,
-      premium: 50,
-      enterprise: 999,
+    if (!contract) {
+      return NextResponse.json({ error: '有効な契約が見つかりません' }, { status: 400 })
     }
 
-    const maxUsers = organization ? planLimits[organization.plan] || 10 : 10
+    const maxUsers = (contract.packages as any)?.user_limit || 10
 
     const { count: currentCount } = await supabase
       .from('users')
       .select('id', { count: 'exact', head: true })
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .is('deleted_at', null)
       .eq('is_active', true)
 
     if (currentCount !== null && currentCount >= maxUsers) {
       return NextResponse.json(
         {
-          error: `プランの上限（${maxUsers}人）に達しています`,
-          plan: organization?.plan || 'basic',
+          error: `プランの上限（${maxUsers}人）に達しています。プランをアップグレードしてください。`,
           current: currentCount,
           max: maxUsers,
         },
@@ -234,7 +238,7 @@ export async function POST(request: NextRequest) {
       .from('users')
       .insert({
         id: authUser.user.id,
-        organization_id: userData.organization_id,
+        organization_id: userData?.organization_id,
         name,
         email,
         role,
@@ -257,7 +261,7 @@ export async function POST(request: NextRequest) {
 
     // 変更履歴記録
     await supabase.from('user_history').insert({
-      organization_id: userData.organization_id,
+      organization_id: userData?.organization_id,
       user_id: newUser.id,
       changed_by: user.id,
       change_type: 'created',

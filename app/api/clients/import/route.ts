@@ -74,7 +74,7 @@ export async function POST(request: Request) {
 
         // データマッピング
         const clientData = {
-          organization_id: userData.organization_id,
+          organization_id: userData?.organization_id,
           name: values[0] || '',
           name_kana: values[1] || null,
           short_name: values[2] || null,
@@ -120,7 +120,7 @@ export async function POST(request: Request) {
 
         // 取引先コード生成
         const { data: code, error: codeError } = await supabase.rpc('generate_client_code', {
-          org_id: userData.organization_id,
+          org_id: userData?.organization_id,
         })
 
         if (codeError) {

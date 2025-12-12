@@ -59,7 +59,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       `
       )
       .eq('id', id)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .is('deleted_at', null)
       .single()
 
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest, { params }: Params) {
 
     // 2. 承認履歴を登録
     const { error: approvalError } = await supabase.from('work_report_approvals').insert({
-      organization_id: userData.organization_id,
+      organization_id: userData?.organization_id,
       work_report_id: id,
       approver_id: user.id,
       approver_name: userData.name,
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     // 3. 通知を送信
     try {
       const notifyParams = {
-        organizationId: userData.organization_id,
+        organizationId: userData?.organization_id,
         workReportId: id,
         reportDate: report.report_date,
         siteName: report.site?.name || '不明な現場',

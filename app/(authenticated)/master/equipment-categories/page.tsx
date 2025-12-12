@@ -34,7 +34,7 @@ export default async function EquipmentCategoriesPage() {
   const { data: orgData } = await supabase
     .from('organizations')
     .select('heavy_equipment_enabled')
-    .eq('id', userData.organization_id)
+    .eq('id', userData?.organization_id)
     .single()
 
   if (!orgData?.heavy_equipment_enabled) {
@@ -45,7 +45,7 @@ export default async function EquipmentCategoriesPage() {
   const { data: categories } = await supabase
     .from('heavy_equipment_categories')
     .select('*')
-    .or(`organization_id.eq.${userData.organization_id},organization_id.is.null`)
+    .or(`organization_id.eq.${userData?.organization_id},organization_id.is.null`)
     .order('sort_order')
 
   return (
@@ -53,7 +53,7 @@ export default async function EquipmentCategoriesPage() {
       <div className="px-4 py-6 sm:px-0">
         <EquipmentCategoriesClient
           initialCategories={categories || []}
-          organizationId={userData.organization_id}
+          organizationId={userData?.organization_id}
         />
       </div>
     </div>

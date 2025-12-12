@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from('attendance_alerts')
       .select('*')
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .order('created_at', { ascending: false })
       .limit(limit)
 
@@ -125,7 +125,7 @@ export async function PATCH(request: NextRequest) {
         resolved_at: new Date().toISOString(),
       })
       .in('id', alert_ids)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .eq('is_resolved', false)
 
     if (updateError) {

@@ -61,7 +61,7 @@ export async function PUT(
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .select()
       .single()
 
@@ -123,7 +123,7 @@ export async function DELETE(
       .from('work_report_custom_fields')
       .delete()
       .eq('id', id)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
 
     if (error) {
       console.error('Error deleting custom field:', error)

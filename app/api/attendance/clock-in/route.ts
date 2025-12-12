@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     const { data: existingRecord, error: checkError } = await supabase
       .from('attendance_records')
       .select('id, clock_in_time')
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .eq('user_id', user.id)
       .eq('date', dateString)
       .maybeSingle()
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
     const { data: recentRecords, error: recentError } = await supabase
       .from('attendance_records')
       .select('id')
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .eq('user_id', user.id)
       .gte('clock_in_time', fiveMinutesAgo)
       .limit(1)
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
         .from('sites')
         .select('id')
         .eq('id', body.site_id)
-        .eq('organization_id', userData.organization_id)
+        .eq('organization_id', userData?.organization_id)
         .single()
 
       if (siteError || !site) {
@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
 
     // 出勤記録を作成
     const attendanceData = {
-      organization_id: userData.organization_id,
+      organization_id: userData?.organization_id,
       user_id: user.id,
       date: dateString,
       clock_in_time: now.toISOString(),

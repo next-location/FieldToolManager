@@ -213,7 +213,7 @@ export default async function InvoicesPage() {
 
   // パッケージチェック
   if (userData?.organization_id) {
-    const features = await getOrganizationFeatures(userData.organization_id)
+    const features = await getOrganizationFeatures(userData?.organization_id)
     if (!hasPackage(features, 'dx')) {
       return <PackageRequired packageType="dx" featureName="請求書管理" userRole={userData.role} />
     }

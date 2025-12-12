@@ -43,7 +43,7 @@ export async function GET(
     const { data: organization } = await supabase
       .from('organizations')
       .select('name, postal_code, address, phone, fax, company_seal_url')
-      .eq('id', userData.organization_id)
+      .eq('id', userData?.organization_id)
       .single()
 
     if (!organization) {
@@ -70,7 +70,7 @@ export async function GET(
       `
       )
       .eq('id', id)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .single()
 
     if (error || !report) {
@@ -82,7 +82,7 @@ export async function GET(
     const { data: customFieldDefinitions } = await supabase
       .from('work_report_custom_fields')
       .select('*')
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .or(`site_id.eq.${report.site_id},site_id.is.null`)
       .order('display_order', { ascending: true })
 

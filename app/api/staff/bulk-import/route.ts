@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     const { data: org, error: orgError } = await supabase
       .from('organizations')
       .select('max_users')
-      .eq('id', userData.organization_id)
+      .eq('id', userData?.organization_id)
       .single()
 
     if (orgError || !org) {
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     const { count: currentCount } = await supabase
       .from('users')
       .select('id', { count: 'exact', head: true })
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .is('deleted_at', null)
       .eq('is_active', true)
 
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     const { data: existingUsers } = await supabase
       .from('users')
       .select('email')
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .in('email', emails)
 
     if (existingUsers && existingUsers.length > 0) {
@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
         // usersテーブルにレコード追加
         const { error: insertError } = await supabase.from('users').insert({
           id: authData.user.id,
-          organization_id: userData.organization_id,
+          organization_id: userData?.organization_id,
           name: s.name,
           email: s.email.toLowerCase(),
           role: s.role,
@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
 
         // 履歴記録
         await supabase.from('user_history').insert({
-          organization_id: userData.organization_id,
+          organization_id: userData?.organization_id,
           user_id: authData.user.id,
           changed_by: user.id,
           change_type: 'created',

@@ -34,7 +34,7 @@ export default async function WorkReportSettingsPage() {
   const { data: customFields } = await supabase
     .from('work_report_custom_fields')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('site_id', null)
     .order('display_order', { ascending: true })
 

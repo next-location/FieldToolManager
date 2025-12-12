@@ -25,7 +25,7 @@ export default async function SalesAnalytics() {
 
   // パッケージチェック（現場DX業務効率化パック必須）
   if (userData?.organization_id) {
-    const features = await getOrganizationFeatures(userData.organization_id)
+    const features = await getOrganizationFeatures(userData?.organization_id)
     if (!hasPackage(features, 'dx')) {
       return <PackageRequired packageType="dx" featureName="売上分析・資金繰り予測" userRole={userData.role} />
     }
@@ -47,7 +47,7 @@ export default async function SalesAnalytics() {
       client:clients(id, name),
       project:projects(id, project_name)
     `)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .gte('invoice_date', twelveMonthsAgo.toISOString())
     .order('invoice_date', { ascending: false })
 

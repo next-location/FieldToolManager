@@ -49,7 +49,7 @@ export default async function ConsumableDetailPage({
   const { data: organization } = await supabase
     .from('organizations')
     .select('qr_print_size')
-    .eq('id', userData.organization_id)
+    .eq('id', userData?.organization_id)
     .single()
 
   const qrSize = organization?.qr_print_size || 25
@@ -63,7 +63,7 @@ export default async function ConsumableDetailPage({
       warehouse_location:warehouse_locations(code, display_name)
     `)
     .eq('tool_id', id)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .order('location_type')
 
   // 移動履歴を取得（最新10件、在庫調整を除外）
@@ -76,7 +76,7 @@ export default async function ConsumableDetailPage({
       to_site:sites!consumable_movements_to_site_id_fkey(name)
     `)
     .eq('tool_id', id)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .neq('movement_type', '調整')
     .order('created_at', { ascending: false })
     .limit(10)
@@ -89,7 +89,7 @@ export default async function ConsumableDetailPage({
       performed_by_user:users!consumable_movements_performed_by_fkey(name)
     `)
     .eq('tool_id', id)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('movement_type', '調整')
     .order('created_at', { ascending: false })
     .limit(10)

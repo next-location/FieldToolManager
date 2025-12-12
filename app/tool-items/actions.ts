@@ -46,7 +46,7 @@ export async function updateToolItemStatus(formData: FormData) {
     .from('tool_items')
     .select('*, tools(id, name)')
     .eq('id', toolItemId)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .single()
 
   if (fetchError || !toolItem) {
@@ -62,7 +62,7 @@ export async function updateToolItemStatus(formData: FormData) {
         updated_at: new Date().toISOString(),
       })
       .eq('id', toolItemId)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
 
     if (updateError) {
       console.error('Status update error:', updateError)
@@ -71,7 +71,7 @@ export async function updateToolItemStatus(formData: FormData) {
 
     // 2. tool_movementsに履歴を記録
     const { error: movementError } = await supabase.from('tool_movements').insert({
-      organization_id: userData.organization_id,
+      organization_id: userData?.organization_id,
       tool_id: (toolItem.tools as any).id,
       tool_item_id: toolItemId,
       movement_type: movementType,
@@ -96,7 +96,7 @@ export async function updateToolItemStatus(formData: FormData) {
         .from('tool_items')
         .select('*', { count: 'exact', head: true })
         .eq('tool_id', (toolItem.tools as any).id)
-        .eq('organization_id', userData.organization_id)
+        .eq('organization_id', userData?.organization_id)
         .in('status', ['available', 'in_use', 'maintenance'])
         .is('deleted_at', null)
 
@@ -105,7 +105,7 @@ export async function updateToolItemStatus(formData: FormData) {
         .from('tools')
         .update({ quantity: count || 0 })
         .eq('id', (toolItem.tools as any).id)
-        .eq('organization_id', userData.organization_id)
+        .eq('organization_id', userData?.organization_id)
     }
 
     revalidatePath('/tool-items/[id]', 'page')

@@ -32,7 +32,7 @@ export async function GET() {
       `);
 
     if (userData.role !== 'super_admin') {
-      query = query.eq('organization_id', userData.organization_id);
+      query = query.eq('organization_id', userData?.organization_id);
     }
 
     const { data: contracts, error } = await query;

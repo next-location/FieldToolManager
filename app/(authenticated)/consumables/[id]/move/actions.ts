@@ -50,7 +50,7 @@ export async function moveConsumable(formData: FormData) {
       .from('consumable_inventory')
       .select('*')
       .eq('tool_id', consumableId)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .eq('location_type', fromLocation)
 
     // site_idの条件を追加（NULLの場合は.is()を使用）
@@ -75,7 +75,7 @@ export async function moveConsumable(formData: FormData) {
       .from('consumable_inventory')
       .select('*')
       .eq('tool_id', consumableId)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .eq('location_type', toLocation)
 
     // site_idの条件を追加（NULLの場合は.is()を使用）
@@ -133,7 +133,7 @@ export async function moveConsumable(formData: FormData) {
       const { error: insertError } = await supabase
         .from('consumable_inventory')
         .insert({
-          organization_id: userData.organization_id,
+          organization_id: userData?.organization_id,
           tool_id: consumableId,
           location_type: toLocation,
           site_id: toSiteId,
@@ -152,7 +152,7 @@ export async function moveConsumable(formData: FormData) {
     const { error: movementError } = await supabase
       .from('consumable_movements')
       .insert({
-        organization_id: userData.organization_id,
+        organization_id: userData?.organization_id,
         tool_id: consumableId,
         movement_type: '移動',
         from_location_type: fromLocation,

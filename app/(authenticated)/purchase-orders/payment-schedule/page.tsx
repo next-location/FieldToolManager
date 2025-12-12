@@ -36,7 +36,7 @@ async function PaymentScheduleContent() {
       status,
       supplier:clients(name)
     `)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .neq('status', 'cancelled')
     .order('payment_due_date', { ascending: true })
 

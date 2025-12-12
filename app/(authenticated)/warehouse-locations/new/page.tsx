@@ -34,7 +34,7 @@ export default async function NewWarehouseLocationPage() {
   const { data: templates } = await supabase
     .from('warehouse_location_templates')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('is_active', true)
     .order('level')
 

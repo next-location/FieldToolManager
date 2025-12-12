@@ -25,11 +25,17 @@ const supabase = createClient(
 
 // GET: 請求書一覧取得
 export async function GET(request: NextRequest) {
+  console.log('========================================');
+  console.log('[Invoices API] ★★★ GET request started ★★★');
+  console.log('========================================');
   try {
     const session = await getSuperAdminSession();
     if (!session) {
+      console.log('[Invoices API] No session found');
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
     }
+
+    console.log('[Invoices API] Session OK:', session.name);
 
     const { searchParams } = new URL(request.url);
     const organizationId = searchParams.get('organization_id');
@@ -38,6 +44,8 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = (page - 1) * limit;
+
+    console.log('[Invoices API] Params:', { organizationId, status, search, page, limit });
 
     let query = supabase
       .from('invoices')
@@ -65,7 +73,18 @@ export async function GET(request: NextRequest) {
 
     query = query.range(offset, offset + limit - 1);
 
+    console.log('[Invoices API] Executing query...');
     let { data, error, count } = await query;
+
+    console.log('[Invoices API] Query result:', {
+      dataCount: data?.length,
+      totalCount: count,
+      hasError: !!error
+    });
+
+    if (error) {
+      console.error('[Invoices API] Query error details:', JSON.stringify(error, null, 2));
+    }
 
     // クライアント側で検索フィルタリング（ひらがな・カタカナ対応）
     if (search && data) {
@@ -96,6 +115,8 @@ export async function GET(request: NextRequest) {
       console.error('[Invoices API] Error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    console.log('[Invoices API] Returning response with', data?.length, 'invoices');
 
     return NextResponse.json({
       invoices: data,

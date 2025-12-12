@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     const { data: departments, error: deptError } = await supabase
       .from('users')
       .select('department')
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .is('deleted_at', null)
       .not('department', 'is', null)
       .order('department')
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
         const { count } = await supabase
           .from('users')
           .select('id', { count: 'exact', head: true })
-          .eq('organization_id', userData.organization_id)
+          .eq('organization_id', userData?.organization_id)
           .eq('department', dept)
           .is('deleted_at', null)
           .eq('is_active', true)

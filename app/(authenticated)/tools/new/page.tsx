@@ -37,7 +37,7 @@ export default async function NewToolPage() {
   const { data: toolMasters } = await supabase
     .from('tools')
     .select('id, name, model_number, manufacturer, minimum_stock, is_from_preset')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('management_type', 'individual')
     .is('deleted_at', null)
     .order('name')
@@ -46,7 +46,7 @@ export default async function NewToolPage() {
   const { data: organizationSettings } = await supabase
     .from('organization_settings')
     .select('enable_low_stock_alert')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .single()
 
   return (
@@ -67,7 +67,7 @@ export default async function NewToolPage() {
               presets={presets || []}
               toolMasters={toolMasters || []}
               enableLowStockAlert={organizationSettings?.enable_low_stock_alert ?? true}
-              organizationId={userData.organization_id}
+              organizationId={userData?.organization_id}
             />
           </div>
         </div>

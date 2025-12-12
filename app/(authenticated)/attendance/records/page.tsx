@@ -29,14 +29,14 @@ export default async function AttendanceRecordsPage() {
   const { data: organization } = await supabase
     .from('organizations')
     .select('name')
-    .eq('id', userData.organization_id)
+    .eq('id', userData?.organization_id)
     .single()
 
   // スタッフ一覧取得（フィルター用）
   const { data: staffList } = await supabase
     .from('users')
     .select('id, name, email')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .order('name')
 
@@ -44,7 +44,7 @@ export default async function AttendanceRecordsPage() {
   const { data: sitesList } = await supabase
     .from('sites')
     .select('id, name')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .order('name')
 

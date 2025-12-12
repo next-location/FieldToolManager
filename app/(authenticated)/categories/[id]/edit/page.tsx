@@ -40,7 +40,7 @@ export default async function EditCategoryPage({
     .from('tool_categories')
     .select('*')
     .eq('id', id)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .single()
 
   if (!category) {
@@ -66,7 +66,7 @@ export default async function EditCategoryPage({
             </h2>
 
             <CategoryForm
-              organizationId={userData.organization_id}
+              organizationId={userData?.organization_id}
               initialData={category}
             />
           </div>

@@ -36,7 +36,7 @@ export async function GET(request: NextRequest, { params }: Params) {
       .from('work_report_approvals')
       .select('*')
       .eq('work_report_id', id)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .order('approved_at', { ascending: false })
 
     if (error) {

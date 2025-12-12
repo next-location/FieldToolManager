@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    if (userError || !userData || userData.organization_id !== organizationId || userData.role !== 'admin') {
+    if (userError || !userData || userData?.organization_id !== organizationId || userData.role !== 'admin') {
       console.error('User check error:', userError, userData)
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }

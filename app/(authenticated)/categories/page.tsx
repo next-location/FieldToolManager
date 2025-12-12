@@ -33,7 +33,7 @@ export default async function CategoriesPage() {
   const { data: categories, error } = await supabase
     .from('tool_categories')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .order('name')
 

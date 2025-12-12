@@ -43,10 +43,10 @@ export async function GET(
     const { data: organization, error: orgError } = await supabase
       .from('organizations')
       .select('name, postal_code, address, phone, fax, company_seal_url, tax_registration_number, is_qualified_invoice_issuer')
-      .eq('id', userData.organization_id)
+      .eq('id', userData?.organization_id)
       .single()
 
-    console.log('[Invoice PDF API] Organization data:', { organization, orgError, orgId: userData.organization_id })
+    console.log('[Invoice PDF API] Organization data:', { organization, orgError, orgId: userData?.organization_id })
 
     if (!organization) {
       return NextResponse.json({ error: '組織情報が見つかりません', details: orgError }, { status: 404 })
@@ -62,7 +62,7 @@ export async function GET(
         billing_invoice_items(*)
       `)
       .eq('id', id)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .single()
 
     if (error || !invoice) {

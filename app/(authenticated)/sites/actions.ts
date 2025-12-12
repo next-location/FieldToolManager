@@ -33,7 +33,7 @@ export async function createSite(formData: FormData) {
 
   // 現場を作成
   const { error } = await supabase.from('sites').insert({
-    organization_id: userData.organization_id,
+    organization_id: userData?.organization_id,
     name,
     address: address || null,
     manager_id: manager_id || null,

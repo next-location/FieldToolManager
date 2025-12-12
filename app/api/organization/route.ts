@@ -30,7 +30,7 @@ export async function GET() {
     const { data: organization, error } = await supabase
       .from('organizations')
       .select('*')
-      .eq('id', userData.organization_id)
+      .eq('id', userData?.organization_id)
       .single()
 
     if (error) {
@@ -93,7 +93,7 @@ export async function PATCH(request: NextRequest) {
     const { data: organization, error } = await supabase
       .from('organizations')
       .update(updateData)
-      .eq('id', userData.organization_id)
+      .eq('id', userData?.organization_id)
       .select()
       .single()
 

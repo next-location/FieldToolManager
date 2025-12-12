@@ -51,7 +51,7 @@ export default function EditToolPage({ params }: { params: Promise<{ id: string 
       const { data: organizationSettings } = await supabase
         .from('organization_settings')
         .select('enable_low_stock_alert')
-        .eq('organization_id', userData.organization_id)
+        .eq('organization_id', userData?.organization_id)
         .single()
 
       setEnableLowStockAlert(organizationSettings?.enable_low_stock_alert ?? true)

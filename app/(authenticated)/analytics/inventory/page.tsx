@@ -27,7 +27,7 @@ export default async function InventoryOptimizationPage() {
 
   // パッケージチェック（現場資産パック必須）
   if (userData?.organization_id) {
-    const features = await getOrganizationFeatures(userData.organization_id)
+    const features = await getOrganizationFeatures(userData?.organization_id)
     if (!hasPackage(features, 'asset')) {
       return <PackageRequired packageType="asset" featureName="在庫最適化" userRole={userData.role} />
     }
@@ -37,14 +37,14 @@ export default async function InventoryOptimizationPage() {
   const { data: consumables } = await supabase
     .from('tools')
     .select(`*, categories:category_id(name)`)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('is_consumable', true)
     .is('deleted_at', null)
 
   const { data: inventory } = await supabase
     .from('consumable_inventory')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
 
   const sixMonthsAgo = new Date()
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
@@ -52,7 +52,7 @@ export default async function InventoryOptimizationPage() {
   const { data: movements } = await supabase
     .from('consumable_movements')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .gte('created_at', sixMonthsAgo.toISOString())
 
   const consumablesWithCategory = (consumables || []).map((c: any) => ({

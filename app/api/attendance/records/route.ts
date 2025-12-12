@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
       `,
         { count: 'exact' }
       )
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
 
     // admin/manager以外は自分のみ
     if (!isAdminOrManager) {

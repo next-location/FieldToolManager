@@ -47,7 +47,7 @@ export async function createMovement(formData: FormData) {
 
   // 移動を登録
   const { error } = await supabase.from('tool_movements').insert({
-    organization_id: userData.organization_id,
+    organization_id: userData?.organization_id,
     tool_id: toolItem.tool_id, // 道具マスタIDも保持
     tool_item_id, // 個別アイテムID
     movement_type,

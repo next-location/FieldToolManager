@@ -107,7 +107,7 @@ export async function PATCH(
     }
 
     // 組織IDチェック（同じ組織の報告書のみ編集可能）
-    if (existingReport.organization_id !== userData.organization_id) {
+    if (existingReport.organization_id !== userData?.organization_id) {
       return NextResponse.json(
         { error: 'この報告書へのアクセス権限がありません' },
         { status: 403 }
@@ -197,7 +197,7 @@ export async function PATCH(
     console.log(JSON.stringify(updateData, null, 2))
     console.log('=== User Data ===')
     console.log('user.id:', user.id)
-    console.log('userData.organization_id:', userData.organization_id)
+    console.log('userData?.organization_id:', userData?.organization_id)
     console.log('userData.role:', userData.role)
     console.log('=== Report Data ===')
     console.log('report.id:', id)

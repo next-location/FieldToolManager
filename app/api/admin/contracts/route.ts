@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
+import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,6 +10,11 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
+    // CSRF検証（重要な操作のため）
+    if (!await verifyCsrfToken(request)) {
+      return csrfErrorResponse();
+    }
+
     // スーパーアドミン認証チェック
     const session = await getSuperAdminSession();
     console.log('[API /api/admin/contracts] Session:', session);
@@ -51,24 +57,23 @@ export async function POST(request: NextRequest) {
     let hasDxPackage = false;
     let hasFullIntegrationPackage = false;
 
-    if (body.selectedPackageIds && Array.isArray(body.selectedPackageIds) && body.selectedPackageIds.length > 0) {
-      const { data: selectedPackages } = await supabase
+    if (body.selectedPackageId) {
+      const { data: selectedPackage } = await supabase
         .from('packages')
         .select('package_key')
-        .in('id', body.selectedPackageIds);
+        .eq('id', body.selectedPackageId)
+        .single();
 
-      if (selectedPackages) {
-        selectedPackages.forEach((pkg: any) => {
-          if (pkg.package_key === 'has_asset_package') hasAssetPackage = true;
-          if (pkg.package_key === 'has_dx_efficiency_package') hasDxPackage = true;
-          if (pkg.package_key === 'has_both_packages') hasFullIntegrationPackage = true;
-        });
-      }
+      if (selectedPackage) {
+        if (selectedPackage.package_key === 'has_asset_package') hasAssetPackage = true;
+        if (selectedPackage.package_key === 'has_dx_efficiency_package') hasDxPackage = true;
+        if (selectedPackage.package_key === 'has_both_packages') hasFullIntegrationPackage = true;
 
-      // フル機能統合パックが選択されている場合は、両方のフラグをtrueにする
-      if (hasFullIntegrationPackage) {
-        hasAssetPackage = true;
-        hasDxPackage = true;
+        // フル機能統合パックが選択されている場合は、両方のフラグをtrueにする
+        if (hasFullIntegrationPackage) {
+          hasAssetPackage = true;
+          hasDxPackage = true;
+        }
       }
     }
 
@@ -146,18 +151,16 @@ export async function POST(request: NextRequest) {
     }
 
     // 選択されたパッケージをcontract_packagesテーブルに保存
-    if (body.selectedPackageIds && Array.isArray(body.selectedPackageIds) && body.selectedPackageIds.length > 0) {
-      const contractPackages = body.selectedPackageIds.map((packageId: string) => ({
-        contract_id: contract.id,
-        package_id: packageId,
-      }));
-
+    if (body.selectedPackageId) {
       const { error: packageError } = await supabase
         .from('contract_packages')
-        .insert(contractPackages);
+        .insert({
+          contract_id: contract.id,
+          package_id: body.selectedPackageId,
+        });
 
       if (packageError) {
-        console.error('Error saving contract packages:', packageError);
+        console.error('Error saving contract package:', packageError);
         // エラーでも契約は作成されているので、警告ログのみ
       }
     }

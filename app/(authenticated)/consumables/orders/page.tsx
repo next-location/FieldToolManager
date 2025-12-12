@@ -47,7 +47,7 @@ export default async function ConsumableOrdersPage() {
         email
       )
     `)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .order('order_date', { ascending: false })
 

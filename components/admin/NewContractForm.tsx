@@ -64,7 +64,7 @@ export default function NewContractForm({ organizations, packages, superAdminId 
     organizationId: '',
     contractType: 'monthly' as 'monthly' | 'annual',
     plan: 'start' as keyof typeof PLAN_PRICING,
-    selectedPackageIds: [] as string[],
+    selectedPackageId: '' as string,
     userLimit: 10,
     startDate: new Date().toISOString().split('T')[0],
     endDate: '',
@@ -142,14 +142,14 @@ export default function NewContractForm({ organizations, packages, superAdminId 
     const planConfig = PLAN_PRICING[formData.plan];
     const baseFee = planConfig.monthlyFee;
 
-    // 選択されたパッケージの合計料金を計算
+    // 選択されたパッケージの料金を計算
     let packageFee = 0;
-    formData.selectedPackageIds.forEach(packageId => {
-      const pkg = packages.find(p => p.id === packageId);
+    if (formData.selectedPackageId) {
+      const pkg = packages.find(p => p.id === formData.selectedPackageId);
       if (pkg) {
-        packageFee += pkg.monthly_fee;
+        packageFee = pkg.monthly_fee;
       }
-    });
+    }
 
     const totalMonthlyFee = baseFee + packageFee;
     const totalInitialFee = formData.initialSetupFee +
@@ -325,27 +325,21 @@ export default function NewContractForm({ organizations, packages, superAdminId 
           <input type="number" value={formData.userLimit} onChange={(e) => setFormData({ ...formData, userLimit: parseInt(e.target.value) })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E6FFF]"/>
         </div>
         <div className="space-y-3">
-          <label className="block text-sm font-medium text-gray-700">機能パック（複数選択可）</label>
+          <label className="block text-sm font-medium text-gray-700">機能パック（1つ選択）</label>
           <div className="space-y-3">
             {packages.map((pkg) => (
               <label key={pkg.id} className="flex items-start cursor-pointer">
                 <input
-                  type="checkbox"
-                  checked={formData.selectedPackageIds.includes(pkg.id)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setFormData({
-                        ...formData,
-                        selectedPackageIds: [...formData.selectedPackageIds, pkg.id]
-                      });
-                    } else {
-                      setFormData({
-                        ...formData,
-                        selectedPackageIds: formData.selectedPackageIds.filter(id => id !== pkg.id)
-                      });
-                    }
+                  type="radio"
+                  name="packageSelect"
+                  checked={formData.selectedPackageId === pkg.id}
+                  onChange={() => {
+                    setFormData({
+                      ...formData,
+                      selectedPackageId: pkg.id
+                    });
                   }}
-                  className="mt-1 h-4 w-4 text-[#1E6FFF] focus:ring-[#1E6FFF] border-gray-300 rounded"
+                  className="mt-1 h-4 w-4 text-[#1E6FFF] focus:ring-[#1E6FFF] border-gray-300"
                 />
                 <div className="ml-3">
                   <span className="text-sm font-medium text-gray-900">

@@ -33,7 +33,7 @@ export default async function UsageAnalyticsPage() {
 
   // パッケージチェック（現場資産パック必須）
   if (userData?.organization_id) {
-    const features = await getOrganizationFeatures(userData.organization_id)
+    const features = await getOrganizationFeatures(userData?.organization_id)
     if (!hasPackage(features, 'asset')) {
       return <PackageRequired packageType="asset" featureName="使用頻度分析" userRole={userData.role} />
     }
@@ -49,7 +49,7 @@ export default async function UsageAnalyticsPage() {
         name
       )
     `)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .order('name')
 
@@ -60,28 +60,28 @@ export default async function UsageAnalyticsPage() {
   const { data: movements } = await supabase
     .from('tool_movements')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .gte('created_at', oneYearAgo.toISOString())
 
   // 消耗品移動履歴
   const { data: consumableMovements } = await supabase
     .from('consumable_movements')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .gte('created_at', oneYearAgo.toISOString())
 
   // 現場一覧取得
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
 
   // ユーザー一覧取得
   const { data: users } = await supabase
     .from('users')
     .select('id, name')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
 
   // ツールにカテゴリ名を追加

@@ -28,13 +28,13 @@ export async function GET() {
     const { data: features, error: featuresError } = await supabase
       .from('organization_features')
       .select('*')
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .single();
 
     if (featuresError) {
       // ビューにデータがない場合は、デフォルト値を返す
       return NextResponse.json({
-        organization_id: userData.organization_id,
+        organization_id: userData?.organization_id,
         contract: {
           plan_type: 'trial',
           user_limit: 10,
@@ -50,7 +50,7 @@ export async function GET() {
     }
 
     return NextResponse.json({
-      organization_id: userData.organization_id,
+      organization_id: userData?.organization_id,
       organization_name: features.organization_name,
       contract: {
         plan_type: features.plan_type || 'trial',

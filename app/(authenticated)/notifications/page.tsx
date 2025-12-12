@@ -29,7 +29,7 @@ export default async function NotificationsPage() {
   const { data: notifications } = await supabase
     .from('notifications')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
     .limit(30)

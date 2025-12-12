@@ -53,7 +53,7 @@ export default async function AuditLogsPage() {
         email
       )
     `)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .order('created_at', { ascending: false })
     .limit(100)
 

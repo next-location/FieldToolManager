@@ -48,7 +48,7 @@ export async function createConsumableOrder(formData: FormData) {
   const { data: existingOrder } = await supabase
     .from('consumable_orders')
     .select('id')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('order_number', orderNumber)
     .is('deleted_at', null)
     .single()
@@ -59,7 +59,7 @@ export async function createConsumableOrder(formData: FormData) {
 
   // 発注データ作成
   const { error } = await supabase.from('consumable_orders').insert({
-    organization_id: userData.organization_id,
+    organization_id: userData?.organization_id,
     tool_id: toolId,
     order_number: orderNumber,
     order_date: orderDate,

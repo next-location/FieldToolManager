@@ -30,7 +30,7 @@ export default async function OrganizationSettingsPage() {
   const { data: organization } = await supabase
     .from('organizations')
     .select('*')
-    .eq('id', userData.organization_id)
+    .eq('id', userData?.organization_id)
     .single()
 
   if (!organization) {
@@ -41,14 +41,14 @@ export default async function OrganizationSettingsPage() {
   const { data: organizationSettings } = await supabase
     .from('organization_settings')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .single()
 
   // 倉庫階層テンプレートを取得
   const { data: warehouseTemplates } = await supabase
     .from('warehouse_location_templates')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .order('level')
 
   return (

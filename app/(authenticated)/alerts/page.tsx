@@ -39,7 +39,7 @@ async function AlertsContent() {
       paid_amount,
       supplier:clients(name)
     `)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .lte('payment_due_date', sevenDaysLater.toISOString())
     .gte('payment_due_date', today.toISOString())
     .order('payment_due_date', { ascending: true })
@@ -55,7 +55,7 @@ async function AlertsContent() {
       paid_amount,
       supplier:clients(name)
     `)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .lt('payment_due_date', today.toISOString())
     .order('payment_due_date', { ascending: true })
 
@@ -70,7 +70,7 @@ async function AlertsContent() {
       paid_amount,
       client:clients(name)
     `)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .lte('due_date', sevenDaysLater.toISOString())
     .gte('due_date', today.toISOString())
     .order('due_date', { ascending: true })
@@ -86,7 +86,7 @@ async function AlertsContent() {
       paid_amount,
       client:clients(name)
     `)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .lt('due_date', today.toISOString())
     .order('due_date', { ascending: true })
 
@@ -215,7 +215,9 @@ async function AlertsContent() {
                           {po.po_number}
                         </Link>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">{po.supplier?.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {Array.isArray(po.supplier) && po.supplier[0]?.name || '-'}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {new Date(po.payment_due_date).toLocaleDateString('ja-JP')}
                       </td>
@@ -273,7 +275,9 @@ async function AlertsContent() {
                           {po.po_number}
                         </Link>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">{po.supplier?.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {Array.isArray(po.supplier) && po.supplier[0]?.name || '-'}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {new Date(po.payment_due_date).toLocaleDateString('ja-JP')}
                       </td>
@@ -331,7 +335,9 @@ async function AlertsContent() {
                           {inv.invoice_number}
                         </Link>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">{inv.client?.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {Array.isArray(inv.client) && inv.client[0]?.name || '-'}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {new Date(inv.due_date).toLocaleDateString('ja-JP')}
                       </td>
@@ -392,7 +398,9 @@ async function AlertsContent() {
                           {inv.invoice_number}
                         </Link>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">{inv.client?.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {Array.isArray(inv.client) && inv.client[0]?.name || '-'}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {new Date(inv.due_date).toLocaleDateString('ja-JP')}
                       </td>

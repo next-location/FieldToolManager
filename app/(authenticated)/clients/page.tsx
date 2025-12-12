@@ -46,7 +46,7 @@ export default async function ClientsPage({
   let query = supabase
     .from('clients')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('is_active', true)
     .is('deleted_at', null)
     .order('created_at', { ascending: false})

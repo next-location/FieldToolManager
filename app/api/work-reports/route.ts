@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
       `,
         { count: 'exact' }
       )
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .is('deleted_at', null)
 
     // フィルター適用
@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
     const status = body.status === 'submitted' ? 'submitted' : 'draft'
 
     // 作業報告書番号を生成
-    const reportNumber = await generateWorkReportNumber(userData.organization_id)
+    const reportNumber = await generateWorkReportNumber(userData?.organization_id)
 
     // 使用資材の変換（改行区切りテキスト → 配列）
     let materialsArray: string[] | undefined = undefined
@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
     const { data: insertData, error: insertError } = await supabase
       .from('work_reports')
       .insert({
-        organization_id: userData.organization_id,
+        organization_id: userData?.organization_id,
         site_id: body.site_id,
         report_date: body.report_date,
         weather: body.weather || '',
@@ -239,7 +239,7 @@ export async function POST(request: NextRequest) {
     if (status === 'submitted' && data) {
       try {
         await notifyWorkReportSubmitted({
-          organizationId: userData.organization_id,
+          organizationId: userData?.organization_id,
           workReportId: data.id,
           reportDate: data.report_date,
           siteName: data.site?.name || '不明な現場',

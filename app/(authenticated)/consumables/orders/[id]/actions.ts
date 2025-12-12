@@ -90,7 +90,7 @@ export async function markAsDelivered(formData: FormData) {
   const { data: existingInventory } = await supabase
     .from('consumable_inventory')
     .select('*')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('tool_id', order.tool_id)
     .eq('location_type', 'warehouse')
     .is('site_id', null)
@@ -114,7 +114,7 @@ export async function markAsDelivered(formData: FormData) {
     const { error: inventoryError } = await supabase
       .from('consumable_inventory')
       .insert({
-        organization_id: userData.organization_id,
+        organization_id: userData?.organization_id,
         tool_id: order.tool_id,
         location_type: 'warehouse',
         quantity: order.quantity,
@@ -129,7 +129,7 @@ export async function markAsDelivered(formData: FormData) {
   const { error: movementError } = await supabase
     .from('consumable_movements')
     .insert({
-      organization_id: userData.organization_id,
+      organization_id: userData?.organization_id,
       tool_id: order.tool_id,
       movement_type: '入庫',
       to_location_type: 'warehouse',

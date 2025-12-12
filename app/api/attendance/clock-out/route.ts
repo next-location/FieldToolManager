@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     const { data: todayRecord, error: recordError } = await supabase
       .from('attendance_records')
       .select('*')
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .eq('user_id', user.id)
       .eq('date', dateString)
       .maybeSingle()
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
         .from('sites')
         .select('id')
         .eq('id', body.site_id)
-        .eq('organization_id', userData.organization_id)
+        .eq('organization_id', userData?.organization_id)
         .single()
 
       if (siteError || !site) {

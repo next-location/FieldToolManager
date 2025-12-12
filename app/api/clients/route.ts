@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from('clients')
       .select('*', { count: 'exact' })
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .is('deleted_at', null)
 
     // フィルター適用
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
 
     // 取引先コード生成
     const { data: codeData, error: codeError } = await supabase.rpc('generate_client_code', {
-      org_id: userData.organization_id,
+      org_id: userData?.organization_id,
       prefix: 'CL',
     })
 
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
     const { data: client, error } = await supabase
       .from('clients')
       .insert({
-        organization_id: userData.organization_id,
+        organization_id: userData?.organization_id,
         code: codeData,
         name: body.name,
         name_kana: body.name_kana || null,

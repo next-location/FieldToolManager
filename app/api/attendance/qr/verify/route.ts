@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
         }
 
         // 組織のチェック
-        if (site.organization_id !== userData.organization_id) {
+        if (site.organization_id !== userData?.organization_id) {
           return NextResponse.json({ error: '異なる組織の現場です', valid: false }, { status: 403 })
         }
 
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
       const [, organizationId, token, validUntilStr] = parts
 
       // 組織IDのチェック
-      if (organizationId !== userData.organization_id) {
+      if (organizationId !== userData?.organization_id) {
         return NextResponse.json({ error: '異なる組織のQRコードです', valid: false }, { status: 403 })
       }
 
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
         .from('office_qr_codes')
         .select('*')
         .eq('qr_data', qr_data)
-        .eq('organization_id', userData.organization_id)
+        .eq('organization_id', userData?.organization_id)
         .eq('is_active', true)
         .single()
 
@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         valid: true,
         type: 'office',
-        organization_id: userData.organization_id,
+        organization_id: userData?.organization_id,
       })
     } else if (parts[0] === 'SITE') {
       // 現場QRコード（リーダー発行）の検証
@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
       }
 
       // 組織のチェック
-      if (site.organization_id !== userData.organization_id) {
+      if (site.organization_id !== userData?.organization_id) {
         return NextResponse.json({ error: '異なる組織の現場です', valid: false }, { status: 403 })
       }
 
@@ -209,7 +209,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         valid: true,
         type: 'site',
-        organization_id: userData.organization_id,
+        organization_id: userData?.organization_id,
         site_id: siteId,
         leader_id: leaderId,
       })

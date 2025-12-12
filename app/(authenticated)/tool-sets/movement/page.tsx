@@ -28,7 +28,7 @@ export default async function ToolSetMovementPage() {
   const { data: toolSets, error } = await supabase
     .from('tool_sets')
     .select('id, name, description, current_location, current_site_id, status')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .order('name')
 

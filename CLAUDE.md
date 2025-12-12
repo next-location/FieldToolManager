@@ -273,3 +273,16 @@ For super admin (システム管理者) related development and operations:
 - **Content**: Complete guide for super admin login, dashboard, contract management, and all admin features
 - **Usage**: This document contains detailed specifications, API endpoints, database schemas, and troubleshooting for the admin system
 
+### ⚠️ セキュリティ重要事項
+
+**環境変数とシークレット管理**:
+- **絶対に**ハードコードされたデフォルト値を含めない（例：`|| 'default-secret'`）
+- 環境変数が未設定の場合はエラーを投げる
+- `.env.local`は必ず`.gitignore`に含める（現在は設定済み）
+- 本番環境の秘密鍵は定期的にローテーションする
+
+**秘密情報の取り扱い**:
+- パスワード、APIキー、秘密鍵などは**絶対に**ソースコードに含めない
+- 例示やプレースホルダーであってもセキュリティリスクとなる可能性がある
+- 環境変数の設定例は`.env.example`に記載（実際の値は含めない）
+

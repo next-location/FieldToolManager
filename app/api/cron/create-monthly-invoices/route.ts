@@ -211,6 +211,7 @@ export async function GET(request: NextRequest) {
             items: feeCalculation.items,
           });
 
+          const taxAmount = Math.round((feeCalculation.subtotal || 0) * 0.1);
           const pdfBuffer = await generateStripeInvoicePDF({
             invoiceNumber: finalizedInvoice.number || `INV-${Date.now()}`,
             invoiceDate: new Date(finalizedInvoice.created * 1000).toISOString().split('T')[0],
@@ -231,7 +232,7 @@ export async function GET(request: NextRequest) {
               amount: item.amount,
             })),
             subtotal: feeCalculation.subtotal || 0,
-            tax: 0,
+            tax: taxAmount,
             total: feeCalculation.total || 0,
           });
 
@@ -263,24 +264,56 @@ export async function GET(request: NextRequest) {
         }
 
         // データベースに請求レコード保存
-        const { error: insertError } = await supabase.from('invoices').insert({
-          organization_id: organization.id,
-          contract_id: contract.id,
-          stripe_invoice_id: finalizedInvoice.id,
-          invoice_number: finalizedInvoice.number || `INV-${Date.now()}`,
-          amount: finalizedInvoice.amount_due || 0,
-          status: finalizedInvoice.status === 'paid' ? 'paid' : 'pending',
-          due_date: finalizedInvoice.due_date
-            ? new Date(finalizedInvoice.due_date * 1000).toISOString()
-            : null,
-          issued_at: new Date().toISOString(),
-        });
+        const { data: savedInvoice, error: insertError } = await supabase
+          .from('invoices')
+          .insert({
+            organization_id: organization.id,
+            contract_id: contract.id,
+            stripe_invoice_id: finalizedInvoice.id,
+            invoice_number: finalizedInvoice.number || `INV-${Date.now()}`,
+            amount: feeCalculation.subtotal || 0, // 税抜金額
+            tax_amount: Math.round((feeCalculation.subtotal || 0) * 0.1), // 消費税10%
+            total_amount: feeCalculation.total || 0, // 税込合計
+            status: finalizedInvoice.status === 'paid' ? 'paid' : 'pending',
+            due_date: finalizedInvoice.due_date
+              ? new Date(finalizedInvoice.due_date * 1000).toISOString()
+              : null,
+            invoice_date: new Date().toISOString(),
+            issued_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
 
-        if (insertError) {
+        if (insertError || !savedInvoice) {
           logger.error('Failed to save invoice to database', {
             invoiceId: finalizedInvoice.id,
             error: insertError,
           });
+        } else {
+          // invoice_itemsテーブルに明細を保存
+          const itemsToInsert = feeCalculation.items.map(item => ({
+            invoice_id: savedInvoice.id,
+            description: item.description,
+            quantity: 1,
+            unit_price: item.amount,
+            amount: item.amount,
+          }));
+
+          const { error: itemsError } = await supabase
+            .from('invoice_items')
+            .insert(itemsToInsert);
+
+          if (itemsError) {
+            logger.error('Failed to save invoice items to database', {
+              invoiceId: savedInvoice.id,
+              error: itemsError,
+            });
+          } else {
+            logger.info('Invoice items saved successfully', {
+              invoiceId: savedInvoice.id,
+              itemCount: itemsToInsert.length,
+            });
+          }
         }
 
         successCount++;

@@ -39,7 +39,7 @@ export async function createToolSet(formData: FormData) {
   const { data: toolSet, error: setError } = await supabase
     .from('tool_sets')
     .insert({
-      organization_id: userData.organization_id,
+      organization_id: userData?.organization_id,
       name,
       description: description || null,
       created_by: user.id,

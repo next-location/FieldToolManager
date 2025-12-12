@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     const { data: settings, error } = await supabase
       .from('organization_report_settings')
       .select('*')
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .single()
 
     if (error && error.code !== 'PGRST116') {
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     // 設定が存在しない場合はデフォルト値を返す
     if (!settings) {
       return NextResponse.json({
-        organization_id: userData.organization_id,
+        organization_id: userData?.organization_id,
         enable_work_location: true,
         enable_progress_rate: true,
         enable_materials: true,
@@ -110,7 +110,7 @@ export async function PUT(request: NextRequest) {
     const { data: settings, error } = await supabase
       .from('organization_report_settings')
       .upsert({
-        organization_id: userData.organization_id,
+        organization_id: userData?.organization_id,
         enable_work_location: body.enable_work_location ?? true,
         enable_progress_rate: body.enable_progress_rate ?? true,
         enable_materials: body.enable_materials ?? true,

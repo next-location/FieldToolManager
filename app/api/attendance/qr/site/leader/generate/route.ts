@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       .from('sites')
       .select('id, name, organization_id')
       .eq('id', site_id)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .is('deleted_at', null)
       .single()
 
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     const { data: attendanceSettings } = await supabase
       .from('organization_attendance_settings')
       .select('qr_rotation_days')
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .single()
 
     // QR更新頻度（デフォルト: 1日）
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
     const { data: qrRecord, error: insertError } = await supabase
       .from('site_leader_qr_logs')
       .insert({
-        organization_id: userData.organization_id,
+        organization_id: userData?.organization_id,
         site_id,
         generated_by: userData.id,
         qr_code_data: qrData,

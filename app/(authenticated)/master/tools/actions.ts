@@ -47,7 +47,7 @@ export async function createToolMaster(formData: {
   const { data, error } = await supabase
     .from('tools')
     .insert({
-      organization_id: userData.organization_id,
+      organization_id: userData?.organization_id,
       name: formData.name,
       model_number: formData.model_number || null,
       manufacturer: formData.manufacturer || null,
@@ -128,7 +128,7 @@ export async function updateToolMaster(
       notes: formData.notes || null,
     })
     .eq('id', id)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('management_type', 'individual')
     .select()
     .single()
@@ -191,7 +191,7 @@ export async function deleteToolMaster(id: string) {
     .from('tools')
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
 
   if (error) {
     console.error('Error deleting tool master:', error)
@@ -236,7 +236,7 @@ export async function copyPresetToOrganization(presetId: string) {
   // ストアドプロシージャ呼び出し
   const { data, error } = await supabase.rpc('copy_preset_to_organization', {
     p_preset_id: presetId,
-    p_organization_id: userData.organization_id,
+    p_organization_id: userData?.organization_id,
   })
 
   if (error) {

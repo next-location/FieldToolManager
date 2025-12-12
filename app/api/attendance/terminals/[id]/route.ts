@@ -39,7 +39,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .from('terminal_devices')
       .select('*')
       .eq('id', terminalId)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .single()
 
     if (fetchError || !existingTerminal) {
@@ -68,7 +68,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .from('terminal_devices')
       .update(updateData)
       .eq('id', terminalId)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .select()
       .single()
 
@@ -125,7 +125,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       .from('terminal_devices')
       .select('id')
       .eq('id', terminalId)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .single()
 
     if (fetchError || !existingTerminal) {
@@ -137,7 +137,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       .from('terminal_devices')
       .delete()
       .eq('id', terminalId)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
 
     if (deleteError) {
       console.error('Terminal delete error:', deleteError)

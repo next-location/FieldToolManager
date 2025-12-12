@@ -59,9 +59,9 @@ interface Invoice {
   invoice_number: string;
   billing_period_start: string;
   billing_period_end: string;
-  subtotal: number;
-  tax: number;
-  total: number;
+  amount: number;
+  tax_amount: number;
+  total_amount: number;
   due_date: string;
   status: string;
   sent_date: string | null;
@@ -443,7 +443,7 @@ export default function ContractDetailView({ contract, invoices, contractPackage
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-bold text-gray-900">
-                      ¥{invoice.total.toLocaleString()}
+                      ¥{(invoice.total_amount || 0).toLocaleString()}
                     </p>
                     <p className="text-xs text-gray-500">
                       (税込)
@@ -482,19 +482,19 @@ export default function ContractDetailView({ contract, invoices, contractPackage
                     <div>
                       <p className="text-gray-500 mb-0.5">小計</p>
                       <p className="font-medium text-gray-900">
-                        ¥{invoice.subtotal.toLocaleString()}
+                        ¥{(invoice.amount || 0).toLocaleString()}
                       </p>
                     </div>
                     <div>
                       <p className="text-gray-500 mb-0.5">消費税</p>
                       <p className="font-medium text-gray-900">
-                        ¥{invoice.tax.toLocaleString()}
+                        ¥{(invoice.tax_amount || 0).toLocaleString()}
                       </p>
                     </div>
                     <div>
                       <p className="text-gray-500 mb-0.5">合計</p>
                       <p className="font-medium text-gray-900">
-                        ¥{invoice.total.toLocaleString()}
+                        ¥{(invoice.total_amount || 0).toLocaleString()}
                       </p>
                     </div>
                   </div>

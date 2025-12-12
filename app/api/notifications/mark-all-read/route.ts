@@ -33,7 +33,7 @@ export async function POST() {
         read_at: new Date().toISOString(),
         read_by: user.id,
       })
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .eq('is_read', false)
 
     if (error) {

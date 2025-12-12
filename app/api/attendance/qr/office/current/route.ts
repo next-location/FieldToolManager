@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     const { data: qrCode, error: qrError } = await supabase
       .from('office_qr_codes')
       .select('*')
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .eq('is_active', true)
       .lte('valid_from', now.toISOString())
       .gte('valid_until', now.toISOString())

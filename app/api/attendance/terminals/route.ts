@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
         *,
         site:sites(id, name)
       `)
-      .eq('organization_id', userData.organization_id)
+      .eq('organization_id', userData?.organization_id)
       .order('created_at', { ascending: false })
 
     if (terminalsError) {
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
         .from('sites')
         .select('id')
         .eq('id', site_id)
-        .eq('organization_id', userData.organization_id)
+        .eq('organization_id', userData?.organization_id)
         .is('deleted_at', null)
         .single()
 
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
     const { data: newTerminal, error: insertError } = await supabase
       .from('terminal_devices')
       .insert({
-        organization_id: userData.organization_id,
+        organization_id: userData?.organization_id,
         device_name,
         device_type,
         site_id: device_type === 'site' ? site_id : null,

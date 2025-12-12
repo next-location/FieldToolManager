@@ -34,7 +34,7 @@ export default async function ConsumableMovePage({
     .from('tools')
     .select('id, name, unit, minimum_stock')
     .eq('id', id)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('management_type', 'consumable')
     .single()
 
@@ -46,7 +46,7 @@ export default async function ConsumableMovePage({
   const { data: organization } = await supabase
     .from('organizations')
     .select('consumable_movement_tracking')
-    .eq('id', userData.organization_id)
+    .eq('id', userData?.organization_id)
     .single()
 
   // 現在の在庫状況を取得
@@ -54,13 +54,13 @@ export default async function ConsumableMovePage({
     .from('consumable_inventory')
     .select('*, sites(id, name)')
     .eq('tool_id', id)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
 
   // 現場一覧を取得
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name, is_active')
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', userData?.organization_id)
     .eq('is_active', true)
     .is('deleted_at', null)
     .order('name')

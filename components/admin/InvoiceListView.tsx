@@ -55,6 +55,9 @@ export default function InvoiceListView({
   }, [page, status, organizationId, searchQuery]);
 
   const fetchInvoices = async () => {
+    console.log('========================================');
+    console.log('[InvoiceListView] fetchInvoices called');
+    console.log('========================================');
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -74,18 +77,27 @@ export default function InvoiceListView({
         params.append('search', searchQuery);
       }
 
-      const response = await fetch(`/api/admin/invoices?${params}`);
+      const url = `/api/admin/invoices?${params}`;
+      console.log('[InvoiceListView] Fetching:', url);
+
+      const response = await fetch(url);
+      console.log('[InvoiceListView] Response status:', response.status);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[InvoiceListView] Error response:', errorText);
         throw new Error('請求書の取得に失敗しました');
       }
 
       const data = await response.json();
+      console.log('[InvoiceListView] Data received:', data);
       setInvoices(data.invoices || []);
       setTotalPages(data.totalPages || 1);
     } catch (error) {
-      console.error('Error fetching invoices:', error);
+      console.error('[InvoiceListView] Error fetching invoices:', error);
       alert('請求書の取得に失敗しました');
     } finally {
+      console.log('[InvoiceListView] Loading complete');
       setLoading(false);
     }
   };
@@ -265,8 +277,13 @@ export default function InvoiceListView({
               <tbody className="bg-white divide-y divide-gray-200">
                 {invoices.map((invoice) => (
                   <tr key={invoice.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {invoice.invoice_number}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <Link
+                        href={`/admin/invoices/${invoice.id}`}
+                        className="text-blue-600 hover:text-blue-800 hover:underline"
+                      >
+                        {invoice.invoice_number}
+                      </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {invoice.organizations.name}

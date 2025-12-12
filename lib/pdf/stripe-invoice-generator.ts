@@ -1,6 +1,7 @@
 import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { loadNotoSansJP } from './font-loader';
+import fs from 'fs';
+import path from 'path';
 
 /**
  * Stripe請求書PDFジェネレーター
@@ -52,7 +53,7 @@ export interface StripeInvoiceData {
 }
 
 /**
- * Stripe請求書PDFを生成
+ * Stripe請求書PDFを生成（管理画面ダウンロード用と同じデザイン）
  */
 export async function generateStripeInvoicePDF(data: StripeInvoiceData): Promise<Buffer> {
   // jsPDFインスタンス作成
@@ -66,208 +67,323 @@ export async function generateStripeInvoicePDF(data: StripeInvoiceData): Promise
   await loadNotoSansJP(doc);
   doc.setFont('NotoSansJP', 'normal');
 
-  let yPos = 20;
+  // 青色定義（薄く変更）
+  const primaryBlue = [100, 149, 237]; // #6495ED CornflowerBlue（薄い青）
+  const lightBlue = [240, 248, 255]; // #F0F8FF AliceBlue（より薄い青）
 
-  // タイトル
-  doc.setFontSize(20);
-  doc.setFont('NotoSansJP', 'bold');
-  doc.text('請　求　書', 105, yPos, { align: 'center' });
-  yPos += 15;
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+  };
 
-  // 請求書番号・発行日
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('ja-JP').format(amount);
+  };
+
+  const leftColumnX = 15;
+  const rightColumnX = 115;
+  let yPos = 25;
+
+  // ========================================
+  // ヘッダー部分
+  // ========================================
+
+  // 左上: 大きな「請求書」タイトル
+  doc.setFontSize(28);
+  doc.setFont('NotoSansJP', 'normal');
+  doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+  doc.text('請　求　書', leftColumnX, yPos);
+
+  // 右上: 日付と請求書番号
   doc.setFontSize(10);
   doc.setFont('NotoSansJP', 'normal');
-  doc.text(`請求書番号: ${data.invoiceNumber}`, 15, yPos);
-  yPos += 6;
-  doc.text(`発行日: ${formatDate(data.invoiceDate)}`, 15, yPos);
-  yPos += 6;
-
-  if (data.paymentMethod === 'invoice') {
-    doc.text(`お支払期限: ${formatDate(data.dueDate)}`, 15, yPos);
-    yPos += 10;
-  } else {
-    doc.setTextColor(0, 128, 0);
-    doc.setFont('NotoSansJP', 'bold');
-    doc.text(`決済済み（${formatDate(data.cardInfo!.paidAt)}）`, 15, yPos);
-    doc.setTextColor(0, 0, 0);
-    doc.setFont('NotoSansJP', 'normal');
-    yPos += 10;
-  }
-
-  // 請求先情報
-  doc.setFontSize(12);
-  doc.setFont('NotoSansJP', 'bold');
-  doc.text('【 請求先 】', 15, yPos);
-  yPos += 8;
-
-  doc.setFontSize(10);
+  doc.setTextColor(0, 0, 0);
+  doc.text(formatDate(data.invoiceDate), 195, yPos - 5, { align: 'right' });
   doc.setFont('NotoSansJP', 'normal');
-  doc.text(data.organization.name, 20, yPos);
-  yPos += 6;
+  doc.text(`請求書番号: ${data.invoiceNumber}`, 195, yPos + 2, { align: 'right' });
+  doc.setFont('NotoSansJP', 'normal');
+  doc.text('登録番号：T2040001105536', 195, yPos + 9, { align: 'right' });
 
-  if (data.organization.postalCode && data.organization.address) {
-    doc.text(`〒${data.organization.postalCode}`, 20, yPos);
-    yPos += 6;
-    doc.text(data.organization.address, 20, yPos);
-    yPos += 6;
-  }
-
-  if (data.organization.phone) {
-    doc.text(`TEL: ${data.organization.phone}`, 20, yPos);
-    yPos += 6;
-  }
-
-  if (data.organization.email) {
-    doc.text(`Email: ${data.organization.email}`, 20, yPos);
-    yPos += 6;
-  }
-
-  yPos += 5;
-
-  // 請求金額（大きく表示）
-  doc.setFontSize(14);
-  doc.setFont('NotoSansJP', 'bold');
-  doc.text('ご請求金額', 15, yPos);
-
-  doc.setFontSize(20);
-  doc.text(`¥${data.total.toLocaleString('ja-JP')}`, 75, yPos);
-  doc.setFontSize(10);
-  doc.text('（税込）', 140, yPos);
   yPos += 15;
 
-  // 請求明細テーブル
-  doc.setFontSize(12);
-  doc.setFont('NotoSansJP', 'bold');
-  doc.text('【 請求明細 】', 15, yPos);
-  yPos += 5;
+  // ========================================
+  // 請求先 & 発行者情報（2カラム）
+  // ========================================
 
-  const tableData = data.items.map(item => [
-    item.description,
-    item.quantity.toString(),
-    `¥${item.unitPrice.toLocaleString('ja-JP')}`,
-    `¥${item.amount.toLocaleString('ja-JP')}`,
-  ]);
+  // 左側: 請求先情報
+  let leftY = yPos + 3;
 
-  autoTable(doc, {
-    startY: yPos,
-    head: [['項目', '数量', '単価', '金額']],
-    body: tableData,
-    foot: [
-      ['', '', '小計', `¥${data.subtotal.toLocaleString('ja-JP')}`],
-      ['', '', '消費税（10%）', `¥${data.tax.toLocaleString('ja-JP')}`],
-      ['', '', '合計', `¥${data.total.toLocaleString('ja-JP')}`],
-    ],
-    styles: {
-      font: 'NotoSansJP',
-      fontSize: 10,
-      cellPadding: 3,
-      lineColor: [0, 0, 0],
-      lineWidth: 0.1,
-    },
-    headStyles: {
-      fillColor: [240, 240, 240],
-      textColor: [0, 0, 0],
-      fontStyle: 'bold',
-      halign: 'center',
-    },
-    bodyStyles: {
-      textColor: [0, 0, 0],
-    },
-    footStyles: {
-      fillColor: [255, 255, 255],
-      textColor: [0, 0, 0],
-      fontStyle: 'bold',
-      halign: 'right',
-    },
-    columnStyles: {
-      0: { cellWidth: 80, halign: 'left' },
-      1: { cellWidth: 20, halign: 'center' },
-      2: { cellWidth: 40, halign: 'right' },
-      3: { cellWidth: 40, halign: 'right' },
-    },
-    didParseCell: function (data) {
-      data.cell.styles.font = 'NotoSansJP';
-    },
-  });
+  doc.setFontSize(16);
+  doc.setFont('NotoSansJP', 'normal');
+  doc.setTextColor(0, 0, 0);
+  doc.text(`${data.organization.name} 様`, leftColumnX + 5, leftY);
+  leftY += 4;
 
-  yPos = (doc as any).lastAutoTable.finalY + 15;
+  // 取引先名の下に青い下線
+  doc.setDrawColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+  doc.setLineWidth(0.5);
+  doc.line(leftColumnX, leftY, 105, leftY);
 
-  // 支払方法別の情報表示
-  if (data.paymentMethod === 'invoice') {
-    // 請求書払い: 振込先情報
-    doc.setFontSize(12);
-    doc.setFont('NotoSansJP', 'bold');
-    doc.text('【 お振込先 】', 15, yPos);
-    yPos += 8;
+  leftY += 6;
 
-    doc.setFontSize(10);
-    doc.setFont('NotoSansJP', 'normal');
-    doc.text('銀行名: ○○銀行', 20, yPos);
-    yPos += 6;
-    doc.text('支店名: ○○支店', 20, yPos);
-    yPos += 6;
-    doc.text('口座種別: 普通預金', 20, yPos);
-    yPos += 6;
-    doc.text('口座番号: 1234567', 20, yPos);
-    yPos += 6;
-    doc.text('口座名義: カ）フィールドツールマネージャー', 20, yPos);
-    yPos += 10;
-
-    doc.setFontSize(9);
-    doc.setTextColor(100, 100, 100);
-    doc.text('※ 振込手数料はお客様ご負担でお願いいたします', 20, yPos);
-    doc.setTextColor(0, 0, 0);
-    yPos += 10;
-
-  } else {
-    // カード払い: 決済情報
-    doc.setFontSize(12);
-    doc.setFont('NotoSansJP', 'bold');
-    doc.text('【 決済情報 】', 15, yPos);
-    yPos += 8;
-
-    doc.setFontSize(10);
-    doc.setFont('NotoSansJP', 'normal');
-    doc.text(`カード: ${data.cardInfo!.brand} **** **** **** ${data.cardInfo!.last4}`, 20, yPos);
-    yPos += 6;
-    doc.text(`決済日時: ${formatDate(data.cardInfo!.paidAt)}`, 20, yPos);
-    yPos += 10;
-  }
-
-  // 備考
-  if (data.notes) {
-    doc.setFontSize(12);
-    doc.setFont('NotoSansJP', 'bold');
-    doc.text('【 備考 】', 15, yPos);
-    yPos += 8;
-
-    doc.setFontSize(10);
-    doc.setFont('NotoSansJP', 'normal');
-    const splitNotes = doc.splitTextToSize(data.notes, 180);
-    doc.text(splitNotes, 20, yPos);
-    yPos += splitNotes.length * 6 + 10;
-  }
-
-  // フッター（発行元情報）
-  const footerY = 280;
   doc.setFontSize(9);
   doc.setFont('NotoSansJP', 'normal');
-  doc.text('株式会社ザイロク', 15, footerY);
-  doc.text('〒100-0001 東京都千代田区○○1-2-3', 15, footerY + 5);
-  doc.text('TEL: 03-1234-5678  Email: billing@zairoku.com', 15, footerY + 10);
+  if (data.organization.address) {
+    const addressLines = doc.splitTextToSize(data.organization.address, 90);
+    doc.text(addressLines, leftColumnX, leftY);
+    leftY += addressLines.length * 5;
+  }
 
-  // PDFをBufferに変換
+  // 右側: 発行者情報
+  let rightY = yPos + 10;
+
+  doc.setFontSize(12);
+  doc.setFont('NotoSansJP', 'normal');
+  doc.setTextColor(0, 0, 0);
+  doc.text('株式会社ネクストロケーション', rightColumnX, rightY);
+  rightY += 6;
+
+  doc.setFontSize(8);
+  doc.setFont('NotoSansJP', 'normal');
+  doc.setTextColor(60, 60, 60);
+  doc.text('〒107-0062', rightColumnX, rightY);
+  rightY += 4;
+  doc.setFont('NotoSansJP', 'normal');
+  doc.text('東京都港区南青山2丁目2番15号', rightColumnX, rightY);
+  rightY += 4;
+  doc.setFont('NotoSansJP', 'normal');
+  doc.text('WinAoyamaビル917', rightColumnX, rightY);
+  rightY += 5;
+  doc.setFont('NotoSansJP', 'normal');
+  doc.text('電話番号： 03-6869-1887', rightColumnX, rightY);
+  rightY += 4;
+  doc.setFont('NotoSansJP', 'normal');
+  doc.text('billing@zairoku.com', rightColumnX, rightY);
+
+  // 角印（画像を読み込んで配置）
+  try {
+    const sealImagePath = path.join(process.env.HOME || '/Users/youichiakashi', 'Desktop', '角印.png');
+    const sealImageData = fs.readFileSync(sealImagePath);
+    const sealImageBase64 = sealImageData.toString('base64');
+    doc.addImage(sealImageBase64, 'PNG', rightColumnX + 60, yPos + 15, 20, 20);
+  } catch (error) {
+    console.error('角印画像の読み込みに失敗しました:', error);
+    // フォールバック: 赤い四角を表示
+    doc.setDrawColor(200, 50, 50);
+    doc.setFillColor(255, 255, 255);
+    doc.setLineWidth(1.5);
+    doc.rect(rightColumnX + 60, yPos + 15, 20, 20, 'FD');
+    doc.setFontSize(7);
+    doc.setFont('NotoSansJP', 'normal');
+    doc.setTextColor(200, 50, 50);
+    doc.text('角印', rightColumnX + 65, yPos + 25);
+  }
+
+  yPos += 45;
+
+  // ========================================
+  // ご請求金額ボックス
+  // ========================================
+
+  doc.setFontSize(10);
+  doc.setFont('NotoSansJP', 'normal');
+  doc.setTextColor(0, 0, 0);
+  doc.text('下記のとおりご請求申し上げます。', leftColumnX, yPos);
+  yPos += 7;
+
+  doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+  doc.rect(leftColumnX, yPos, 35, 12, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(11);
+  doc.setFont('NotoSansJP', 'normal');
+  doc.text('ご請求金額', leftColumnX + 17.5, yPos + 8, { align: 'center' });
+
+  doc.setFont('NotoSansJP', 'normal');
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(20);
+  doc.text(`¥ ${formatCurrency(data.total)} -`, leftColumnX + 40, yPos + 9);
+
+  // 金額の下線
+  doc.setDrawColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+  doc.setLineWidth(0.5);
+  doc.line(leftColumnX, yPos + 12, 140, yPos + 12);
+
+  yPos += 20;
+
+  // ========================================
+  // 請求明細テーブル
+  // ========================================
+
+  // テーブルデータ
+  let tableRows: string[][] = data.items.map(item => [
+    item.description,
+    `${item.quantity}`,
+    formatCurrency(item.unitPrice),
+    formatCurrency(item.amount)
+  ]);
+
+  // 空行を追加（合計8行にする）
+  for (let i = tableRows.length; i < 8; i++) {
+    tableRows.push(['', '', '', '']);
+  }
+
+  // ヘッダー
+  doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+  doc.setTextColor(255, 255, 255);
+  doc.rect(leftColumnX, yPos, 100, 8, 'F');
+  doc.rect(leftColumnX + 100, yPos, 30, 8, 'F');
+  doc.rect(leftColumnX + 130, yPos, 30, 8, 'F');
+  doc.rect(leftColumnX + 160, yPos, 30, 8, 'F');
+
+  doc.setFontSize(10);
+  doc.setFont('NotoSansJP', 'normal');
+  doc.text('品番・品名', leftColumnX + 50, yPos + 5.5, { align: 'center' });
+  doc.setFont('NotoSansJP', 'normal');
+  doc.text('数量', leftColumnX + 115, yPos + 5.5, { align: 'center' });
+  doc.setFont('NotoSansJP', 'normal');
+  doc.text('単価', leftColumnX + 145, yPos + 5.5, { align: 'center' });
+  doc.setFont('NotoSansJP', 'normal');
+  doc.text('金額', leftColumnX + 175, yPos + 5.5, { align: 'center' });
+
+  yPos += 8;
+
+  // ボディ
+  doc.setTextColor(0, 0, 0);
+  tableRows.forEach((row, index) => {
+    // 縞模様
+    if (index % 2 === 1) {
+      doc.setFillColor(lightBlue[0], lightBlue[1], lightBlue[2]);
+      doc.rect(leftColumnX, yPos, 190, 8, 'F');
+    }
+
+    // 枠線
+    doc.setDrawColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+    doc.setLineWidth(0.3);
+    doc.rect(leftColumnX, yPos, 100, 8);
+    doc.rect(leftColumnX + 100, yPos, 30, 8);
+    doc.rect(leftColumnX + 130, yPos, 30, 8);
+    doc.rect(leftColumnX + 160, yPos, 30, 8);
+
+    // テキスト
+    doc.setFont('NotoSansJP', 'normal');
+    doc.text(row[0], leftColumnX + 2, yPos + 5.5);
+    doc.setFont('NotoSansJP', 'normal');
+    doc.text(row[1], leftColumnX + 115, yPos + 5.5, { align: 'center' });
+    doc.setFont('NotoSansJP', 'normal');
+    doc.text(row[2], leftColumnX + 157, yPos + 5.5, { align: 'right' });
+    doc.setFont('NotoSansJP', 'normal');
+    doc.text(row[3], leftColumnX + 187, yPos + 5.5, { align: 'right' });
+
+    yPos += 8;
+  });
+
+  yPos += 2;
+
+  // ========================================
+  // 小計・消費税・合計
+  // ========================================
+
+  const summaryLabelX = leftColumnX + 130;
+  const summaryValueX = leftColumnX + 160;
+  const summaryWidth = 30;
+
+  // 小計
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+  doc.setLineWidth(0.3);
+  doc.rect(summaryLabelX, yPos, summaryWidth, 8);
+  doc.rect(summaryValueX, yPos, summaryWidth, 8);
+
+  doc.setFontSize(10);
+  doc.setFont('NotoSansJP', 'normal');
+  doc.setTextColor(0, 0, 0);
+  doc.text('小計', summaryLabelX + summaryWidth / 2, yPos + 5.5, { align: 'center' });
+  doc.setFont('NotoSansJP', 'normal');
+  doc.text(formatCurrency(data.subtotal), summaryValueX + summaryWidth - 3, yPos + 5.5, { align: 'right' });
+
+  yPos += 8;
+
+  // 消費税
+  doc.rect(summaryLabelX, yPos, summaryWidth, 8);
+  doc.rect(summaryValueX, yPos, summaryWidth, 8);
+  doc.setFont('NotoSansJP', 'normal');
+  doc.text('消費税(10%)', summaryLabelX + summaryWidth / 2, yPos + 5.5, { align: 'center' });
+  doc.setFont('NotoSansJP', 'normal');
+  doc.text(formatCurrency(data.tax), summaryValueX + summaryWidth - 3, yPos + 5.5, { align: 'right' });
+
+  yPos += 8;
+
+  // 合計
+  doc.setFillColor(lightBlue[0], lightBlue[1], lightBlue[2]);
+  doc.rect(summaryLabelX, yPos, summaryWidth, 8, 'FD');
+  doc.rect(summaryValueX, yPos, summaryWidth, 8, 'FD');
+  doc.setFont('NotoSansJP', 'normal');
+  doc.text('合計', summaryLabelX + summaryWidth / 2, yPos + 5.5, { align: 'center' });
+  doc.setFont('NotoSansJP', 'normal');
+  doc.text(formatCurrency(data.total), summaryValueX + summaryWidth - 3, yPos + 5.5, { align: 'right' });
+
+  yPos += 15;
+
+  // ========================================
+  // お支払期限・振込先情報・備考
+  // ========================================
+
+  doc.setFontSize(10);
+  doc.setFont('NotoSansJP', 'normal');
+  doc.setTextColor(0, 0, 0);
+  doc.text(`お支払期限: ${formatDate(data.dueDate)}`, leftColumnX, yPos);
+  yPos += 10;
+
+  // 振込先情報（1行表示）
+  doc.setFontSize(9);
+  doc.setFont('NotoSansJP', 'normal');
+  doc.text('お振込先：りそな銀行 市川支店 （普）1452536 ｶ) ﾈｸｽﾄﾛｹｰｼｮﾝ ﾀﾞｲﾋｮｳﾄﾘｼﾏﾘﾔｸ ｱｶｼﾖｳｲﾁ', leftColumnX, yPos);
+  yPos += 6;
+
+  doc.setFontSize(8);
+  doc.setFont('NotoSansJP', 'normal');
+  doc.setTextColor(100, 100, 100);
+  doc.text('※ 振込手数料はお客様ご負担でお願いいたします', leftColumnX, yPos);
+  doc.setTextColor(0, 0, 0);
+  yPos += 10;
+
+  // 備考（青枠内）
+  doc.setDrawColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+  doc.setLineWidth(0.5);
+
+  const notesContent = data.notes || 'なし';
+  const notesLines = doc.splitTextToSize(notesContent, 180);
+  const notesHeight = Math.max(36, notesLines.length * 5 + 10);
+
+  doc.rect(leftColumnX, yPos, 190, notesHeight);
+
+  doc.setFontSize(10);
+  doc.setFont('NotoSansJP', 'normal');
+  doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+  doc.text('備考', leftColumnX + 3, yPos + 6);
+
+  doc.setFontSize(9);
+  doc.setFont('NotoSansJP', 'normal');
+  doc.setTextColor(0, 0, 0);
+  doc.text(notesLines, leftColumnX + 3, yPos + 12);
+
+  // ========================================
+  // フッター
+  // ========================================
+  const footerY = 285;
+  doc.setFontSize(7);
+  doc.setFont('NotoSansJP', 'normal');
+  doc.setTextColor(150, 150, 150);
+  doc.text('© ザイロク 請求書発行サービス', 195, footerY, { align: 'right' });
+
+  // PDFをバッファに変換
   const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
   return pdfBuffer;
 }
 
-/**
- * 日付フォーマット（YYYY-MM-DD → YYYY年MM月DD日）
- */
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  return `${year}年${month}月${day}日`;
+// ヘルパー関数
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
 }

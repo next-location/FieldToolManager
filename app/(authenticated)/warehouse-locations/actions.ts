@@ -44,7 +44,7 @@ export async function createWarehouseLocation(formData: FormData) {
 
   // 登録処理
   const { error } = await supabase.from('warehouse_locations').insert({
-    organization_id: userData.organization_id,
+    organization_id: userData?.organization_id,
     code,
     display_name: displayName,
     description: description || null,
