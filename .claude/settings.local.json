@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU npx tsx -e \"\nimport { createClient } from ''@supabase/supabase-js'';\nimport bcrypt from ''bcryptjs'';\n\nconst supabase = createClient(\n  process.env.NEXT_PUBLIC_SUPABASE_URL!,\n  process.env.SUPABASE_SERVICE_ROLE_KEY!\n);\n\nasync function createSuperAdmin() {\n  const password = ''SuperAdmin123!'';\n  const hashedPassword = await bcrypt.hash(password, 10);\n  \n  const { data, error } = await supabase\n    .from(''super_admins'')\n    .insert({\n      email: ''superadmin@fieldtool.com'',\n      password_hash: hashedPassword,\n      name: ''スーパー管理者'',\n      role: ''owner'',\n      permission_level: ''admin''\n    })\n    .select()\n    .single();\n    \n  if (error) {\n    console.error(''Error:'', error);\n  } else {\n    console.log(''✅ Super admin created:'', data);\n  }\n}\n\ncreateSuperAdmin();\n\")"
+      "Bash(npx supabase:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(npm install:*)",
+      "Bash(mkdir:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
