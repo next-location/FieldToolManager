@@ -46,6 +46,32 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // パッケージIDからパッケージキーを取得
+    let hasAssetPackage = false;
+    let hasDxPackage = false;
+    let hasFullIntegrationPackage = false;
+
+    if (body.selectedPackageIds && Array.isArray(body.selectedPackageIds) && body.selectedPackageIds.length > 0) {
+      const { data: selectedPackages } = await supabase
+        .from('packages')
+        .select('package_key')
+        .in('id', body.selectedPackageIds);
+
+      if (selectedPackages) {
+        selectedPackages.forEach((pkg: any) => {
+          if (pkg.package_key === 'has_asset_package') hasAssetPackage = true;
+          if (pkg.package_key === 'has_dx_efficiency_package') hasDxPackage = true;
+          if (pkg.package_key === 'has_both_packages') hasFullIntegrationPackage = true;
+        });
+      }
+
+      // フル機能統合パックが選択されている場合は、両方のフラグをtrueにする
+      if (hasFullIntegrationPackage) {
+        hasAssetPackage = true;
+        hasDxPackage = true;
+      }
+    }
+
     // 契約番号を生成（形式: CONT-YYYYMMDD-XXXX）
     const today = new Date();
     const dateStr = today.toISOString().split('T')[0].replace(/-/g, '');
@@ -66,8 +92,8 @@ export async function POST(request: NextRequest) {
         contract_number: contractNumber,
         contract_type: body.contractType,
         plan: body.plan,
-        has_asset_package: body.hasAssetPackage,
-        has_dx_efficiency_package: body.hasDxPackage,
+        has_asset_package: hasAssetPackage,
+        has_dx_efficiency_package: hasDxPackage,
         user_limit: body.userLimit,
         base_monthly_fee: body.baseMonthlyFee,
         package_monthly_fee: body.packageMonthlyFee,

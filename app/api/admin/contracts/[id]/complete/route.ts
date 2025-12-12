@@ -203,7 +203,7 @@ export async function POST(
       .eq('id', contract.organization_id)
       .single();
 
-    if (orgData && process.env.RESEND_API_KEY) {
+    if (orgData && (process.env.RESEND_API_KEY || process.env.SMTP_HOST)) {
       try {
         const loginUrl = `http://${orgData.subdomain}.localhost:3000`;
         await sendWelcomeEmail({
@@ -220,8 +220,9 @@ export async function POST(
         // メール送信失敗はエラーにしない（アカウントは既に作成済み）
       }
     } else {
-      console.warn('[API /api/admin/contracts/complete] Skipping welcome email (RESEND_API_KEY not set)');
+      console.warn('[API /api/admin/contracts/complete] Skipping welcome email (no email provider configured)');
     }
+
     return NextResponse.json({
       success: true,
       message: '契約が完了しました。初期管理者アカウントが作成されました。',

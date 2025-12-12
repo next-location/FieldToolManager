@@ -28,7 +28,24 @@ export default function CompleteContractButton({ contractId, contractNumber }: C
         credentials: 'include',
       });
 
-      const data = await response.json();
+      // レスポンスのコンテンツタイプを確認
+      const contentType = response.headers.get('content-type');
+      console.log('[CompleteContractButton] Response status:', response.status);
+      console.log('[CompleteContractButton] Content-Type:', contentType);
+
+      let data;
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        // HTMLエラーページなどの場合
+        const text = await response.text();
+        console.error('[CompleteContractButton] Non-JSON response:', text.substring(0, 500));
+        setResult({
+          success: false,
+          error: `サーバーエラーが発生しました (Status: ${response.status})\n\nサーバーログを確認してください。`
+        });
+        return;
+      }
 
       if (!response.ok) {
         setResult({ success: false, error: data.error || '契約完了に失敗しました' });
@@ -42,6 +59,7 @@ export default function CompleteContractButton({ contractId, contractNumber }: C
         message: data.message,
       });
     } catch (error: any) {
+      console.error('[CompleteContractButton] Error:', error);
       setResult({ success: false, error: error.message || 'エラーが発生しました' });
     } finally {
       setLoading(false);

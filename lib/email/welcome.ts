@@ -1,6 +1,5 @@
 import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import nodemailer from 'nodemailer';
 
 interface SendWelcomeEmailParams {
   toEmail: string;
@@ -12,23 +11,11 @@ interface SendWelcomeEmailParams {
 }
 
 /**
- * ウェルカムメールを送信
- * 契約完了時に初期管理者に送信されます
+ * メールHTMLテンプレート
  */
-export async function sendWelcomeEmail({
-  toEmail,
-  adminName,
-  organizationName,
-  subdomain,
-  loginUrl,
-  password,
-}: SendWelcomeEmailParams) {
-  try {
-    const { data, error } = await resend.emails.send({
-      from: 'Field Tool Manager <noreply@fieldtoolmanager.com>',
-      to: toEmail,
-      subject: `【Field Tool Manager】アカウントが作成されました`,
-      html: `
+function getEmailHtml(params: SendWelcomeEmailParams): string {
+  const { adminName, organizationName, loginUrl, toEmail, password } = params;
+  return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -113,18 +100,81 @@ export async function sendWelcomeEmail({
   </div>
 </body>
 </html>
-      `,
-    });
+  `;
+}
 
-    if (error) {
-      console.error('[Welcome Email] Error sending email:', error);
+/**
+ * ウェルカムメールを送信
+ * 契約完了時に初期管理者に送信されます
+ *
+ * 環境変数に応じて送信方法を切り替えます：
+ * - RESEND_API_KEY: Resend（本番環境）
+ * - SMTP_HOST: Nodemailer/SMTP（開発環境・Mailhog）
+ */
+export async function sendWelcomeEmail(params: SendWelcomeEmailParams) {
+  const { toEmail, adminName, organizationName } = params;
+  const subject = `【ザイロク】アカウントが作成されました`;
+  const html = getEmailHtml(params);
+
+  // Resendを使用（本番環境）
+  if (process.env.RESEND_API_KEY) {
+    console.log('[Welcome Email] Using Resend for email delivery');
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
+    try {
+      const { data, error } = await resend.emails.send({
+        from: 'ザイロク <noreply@zairoku.com>',
+        to: toEmail,
+        subject,
+        html,
+      });
+
+      if (error) {
+        console.error('[Welcome Email] Resend error:', error);
+        throw error;
+      }
+
+      console.log('[Welcome Email] Email sent successfully via Resend:', data);
+      return { success: true, provider: 'resend', data };
+    } catch (error) {
+      console.error('[Welcome Email] Failed to send via Resend:', error);
       throw error;
     }
-
-    console.log('[Welcome Email] Email sent successfully:', data);
-    return { success: true, data };
-  } catch (error) {
-    console.error('[Welcome Email] Failed to send:', error);
-    throw error;
   }
+
+  // Nodemailer/SMTP を使用（開発環境・Mailhog）
+  if (process.env.SMTP_HOST) {
+    console.log('[Welcome Email] Using Nodemailer/SMTP for email delivery');
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT) || 1025,
+      secure: false, // Mailhogはsecure不要
+      auth: process.env.SMTP_USER
+        ? {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASSWORD || '',
+          }
+        : undefined,
+    });
+
+    try {
+      const info = await transporter.sendMail({
+        from: process.env.SMTP_FROM || 'ザイロク <noreply@zairoku.com>',
+        to: toEmail,
+        subject,
+        html,
+      });
+
+      console.log('[Welcome Email] Email sent successfully via SMTP:', info.messageId);
+      console.log('[Welcome Email] Preview URL (Mailhog):', `http://localhost:8025`);
+      return { success: true, provider: 'smtp', messageId: info.messageId };
+    } catch (error) {
+      console.error('[Welcome Email] Failed to send via SMTP:', error);
+      throw error;
+    }
+  }
+
+  // どちらも設定されていない場合
+  console.warn('[Welcome Email] No email provider configured (RESEND_API_KEY or SMTP_HOST)');
+  throw new Error('No email provider configured. Please set RESEND_API_KEY or SMTP_HOST.');
 }

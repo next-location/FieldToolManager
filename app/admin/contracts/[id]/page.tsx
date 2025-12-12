@@ -44,6 +44,22 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
 
   console.log('[Contract Detail] Query result:', { contract, error });
 
+  // 契約パッケージ情報を取得
+  const { data: contractPackages } = await supabase
+    .from('contract_packages')
+    .select(`
+      package_id,
+      packages (
+        id,
+        name,
+        package_key,
+        monthly_fee
+      )
+    `)
+    .eq('contract_id', id);
+
+  console.log('[Contract Detail] Contract packages:', contractPackages);
+
   // 請求書データを取得（契約IDで絞り込み）
   const { data: invoices, error: invoicesError } = await supabase
     .from('invoices')
@@ -112,7 +128,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
               <div className="flex gap-3">
                 {contract.status === 'draft' && (
                   <>
-                    <CreateContractDocumentButton />
+                    <CreateContractDocumentButton contract={contract} />
                     <CompleteContractButton
                       contractId={contract.id}
                       contractNumber={contract.contract_number}
@@ -132,7 +148,11 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
           </div>
 
           {/* 契約詳細ビュー */}
-          <ContractDetailView contract={contract} invoices={invoices || []} />
+          <ContractDetailView
+            contract={contract}
+            invoices={invoices || []}
+            contractPackages={contractPackages || []}
+          />
         </main>
       </div>
     </div>

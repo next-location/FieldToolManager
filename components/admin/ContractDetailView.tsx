@@ -71,12 +71,23 @@ interface Invoice {
   created_at: string;
 }
 
+interface ContractPackage {
+  package_id: string;
+  packages: {
+    id: string;
+    name: string;
+    package_key: string;
+    monthly_fee: number;
+  };
+}
+
 interface ContractDetailViewProps {
   contract: Contract;
   invoices: Invoice[];
+  contractPackages: ContractPackage[];
 }
 
-export default function ContractDetailView({ contract, invoices }: ContractDetailViewProps) {
+export default function ContractDetailView({ contract, invoices, contractPackages }: ContractDetailViewProps) {
   // プラン名の日本語変換
   const planLabels: Record<string, string> = {
     start: 'スタート',
@@ -90,6 +101,7 @@ export default function ContractDetailView({ contract, invoices }: ContractDetai
 
   // ステータスの日本語変換
   const statusLabels: Record<string, string> = {
+    draft: '下書き',
     active: '有効',
     pending: '保留中',
     suspended: '停止中',
@@ -99,6 +111,7 @@ export default function ContractDetailView({ contract, invoices }: ContractDetai
 
   // ステータスの色
   const statusColors: Record<string, string> = {
+    draft: 'bg-gray-100 text-gray-700',
     active: 'bg-green-100 text-green-800',
     pending: 'bg-yellow-100 text-yellow-800',
     suspended: 'bg-red-100 text-red-800',
@@ -231,17 +244,16 @@ export default function ContractDetailView({ contract, invoices }: ContractDetai
           <div>
             <dt className="text-gray-600 text-sm mb-2">機能パック:</dt>
             <dd className="space-y-2">
-              {contract.has_asset_package && (
-                <span className="inline-block bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold mr-2">
-                  現場資産パック
-                </span>
-              )}
-              {contract.has_dx_efficiency_package && (
-                <span className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
-                  DX効率化パック
-                </span>
-              )}
-              {!contract.has_asset_package && !contract.has_dx_efficiency_package && (
+              {contractPackages && contractPackages.length > 0 ? (
+                contractPackages.map((cp) => (
+                  <span
+                    key={cp.package_id}
+                    className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold mr-2 mb-2"
+                  >
+                    {cp.packages.name}
+                  </span>
+                ))
+              ) : (
                 <span className="text-gray-500 text-sm">なし</span>
               )}
             </dd>
