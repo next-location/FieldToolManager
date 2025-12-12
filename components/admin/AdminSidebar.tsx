@@ -141,7 +141,7 @@ const menuItems = [
   },
   {
     name: '設定',
-    href: '/admin/settings',
+    hasSubmenu: true,
     requiredRole: null, // 全員表示
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -149,6 +149,20 @@ const menuItems = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
     ),
+    submenu: [
+      {
+        name: '2FA設定',
+        href: '/admin/settings/2fa',
+      },
+      {
+        name: 'セキュリティ設定',
+        href: '/admin/settings/security',
+      },
+      {
+        name: 'システム設定',
+        href: '/admin/settings/system',
+      },
+    ],
   },
 ];
 
@@ -163,6 +177,10 @@ export default function AdminSidebar() {
     // 初期表示でマスタ管理配下のページならマスタ管理を開く
     if (pathname.startsWith('/admin/tools/common') || pathname.startsWith('/admin/manufacturers')) {
       return 'マスタ管理';
+    }
+    // 初期表示で設定配下のページなら設定を開く
+    if (pathname.startsWith('/admin/settings')) {
+      return '設定';
     }
     return null;
   });
@@ -204,7 +222,8 @@ export default function AdminSidebar() {
               const isOpen = openSubmenu === item.name;
               const isActiveSection =
                 (item.name === '営業管理' && pathname.startsWith('/admin/sales')) ||
-                (item.name === 'マスタ管理' && (pathname.startsWith('/admin/tools/common') || pathname.startsWith('/admin/manufacturers')));
+                (item.name === 'マスタ管理' && (pathname.startsWith('/admin/tools/common') || pathname.startsWith('/admin/manufacturers'))) ||
+                (item.name === '設定' && pathname.startsWith('/admin/settings'));
 
               return (
                 <li key={item.name}>

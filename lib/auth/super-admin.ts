@@ -2,9 +2,17 @@ import bcrypt from 'bcrypt';
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
-const SECRET_KEY = new TextEncoder().encode(
-  process.env.SUPER_ADMIN_JWT_SECRET || 'your-super-secret-key-change-in-production'
-);
+// JWT署名用の秘密鍵（環境変数必須）
+const SECRET_KEY = (() => {
+  const secret = process.env.SUPER_ADMIN_JWT_SECRET;
+  if (!secret) {
+    throw new Error(
+      'SUPER_ADMIN_JWT_SECRET環境変数が設定されていません。' +
+      '.env.localファイルに強力なランダム文字列を設定してください。'
+    );
+  }
+  return new TextEncoder().encode(secret);
+})();
 
 export interface SuperAdminPayload {
   id: string;
@@ -62,6 +70,7 @@ export async function clearSuperAdminCookie() {
 
 // 認証チェック
 export async function getSuperAdminSession(): Promise<SuperAdminPayload | null> {
+  console.log('[getSuperAdminSession] Start - called from:', new Error().stack?.split('\n')[2]);
   const cookieStore = await cookies();
   const token = cookieStore.get('super_admin_token')?.value;
 
@@ -75,5 +84,6 @@ export async function getSuperAdminSession(): Promise<SuperAdminPayload | null> 
 
   const verified = await verifySuperAdminToken(token);
   console.log('[getSuperAdminSession] Token verified:', !!verified);
+  console.log('[getSuperAdminSession] Verified data:', JSON.stringify(verified, null, 2));
   return verified;
 }

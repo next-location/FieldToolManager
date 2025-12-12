@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import TwoFactorVerification from '@/components/admin/TwoFactorVerification';
 
 export default function SuperAdminLoginPage() {
   const router = useRouter();
@@ -10,6 +11,8 @@ export default function SuperAdminLoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
+  const [userId, setUserId] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +34,15 @@ export default function SuperAdminLoginPage() {
         return;
       }
 
+      // 2FA検証が必要な場合
+      if (data.requiresTwoFactor) {
+        setRequiresTwoFactor(true);
+        setUserId(data.userId);
+        setLoading(false);
+        return;
+      }
+
+      // 2FAが不要な場合は直接ダッシュボードへ
       router.push('/admin/dashboard');
     } catch (err) {
       console.error('Login error:', err);
@@ -38,6 +50,11 @@ export default function SuperAdminLoginPage() {
       setLoading(false);
     }
   };
+
+  // 2FA検証画面を表示
+  if (requiresTwoFactor) {
+    return <TwoFactorVerification userId={userId} email={email} />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1E6FFF] to-[#0D4FCC] flex items-center justify-center px-4">

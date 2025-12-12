@@ -18,7 +18,7 @@ export async function GET() {
     // Super Admin の情報を取得
     const { data: adminData, error } = await supabase
       .from('super_admins')
-      .select('id, name, email, role')
+      .select('id, name, email, role, two_factor_enabled')
       .eq('id', session.id)
       .single();
 
@@ -26,7 +26,10 @@ export async function GET() {
       return NextResponse.json({ error: '管理者が見つかりません' }, { status: 404 });
     }
 
-    return NextResponse.json(adminData);
+    return NextResponse.json({
+      ...adminData,
+      twoFactorEnabled: adminData.two_factor_enabled
+    });
   } catch (error: any) {
     console.error('Error in GET /api/admin/me:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });

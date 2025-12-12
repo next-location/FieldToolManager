@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { verifySuperAdminPassword, setSuperAdminCookie } from '@/lib/auth/super-admin';
+import { rateLimiters, getClientIp, rateLimitResponse } from '@/lib/security/rate-limiter';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,13 +10,20 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
+    // レート制限チェック
+    const clientIp = getClientIp(request);
+    if (!rateLimiters.login.check(clientIp)) {
+      const resetTime = rateLimiters.login.getResetTime(clientIp);
+      return rateLimitResponse(resetTime);
+    }
+
     const { email, password } = await request.json();
 
     if (!email || !password) {
       return NextResponse.json({ error: 'メールアドレスとパスワードを入力してください' }, { status: 400 });
     }
 
-    // スーパーアドミン取得
+    // スーパーアドミン取得（2FA関連フィールドも取得）
     const { data: superAdmin, error } = await supabase
       .from('super_admins')
       .select('*')
@@ -53,6 +61,18 @@ export async function POST(request: NextRequest) {
         .eq('id', superAdmin.id);
 
       return NextResponse.json({ error: 'メールアドレスまたはパスワードが正しくありません' }, { status: 401 });
+    }
+
+    // 2FA有効化チェック
+    if (superAdmin.two_factor_enabled) {
+      // パスワードは正しいが、2FA検証が必要
+      // 一時セッションを作成（2FA検証前）
+      return NextResponse.json({
+        success: false,
+        requiresTwoFactor: true,
+        userId: superAdmin.id,
+        email: superAdmin.email,
+      });
     }
 
     // ログイン成功 - セッションを作成
