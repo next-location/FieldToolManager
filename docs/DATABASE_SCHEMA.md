@@ -33,6 +33,10 @@ Organization (組織・企業)
 ├── require_approval_for_loss BOOLEAN ← 紛失承認フロー
 ├── enable_monthly_inventory_reminder BOOLEAN ← 月次棚卸し通知
 ├── enable_site_closure_checklist BOOLEAN ← 現場終了チェックリスト
+├── stripe_customer_id TEXT (UQ) ← Stripe Customer ID ✨2025-12-12
+├── stripe_subscription_id TEXT ← Stripe Subscription ID ✨2025-12-12
+├── billing_cycle_day INTEGER ← 毎月の請求日（1-28） ✨2025-12-12
+├── initial_setup_fee_paid BOOLEAN ← 初回導入費用支払済み ✨2025-12-12
 └── created_at
 
     ↓ 1:N
@@ -444,14 +448,27 @@ CREATE TABLE organizations (
   max_users INTEGER DEFAULT 20,
   max_tools INTEGER DEFAULT 500,
   is_active BOOLEAN DEFAULT true,
+
+  -- Stripe Billing統合（2025-12-12追加）
+  stripe_customer_id TEXT UNIQUE,
+  stripe_subscription_id TEXT,
+  billing_cycle_day INTEGER DEFAULT 1 CHECK (billing_cycle_day BETWEEN 1 AND 28),
+  initial_setup_fee_paid BOOLEAN DEFAULT false,
+
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
 COMMENT ON COLUMN organizations.subdomain_security_mode IS 'サブドメインセキュリティモード: standard=会社名のみ(a-kensetsu), secure=ランダム文字列追加(a-kensetsu-x7k2)';
+COMMENT ON COLUMN organizations.stripe_customer_id IS 'Stripe Customer ID（cus_xxxxx）';
+COMMENT ON COLUMN organizations.stripe_subscription_id IS 'Stripe Subscription ID（sub_xxxxx）';
+COMMENT ON COLUMN organizations.billing_cycle_day IS '毎月の請求日（1-28日）';
+COMMENT ON COLUMN organizations.initial_setup_fee_paid IS '初回導入費用の支払い済みフラグ';
 
 CREATE INDEX idx_organizations_subdomain ON organizations(subdomain);
 CREATE INDEX idx_organizations_is_active ON organizations(is_active);
+CREATE INDEX idx_organizations_stripe_customer_id ON organizations(stripe_customer_id);
+CREATE INDEX idx_organizations_stripe_subscription_id ON organizations(stripe_subscription_id);
 ```
 
 #### users (ユーザー)
@@ -920,14 +937,21 @@ CREATE TABLE invoices (
   paid_date TIMESTAMP,
   pdf_url TEXT,
   notes TEXT,
+
+  -- Stripe Billing統合（2025-12-12追加）
+  stripe_invoice_id TEXT UNIQUE,
+
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
+
+COMMENT ON COLUMN invoices.stripe_invoice_id IS 'Stripe Invoice ID（in_xxxxx）';
 
 CREATE INDEX idx_invoices_organization_id ON invoices(organization_id);
 CREATE INDEX idx_invoices_contract_id ON invoices(contract_id);
 CREATE INDEX idx_invoices_status ON invoices(status);
 CREATE INDEX idx_invoices_due_date ON invoices(due_date);
+CREATE INDEX idx_invoices_stripe_invoice_id ON invoices(stripe_invoice_id);
 
 -- RLS有効化
 ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
@@ -956,6 +980,148 @@ CREATE INDEX idx_payment_records_payment_date ON payment_records(payment_date DE
 -- RLS有効化
 ALTER TABLE payment_records ENABLE ROW LEVEL SECURITY;
 ```
+
+### 2.8 Stripe Billing統合テーブル（2025-12-12追加）
+
+#### stripe_events (Stripe Webhookイベント記録)
+```sql
+CREATE TABLE stripe_events (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  stripe_event_id TEXT UNIQUE NOT NULL,
+  event_type TEXT NOT NULL,
+  data JSONB NOT NULL,
+  processed BOOLEAN DEFAULT false,
+  processed_at TIMESTAMPTZ,
+  error_message TEXT,
+  retry_count INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+COMMENT ON TABLE stripe_events IS 'Stripe Webhookイベントの記録（重複処理防止・監査ログ）';
+COMMENT ON COLUMN stripe_events.stripe_event_id IS 'Stripe Event ID（evt_xxx）';
+COMMENT ON COLUMN stripe_events.event_type IS 'イベントタイプ（invoice.created, payment_succeeded等）';
+COMMENT ON COLUMN stripe_events.data IS 'イベントデータ（JSONB）';
+COMMENT ON COLUMN stripe_events.processed IS '処理完了フラグ';
+COMMENT ON COLUMN stripe_events.retry_count IS 'リトライ回数';
+
+CREATE INDEX idx_stripe_events_event_type ON stripe_events(event_type);
+CREATE INDEX idx_stripe_events_processed ON stripe_events(processed);
+CREATE INDEX idx_stripe_events_created_at ON stripe_events(created_at);
+
+-- RLS有効化（Super Adminのみ閲覧可能）
+ALTER TABLE stripe_events ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Super Admin can view all stripe events"
+  ON stripe_events
+  FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM users
+      WHERE users.id = auth.uid()
+      AND users.role = 'super_admin'
+    )
+  );
+```
+
+#### plan_change_requests (プラン変更申請)
+```sql
+CREATE TABLE plan_change_requests (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  current_plan TEXT NOT NULL,
+  requested_plan TEXT NOT NULL,
+  change_type TEXT NOT NULL CHECK (change_type IN ('upgrade', 'downgrade')),
+  requested_at TIMESTAMPTZ DEFAULT NOW(),
+  scheduled_for TIMESTAMPTZ,
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'scheduled', 'completed', 'cancelled')),
+  stripe_subscription_id TEXT,
+  proration_amount DECIMAL(10, 2),
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+COMMENT ON TABLE plan_change_requests IS 'プラン変更申請（アップグレード・ダウングレード）';
+COMMENT ON COLUMN plan_change_requests.change_type IS 'upgrade: 即日適用、downgrade: 30日前通知必須';
+COMMENT ON COLUMN plan_change_requests.proration_amount IS '日割り計算金額（アップグレード時）';
+
+CREATE INDEX idx_plan_change_requests_organization_id ON plan_change_requests(organization_id);
+CREATE INDEX idx_plan_change_requests_status ON plan_change_requests(status);
+CREATE INDEX idx_plan_change_requests_scheduled_for ON plan_change_requests(scheduled_for);
+
+-- RLS有効化
+ALTER TABLE plan_change_requests ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own organization plan change requests"
+  ON plan_change_requests
+  FOR SELECT
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM users WHERE id = auth.uid()
+    )
+    OR
+    EXISTS (
+      SELECT 1 FROM users
+      WHERE users.id = auth.uid()
+      AND users.role = 'super_admin'
+    )
+  );
+
+CREATE POLICY "Admin can create plan change requests"
+  ON plan_change_requests
+  FOR INSERT
+  WITH CHECK (
+    organization_id IN (
+      SELECT organization_id FROM users
+      WHERE id = auth.uid()
+      AND role = 'admin'
+    )
+  );
+```
+
+#### invoice_schedules (請求スケジュール)
+```sql
+CREATE TABLE invoice_schedules (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  billing_day INTEGER NOT NULL CHECK (billing_day BETWEEN 1 AND 28),
+  is_active BOOLEAN DEFAULT true,
+  next_invoice_date DATE NOT NULL,
+  next_amount DECIMAL(10, 2) NOT NULL,
+  stripe_subscription_id TEXT NOT NULL,
+  stripe_price_id TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+COMMENT ON TABLE invoice_schedules IS '次回請求スケジュール';
+COMMENT ON COLUMN invoice_schedules.billing_day IS '毎月の請求日（1-28日）';
+COMMENT ON COLUMN invoice_schedules.next_invoice_date IS '次回請求予定日';
+
+CREATE INDEX idx_invoice_schedules_organization_id ON invoice_schedules(organization_id);
+CREATE INDEX idx_invoice_schedules_next_invoice_date ON invoice_schedules(next_invoice_date);
+CREATE INDEX idx_invoice_schedules_is_active ON invoice_schedules(is_active);
+
+-- RLS有効化
+ALTER TABLE invoice_schedules ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own organization invoice schedules"
+  ON invoice_schedules
+  FOR SELECT
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM users WHERE id = auth.uid()
+    )
+    OR
+    EXISTS (
+      SELECT 1 FROM users
+      WHERE users.id = auth.uid()
+      AND users.role = 'super_admin'
+    )
+  );
+```
+
+---
 
 #### admin_2fa_secrets (管理者2FA認証) ✨SaaS管理画面専用
 ```sql
