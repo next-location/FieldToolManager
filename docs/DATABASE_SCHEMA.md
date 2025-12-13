@@ -4311,3 +4311,78 @@ terminal_devices (タブレット端末)
 ---
 
 **最終更新**: 2025-12-04（出退勤管理テーブル追加）
+
+## database_backups (データベースバックアップ履歴)
+
+### テーブル定義
+
+```sql
+CREATE TABLE database_backups (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  backup_type VARCHAR(20) NOT NULL CHECK (backup_type IN ('manual', 'automatic')),
+  file_path TEXT NOT NULL,
+  file_size_mb DECIMAL(10, 2),
+  created_by UUID REFERENCES super_admins(id),
+  status VARCHAR(20) NOT NULL DEFAULT 'completed' CHECK (status IN ('in_progress', 'completed', 'failed')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  error_message TEXT
+);
+
+CREATE INDEX idx_database_backups_created_at ON database_backups(created_at DESC);
+CREATE INDEX idx_database_backups_backup_type ON database_backups(backup_type);
+```
+
+### TypeScript型定義
+
+```typescript
+interface DatabaseBackup {
+  id: string
+  backup_type: 'manual' | 'automatic'
+  file_path: string
+  file_size_mb: number
+  created_by: string | null
+  status: 'in_progress' | 'completed' | 'failed'
+  created_at: string
+  error_message: string | null
+}
+```
+
+### カラム説明
+
+| カラム名 | 型 | 説明 |
+|---------|---|------|
+| id | UUID | バックアップID（主キー） |
+| backup_type | VARCHAR(20) | バックアップタイプ（manual: 手動, automatic: 自動） |
+| file_path | TEXT | バックアップファイルのパス |
+| file_size_mb | DECIMAL(10,2) | ファイルサイズ（MB） |
+| created_by | UUID | 作成者（super_admins.id、自動の場合はNULL） |
+  | status | VARCHAR(20) | ステータス（in_progress: 実行中, completed: 完了, failed: 失敗） |
+| created_at | TIMESTAMPTZ | 作成日時 |
+| error_message | TEXT | エラーメッセージ（失敗時のみ） |
+
+### 使用例
+
+**バックアップ履歴の記録**:
+```typescript
+await supabase.from('database_backups').insert({
+  backup_type: 'manual',
+  file_path: '/backups/backup_2025-12-13T14-30-00-000Z.sql',
+  file_size_mb: 125.45,
+  created_by: session.id,
+  status: 'completed',
+})
+```
+
+**古いバックアップの取得**:
+```typescript
+const cutoffDate = new Date()
+cutoffDate.setDate(cutoffDate.getDate() - 365) // 365日前
+
+const { data: oldBackups } = await supabase
+  .from('database_backups')
+  .select('id, file_path')
+  .lt('created_at', cutoffDate.toISOString())
+  .eq('status', 'completed')
+```
+
+---

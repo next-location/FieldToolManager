@@ -80,6 +80,7 @@ export async function POST(request: NextRequest) {
       id: superAdmin.id,
       email: superAdmin.email,
       name: superAdmin.name,
+      role: superAdmin.role,
       permission_level: superAdmin.permission_level,
     });
 

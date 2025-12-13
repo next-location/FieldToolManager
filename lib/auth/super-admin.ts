@@ -18,6 +18,7 @@ export interface SuperAdminPayload {
   id: string;
   email: string;
   name: string;
+  role: string;
   permission_level: string;
 }
 

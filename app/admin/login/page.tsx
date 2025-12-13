@@ -64,11 +64,12 @@ export default function SuperAdminLoginPage() {
           <div className="text-center mb-8">
             <div className="flex justify-center mb-6">
               <Image
-                src="/images/zairoku_logo.png"
+                src="/images/zairoku-logo-02.png"
                 alt="ザイロク"
-                width={200}
+                width={240}
                 height={60}
                 priority
+                className="h-16 w-auto"
               />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">システム管理者</h1>

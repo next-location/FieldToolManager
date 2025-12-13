@@ -14,7 +14,7 @@ export default function AdminHeader({ userName }: AdminHeaderProps) {
         {/* ロゴ */}
         <div className="flex items-center">
           <Image
-            src="/images/zairoku_logo.png"
+            src="/images/zairoku-logo-02.png"
             alt="ザイロク"
             width={120}
             height={36}

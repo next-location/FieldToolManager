@@ -91,7 +91,7 @@ Password: SuperAdmin123!
 | 操作ログ | `/admin/logs` | ✅ 実装済み | スーパーアドミンの操作履歴 | 全員 |
 | 売上分析 | `/admin/analytics` | ✅ 実装済み | 売上・契約状況の分析 | 全員 |
 | 管理者アカウント | `/admin/admins` | ✅ 実装済み | Super Admin アカウント管理 | **Owner のみ** |
-| 設定 | `/admin/settings` | 🚧 未実装 | システム設定 | 全員 |
+| システム設定 | `/admin/settings/system` | ✅ 実装済み | データベースバックアップ・メンテナンスモード | **Owner のみ** |
 
 ### 3.3 ヘッダー機能
 
@@ -2195,3 +2195,160 @@ const { data: logs } = await supabase
 
 ---
 
+
+## 21. システム設定 (`/admin/settings/system`)
+
+### 21.1 概要
+
+システム全体の設定を管理する画面です。データベースバックアップとメンテナンスモードの設定が可能です。
+
+**アクセス権限**: **Owner のみ**
+
+### 21.2 データベース設定
+
+#### 手動バックアップ
+
+**機能**: 「今すぐバックアップ」ボタンをクリックすることで、現時点のデータベース全体をバックアップします。
+
+**保存場所**: `/Users/youichiakashi/FieldToolManager/backups/`
+
+**ファイル名形式**: `backup_2025-12-13T14-30-00-000Z.sql`
+
+**バックアップ内容**: 
+- 全テーブルのデータ（全組織・全ユーザー・全契約・全道具等）
+- データベーススキーマ
+
+**注意事項**:
+- ファイルサイズは組織数・データ量に応じて大きくなります
+- 現在はローカルディレクトリに保存（開発環境用）
+- 本番環境では外部ストレージ（AWS S3等）への保存を推奨
+
+#### 自動バックアップ
+
+**設定項目**:
+1. **自動バックアップ ON/OFF**: トグルスイッチで有効化/無効化
+2. **バックアップ頻度**: 
+   - 1時間ごと
+   - 毎日
+   - 毎週
+3. **データ保持期間**: 30〜3650日（バックアップファイルを保持する日数）
+
+**実行方法**:
+
+自動バックアップは設定のみで、実際の実行には以下のいずれかが必要です:
+
+1. **手動実行**:
+   ```bash
+   npm run backup
+   ```
+
+2. **crontab登録** (推奨):
+   ```bash
+   crontab -e
+   # 以下を追加
+   
+   # 毎日午前2時に実行
+   0 2 * * * npm run backup
+   
+   # 1時間ごとに実行
+   0 * * * * cd /Users/youichiakashi/FieldToolManager && npm run backup
+   
+   # 毎週日曜日午前2時に実行
+   0 2 * * 0 cd /Users/youichiakashi/FieldToolManager && npm run backup
+   ```
+
+**自動削除機能**:
+- 保持期間を超えた古いバックアップは自動的に削除されます
+- バックアップ実行時にクリーンアップ処理が実行されます
+
+**バックアップ履歴**:
+- `database_backups` テーブルに記録されます
+- バックアップタイプ（manual/automatic）、ファイルサイズ、作成日時、ステータスを記録
+
+### 21.3 セキュリティ設定
+
+#### メンテナンスモード
+
+**機能**: システム全体をメンテナンスモードにします。
+
+**動作**:
+- **ON**: 一般ユーザー（全組織のユーザー）は全員メンテナンスページにリダイレクト
+- **OFF**: 通常通りアクセス可能
+
+**影響を受けないページ**:
+- システム管理者画面 (`/admin/*`)
+- API (`/api/*`)
+- 静的ファイル
+
+**メンテナンスページ**: `/maintenance`
+- アニメーションアイコン
+- メンテナンス中メッセージ
+- 問い合わせ案内
+
+**実装場所**: `middleware.ts`
+
+**チェックロジック**:
+```typescript
+// メンテナンスモードチェック
+const { data: settings } = await supabaseService
+  .from('system_settings')
+  .select('value')
+  .eq('key', 'system_config')
+  .single()
+
+if (settings?.value?.maintenanceMode === true) {
+  return NextResponse.redirect(new URL('/maintenance', request.url))
+}
+```
+
+### 21.4 技術仕様
+
+**APIエンドポイント**:
+- `GET /api/admin/settings/system`: 設定取得
+- `PUT /api/admin/settings/system`: 設定保存
+- `POST /api/admin/backup/manual`: 手動バックアップ実行
+
+**データベーステーブル**:
+1. **system_settings**: システム設定を保存
+   - key: 'system_config'
+   - value: JSONB形式で設定を保存
+   
+2. **database_backups**: バックアップ履歴
+   - backup_type: 'manual' | 'automatic'
+   - file_path: バックアップファイルのパス
+   - file_size_mb: ファイルサイズ（MB）
+   - created_by: 作成者（super_admin ID）
+   - status: 'in_progress' | 'completed' | 'failed'
+   - created_at: 作成日時
+
+**バックアップスクリプト**: `scripts/auto-backup.ts`
+- pg_dump を使用してデータベース全体をダンプ
+- 設定に応じて古いバックアップを削除
+- 実行結果を database_backups テーブルに記録
+
+**npm コマンド**:
+```bash
+npm run backup  # 自動バックアップスクリプトを実行
+```
+
+### 21.5 本番環境での推奨設定
+
+**バックアップ**:
+- 頻度: 毎日（深夜2時など業務時間外）
+- 保持期間: 365日（1年間）
+- 保存先: AWS S3 や Google Cloud Storage 等の外部ストレージ（要実装）
+- 圧縮: gzip圧縮を推奨（要実装）
+
+**メンテナンスモード**:
+- システム更新・データベースメンテナンス時に使用
+- 事前に全ユーザーに通知すること
+- 営業時間外（深夜・早朝）の実施を推奨
+
+### 21.6 監査ログ
+
+全ての設定変更は `super_admin_logs` テーブルに記録されます:
+- `UPDATE_SYSTEM_SETTINGS`: システム設定変更
+- `MANUAL_BACKUP`: 手動バックアップ実行
+- `MANUAL_BACKUP_FAILED`: 手動バックアップ失敗
+
+---

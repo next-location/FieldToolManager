@@ -34,6 +34,32 @@ export async function middleware(request: NextRequest) {
     )
   }
 
+  // メンテナンスモードチェック（管理画面・API・静的ファイル以外）
+  if (!request.nextUrl.pathname.startsWith('/admin') &&
+      !request.nextUrl.pathname.startsWith('/api') &&
+      !request.nextUrl.pathname.startsWith('/_next') &&
+      !request.nextUrl.pathname.startsWith('/favicon') &&
+      !request.nextUrl.pathname.startsWith('/maintenance') &&
+      !request.nextUrl.pathname.includes('.')) {
+
+    const { createClient: createServiceClient } = await import('@supabase/supabase-js')
+    const supabaseService = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const { data: settings } = await supabaseService
+      .from('system_settings')
+      .select('value')
+      .eq('key', 'system_config')
+      .single()
+
+    if (settings?.value?.maintenanceMode === true) {
+      console.log('[Middleware] Maintenance mode is ON, redirecting to /maintenance')
+      return NextResponse.redirect(new URL('/maintenance', request.url))
+    }
+  }
+
   // ログイン・公開ページ・API・静的ファイル・スーパーアドミンはスキップ
   if (request.nextUrl.pathname.startsWith('/login') ||
       request.nextUrl.pathname.startsWith('/admin') ||
