@@ -25,7 +25,7 @@ export default async function EstimateDetailPage({
 
   const { data: userData } = await supabase
     .from('users')
-    .select('role, organization_id')
+    .select('role, organization_id, name')
     .eq('id', user.id)
     .single()
 
@@ -240,6 +240,9 @@ export default async function EstimateDetailPage({
                 )}
                 {organization?.phone && (
                   <p className="text-sm text-gray-600">TEL: {organization.phone}</p>
+                )}
+                {userData?.name && (
+                  <p className="text-sm text-gray-600">担当: {userData.name}</p>
                 )}
               </div>
 

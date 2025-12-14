@@ -29,7 +29,7 @@ export async function GET(
     // ユーザー情報取得
     const { data: userData } = await supabase
       .from('users')
-      .select('organization_id')
+      .select('organization_id, name')
       .eq('id', user.id)
       .single()
 
@@ -187,6 +187,10 @@ export async function GET(
     }
     if (organization.phone) {
       doc.text(`TEL: ${organization.phone}`, rightEdge, rightY, { align: 'right' })
+      rightY += 4
+    }
+    if (userData?.name) {
+      doc.text(`担当: ${userData.name}`, rightEdge, rightY, { align: 'right' })
       rightY += 4
     }
 
