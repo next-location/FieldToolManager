@@ -106,7 +106,7 @@ export default async function EstimateDetailPage({
           <h1 className="text-3xl font-bold mb-2">見積書詳細</h1>
           <p className="text-gray-600">{estimate.estimate_number}</p>
         </div>
-        <div className="space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* 下書き状態: 編集のみ可能 */}
           {estimate.status === 'draft' && (
             <Link
