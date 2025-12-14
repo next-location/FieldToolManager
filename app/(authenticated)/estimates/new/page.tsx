@@ -291,7 +291,7 @@ export default function NewEstimatePage() {
     return { subtotal, taxAmount, total }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, submitStatus: 'draft' | 'submitted' = 'draft') => {
     e.preventDefault()
     setLoading(true)
 
@@ -303,7 +303,7 @@ export default function NewEstimatePage() {
         subtotal,
         tax_amount: taxAmount,
         total_amount: total,
-        status: 'draft', // 常に下書きとして保存
+        status: submitStatus,
         items: items.map((item, index) => ({
           display_order: index + 1,
           item_type: item.item_type, // カスタム種別はcustom_typeで送る
@@ -803,13 +803,24 @@ export default function NewEstimatePage() {
           >
             キャンセル
           </button>
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
-            disabled={loading}
-          >
-            {loading ? '保存中...' : '保存'}
-          </button>
+          <div className="space-x-3">
+            <button
+              type="submit"
+              onClick={(e) => handleSubmit(e as any, 'draft')}
+              className="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600"
+              disabled={loading}
+            >
+              {loading ? '保存中...' : '下書き保存'}
+            </button>
+            <button
+              type="button"
+              onClick={(e) => handleSubmit(e as any, 'submitted')}
+              className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
+              disabled={loading}
+            >
+              {loading ? '提出中...' : '確定・提出'}
+            </button>
+          </div>
         </div>
       </form>
     </div>

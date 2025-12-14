@@ -47,9 +47,9 @@ export async function POST(
       return NextResponse.json({ error: '見積書が見つかりません' }, { status: 404 })
     }
 
-    // 下書き状態のみ承認可能
-    if (estimate.status !== 'draft') {
-      return NextResponse.json({ error: '下書き状態の見積書のみ承認できます' }, { status: 400 })
+    // 提出済み状態のみ承認可能
+    if (estimate.status !== 'submitted') {
+      return NextResponse.json({ error: '提出済み（確定）状態の見積書のみ承認できます' }, { status: 400 })
     }
 
     // 既に承認済みの場合
@@ -133,9 +133,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'この見積書は承認されていません' }, { status: 400 })
     }
 
-    // 下書き状態のみ承認取り消し可能（送信済みは取り消し不可）
-    if (estimate.status !== 'draft') {
-      return NextResponse.json({ error: '送信済みの見積書の承認は取り消しできません' }, { status: 400 })
+    // 提出済み状態のみ承認取り消し可能（顧客送付済みは取り消し不可）
+    if (estimate.status !== 'submitted') {
+      return NextResponse.json({ error: '顧客送付済みの見積書の承認は取り消しできません' }, { status: 400 })
     }
 
     // 承認取り消し処理

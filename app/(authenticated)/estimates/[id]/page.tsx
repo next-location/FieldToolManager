@@ -70,6 +70,8 @@ export default async function EstimateDetailPage({
     switch (status) {
       case 'draft':
         return 'bg-gray-100 text-gray-800'
+      case 'submitted':
+        return 'bg-orange-100 text-orange-800'
       case 'sent':
         return 'bg-blue-100 text-blue-800'
       case 'accepted':
@@ -86,9 +88,10 @@ export default async function EstimateDetailPage({
   const getStatusText = (status: string) => {
     switch (status) {
       case 'draft': return '下書き'
-      case 'sent': return '送付済'
-      case 'accepted': return '承認済'
-      case 'rejected': return '却下'
+      case 'submitted': return '提出済み'
+      case 'sent': return '顧客送付済'
+      case 'accepted': return '顧客承認'
+      case 'rejected': return '顧客却下'
       case 'expired': return '期限切れ'
       default: return status
     }
@@ -102,20 +105,30 @@ export default async function EstimateDetailPage({
           <p className="text-gray-600">{estimate.estimate_number}</p>
         </div>
         <div className="space-x-2">
+          {/* 下書き状態: 編集のみ可能 */}
           {estimate.status === 'draft' && (
-            <>
-              <Link
-                href={`/estimates/${id}/edit`}
-                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-              >
-                編集
-              </Link>
-              <ApproveEstimateButton
-                estimateId={id}
-                isApproved={!!estimate.manager_approved_at}
-                userRole={userData?.role || ''}
-              />
-            </>
+            <Link
+              href={`/estimates/${id}/edit`}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+            >
+              編集
+            </Link>
+          )}
+          {/* 提出済み状態: 承認ボタンのみ表示（manager/admin のみ）、編集不可 */}
+          {estimate.status === 'submitted' && !estimate.manager_approved_at && (
+            <ApproveEstimateButton
+              estimateId={id}
+              isApproved={false}
+              userRole={userData?.role || ''}
+            />
+          )}
+          {/* 提出済み&承認済み: 承認取り消しボタン */}
+          {estimate.status === 'submitted' && estimate.manager_approved_at && (
+            <ApproveEstimateButton
+              estimateId={id}
+              isApproved={true}
+              userRole={userData?.role || ''}
+            />
           )}
           {estimate.manager_approved_at && (
             <DownloadPdfButton estimateId={id} />
