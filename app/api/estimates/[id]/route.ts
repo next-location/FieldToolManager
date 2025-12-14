@@ -118,20 +118,29 @@ export async function PUT(
 
     // 新しい明細を挿入
     if (body.items && body.items.length > 0) {
-      const items = body.items.map((item: any, index: number) => ({
-        estimate_id: id,
-        display_order: index + 1,
-        item_type: item.item_type,
-        custom_type: item.item_type === 'other' ? (item.custom_type || null) : null,
-        item_name: item.item_name,
-        description: item.description || null,
-        quantity: item.quantity,
-        unit: item.unit,
-        custom_unit: item.unit === 'other' ? (item.custom_unit || null) : null,
-        unit_price: item.unit_price,
-        amount: item.amount,
-        tax_rate: item.tax_rate
-      }))
+      const validItemTypes = ['construction', 'material', 'expense', 'labor', 'subcontract', 'other']
+
+      const items = body.items.map((item: any, index: number) => {
+        // item_typeが定義済みの値でない場合は'other'にして、元の値をcustom_typeに
+        const isValidType = validItemTypes.includes(item.item_type)
+        const itemType = isValidType ? item.item_type : 'other'
+        const customType = isValidType ? (item.custom_type || null) : item.item_type
+
+        return {
+          estimate_id: id,
+          display_order: index + 1,
+          item_type: itemType,
+          custom_type: customType,
+          item_name: item.item_name,
+          description: item.description || null,
+          quantity: item.quantity,
+          unit: item.unit,
+          custom_unit: item.unit === 'other' ? (item.custom_unit || null) : null,
+          unit_price: item.unit_price,
+          amount: item.amount,
+          tax_rate: item.tax_rate
+        }
+      })
 
       console.log('[見積書更新API] 挿入する明細:', items)
 

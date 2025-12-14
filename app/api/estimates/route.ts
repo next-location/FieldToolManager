@@ -146,20 +146,29 @@ export async function POST(request: NextRequest) {
 
     // 見積明細を作成
     if (body.items && body.items.length > 0) {
-      const items = body.items.map((item: any) => ({
-        estimate_id: estimate.id,
-        display_order: item.display_order,
-        item_type: item.item_type,
-        custom_type: item.custom_type || null,
-        item_name: item.item_name,
-        description: item.description || null,
-        quantity: item.quantity,
-        unit: item.unit,
-        custom_unit: item.custom_unit || null,
-        unit_price: item.unit_price,
-        amount: item.amount,
-        tax_rate: item.tax_rate,
-      }))
+      const validItemTypes = ['construction', 'material', 'expense', 'labor', 'subcontract', 'other']
+
+      const items = body.items.map((item: any) => {
+        // item_typeが定義済みの値でない場合は'other'にして、元の値をcustom_typeに
+        const isValidType = validItemTypes.includes(item.item_type)
+        const itemType = isValidType ? item.item_type : 'other'
+        const customType = isValidType ? (item.custom_type || null) : item.item_type
+
+        return {
+          estimate_id: estimate.id,
+          display_order: item.display_order,
+          item_type: itemType,
+          custom_type: customType,
+          item_name: item.item_name,
+          description: item.description || null,
+          quantity: item.quantity,
+          unit: item.unit,
+          custom_unit: item.custom_unit || null,
+          unit_price: item.unit_price,
+          amount: item.amount,
+          tax_rate: item.tax_rate,
+        }
+      })
 
       const { error: itemsError } = await supabase
         .from('estimate_items')
