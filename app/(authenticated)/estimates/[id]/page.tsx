@@ -27,10 +27,7 @@ export default async function EstimateDetailPage({
     .eq('id', user.id)
     .single()
 
-  // リーダー以上のみアクセス可能
-  if (!['leader', 'manager', 'admin', 'super_admin'].includes(userData?.role || '')) {
-    redirect('/')
-  }
+  // 全ユーザーがアクセス可能（権限チェックなし）
 
   // 見積書データを取得
   const { data: estimate, error: estimateError } = await supabase

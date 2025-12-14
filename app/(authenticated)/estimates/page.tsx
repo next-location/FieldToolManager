@@ -58,16 +58,7 @@ export default async function EstimatesPage() {
     redirect('/login')
   }
 
-  const { data: userData } = await supabase
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  // リーダー以上のみアクセス可能
-  if (!['leader', 'manager', 'admin', 'super_admin'].includes(userData?.role || '')) {
-    redirect('/')
-  }
+  // 全ユーザーがアクセス可能（権限チェックなし）
 
   return (
     <div className="container mx-auto px-4 py-8">
