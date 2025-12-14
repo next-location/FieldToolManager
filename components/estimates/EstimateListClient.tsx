@@ -12,6 +12,8 @@ interface Estimate {
   valid_until: string | null
   total_amount: number
   status: string
+  manager_approved_at: string | null
+  manager_approved_by_user?: { name: string }
   client?: { name: string }
   project?: { project_name: string }
 }
@@ -202,6 +204,9 @@ export function EstimateListClient({ estimates: initialEstimates }: EstimateList
                   ステータス
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  承認
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   操作
                 </th>
               </tr>
@@ -247,6 +252,15 @@ export function EstimateListClient({ estimates: initialEstimates }: EstimateList
                         : estimate.status === 'rejected' ? '却下'
                         : '期限切れ'}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {estimate.manager_approved_at ? (
+                      <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                        ✓ {estimate.manager_approved_by_user?.name}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <Link

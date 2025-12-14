@@ -27,7 +27,8 @@ async function EstimateList() {
     .select(`
       *,
       client:clients(name),
-      project:projects(project_name)
+      project:projects(project_name),
+      manager_approved_by_user:users!estimates_manager_approved_by_fkey(name)
     `)
     .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)

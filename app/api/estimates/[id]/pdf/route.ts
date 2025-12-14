@@ -66,6 +66,14 @@ export async function GET(
       return NextResponse.json({ error: '見積書が見つかりません' }, { status: 404 })
     }
 
+    // 承認チェック: 下書き状態の見積書は承認済みのみPDF出力可能
+    if (estimate.status === 'draft' && !estimate.manager_approved_at) {
+      console.log('[Estimate PDF API] Estimate not approved yet')
+      return NextResponse.json({
+        error: 'この見積書は未承認のため、PDF出力できません。上司の承認が必要です。'
+      }, { status: 403 })
+    }
+
     console.log('[Estimate PDF API] Estimate found, generating PDF...')
 
     // jsPDFでPDFを作成

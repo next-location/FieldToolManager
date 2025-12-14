@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { DownloadPdfButton } from './DownloadPdfButton'
+import { ApproveEstimateButton } from '@/components/estimates/ApproveEstimateButton'
 
 // キャッシュを無効化
 export const dynamic = 'force-dynamic'
@@ -40,7 +41,8 @@ export default async function EstimateDetailPage({
       project:projects(project_name, project_code),
       estimate_items(*),
       created_by:users!estimates_created_by_fkey(name),
-      approved_by:users!estimates_approved_by_fkey(name)
+      approved_by:users!estimates_approved_by_fkey(name),
+      manager_approved_by_user:users!estimates_manager_approved_by_fkey(name)
     `)
     .eq('id', id)
     .eq('organization_id', userData?.organization_id)
@@ -104,14 +106,23 @@ export default async function EstimateDetailPage({
         </div>
         <div className="space-x-2">
           {estimate.status === 'draft' && (
-            <Link
-              href={`/estimates/${id}/edit`}
-              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-            >
-              編集
-            </Link>
+            <>
+              <Link
+                href={`/estimates/${id}/edit`}
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+              >
+                編集
+              </Link>
+              <ApproveEstimateButton
+                estimateId={id}
+                isApproved={!!estimate.manager_approved_at}
+                userRole={userData?.role || ''}
+              />
+            </>
           )}
-          <DownloadPdfButton estimateId={id} />
+          {estimate.manager_approved_at && (
+            <DownloadPdfButton estimateId={id} />
+          )}
           {estimate.status === 'accepted' && (
             <Link
               href={`/invoices/new?estimate_id=${id}`}
@@ -272,6 +283,20 @@ export default async function EstimateDetailPage({
           <div className="mb-6 p-4 bg-yellow-50 rounded print:hidden">
             <h3 className="text-sm font-semibold mb-2 text-yellow-800">社内メモ</h3>
             <p className="text-sm text-yellow-700 whitespace-pre-wrap">{estimate.internal_notes}</p>
+          </div>
+        )}
+
+        {/* 承認情報（印刷時は非表示） */}
+        {estimate.manager_approved_at && (
+          <div className="mb-6 p-4 bg-green-50 rounded print:hidden">
+            <h3 className="text-sm font-semibold mb-2 text-green-800">✓ 承認済み</h3>
+            <div className="text-sm text-green-700">
+              <p>承認者: {estimate.manager_approved_by_user?.name}</p>
+              <p>承認日時: {new Date(estimate.manager_approved_at).toLocaleString('ja-JP')}</p>
+              {estimate.manager_approval_notes && (
+                <p className="mt-2 whitespace-pre-wrap">メモ: {estimate.manager_approval_notes}</p>
+              )}
+            </div>
           </div>
         )}
 
