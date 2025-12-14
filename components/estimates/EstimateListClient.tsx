@@ -152,9 +152,11 @@ export function EstimateListClient({ estimates: initialEstimates }: EstimateList
             >
               <option value="all">全て</option>
               <option value="draft">下書き</option>
-              <option value="sent">送付済</option>
-              <option value="accepted">承認済</option>
-              <option value="rejected">却下</option>
+              <option value="submitted">提出済み</option>
+              <option value="sent">顧客送付済</option>
+              <option value="accepted">顧客承認</option>
+              <option value="rejected">顧客却下</option>
+              <option value="expired">期限切れ</option>
             </select>
           </div>
         </div>
@@ -238,19 +240,25 @@ export function EstimateListClient({ estimates: initialEstimates }: EstimateList
                     <span className={`inline-flex px-2 text-xs leading-5 font-semibold rounded-full ${
                       estimate.status === 'draft'
                         ? 'bg-gray-100 text-gray-800'
+                        : estimate.status === 'submitted'
+                        ? 'bg-orange-100 text-orange-800'
                         : estimate.status === 'sent'
                         ? 'bg-blue-100 text-blue-800'
                         : estimate.status === 'accepted'
                         ? 'bg-green-100 text-green-800'
                         : estimate.status === 'rejected'
                         ? 'bg-red-100 text-red-800'
-                        : 'bg-yellow-100 text-yellow-800'
+                        : estimate.status === 'expired'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-gray-100 text-gray-800'
                     }`}>
                       {estimate.status === 'draft' ? '下書き'
-                        : estimate.status === 'sent' ? '送付済'
-                        : estimate.status === 'accepted' ? '承認済'
-                        : estimate.status === 'rejected' ? '却下'
-                        : '期限切れ'}
+                        : estimate.status === 'submitted' ? '提出済み'
+                        : estimate.status === 'sent' ? '顧客送付済'
+                        : estimate.status === 'accepted' ? '顧客承認'
+                        : estimate.status === 'rejected' ? '顧客却下'
+                        : estimate.status === 'expired' ? '期限切れ'
+                        : estimate.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
