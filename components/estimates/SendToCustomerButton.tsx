@@ -30,7 +30,7 @@ export function SendToCustomerButton({
   }
 
   const handleSend = async () => {
-    if (!confirm('この見積書を顧客に送付してもよろしいですか？\n送付後はステータスが「顧客送付済」に変更されます。')) {
+    if (!confirm('見積書を顧客に送付しましたか？\n\nこのボタンは、実際に顧客へ見積書を送付した後に、ステータスを「顧客送付済」に変更するためのものです。\n\n※このボタンを押してもメール送信等は行われません。')) {
       return
     }
 
@@ -43,14 +43,14 @@ export function SendToCustomerButton({
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || '送付に失敗しました')
+        throw new Error(error.error || 'ステータス変更に失敗しました')
       }
 
-      alert('見積書を顧客に送付しました')
+      alert('ステータスを「顧客送付済」に変更しました')
       router.refresh()
     } catch (error) {
-      console.error('送付エラー:', error)
-      alert(error instanceof Error ? error.message : '見積書の送付に失敗しました')
+      console.error('ステータス変更エラー:', error)
+      alert(error instanceof Error ? error.message : 'ステータス変更に失敗しました')
     } finally {
       setIsLoading(false)
     }
@@ -62,7 +62,7 @@ export function SendToCustomerButton({
       disabled={isLoading}
       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
     >
-      {isLoading ? '送付中...' : '顧客に送付'}
+      {isLoading ? '変更中...' : '送付済みにする'}
     </button>
   )
 }
