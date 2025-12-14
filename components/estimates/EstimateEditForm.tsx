@@ -112,7 +112,7 @@ export function EstimateEditForm({
     return { subtotal, taxAmount, total }
   }
 
-  const handleSubmit = async (e: React.FormEvent, saveAsDraft: boolean = false) => {
+  const handleSubmit = async (e: React.FormEvent, submitStatus: 'draft' | 'submitted' = 'submitted') => {
     e.preventDefault()
     setLoading(true)
 
@@ -121,7 +121,7 @@ export function EstimateEditForm({
 
       const requestData = {
         ...formData,
-        status: saveAsDraft ? 'draft' : formData.status,
+        status: submitStatus,
         subtotal,
         tax_amount: taxAmount,
         total_amount: total,
@@ -156,7 +156,7 @@ export function EstimateEditForm({
         throw new Error(errorData.error || '見積書の更新に失敗しました')
       }
 
-      alert(saveAsDraft ? '下書き保存しました' : '見積書を更新しました')
+      alert(submitStatus === 'draft' ? '下書き保存しました' : '見積書を確定・提出しました')
       router.push(`/estimates/${estimateId}`)
       router.refresh()
     } catch (error) {
@@ -521,18 +521,19 @@ export function EstimateEditForm({
         <div className="space-x-2">
           <button
             type="button"
-            onClick={(e) => handleSubmit(e, true)}
+            onClick={(e) => handleSubmit(e as any, 'draft')}
             className="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600"
             disabled={loading}
           >
             {loading ? '保存中...' : '下書き保存'}
           </button>
           <button
-            type="submit"
+            type="button"
+            onClick={(e) => handleSubmit(e as any, 'submitted')}
             className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600"
             disabled={loading}
           >
-            {loading ? '更新中...' : '更新'}
+            {loading ? '提出中...' : '確定・提出'}
           </button>
         </div>
       </div>
