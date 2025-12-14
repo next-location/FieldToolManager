@@ -291,7 +291,7 @@ export default function NewEstimatePage() {
     return { subtotal, taxAmount, total }
   }
 
-  const handleSubmit = async (e: React.FormEvent, status: 'draft' | 'sent' = 'draft') => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
@@ -303,7 +303,7 @@ export default function NewEstimatePage() {
         subtotal,
         tax_amount: taxAmount,
         total_amount: total,
-        status,
+        status: 'draft', // 常に下書きとして保存
         items: items.map((item, index) => ({
           display_order: index + 1,
           item_type: item.item_type, // カスタム種別はcustom_typeで送る
@@ -803,23 +803,13 @@ export default function NewEstimatePage() {
           >
             キャンセル
           </button>
-          <div className="space-x-3">
-            <button
-              type="submit"
-              className="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600"
-              disabled={loading}
-            >
-              下書き保存
-            </button>
-            <button
-              type="button"
-              onClick={(e) => handleSubmit(e as any, 'sent')}
-              className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600"
-              disabled={loading}
-            >
-              作成して送付
-            </button>
-          </div>
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
+            disabled={loading}
+          >
+            {loading ? '保存中...' : '保存'}
+          </button>
         </div>
       </form>
     </div>
