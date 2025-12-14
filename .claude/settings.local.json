@@ -40,7 +40,15 @@
       "Bash(PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -c \"UPDATE super_admins SET two_factor_enabled = false, two_factor_secret = NULL, backup_codes = ''{}'', backup_codes_used = ''{}'' WHERE email = ''super@example.com'';\")",
       "Bash(PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -c \"SELECT id, email, two_factor_enabled FROM super_admins;\")",
       "Bash(PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -c \"UPDATE super_admins SET two_factor_enabled = false, two_factor_secret = NULL, backup_codes = ''{}'', backup_codes_used = ''{}'' WHERE email = ''superadmin@fieldtool.com'';\")",
-      "Bash(PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -f supabase/migrations/20251213000004_add_2fa_reset_tokens.sql)"
+      "Bash(PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -f supabase/migrations/20251213000004_add_2fa_reset_tokens.sql)",
+      "Bash(PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -f supabase/migrations/20251213000005_add_system_settings.sql)",
+      "Bash(PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -f /Users/youichiakashi/FieldToolManager/supabase/migrations/20251213000005_add_system_settings.sql)",
+      "Bash(PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -c \"\\d users\")",
+      "Bash(PGPASSWORD=postgres psql:*)",
+      "Bash(lsof:*)",
+      "Bash(npx eslint:*)",
+      "Bash(grep:*)",
+      "Bash(export PGPASSWORD=postgres)"
     ],
     "deny": [],
     "ask": []

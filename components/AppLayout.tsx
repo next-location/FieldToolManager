@@ -5,6 +5,8 @@ import { SimpleHeader } from './SimpleHeader'
 import { Sidebar } from './Sidebar'
 import { MobileBottomNav } from './MobileBottomNav'
 import { DevPackageControl } from './DevPackageControl'
+import SessionTimeoutMonitor from './SessionTimeoutMonitor'
+import { TwoFactorReminderModal } from './TwoFactorReminderModal'
 
 interface AppLayoutProps {
   user: {
@@ -57,6 +59,12 @@ export function AppLayout({
 
       {/* モバイル下部固定ナビ */}
       <MobileBottomNav onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+
+      {/* セッションタイムアウトモニター */}
+      <SessionTimeoutMonitor organizationId={organizationId} />
+
+      {/* 2FAリマインダーモーダル */}
+      <TwoFactorReminderModal />
 
       {/* 開発環境用パッケージコントロール */}
       <DevPackageControl />

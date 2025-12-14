@@ -14,6 +14,7 @@ interface OrganizationData {
   phone: string | null
   fax: string | null
   company_seal_url: string | null
+  invoice_registration_number: string | null
 }
 
 export default function OrganizationPage() {
@@ -27,6 +28,7 @@ export default function OrganizationPage() {
     address: '',
     phone: '',
     fax: '',
+    invoice_registration_number: '',
   })
   const [userRole, setUserRole] = useState<string>('')
 
@@ -69,6 +71,7 @@ export default function OrganizationPage() {
           address: data.address || '',
           phone: data.phone || '',
           fax: data.fax || '',
+          invoice_registration_number: data.invoice_registration_number || '',
         })
         // 保存された角印データがあれば表示
         if (data.company_seal_url) {
@@ -329,6 +332,26 @@ export default function OrganizationPage() {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="例: 03-1234-5679"
             />
+          </div>
+
+          {/* インボイス番号 */}
+          <div>
+            <label htmlFor="invoice_registration_number" className="block text-sm font-medium text-gray-700 mb-1">
+              インボイス番号（適格請求書発行事業者登録番号）
+            </label>
+            <input
+              type="text"
+              id="invoice_registration_number"
+              name="invoice_registration_number"
+              value={formData.invoice_registration_number}
+              onChange={(e) => setFormData({ ...formData, invoice_registration_number: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="例: T1234567890123"
+              maxLength={14}
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              ※ 適格請求書発行事業者の登録番号（Tから始まる13桁の番号）を入力してください。登録済みの場合、見積書・請求書・領収書にインボイス番号が記載されます。
+            </p>
           </div>
 
           {/* 角印 */}

@@ -1475,3 +1475,925 @@ NEXT_PUBLIC_STORAGE_BUCKET=tool-images
 
 **このドキュメントは、ザイロク（Zairoku）の本番環境移行を成功させるための完全ガイドです。**
 **質問や不明点があれば、リードエンジニアまでお問い合わせください。**
+
+---
+
+## 付録C: データベースバックアップシステム実装計画
+
+### C.1 概要
+
+本番環境移行後に実装する自動バックアップシステムの詳細計画です。
+
+**目的**:
+- データ損失の防止
+- 災害復旧（DR）対応
+- 法令遵守（データ保持要件）
+
+**実装タイミング**: Phase 6（本番リリース後1週間以内）
+
+---
+
+### C.2 システムアーキテクチャ
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                    本番環境構成                            │
+├──────────────────────────────────────────────────────────┤
+│                                                          │
+│  Vercel Cron (毎日 2:00 AM JST)                          │
+│  ↓                                                       │
+│  /api/cron/backup-database                               │
+│  ↓                                                       │
+│  1. Supabase Database 全体ダンプ (pg_dump)                │
+│  2. gzip圧縮 (70-80%削減)                                │
+│  3. Supabase Storage アップロード                         │
+│     - Bucket: database-backups                           │
+│     - Path: backups/YYYY/MM/backup_YYYYMMDD_HHMMSS.sql.gz│
+│  4. 古いバックアップ削除 (保持期間超過分)                   │
+│  5. database_backups テーブルに記録                       │
+│  6. 成功/失敗通知をEmailで送信                            │
+│                                                          │
+└──────────────────────────────────────────────────────────┘
+```
+
+---
+
+### C.3 技術仕様
+
+#### C.3.1 バックアップ方式
+
+**ツール**: `pg_dump`（PostgreSQL標準ツール）
+
+**コマンド例**:
+```bash
+PGPASSWORD=$DB_PASSWORD pg_dump \
+  -h $DB_HOST \
+  -p $DB_PORT \
+  -U $DB_USER \
+  -d $DB_NAME \
+  --format=plain \
+  --no-owner \
+  --no-acl \
+  | gzip > backup_$(date +%Y%m%d_%H%M%S).sql.gz
+```
+
+**バックアップ内容**:
+- 全テーブルのデータ
+- テーブル構造（CREATE TABLE文）
+- インデックス定義
+- 制約（CONSTRAINTS）
+- ビュー（VIEWS）
+- 関数（FUNCTIONS）
+- トリガー（TRIGGERS）
+
+**除外対象**:
+- RLSポリシー（マイグレーションで管理）
+- ロール・権限（Supabase管理）
+
+#### C.3.2 圧縮仕様
+
+**圧縮形式**: gzip（.gz）
+
+**圧縮率**: 約70-80%削減
+
+**圧縮レベル**: 6（デフォルト、速度と圧縮率のバランス）
+
+**サイズ試算**:
+- 元データ: 100MB → 圧縮後: 20-30MB
+- 元データ: 1GB → 圧縮後: 200-300MB
+
+#### C.3.3 保存先: Supabase Storage
+
+**Bucket名**: `database-backups`
+
+**ディレクトリ構造**:
+```
+database-backups/
+├── backups/
+│   ├── 2025/
+│   │   ├── 01/
+│   │   │   ├── backup_20250101_020000.sql.gz
+│   │   │   ├── backup_20250102_020000.sql.gz
+│   │   │   └── ...
+│   │   ├── 02/
+│   │   └── ...
+│   └── 2026/
+└── logs/
+    ├── 2025/
+    │   └── 01/
+    │       ├── backup_20250101_020000.log
+    │       └── ...
+    └── ...
+```
+
+**Storage設定**:
+- アクセス権限: Private（認証必須）
+- 最大ファイルサイズ: 5GB
+- 保持期間: システム設定UIで設定（デフォルト365日）
+
+**コスト**:
+- Supabase Pro Plan: 100GB まで無料
+- 超過分: $0.021/GB/月
+
+**試算**（365日保存）:
+- 1日30MB × 365日 = 10.95GB → **無料枠内**
+- 1日100MB × 365日 = 36.5GB → **無料枠内**
+- 1日300MB × 365日 = 109.5GB → 9.5GB × $0.021 = **$0.20/月**
+
+---
+
+### C.4 データベース設計
+
+#### C.4.1 既存テーブル（実装済み）
+
+**テーブル名**: `database_backups`
+
+```sql
+CREATE TABLE database_backups (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  backup_type VARCHAR(20) NOT NULL CHECK (backup_type IN ('manual', 'automatic')),
+  file_path TEXT NOT NULL,
+  file_size_mb DECIMAL(10, 2),
+  created_by UUID REFERENCES super_admins(id),
+  status VARCHAR(20) NOT NULL DEFAULT 'completed' 
+    CHECK (status IN ('in_progress', 'completed', 'failed')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  error_message TEXT
+);
+
+CREATE INDEX idx_database_backups_created_at ON database_backups(created_at DESC);
+CREATE INDEX idx_database_backups_backup_type ON database_backups(backup_type);
+```
+
+#### C.4.2 追加カラム（本番実装時）
+
+```sql
+-- Supabase Storage関連
+ALTER TABLE database_backups
+ADD COLUMN storage_bucket VARCHAR(100),
+ADD COLUMN storage_path TEXT,
+ADD COLUMN compressed_size_mb DECIMAL(10, 2),
+ADD COLUMN compression_ratio DECIMAL(5, 2);
+
+-- 通知関連
+ALTER TABLE database_backups
+ADD COLUMN notification_sent BOOLEAN DEFAULT FALSE,
+ADD COLUMN notification_sent_at TIMESTAMPTZ;
+```
+
+**カラム説明**:
+| カラム名 | 型 | 説明 |
+|---------|---|------|
+| storage_bucket | VARCHAR(100) | Supabase Storageのバケット名 |
+| storage_path | TEXT | Storage内のファイルパス |
+| compressed_size_mb | DECIMAL(10,2) | 圧縮後のファイルサイズ（MB） |
+| compression_ratio | DECIMAL(5,2) | 圧縮率（%） |
+| notification_sent | BOOLEAN | 通知送信済みフラグ |
+| notification_sent_at | TIMESTAMPTZ | 通知送信日時 |
+
+---
+
+### C.5 実装タスクリスト
+
+#### Task C-1: Supabase Storage Bucket作成 ★★★☆☆
+
+**説明**: バックアップ保存用のStorage Bucketを作成
+
+**手順**:
+1. Supabase Dashboard → Storage
+2. 新規Bucket作成
+   - Name: `database-backups`
+   - Public: **OFF**（Private）
+   - File size limit: 5GB
+   - Allowed MIME types: `application/gzip`, `application/x-gzip`
+3. RLSポリシー設定（Super Adminのみアクセス可能）
+
+**所要時間**: 30分
+
+**検証方法**: Bucket作成確認、RLSテスト
+
+---
+
+#### Task C-2: gzip圧縮機能実装 ★★★☆☆
+
+**説明**: バックアップファイルのgzip圧縮機能を追加
+
+**実装ファイル**:
+- `lib/backup/compress.ts`（新規作成）
+
+**実装内容**:
+```typescript
+import { createGzip } from 'zlib'
+import { pipeline } from 'stream/promises'
+import fs from 'fs'
+
+export async function compressBackup(
+  inputPath: string,
+  outputPath: string
+): Promise<{ 
+  originalSize: number
+  compressedSize: number
+  compressionRatio: number 
+}> {
+  const source = fs.createReadStream(inputPath)
+  const destination = fs.createWriteStream(outputPath)
+  const gzip = createGzip({ level: 6 })
+
+  await pipeline(source, gzip, destination)
+
+  const originalStats = await fs.promises.stat(inputPath)
+  const compressedStats = await fs.promises.stat(outputPath)
+
+  return {
+    originalSize: originalStats.size,
+    compressedSize: compressedStats.size,
+    compressionRatio: ((1 - compressedStats.size / originalStats.size) * 100)
+  }
+}
+```
+
+**所要時間**: 2時間
+
+**検証方法**: 
+- 100MBのダミーSQLファイルで圧縮テスト
+- 圧縮率70%以上を確認
+
+---
+
+#### Task C-3: Supabase Storageアップロード機能実装 ★★★★☆
+
+**説明**: 圧縮バックアップをSupabase Storageにアップロード
+
+**実装ファイル**:
+- `lib/backup/upload-to-storage.ts`（新規作成）
+
+**実装内容**:
+```typescript
+import { createClient } from '@supabase/supabase-js'
+import fs from 'fs'
+import path from 'path'
+
+export async function uploadBackupToStorage(
+  filePath: string,
+  bucket: string = 'database-backups'
+): Promise<{ storagePath: string; url: string }> {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const fileName = path.basename(filePath)
+  const date = new Date()
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  
+  const storagePath = `backups/${year}/${month}/${fileName}`
+  const fileBuffer = await fs.promises.readFile(filePath)
+
+  const { data, error } = await supabase.storage
+    .from(bucket)
+    .upload(storagePath, fileBuffer, {
+      contentType: 'application/gzip',
+      upsert: false
+    })
+
+  if (error) throw error
+
+  return {
+    storagePath: data.path,
+    url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/${bucket}/${data.path}`
+  }
+}
+```
+
+**所要時間**: 3時間
+
+**検証方法**:
+- テストファイルのアップロード成功
+- Storage Dashboardでファイル確認
+
+---
+
+#### Task C-4: Vercel Cron API実装 ★★★★★
+
+**説明**: 自動バックアップを実行するCron API
+
+**実装ファイル**:
+- `app/api/cron/backup-database/route.ts`（新規作成）
+
+**実装内容**:
+```typescript
+import { NextRequest, NextResponse } from 'next/server'
+import { exec } from 'child_process'
+import { promisify } from 'util'
+import { createClient } from '@supabase/supabase-js'
+import { compressBackup } from '@/lib/backup/compress'
+import { uploadBackupToStorage } from '@/lib/backup/upload-to-storage'
+import { sendBackupNotification } from '@/lib/backup/notifications'
+import { cleanupOldBackups } from '@/lib/backup/cleanup'
+import path from 'path'
+import fs from 'fs/promises'
+
+const execAsync = promisify(exec)
+
+export async function GET(request: NextRequest) {
+  // Vercel Cronからのリクエスト検証
+  const authHeader = request.headers.get('authorization')
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  let backupId: string | null = null
+
+  try {
+    // システム設定を取得
+    const { data: settings } = await supabase
+      .from('system_settings')
+      .select('value')
+      .eq('key', 'system_config')
+      .single()
+
+    if (!settings?.value?.backupEnabled) {
+      return NextResponse.json({ 
+        message: 'Backup is disabled in system settings' 
+      })
+    }
+
+    // 1. バックアップレコード作成
+    const { data: backup } = await supabase
+      .from('database_backups')
+      .insert({
+        backup_type: 'automatic',
+        status: 'in_progress',
+        file_path: '',
+      })
+      .select()
+      .single()
+
+    backupId = backup.id
+
+    // 2. pg_dumpでダンプ
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const tempDir = path.join(process.cwd(), 'temp')
+    await fs.mkdir(tempDir, { recursive: true })
+    
+    const sqlFile = path.join(tempDir, `backup_${timestamp}.sql`)
+    const gzFile = path.join(tempDir, `backup_${timestamp}.sql.gz`)
+
+    const command = `PGPASSWORD=${process.env.DB_PASSWORD} pg_dump \
+      -h ${process.env.DB_HOST} \
+      -p ${process.env.DB_PORT} \
+      -U ${process.env.DB_USER} \
+      -d ${process.env.DB_NAME} \
+      --format=plain --no-owner --no-acl \
+      -f ${sqlFile}`
+
+    await execAsync(command)
+
+    // 3. gzip圧縮
+    const { 
+      originalSize, 
+      compressedSize, 
+      compressionRatio 
+    } = await compressBackup(sqlFile, gzFile)
+
+    // 4. Supabase Storageにアップロード
+    const { storagePath } = await uploadBackupToStorage(gzFile)
+
+    // 5. 一時ファイル削除
+    await fs.unlink(sqlFile)
+    await fs.unlink(gzFile)
+
+    // 6. バックアップレコード更新
+    await supabase
+      .from('database_backups')
+      .update({
+        status: 'completed',
+        file_path: sqlFile,
+        file_size_mb: (originalSize / (1024 * 1024)).toFixed(2),
+        storage_bucket: 'database-backups',
+        storage_path: storagePath,
+        compressed_size_mb: (compressedSize / (1024 * 1024)).toFixed(2),
+        compression_ratio: compressionRatio.toFixed(2),
+      })
+      .eq('id', backupId)
+
+    // 7. 古いバックアップ削除
+    await cleanupOldBackups(settings.value?.dataRetentionDays || 365)
+
+    // 8. 成功通知メール送信
+    await sendBackupNotification({
+      status: 'success',
+      backupId,
+      fileSizeMB: (compressedSize / (1024 * 1024)).toFixed(2),
+      compressionRatio: compressionRatio.toFixed(2),
+    })
+
+    return NextResponse.json({ 
+      success: true, 
+      backupId,
+      fileSizeMB: (compressedSize / (1024 * 1024)).toFixed(2)
+    })
+
+  } catch (error: any) {
+    // エラー処理
+    if (backupId) {
+      await supabase
+        .from('database_backups')
+        .update({
+          status: 'failed',
+          error_message: error.message,
+        })
+        .eq('id', backupId)
+    }
+
+    // 失敗通知メール送信
+    await sendBackupNotification({
+      status: 'failed',
+      error: error.message,
+    })
+
+    return NextResponse.json(
+      { error: error.message },
+      { status: 500 }
+    )
+  }
+}
+```
+
+**所要時間**: 5時間
+
+**検証方法**:
+- ローカルで手動実行テスト
+- Vercel Cronで定期実行テスト
+
+---
+
+#### Task C-5: Email通知機能実装 ★★★☆☆
+
+**説明**: バックアップ成功/失敗をEmailで通知
+
+**実装ファイル**:
+- `lib/backup/notifications.ts`（新規作成）
+
+**実装内容**:
+```typescript
+import { Resend } from 'resend'
+
+const resend = new Resend(process.env.RESEND_API_KEY)
+
+interface BackupNotificationParams {
+  status: 'success' | 'failed'
+  backupId?: string
+  fileSizeMB?: string
+  compressionRatio?: string
+  error?: string
+}
+
+export async function sendBackupNotification(
+  params: BackupNotificationParams
+) {
+  const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'admin@zairoku.com'
+  
+  const subject = params.status === 'success'
+    ? '✅ データベースバックアップ成功'
+    : '❌ データベースバックアップ失敗'
+
+  const html = params.status === 'success'
+    ? `
+      <h2>データベースバックアップが完了しました</h2>
+      <p><strong>バックアップID:</strong> ${params.backupId}</p>
+      <p><strong>圧縮後サイズ:</strong> ${params.fileSizeMB} MB</p>
+      <p><strong>圧縮率:</strong> ${params.compressionRatio}%</p>
+      <p><strong>日時:</strong> ${new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}</p>
+    `
+    : `
+      <h2 style="color: red;">データベースバックアップに失敗しました</h2>
+      <p><strong>エラー:</strong> ${params.error}</p>
+      <p><strong>日時:</strong> ${new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}</p>
+      <p>至急確認してください。</p>
+    `
+
+  await resend.emails.send({
+    from: 'ザイロク システム <noreply@zairoku.com>',
+    to: adminEmail,
+    subject,
+    html,
+  })
+}
+```
+
+**環境変数追加**:
+```bash
+ADMIN_NOTIFICATION_EMAIL=admin@zairoku.com
+```
+
+**所要時間**: 2時間
+
+**検証方法**:
+- テストメール送信
+- 成功/失敗両方のパターンをテスト
+
+---
+
+#### Task C-6: 古いバックアップ削除機能実装 ★★★☆☆
+
+**説明**: 保持期間を超えたバックアップを自動削除
+
+**実装ファイル**:
+- `lib/backup/cleanup.ts`（新規作成）
+
+**実装内容**:
+```typescript
+import { createClient } from '@supabase/supabase-js'
+
+export async function cleanupOldBackups(retentionDays: number) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const cutoffDate = new Date()
+  cutoffDate.setDate(cutoffDate.getDate() - retentionDays)
+
+  // 古いバックアップレコードを取得
+  const { data: oldBackups } = await supabase
+    .from('database_backups')
+    .select('id, storage_bucket, storage_path')
+    .lt('created_at', cutoffDate.toISOString())
+    .eq('status', 'completed')
+
+  if (!oldBackups || oldBackups.length === 0) {
+    return { deleted: 0 }
+  }
+
+  // Storageからファイル削除
+  for (const backup of oldBackups) {
+    if (backup.storage_bucket && backup.storage_path) {
+      await supabase.storage
+        .from(backup.storage_bucket)
+        .remove([backup.storage_path])
+    }
+  }
+
+  // データベースレコード削除
+  await supabase
+    .from('database_backups')
+    .delete()
+    .lt('created_at', cutoffDate.toISOString())
+    .eq('status', 'completed')
+
+  return { deleted: oldBackups.length }
+}
+```
+
+**所要時間**: 2時間
+
+**検証方法**:
+- テストデータで削除動作確認
+- 保持期間の境界値テスト
+
+---
+
+#### Task C-7: vercel.json Cron設定追加 ★★☆☆☆
+
+**説明**: Vercel Cronにバックアップジョブを追加
+
+**ファイル**: `vercel.json`
+
+**追加内容**:
+```json
+{
+  "crons": [
+    {
+      "path": "/api/cron/create-monthly-invoices",
+      "schedule": "0 1 * * *"
+    },
+    {
+      "path": "/api/cron/send-invoice-reminders",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/backup-database",
+      "schedule": "0 2 * * *"
+    }
+  ]
+}
+```
+
+**スケジュール**: 毎日2:00 AM（JST: 11:00 AM UTC）
+
+**所要時間**: 30分
+
+**検証方法**:
+- Vercel Dashboardでcron登録確認
+- 手動トリガーでテスト実行
+
+---
+
+#### Task C-8: 監視ダッシュボード実装 ★★★☆☆
+
+**説明**: スーパーアドミンダッシュボードにバックアップステータス表示
+
+**実装ファイル**:
+- `components/admin/BackupStatusWidget.tsx`（新規作成）
+- `app/admin/dashboard/page.tsx`（既存、修正）
+
+**実装内容**:
+
+**BackupStatusWidget.tsx**:
+```typescript
+'use client'
+
+import { useEffect, useState } from 'react'
+import { Database, CheckCircle, XCircle, Clock } from 'lucide-react'
+
+interface BackupStatus {
+  lastBackup: string | null
+  status: 'completed' | 'failed' | 'in_progress'
+  fileSizeMB: number
+  compressionRatio: number
+}
+
+export default function BackupStatusWidget() {
+  const [status, setStatus] = useState<BackupStatus | null>(null)
+
+  useEffect(() => {
+    fetchBackupStatus()
+  }, [])
+
+  const fetchBackupStatus = async () => {
+    const response = await fetch('/api/admin/backup/status')
+    const data = await response.json()
+    setStatus(data)
+  }
+
+  if (!status) return <div>読み込み中...</div>
+
+  const isRecent = status.lastBackup 
+    ? (new Date().getTime() - new Date(status.lastBackup).getTime()) < 24 * 60 * 60 * 1000
+    : false
+
+  return (
+    <div className="bg-white rounded-lg shadow p-6">
+      <div className="flex items-center gap-2 mb-4">
+        <Database className="w-5 h-5 text-blue-600" />
+        <h3 className="text-lg font-semibold">バックアップステータス</h3>
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-600">最終バックアップ</span>
+          <span className="text-sm font-medium">
+            {status.lastBackup 
+              ? new Date(status.lastBackup).toLocaleString('ja-JP')
+              : '未実行'}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-600">ステータス</span>
+          <div className="flex items-center gap-2">
+            {status.status === 'completed' && isRecent && (
+              <>
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span className="text-sm font-medium text-green-600">正常</span>
+              </>
+            )}
+            {status.status === 'failed' && (
+              <>
+                <XCircle className="w-4 h-4 text-red-600" />
+                <span className="text-sm font-medium text-red-600">失敗</span>
+              </>
+            )}
+            {!isRecent && (
+              <>
+                <Clock className="w-4 h-4 text-yellow-600" />
+                <span className="text-sm font-medium text-yellow-600">要確認</span>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-600">ファイルサイズ</span>
+          <span className="text-sm font-medium">
+            {status.fileSizeMB.toFixed(2)} MB
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-600">圧縮率</span>
+          <span className="text-sm font-medium">
+            {status.compressionRatio.toFixed(1)}%
+          </span>
+        </div>
+      </div>
+
+      {!isRecent && (
+        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-xs text-yellow-800">
+            ⚠️ 24時間以内のバックアップがありません
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+**API追加**: `app/api/admin/backup/status/route.ts`
+
+**所要時間**: 3時間
+
+**検証方法**:
+- ダッシュボードで表示確認
+- 各ステータスパターンの表示テスト
+
+---
+
+### C.6 運用手順
+
+#### C.6.1 バックアップ確認
+
+**毎日の確認事項**:
+1. 管理者ダッシュボードでバックアップステータス確認
+2. Email通知を確認（失敗時のみ届く）
+
+**週次確認**:
+1. Supabase Storage Dashboardでファイル確認
+2. database_backupsテーブルでログ確認
+
+#### C.6.2 手動バックアップ
+
+**実行方法**:
+1. システム設定ページ (`/admin/settings/system`)
+2. 「今すぐバックアップ」ボタンをクリック
+3. 完了メッセージを確認
+
+**用途**:
+- 重要な変更前のバックアップ
+- マイグレーション実行前
+- データ削除作業前
+
+#### C.6.3 リストア（復元）手順
+
+**前提条件**:
+- pg_restore または psql コマンドが使用可能
+- Supabase管理者権限
+
+**手順**:
+
+1. **バックアップファイルのダウンロード**:
+```bash
+# Supabase StorageからダウンロードAPI使用
+curl -X GET \
+  "https://[project-id].supabase.co/storage/v1/object/database-backups/backups/2025/01/backup_20250115_020000.sql.gz" \
+  -H "Authorization: Bearer [service-role-key]" \
+  --output backup.sql.gz
+```
+
+2. **解凍**:
+```bash
+gunzip backup.sql.gz
+```
+
+3. **データベース復元**:
+```bash
+PGPASSWORD=$DB_PASSWORD psql \
+  -h $DB_HOST \
+  -p $DB_PORT \
+  -U $DB_USER \
+  -d $DB_NAME \
+  -f backup.sql
+```
+
+4. **検証**:
+- アプリケーションにログイン
+- 主要機能の動作確認
+- データ整合性確認
+
+---
+
+### C.7 アラート・監視
+
+#### C.7.1 アラート条件
+
+| 条件 | アラートレベル | 通知先 |
+|------|--------------|--------|
+| バックアップ失敗 | 🔴 Critical | Email即時 |
+| 24時間バックアップなし | 🟡 Warning | Email（朝9時） |
+| 3日連続失敗 | 🔴 Critical | Email + Slack |
+| Storage使用量80%超 | 🟡 Warning | Email |
+| Storage使用量95%超 | 🔴 Critical | Email + Slack |
+
+#### C.7.2 監視ダッシュボード
+
+**表示項目**:
+- ✅ 最終バックアップ日時
+- ✅ バックアップステータス（成功/失敗）
+- ✅ ファイルサイズ
+- ✅ 圧縮率
+- ✅ 過去7日間のバックアップ履歴
+- ✅ Storage使用量
+
+**アクセス**: `/admin/dashboard`（管理者ダッシュボード）
+
+---
+
+### C.8 コスト試算
+
+#### C.8.1 Supabase Storage
+
+**料金プラン**: Pro Plan（$25/月）
+
+| 項目 | 無料枠 | 超過料金 |
+|------|--------|---------|
+| Storage容量 | 100GB | $0.021/GB/月 |
+| 帯域幅 | 200GB | $0.09/GB |
+
+**バックアップサイズ試算**:
+- 組織数: 50社
+- 平均データ量: 50MB/社
+- 合計: 2.5GB/日（圧縮前）
+- 圧縮後: 500MB/日
+- 365日保存: 182.5GB
+
+**コスト**:
+- 0-100GB: $0
+- 100-182.5GB (82.5GB): 82.5 × $0.021 = **$1.73/月**
+
+**合計**: **$1.73/月（約260円）**
+
+#### C.8.2 Vercel Cron
+
+**料金**: 無料（Pro Planに含まれる）
+
+#### C.8.3 Email通知（Resend）
+
+**料金**: 
+- Free Plan: 100通/日まで無料
+- 超過分: $0.001/通
+
+**コスト**:
+- 1日1通（成功通知） × 30日 = 30通 → **無料**
+- 失敗通知は月数回程度 → **無料**
+
+#### C.8.4 総コスト
+
+**月間合計**: 約 **$2/月（約300円）**
+
+**年間合計**: 約 **$24/年（約3,600円）**
+
+---
+
+### C.9 セキュリティ考慮事項
+
+#### C.9.1 アクセス制御
+
+- Supabase Storage: Private（認証必須）
+- RLSポリシー: Super Adminのみアクセス可能
+- API認証: `CRON_SECRET`による保護
+
+#### C.9.2 暗号化
+
+- 転送時: HTTPS/TLS
+- 保存時: Supabase Storage の AES-256暗号化
+
+#### C.9.3 監査ログ
+
+全てのバックアップ操作を`database_backups`テーブルに記録:
+- 実行日時
+- 実行者（手動の場合）
+- ステータス
+- エラー内容
+
+---
+
+### C.10 まとめ
+
+**実装優先度**: ★★★★★（本番リリース後1週間以内に必須）
+
+**実装期間**: 約3-4営業日
+
+**主な利点**:
+- ✅ 追加コスト最小（月300円程度）
+- ✅ AWS等の追加サービス不要
+- ✅ 自動化により人的ミス防止
+- ✅ 365日保存で法令遵守
+- ✅ gzip圧縮でStorage効率化
+- ✅ Email通知で異常を即座に検知
+
+**リスク**:
+- ⚠️ Supabase Storageの障害（対策: 定期的な外部ダウンロード推奨）
+- ⚠️ バックアップサイズの急増（対策: アラート設定済み）
+
+---
+
+**次のステップ**: 本番環境移行完了後、このセクションの実装を開始してください。
+

@@ -37,10 +37,10 @@ export async function GET(
       return NextResponse.json({ error: 'ユーザー情報が見つかりません' }, { status: 404 })
     }
 
-    // 組織情報を取得（角印データも含む）
+    // 組織情報を取得（角印データ・インボイス番号も含む）
     const { data: organization } = await supabase
       .from('organizations')
-      .select('name, postal_code, address, phone, fax, company_seal_url')
+      .select('name, postal_code, address, phone, fax, company_seal_url, invoice_registration_number')
       .eq('id', userData?.organization_id)
       .single()
 
@@ -89,70 +89,103 @@ export async function GET(
       console.error('[Estimate PDF API] Font registration error:', fontError)
     }
 
-    let yPos = 15
+    let yPos = 20
 
     // ========================================
-    // ヘッダー部分
+    // タイトル（中央）
     // ========================================
-
-    // タイトル（中央配置）
-    doc.setFontSize(18)
+    doc.setFontSize(16)
     doc.setFont('NotoSansJP', 'normal')
-    doc.text('御 見 積 書', 105, yPos, { align: 'center' })
+    doc.text('見　積　書', 105, yPos, { align: 'center' })
 
     yPos += 15
 
-    // 取引先情報（左側）
-    doc.setFontSize(12)
+    // ========================================
+    // 左側：取引先情報
+    // ========================================
+    const leftX = 15
+    const rightEdge = 195
+
+    // 取引先名（大きく）
+    doc.setFontSize(13)
     const clientName = estimate.client?.name || '-'
-    doc.text(`${clientName} 御中`, 15, yPos)
+    doc.text(`${clientName} 様`, leftX, yPos)
 
-    yPos += 2
+    // 下線（細く、少し離す）
+    yPos += 3
     doc.setLineWidth(0.2)
-    doc.line(15, yPos, 100, yPos)
+    doc.line(leftX, yPos, leftX + 80, yPos)
+    yPos += 6
 
-    yPos += 8
-
-    // 見積金額（強調表示）
-    doc.setFontSize(10)
-    doc.text('下記の通りお見積り申し上げます', 15, yPos)
-
-    yPos += 8
-
-    doc.setFontSize(10)
-    doc.text('御見積金額', 15, yPos)
-    doc.setFontSize(16)
-    doc.text(`¥${estimate.total_amount.toLocaleString()}`, 50, yPos)
-    doc.setFontSize(10)
-    doc.text('（税込）', 100, yPos)
-
-    // 自社情報と角印（右側）
-    const companyInfoStartY = 35
-    const companyInfoX = 130
-
-    let companyInfoY = companyInfoStartY
-
-    // 社名
-    doc.setFont('NotoSansJP', 'normal')
-    companyInfoY = drawCompanyName(doc, organization.name, companyInfoX, companyInfoY, 60, 11, 8)
-
-    // その他の情報
-    doc.setFontSize(8)
-    doc.text(`〒${organization.postal_code || '-'}`, companyInfoX, companyInfoY)
-    companyInfoY += 4
-    doc.text(organization.address || '-', companyInfoX, companyInfoY)
-    companyInfoY += 4
-    doc.text(`TEL: ${organization.phone || '-'}`, companyInfoX, companyInfoY)
-    companyInfoY += 4
-    if (organization.fax) {
-      doc.text(`FAX: ${organization.fax}`, companyInfoX, companyInfoY)
-      companyInfoY += 4
+    // 取引先住所
+    if (estimate.client?.postal_code) {
+      doc.setFontSize(8)
+      doc.text(`〒${estimate.client.postal_code}`, leftX, yPos)
+      yPos += 4
+    }
+    if (estimate.client?.address) {
+      doc.setFontSize(8)
+      doc.text(estimate.client.address, leftX, yPos)
+      yPos += 4
     }
 
-    // 角印の位置（自社情報の右側）
-    const sealX = 175
-    const sealY = companyInfoStartY
-    const sealSize = 25
+    yPos += 8
+
+    // 説明文（金額ボックスの少し上、小さく）
+    doc.setFontSize(8)
+    doc.text('下記のとおり見積申し上げます。', leftX, yPos)
+    yPos += 5
+
+    // 見積金額ボックス
+    doc.setFillColor(239, 246, 255) // 薄い青色
+    doc.rect(leftX, yPos, 85, 18, 'F')
+    doc.setFontSize(8)
+    doc.text('見積金額（税込）', leftX + 2, yPos + 5)
+    doc.setFontSize(16)
+    doc.text(`¥${Math.floor(estimate.total_amount).toLocaleString()}`, leftX + 2, yPos + 14)
+
+    // ========================================
+    // 右側：発行者情報（右端寄せ）
+    // ========================================
+    let rightY = 35
+
+    // 見積番号・登録番号・日付（小さく、右端寄せ）
+    doc.setFontSize(7)
+    doc.text(`見積番号: ${estimate.estimate_number}`, rightEdge, rightY, { align: 'right' })
+    rightY += 3.5
+    if (organization.invoice_registration_number) {
+      doc.text(`登録番号: ${organization.invoice_registration_number}`, rightEdge, rightY, { align: 'right' })
+      rightY += 3.5
+    }
+    doc.text(`見積日: ${new Date(estimate.estimate_date).toLocaleDateString('ja-JP')}`, rightEdge, rightY, { align: 'right' })
+    rightY += 3.5
+    if (estimate.valid_until) {
+      doc.text(`有効期限: ${new Date(estimate.valid_until).toLocaleDateString('ja-JP')}`, rightEdge, rightY, { align: 'right' })
+      rightY += 3.5
+    }
+
+    rightY += 5
+
+    // 会社名（右端寄せ、少し小さく）
+    doc.setFontSize(9)
+    doc.text(organization.name, rightEdge, rightY, { align: 'right' })
+    rightY += 5
+
+    // 住所・電話（右端寄せ）
+    doc.setFontSize(8)
+    if (organization.address) {
+      doc.text(organization.address, rightEdge, rightY, { align: 'right' })
+      rightY += 4
+    }
+    if (organization.phone) {
+      doc.text(`TEL: ${organization.phone}`, rightEdge, rightY, { align: 'right' })
+      rightY += 4
+    }
+
+    // 角印の位置（自社情報の下、右寄せ、少し上に配置）
+    const sealSize = 17  // 25 * 2/3 ≈ 17
+    const sealX = rightEdge - sealSize
+    const sealY = rightY - 2  // 少し上に移動
 
     // 角印を表示
     try {
@@ -189,35 +222,24 @@ export async function GET(
       console.error('[Estimate PDF API] Error adding company seal:', err)
     }
 
-    yPos = Math.max(yPos, companyInfoY) + 10
+    // 件名セクション（上に移動、小さく）
+    yPos = 95
 
-    // 見積情報
-    autoTable(doc, {
-      ...getTableConfig({ type: 'info' }),
-      startY: yPos,
-      body: [
-        ['見積番号', estimate.estimate_number, '見積日', new Date(estimate.estimate_date).toLocaleDateString('ja-JP')],
-        ['工事名', estimate.project?.project_name || estimate.title, '有効期限', estimate.valid_until ? new Date(estimate.valid_until).toLocaleDateString('ja-JP') : '-'],
-      ],
-      columnStyles: {
-        0: { cellWidth: 30, fontStyle: 'normal', fillColor: [240, 240, 240] },
-        1: { cellWidth: 65 },
-        2: { cellWidth: 30, fontStyle: 'normal', fillColor: [240, 240, 240] },
-        3: { cellWidth: 65 },
-      },
-    })
+    doc.setFontSize(8)
+    doc.text('件名', 15, yPos)
+    yPos += 5
+    doc.setFontSize(9)
+    doc.text(estimate.title, 15, yPos)
 
-    yPos = (doc as any).lastAutoTable.finalY + 10
-
-    // 件名
-    if (estimate.title) {
-      doc.setFontSize(11)
-      doc.setFont('NotoSansJP', 'normal')
-      doc.text(`件名: ${estimate.title}`, 15, yPos)
-      yPos += 8
+    if (estimate.project) {
+      yPos += 4
+      doc.setFontSize(7)
+      doc.text(`工事: ${estimate.project.project_name}`, 15, yPos)
     }
 
-    // 明細テーブル
+    yPos += 8
+
+    // 明細テーブル（税率列を削除、「明細」テキストを削除）
     const items = estimate.estimate_items?.sort((a: any, b: any) => a.display_order - b.display_order) || []
 
     const tableData = items.map((item: any) => [
@@ -230,45 +252,97 @@ export async function GET(
     ])
 
     autoTable(doc, {
-      ...getTableConfig({ type: 'list' }),
       startY: yPos,
-      head: [['項目', '仕様・備考', '数量', '単位', '単価', '金額']],
+      head: [['項目', '説明', '数量', '単位', '単価', '金額']],
       body: tableData,
-      foot: [
-        ['', '', '', '', '小計', `¥${estimate.subtotal.toLocaleString()}`],
-        ['', '', '', '', `消費税（${items[0]?.tax_rate || 10}%）`, `¥${estimate.tax_amount.toLocaleString()}`],
-        ['', '', '', '', '合計金額', `¥${estimate.total_amount.toLocaleString()}`],
-      ],
       columnStyles: {
-        0: { cellWidth: 40 },
-        1: { cellWidth: 60 },
-        2: { cellWidth: 15, halign: 'right' },
-        3: { cellWidth: 15 },
-        4: { cellWidth: 25, halign: 'right' },
-        5: { cellWidth: 35, halign: 'right' },
+        0: { cellWidth: 38 },
+        1: { cellWidth: 52 },
+        2: { cellWidth: 18, halign: 'right' },
+        3: { cellWidth: 18, halign: 'center' },
+        4: { cellWidth: 28, halign: 'right' },
+        5: { cellWidth: 26, halign: 'right' },
       },
-      footStyles: {
-        fillColor: [255, 255, 255],
+      headStyles: {
+        fillColor: [240, 240, 240],  // 薄いグレーの背景色
         textColor: [0, 0, 0],
         fontStyle: 'normal',
         lineWidth: 0.1,
+        font: 'NotoSansJP',
+        fontSize: 8,
       },
+      bodyStyles: {
+        fillColor: [255, 255, 255],  // 白背景（ストライプなし）
+        font: 'NotoSansJP',
+        fontSize: 8,
+        lineColor: [0, 0, 0],
+        lineWidth: 0.1,
+      },
+      alternateRowStyles: {
+        fillColor: [255, 255, 255],  // 白背景（ストライプなし）
+      },
+      tableWidth: 180,
+      margin: { left: 15 },
+      pageBreak: 'auto',           // 自動改ページを許可
+      rowPageBreak: 'auto',        // 行の途中での改ページも許可
+      showHead: 'everyPage',       // 各ページで見出し行を表示
     })
 
     yPos = (doc as any).lastAutoTable.finalY + 10
 
-    // 備考
+    // 合計セクション（右寄せ、下に移動）
+    const summaryX = 130
+    const summaryWidth = 65
+
+    doc.setFontSize(9)
+    doc.text('小計:', summaryX, yPos)
+    doc.text(`¥${estimate.subtotal.toLocaleString()}`, summaryX + summaryWidth, yPos, { align: 'right' })
+    yPos += 5
+
+    doc.text('消費税:', summaryX, yPos)
+    doc.text(`¥${Math.floor(estimate.tax_amount).toLocaleString()}`, summaryX + summaryWidth, yPos, { align: 'right' })
+    yPos += 5
+
+    doc.setLineWidth(0.3)
+    doc.line(summaryX, yPos, summaryX + summaryWidth, yPos)
+    yPos += 5
+
+    doc.setFontSize(11)
+    doc.text('合計:', summaryX, yPos)
+    doc.text(`¥${Math.floor(estimate.total_amount).toLocaleString()}`, summaryX + summaryWidth, yPos, { align: 'right' })
+
+    yPos += 15
+
+    // 備考（一番下部に配置、枠で囲む）
     if (estimate.notes) {
-      autoTable(doc, {
-        ...getTableConfig({ type: 'content' }),
-        startY: yPos,
-        head: [['備考']],
-        body: [[estimate.notes]],
-        columnStyles: {
-          0: { cellWidth: 190 },
-        },
-      })
-      yPos = (doc as any).lastAutoTable.finalY + 5
+      const notesBoxX = 15
+      const notesBoxWidth = 180
+      const notesPadding = 3
+
+      // テキストを分割
+      doc.setFontSize(8)
+      const noteLines = doc.splitTextToSize(estimate.notes, notesBoxWidth - (notesPadding * 2))
+
+      // 枠の高さを計算（タイトル分を追加、最低25mm）
+      const lineHeight = 4
+      const titleHeight = 6  // タイトル「備考」の高さ
+      const minBoxHeight = 25
+      const contentHeight = noteLines.length * lineHeight
+      const boxHeight = Math.max(minBoxHeight, contentHeight + titleHeight + (notesPadding * 2))
+
+      // 枠を描画
+      doc.setLineWidth(0.2)
+      doc.rect(notesBoxX, yPos, notesBoxWidth, boxHeight)
+
+      // 備考タイトルを枠内に描画
+      doc.setFontSize(9)
+      doc.text('備考', notesBoxX + notesPadding, yPos + notesPadding + 3)
+
+      // テキストを枠内に描画（タイトルの下）
+      doc.setFontSize(8)
+      doc.text(noteLines, notesBoxX + notesPadding, yPos + notesPadding + titleHeight + 3)
+
+      yPos += boxHeight
     }
 
     // フッター（ページ番号）

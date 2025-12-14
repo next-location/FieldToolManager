@@ -1,16 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { createBrowserClient } from '@supabase/ssr'
 
 interface EstimateItem {
   id: string
-  item_type: 'material' | 'labor' | 'subcontract' | 'expense' | 'other'
+  item_type: 'construction' | 'material' | 'expense' | 'other'
+  custom_type?: string // 「その他」選択時のカスタム種別
   item_name: string
   description: string
   quantity: number
   unit: string
+  custom_unit?: string // 「その他」選択時のカスタム単位
   unit_price: number
   tax_rate: number
   amount: number
@@ -18,22 +19,27 @@ interface EstimateItem {
 
 export default function NewEstimatePage() {
   const router = useRouter()
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
 
   const [loading, setLoading] = useState(false)
   const [clients, setClients] = useState<any[]>([])
-  const [projects, setProjects] = useState<any[]>([])
+  const [allProjects, setAllProjects] = useState<any[]>([])
+  const [clientSearchQuery, setClientSearchQuery] = useState('')
+  const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false)
+  const clientDropdownRef = useRef<HTMLDivElement>(null)
+  const [projectSearchQuery, setProjectSearchQuery] = useState('')
+  const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false)
+  const projectDropdownRef = useRef<HTMLDivElement>(null)
+
   const [items, setItems] = useState<EstimateItem[]>([
     {
       id: '1',
-      item_type: 'labor',
+      item_type: 'construction',
+      custom_type: '',
       item_name: '',
       description: '',
-      quantity: 1,
+      quantity: 0,
       unit: '式',
+      custom_unit: '',
       unit_price: 0,
       tax_rate: 10,
       amount: 0
@@ -57,42 +63,92 @@ export default function NewEstimatePage() {
     generateEstimateNumber()
   }, [])
 
-  const fetchClients = async () => {
-    const { data } = await supabase
-      .from('clients')
-      .select('id, name, client_code')
-      .eq('is_active', true)
-      .order('name')
+  // ドロップダウン外側クリックで閉じる
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (clientDropdownRef.current && !clientDropdownRef.current.contains(event.target as Node)) {
+        setIsClientDropdownOpen(false)
+        setClientSearchQuery('')
+      }
+      if (projectDropdownRef.current && !projectDropdownRef.current.contains(event.target as Node)) {
+        setIsProjectDropdownOpen(false)
+        setProjectSearchQuery('')
+      }
+    }
 
-    if (data) setClients(data)
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const fetchClients = async () => {
+    try {
+      const response = await fetch('/api/clients?is_active=true&limit=1000')
+      if (response.ok) {
+        const result = await response.json()
+        const filteredData = result.data?.filter((c: any) =>
+          c.client_type === 'customer' || c.client_type === 'both'
+        ) || []
+        setClients(filteredData)
+      }
+    } catch (error) {
+      console.error('Error fetching clients:', error)
+    }
   }
 
   const fetchProjects = async () => {
-    const { data } = await supabase
-      .from('projects')
-      .select('id, project_name, project_code')
-      .in('status', ['planning', 'in_progress'])
-      .order('project_name')
-
-    if (data) setProjects(data)
+    try {
+      const response = await fetch('/api/projects?limit=1000')
+      if (response.ok) {
+        const result = await response.json()
+        const filteredData = result.data?.filter((p: any) =>
+          ['planning', 'in_progress'].includes(p.status)
+        ) || []
+        setAllProjects(filteredData)
+      }
+    } catch (error) {
+      console.error('Error fetching projects:', error)
+    }
   }
 
   const generateEstimateNumber = async () => {
-    const year = new Date().getFullYear()
-    const { data, error } = await supabase
-      .from('estimates')
-      .select('estimate_number')
-      .like('estimate_number', `EST-${year}-%`)
-      .order('estimate_number', { ascending: false })
-      .limit(1)
+    try {
+      const year = new Date().getFullYear()
+      const response = await fetch(`/api/estimates?limit=1000&search=EST-${year}-`)
+      if (response.ok) {
+        const result = await response.json()
+        const data = result.data || []
 
-    if (data && data.length > 0) {
-      const lastNumber = parseInt(data[0].estimate_number.split('-')[2])
-      setFormData(prev => ({
-        ...prev,
-        estimate_number: `EST-${year}-${String(lastNumber + 1).padStart(4, '0')}`
-      }))
-    } else {
+        if (data.length > 0) {
+          const codes = data
+            .map((e: any) => e.estimate_number)
+            .filter((code: string) => code.startsWith(`EST-${year}-`))
+
+          if (codes.length > 0) {
+            const numbers = codes.map((code: string) => {
+              const parts = code.split('-')
+              return parseInt(parts[2] || '0')
+            })
+            const maxNumber = Math.max(...numbers)
+            setFormData(prev => ({
+              ...prev,
+              estimate_number: `EST-${year}-${String(maxNumber + 1).padStart(4, '0')}`
+            }))
+          } else {
+            setFormData(prev => ({
+              ...prev,
+              estimate_number: `EST-${year}-0001`
+            }))
+          }
+        } else {
+          setFormData(prev => ({
+            ...prev,
+            estimate_number: `EST-${year}-0001`
+          }))
+        }
+      }
+    } catch (error) {
+      console.error('Error generating estimate number:', error)
+      const year = new Date().getFullYear()
       setFormData(prev => ({
         ...prev,
         estimate_number: `EST-${year}-0001`
@@ -100,26 +156,121 @@ export default function NewEstimatePage() {
     }
   }
 
+  // ひらがなをカタカナに変換
+  const hiraganaToKatakana = (str: string) => {
+    return str.replace(/[\u3041-\u3096]/g, (match) => {
+      const chr = match.charCodeAt(0) + 0x60
+      return String.fromCharCode(chr)
+    })
+  }
+
+  // 取引先フィルタリング
+  const filteredClients = clients.filter(client => {
+    if (!clientSearchQuery) return true
+
+    const query = clientSearchQuery.toLowerCase()
+    const queryKatakana = hiraganaToKatakana(query)
+
+    return (
+      client.name?.toLowerCase().includes(query) ||
+      client.name_kana?.toLowerCase().includes(query) ||
+      client.name_kana?.toLowerCase().includes(queryKatakana.toLowerCase()) ||
+      client.client_code?.toLowerCase().includes(query)
+    )
+  })
+
+  // 選択された取引先名を取得
+  const selectedClientName = clients.find(c => c.id === formData.client_id)?.name || ''
+
+  // 取引先に紐づいた工事のみフィルタ
+  const clientProjects = formData.client_id
+    ? allProjects.filter(p => p.client_id === formData.client_id)
+    : []
+
+  // 工事フィルタリング（検索対応）
+  const filteredProjects = clientProjects.filter(project => {
+    if (!projectSearchQuery) return true
+
+    const query = projectSearchQuery.toLowerCase()
+
+    return (
+      project.project_name?.toLowerCase().includes(query) ||
+      project.project_code?.toLowerCase().includes(query)
+    )
+  })
+
+  // 選択された工事名を取得
+  const selectedProjectName = allProjects.find(p => p.id === formData.project_id)?.project_name || ''
+
+  // 工事選択時に件名を自動設定する関数
+  const handleProjectSelect = (projectId: string) => {
+    const project = allProjects.find(p => p.id === projectId)
+    if (project) {
+      setFormData({
+        ...formData,
+        project_id: projectId,
+        title: `${project.project_name} 見積書`
+      })
+    } else {
+      setFormData({
+        ...formData,
+        project_id: projectId
+      })
+    }
+  }
+
+  // 全角数字を半角に変換
+  const toHalfWidth = (str: string): string => {
+    return str.replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+  }
+
   const handleItemChange = (index: number, field: string, value: any) => {
     const newItems = [...items]
-    newItems[index] = { ...newItems[index], [field]: value }
 
-    // 金額を再計算
+    // 数値フィールドの場合、全角数字を半角に変換してから数値化
     if (field === 'quantity' || field === 'unit_price') {
-      newItems[index].amount = newItems[index].quantity * newItems[index].unit_price
+      if (typeof value === 'string') {
+        const halfWidth = toHalfWidth(value)
+        const numValue = parseFloat(halfWidth) || 0
+        newItems[index] = { ...newItems[index], [field]: numValue }
+      } else {
+        newItems[index] = { ...newItems[index], [field]: value }
+      }
+      // 金額を再計算
+      newItems[index].amount = (newItems[index].quantity || 0) * (newItems[index].unit_price || 0)
+    } else {
+      newItems[index] = { ...newItems[index], [field]: value }
     }
 
+    setItems(newItems)
+  }
+
+  // 数値入力ハンドラ（入力時にリアルタイムで全角→半角変換）
+  const handleNumericInput = (index: number, field: 'quantity' | 'unit_price', value: string) => {
+    // 全角数字を半角に即座に変換
+    const halfWidth = toHalfWidth(value)
+    // 数値以外の文字を除去
+    const numericOnly = halfWidth.replace(/[^\d.-]/g, '')
+    // 数値化して状態を更新
+    const numValue = parseFloat(numericOnly) || 0
+
+    const newItems = [...items]
+    newItems[index] = { ...newItems[index], [field]: numValue }
+    // 金額を再計算
+    newItems[index].amount = (newItems[index].quantity || 0) * (newItems[index].unit_price || 0)
     setItems(newItems)
   }
 
   const addItem = () => {
     setItems([...items, {
       id: String(items.length + 1),
-      item_type: 'labor',
+      item_type: 'construction',
+      custom_type: '',
       item_name: '',
       description: '',
-      quantity: 1,
+      quantity: 0,
       unit: '式',
+      custom_unit: '',
       unit_price: 0,
       tax_rate: 10,
       amount: 0
@@ -145,56 +296,55 @@ export default function NewEstimatePage() {
     setLoading(true)
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      const { data: userData } = await supabase
-        .from('users')
-        .select('organization_id')
-        .eq('id', user?.id)
-        .single()
-
       const { subtotal, taxAmount, total } = calculateTotals()
 
-      // 見積書を作成
-      const { data: estimate, error: estimateError } = await supabase
-        .from('estimates')
-        .insert({
-          ...formData,
-          organization_id: userData?.organization_id,
-          subtotal,
-          tax_amount: taxAmount,
-          total_amount: total,
-          status,
-          created_by: user?.id
-        })
-        .select()
-        .single()
+      const estimateData = {
+        ...formData,
+        subtotal,
+        tax_amount: taxAmount,
+        total_amount: total,
+        status,
+        items: items.map((item, index) => ({
+          display_order: index + 1,
+          item_type: item.item_type, // カスタム種別はcustom_typeで送る
+          custom_type: item.item_type === 'other' ? item.custom_type : undefined,
+          item_name: item.item_name,
+          description: item.description,
+          quantity: item.quantity,
+          unit: item.unit, // カスタム単位はcustom_unitで送る
+          custom_unit: item.unit === 'other' ? item.custom_unit : undefined,
+          unit_price: item.unit_price,
+          amount: item.amount,
+          tax_rate: item.tax_rate
+        }))
+      }
 
-      if (estimateError) throw estimateError
+      console.log('[見積書作成] リクエストデータ:', estimateData)
 
-      // 明細を作成
-      const itemsToInsert = items.map((item, index) => ({
-        estimate_id: estimate.id,
-        display_order: index + 1,
-        item_type: item.item_type,
-        item_name: item.item_name,
-        description: item.description,
-        quantity: item.quantity,
-        unit: item.unit,
-        unit_price: item.unit_price,
-        amount: item.amount,
-        tax_rate: item.tax_rate
-      }))
+      const response = await fetch('/api/estimates', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(estimateData),
+      })
 
-      const { error: itemsError } = await supabase
-        .from('estimate_items')
-        .insert(itemsToInsert)
+      console.log('[見積書作成] レスポンスステータス:', response.status)
 
-      if (itemsError) throw itemsError
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        console.error('[見積書作成] エラーレスポンス:', errorData)
+        throw new Error(errorData.error || `見積書の作成に失敗しました (${response.status})`)
+      }
+
+      const result = await response.json()
+      console.log('[見積書作成] 成功:', result)
 
       router.push('/estimates')
+      router.refresh()
     } catch (error) {
-      console.error('Error creating estimate:', error)
-      alert('見積書の作成に失敗しました')
+      console.error('[見積書作成] エラー:', error)
+      alert(error instanceof Error ? error.message : '見積書の作成に失敗しました')
     } finally {
       setLoading(false)
     }
@@ -228,37 +378,148 @@ export default function NewEstimatePage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 取引先 <span className="text-red-500">*</span>
               </label>
-              <select
-                value={formData.client_id}
-                onChange={(e) => setFormData({...formData, client_id: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                required
-              >
-                <option value="">選択してください</option>
-                {clients.map(client => (
-                  <option key={client.id} value={client.id}>
-                    {client.name} ({client.client_code})
-                  </option>
-                ))}
-              </select>
+              <div className="relative" ref={clientDropdownRef}>
+                <input
+                  type="text"
+                  value={isClientDropdownOpen ? clientSearchQuery : selectedClientName}
+                  onChange={(e) => {
+                    setClientSearchQuery(e.target.value)
+                    setIsClientDropdownOpen(true)
+                  }}
+                  onFocus={() => setIsClientDropdownOpen(true)}
+                  placeholder="取引先を検索..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setIsClientDropdownOpen(!isClientDropdownOpen)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {isClientDropdownOpen && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                    {filteredClients.length > 0 ? (
+                      <ul>
+                        {filteredClients.map(client => (
+                          <li key={client.id}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFormData({...formData, client_id: client.id, project_id: ''})
+                                setClientSearchQuery('')
+                                setIsClientDropdownOpen(false)
+                              }}
+                              className="w-full text-left px-4 py-2 hover:bg-blue-50 flex flex-col"
+                            >
+                              <span className="font-medium">{client.name}</span>
+                              <span className="text-xs text-gray-500">
+                                {client.client_code}
+                                {client.name_kana && ` / ${client.name_kana}`}
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="px-4 py-3 text-sm text-gray-500">
+                        該当する取引先が見つかりません
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              {formData.client_id && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData({...formData, client_id: '', project_id: ''})
+                    setClientSearchQuery('')
+                  }}
+                  className="mt-1 text-xs text-blue-600 hover:text-blue-700"
+                >
+                  選択をクリア
+                </button>
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 工事
               </label>
-              <select
-                value={formData.project_id}
-                onChange={(e) => setFormData({...formData, project_id: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              >
-                <option value="">選択してください</option>
-                {projects.map(project => (
-                  <option key={project.id} value={project.id}>
-                    {project.project_name} ({project.project_code})
-                  </option>
-                ))}
-              </select>
+              <div className="relative" ref={projectDropdownRef}>
+                <input
+                  type="text"
+                  value={isProjectDropdownOpen ? projectSearchQuery : selectedProjectName}
+                  onChange={(e) => {
+                    setProjectSearchQuery(e.target.value)
+                    setIsProjectDropdownOpen(true)
+                  }}
+                  onFocus={() => setIsProjectDropdownOpen(true)}
+                  placeholder={formData.client_id ? "工事を検索..." : "先に取引先を選択してください"}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  disabled={!formData.client_id}
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  disabled={!formData.client_id}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {isProjectDropdownOpen && formData.client_id && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                    {filteredProjects.length > 0 ? (
+                      <ul>
+                        {filteredProjects.map(project => (
+                          <li key={project.id}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleProjectSelect(project.id)
+                                setProjectSearchQuery('')
+                                setIsProjectDropdownOpen(false)
+                              }}
+                              className="w-full text-left px-4 py-2 hover:bg-blue-50 flex flex-col"
+                            >
+                              <span className="font-medium">{project.project_name}</span>
+                              <span className="text-xs text-gray-500">
+                                {project.project_code}
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="px-4 py-3 text-sm text-gray-500">
+                        この取引先に紐づいた工事がありません
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              {formData.project_id && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData({...formData, project_id: ''})
+                    setProjectSearchQuery('')
+                  }}
+                  className="mt-1 text-xs text-blue-600 hover:text-blue-700"
+                >
+                  選択をクリア
+                </button>
+              )}
             </div>
 
             <div>
@@ -303,121 +564,187 @@ export default function NewEstimatePage() {
         </div>
 
         <div className="bg-white shadow-sm rounded-lg p-6 mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">明細</h2>
-            <button
-              type="button"
-              onClick={addItem}
-              className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
-            >
-              行追加
-            </button>
-          </div>
+          <h2 className="text-lg font-semibold mb-4">明細</h2>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">種別</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">項目名</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">説明</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">数量</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">単位</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">単価</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">金額</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">税率</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase"></th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {items.map((item, index) => (
-                  <tr key={item.id}>
-                    <td className="px-3 py-2">
+          {/* カード表示（全サイズ共通） */}
+          <div className="space-y-4">
+            {items.map((item, index) => (
+              <div key={item.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <div className="flex justify-between items-start mb-3">
+                  <span className="text-sm font-medium text-gray-700">明細 #{index + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeItem(index)}
+                    className="text-red-600 hover:text-red-900 text-sm font-medium"
+                    disabled={items.length === 1}
+                  >
+                    削除
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {/* 種別・項目名・説明を1行 */}
+                  <div className="grid gap-2" style={{ gridTemplateColumns: '140px 1fr 1fr' }}>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">種別</label>
                       <select
                         value={item.item_type}
                         onChange={(e) => handleItemChange(index, 'item_type', e.target.value)}
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                       >
-                        <option value="material">材料</option>
-                        <option value="labor">労務</option>
-                        <option value="subcontract">外注</option>
-                        <option value="expense">経費</option>
+                        <option value="construction">工事費</option>
+                        <option value="material">材料費</option>
+                        <option value="expense">諸経費</option>
                         <option value="other">その他</option>
                       </select>
-                    </td>
-                    <td className="px-3 py-2">
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        項目名 <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="text"
                         value={item.item_name}
                         onChange={(e) => handleItemChange(index, 'item_name', e.target.value)}
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                         required
                       />
-                    </td>
-                    <td className="px-3 py-2">
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">説明</label>
                       <input
                         type="text"
                         value={item.description}
                         onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                       />
-                    </td>
-                    <td className="px-3 py-2">
-                      <input
-                        type="number"
-                        value={item.quantity}
-                        onChange={(e) => handleItemChange(index, 'quantity', parseFloat(e.target.value) || 0)}
-                        className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
-                        step="0.01"
-                        required
-                      />
-                    </td>
-                    <td className="px-3 py-2">
+                    </div>
+                  </div>
+
+                  {/* 種別が「その他」の場合のカスタム種別入力 */}
+                  {item.item_type === 'other' && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">カスタム種別</label>
                       <input
                         type="text"
+                        value={item.custom_type || ''}
+                        onChange={(e) => handleItemChange(index, 'custom_type', e.target.value)}
+                        placeholder="種別を入力..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      />
+                    </div>
+                  )}
+
+                  {/* 数量・単位・単価・税率・金額を1行 */}
+                  <div className="grid gap-2" style={{ gridTemplateColumns: '80px 100px 1fr 90px 1fr' }}>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        数量 <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={item.quantity || ''}
+                        onChange={(e) => handleNumericInput(index, 'quantity', e.target.value)}
+                        className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm"
+                        placeholder="0"
+                        inputMode="numeric"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        単位 <span className="text-red-500">*</span>
+                      </label>
+                      <select
                         value={item.unit}
                         onChange={(e) => handleItemChange(index, 'unit', e.target.value)}
-                        className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
+                        className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm"
                         required
-                      />
-                    </td>
-                    <td className="px-3 py-2">
+                      >
+                        <option value="式">式</option>
+                        <option value="個">個</option>
+                        <option value="台">台</option>
+                        <option value="本">本</option>
+                        <option value="枚">枚</option>
+                        <option value="m">m</option>
+                        <option value="m²">m²</option>
+                        <option value="m³">m³</option>
+                        <option value="kg">kg</option>
+                        <option value="t">t</option>
+                        <option value="L">L</option>
+                        <option value="日">日</option>
+                        <option value="時間">時間</option>
+                        <option value="人">人</option>
+                        <option value="other">その他</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        単価 <span className="text-red-500">*</span>
+                      </label>
                       <input
-                        type="number"
-                        value={item.unit_price}
-                        onChange={(e) => handleItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)}
-                        className="w-24 px-2 py-1 border border-gray-300 rounded text-sm"
+                        type="text"
+                        value={item.unit_price || ''}
+                        onChange={(e) => handleNumericInput(index, 'unit_price', e.target.value)}
+                        className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm"
+                        placeholder="0"
+                        inputMode="numeric"
                         required
                       />
-                    </td>
-                    <td className="px-3 py-2 text-right font-medium">
-                      ¥{item.amount.toLocaleString()}
-                    </td>
-                    <td className="px-3 py-2">
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">税率</label>
                       <select
                         value={item.tax_rate}
                         onChange={(e) => handleItemChange(index, 'tax_rate', parseFloat(e.target.value))}
-                        className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                        className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm"
                       >
                         <option value="10">10%</option>
                         <option value="8">8%</option>
                         <option value="0">0%</option>
                       </select>
-                    </td>
-                    <td className="px-3 py-2">
-                      <button
-                        type="button"
-                        onClick={() => removeItem(index)}
-                        className="text-red-600 hover:text-red-900 text-sm"
-                        disabled={items.length === 1}
-                      >
-                        削除
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">金額</label>
+                      <div className="w-full px-2 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm font-medium text-right">
+                        ¥{item.amount.toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 単位が「その他」の場合のカスタム単位入力 */}
+                  {item.unit === 'other' && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">カスタム単位</label>
+                      <input
+                        type="text"
+                        value={item.custom_unit || ''}
+                        onChange={(e) => handleItemChange(index, 'custom_unit', e.target.value)}
+                        placeholder="単位を入力..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* 明細追加ボタン */}
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={addItem}
+              className="w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+            >
+              + 明細を追加
+            </button>
           </div>
 
           <div className="mt-4 flex justify-end">

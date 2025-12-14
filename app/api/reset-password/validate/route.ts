@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/service'
 import { NextRequest, NextResponse } from 'next/server'
 
 // GET /api/reset-password/validate?token=xxx - トークンの有効性を確認
@@ -11,30 +11,42 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'トークンが指定されていません' }, { status: 400 })
     }
 
-    const supabase = await createClient()
+    const supabase = createClient()
 
-    // トークンを持つユーザーを検索
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('id, email, password_reset_expires_at')
-      .eq('password_reset_token', token)
-      .is('deleted_at', null)
+    // トークンをpassword_reset_tokensテーブルから検索
+    const { data: resetToken, error } = await supabase
+      .from('password_reset_tokens')
+      .select('id, user_id, expires_at, used')
+      .eq('token', token)
       .single()
 
-    if (error || !user) {
+    if (error || !resetToken) {
       return NextResponse.json({ error: 'トークンが無効です' }, { status: 404 })
     }
 
-    // トークンの有効期限をチェック
-    if (!user.password_reset_expires_at) {
-      return NextResponse.json({ error: 'トークンが無効です' }, { status: 400 })
+    // 使用済みチェック
+    if (resetToken.used) {
+      return NextResponse.json({ error: 'このトークンは既に使用されています' }, { status: 400 })
     }
 
-    const expiresAt = new Date(user.password_reset_expires_at)
+    // トークンの有効期限をチェック
+    const expiresAt = new Date(resetToken.expires_at)
     const now = new Date()
 
     if (now > expiresAt) {
       return NextResponse.json({ error: 'トークンの有効期限が切れています' }, { status: 400 })
+    }
+
+    // ユーザー情報を取得
+    const { data: user } = await supabase
+      .from('users')
+      .select('email')
+      .eq('id', resetToken.user_id)
+      .is('deleted_at', null)
+      .single()
+
+    if (!user) {
+      return NextResponse.json({ error: 'ユーザーが見つかりません' }, { status: 404 })
     }
 
     return NextResponse.json({ valid: true, email: user.email })

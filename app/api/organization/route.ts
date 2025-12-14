@@ -88,6 +88,7 @@ export async function PATCH(request: NextRequest) {
     if (body.phone !== undefined) updateData.phone = body.phone
     if (body.fax !== undefined) updateData.fax = body.fax
     if (body.company_seal_url !== undefined) updateData.company_seal_url = body.company_seal_url
+    if (body.invoice_registration_number !== undefined) updateData.invoice_registration_number = body.invoice_registration_number
 
     // 組織情報更新
     const { data: organization, error } = await supabase

@@ -54,6 +54,14 @@ export function ClientTabs({ clients, initialTab = 'all' }: ClientTabsProps) {
     router.push(`/clients?${params.toString()}`)
   }
 
+  // ひらがなをカタカナに変換する関数
+  const hiraganaToKatakana = (str: string) => {
+    return str.replace(/[\u3041-\u3096]/g, (match) => {
+      const chr = match.charCodeAt(0) + 0x60
+      return String.fromCharCode(chr)
+    })
+  }
+
   // リアルタイム検索用のフィルター
   const filteredClients = clients.filter((client) => {
     // タブフィルター
@@ -63,8 +71,12 @@ export function ClientTabs({ clients, initialTab = 'all' }: ClientTabsProps) {
     if (!searchQuery) return matchesTab
 
     const query = searchQuery.toLowerCase()
+    const queryKatakana = hiraganaToKatakana(query)
+
     const matchesSearch =
       client.name?.toLowerCase().includes(query) ||
+      client.name_kana?.toLowerCase().includes(query) ||
+      client.name_kana?.toLowerCase().includes(queryKatakana.toLowerCase()) ||
       client.client_code?.toLowerCase().includes(query) ||
       client.address?.toLowerCase().includes(query) ||
       client.phone?.toLowerCase().includes(query)

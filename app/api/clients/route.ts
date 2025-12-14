@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       query = query.or(
-        `name.ilike.%${search}%,code.ilike.%${search}%,address.ilike.%${search}%,phone.ilike.%${search}%`
+        `name.ilike.%${search}%,name_kana.ilike.%${search}%,client_code.ilike.%${search}%,address.ilike.%${search}%,phone.ilike.%${search}%`
       )
     }
 
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
       .from('clients')
       .insert({
         organization_id: userData?.organization_id,
-        code: codeData,
+        client_code: codeData,
         name: body.name,
         name_kana: body.name_kana || null,
         short_name: body.short_name || null,

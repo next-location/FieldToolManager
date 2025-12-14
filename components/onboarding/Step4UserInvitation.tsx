@@ -7,7 +7,7 @@ interface Step4Props {
   formData: OnboardingFormData
   updateFormData: (updates: Partial<OnboardingFormData>) => void
   onBack: () => void
-  onComplete: () => void
+  onNext: () => void
   isLoading: boolean
 }
 
@@ -15,7 +15,7 @@ export default function Step4UserInvitation({
   formData,
   updateFormData,
   onBack,
-  onComplete,
+  onNext,
   isLoading,
 }: Step4Props) {
   const [email, setEmail] = useState('')
@@ -39,12 +39,12 @@ export default function Step4UserInvitation({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onComplete()
+    onNext()
   }
 
   return (
     <div>
-      <h2 className="mb-2 text-2xl font-bold text-gray-800">ステップ 4/4: ユーザー招待</h2>
+      <h2 className="mb-2 text-2xl font-bold text-gray-800">ステップ 4/5: ユーザー招待</h2>
       <p className="mb-6 text-gray-600">
         チームメンバーを招待してください（後から追加することも可能です）
       </p>
@@ -131,11 +131,11 @@ export default function Step4UserInvitation({
         )}
 
         {/* 注意事項 */}
-        <div className="rounded-lg bg-green-50 p-4">
-          <p className="mb-2 text-sm font-semibold text-green-800">
-            ✅ セットアップの最終ステップです
+        <div className="rounded-lg bg-blue-50 p-4">
+          <p className="mb-2 text-sm font-semibold text-blue-800">
+            📧 ユーザー招待について
           </p>
-          <p className="text-sm text-green-700">
+          <p className="text-sm text-blue-700">
             招待したメンバーにはメールで通知が送信されます。メンバーは後からいつでも追加できます。
           </p>
         </div>
@@ -153,9 +153,9 @@ export default function Step4UserInvitation({
           <button
             type="submit"
             disabled={isLoading}
-            className="rounded-md bg-green-600 px-6 py-2 font-semibold text-white transition-colors hover:bg-green-700 disabled:opacity-50"
+            className="rounded-md bg-blue-600 px-6 py-2 font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
           >
-            {isLoading ? 'セットアップ中...' : 'セットアップ完了'}
+            {isLoading ? '処理中...' : '次へ'}
           </button>
         </div>
       </form>

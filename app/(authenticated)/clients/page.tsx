@@ -53,7 +53,7 @@ export default async function ClientsPage({
 
   if (search) {
     query = query.or(
-      `name.ilike.%${search}%,client_code.ilike.%${search}%,address.ilike.%${search}%,phone.ilike.%${search}%`
+      `name.ilike.%${search}%,name_kana.ilike.%${search}%,client_code.ilike.%${search}%,address.ilike.%${search}%,phone.ilike.%${search}%`
     )
   }
 

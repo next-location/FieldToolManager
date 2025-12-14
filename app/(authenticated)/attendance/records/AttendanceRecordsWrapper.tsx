@@ -41,12 +41,10 @@ export function AttendanceRecordsWrapper({
         onFiltersChange={setFilters}
       />
 
-      <div className="bg-white shadow sm:rounded-lg">
-        <AttendanceRecordsTable
-          userRole={userRole}
-          filters={filters}
-        />
-      </div>
+      <AttendanceRecordsTable
+        userRole={userRole}
+        filters={filters}
+      />
     </>
   )
 }

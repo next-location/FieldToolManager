@@ -60,7 +60,7 @@ export function AddStaffModal({ isOpen, onClose, onSuccess, departments }: AddSt
           name,
           email,
           password,
-          role,
+          role: role === 'staff' ? 'user' : role, // UI上の'staff'をDB上の'user'にマッピング
           department: department || null,
           employee_id: employeeId || null,
           phone: phone || null,
@@ -148,7 +148,7 @@ export function AddStaffModal({ isOpen, onClose, onSuccess, departments }: AddSt
                 🔄 ランダム生成
               </button>
             </div>
-            <p className="mt-1 text-xs text-gray-500">8文字以上、英数字を含む</p>
+            <p className="mt-1 text-xs text-gray-500">8文字以上、大文字・小文字・数字必須</p>
           </div>
 
           <div>

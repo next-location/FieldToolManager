@@ -6,6 +6,7 @@ import Step1OrganizationInfo from './Step1OrganizationInfo'
 import Step2OperationSettings from './Step2OperationSettings'
 import Step3CategorySetup from './Step3CategorySetup'
 import Step4UserInvitation from './Step4UserInvitation'
+import Step5TwoFactor from './Step5TwoFactor'
 import type { OnboardingFormData } from '@/types/organization'
 
 interface OnboardingWizardProps {
@@ -35,7 +36,7 @@ export default function OnboardingWizard({ organizationId }: OnboardingWizardPro
   }
 
   const handleNext = () => {
-    setCurrentStep((prev) => Math.min(prev + 1, 4))
+    setCurrentStep((prev) => Math.min(prev + 1, 5))
   }
 
   const handleBack = () => {
@@ -73,7 +74,7 @@ export default function OnboardingWizard({ organizationId }: OnboardingWizardPro
         {/* Progress indicator */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
-            {[1, 2, 3, 4].map((step) => (
+            {[1, 2, 3, 4, 5].map((step) => (
               <div key={step} className="flex items-center">
                 <div
                   className={`flex h-10 w-10 items-center justify-center rounded-full font-semibold ${
@@ -86,7 +87,7 @@ export default function OnboardingWizard({ organizationId }: OnboardingWizardPro
                 >
                   {step < currentStep ? '✓' : step}
                 </div>
-                {step < 4 && (
+                {step < 5 && (
                   <div
                     className={`mx-2 h-1 w-16 ${
                       step < currentStep ? 'bg-green-600' : 'bg-gray-300'
@@ -101,6 +102,7 @@ export default function OnboardingWizard({ organizationId }: OnboardingWizardPro
             <span>運用設定</span>
             <span>カテゴリー</span>
             <span>ユーザー招待</span>
+            <span>セキュリティ</span>
           </div>
         </div>
 
@@ -133,9 +135,19 @@ export default function OnboardingWizard({ organizationId }: OnboardingWizardPro
             <Step4UserInvitation
               formData={formData}
               updateFormData={updateFormData}
+              onNext={handleNext}
               onBack={handleBack}
-              onComplete={handleComplete}
               isLoading={isLoading}
+            />
+          )}
+          {currentStep === 5 && (
+            <Step5TwoFactor
+              formData={formData}
+              updateFormData={updateFormData}
+              onNext={handleComplete}
+              onBack={handleBack}
+              isLoading={isLoading}
+              userId={organizationId}
             />
           )}
         </div>

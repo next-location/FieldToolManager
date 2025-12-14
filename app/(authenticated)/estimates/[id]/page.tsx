@@ -3,6 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { DownloadPdfButton } from './DownloadPdfButton'
 
+// キャッシュを無効化
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function EstimateDetailPage({
   params
 }: {
@@ -28,7 +32,7 @@ export default async function EstimateDetailPage({
   }
 
   // 見積書データを取得
-  const { data: estimate } = await supabase
+  const { data: estimate, error: estimateError } = await supabase
     .from('estimates')
     .select(`
       *,
@@ -42,6 +46,11 @@ export default async function EstimateDetailPage({
     .eq('organization_id', userData?.organization_id)
     .single()
 
+  console.log('[見積書詳細] 見積書ID:', id)
+  console.log('[見積書詳細] 見積書データ:', estimate)
+  console.log('[見積書詳細] 明細件数:', estimate?.estimate_items?.length || 0)
+  console.log('[見積書詳細] エラー:', estimateError)
+
   if (!estimate) {
     redirect('/estimates')
   }
@@ -49,7 +58,7 @@ export default async function EstimateDetailPage({
   // 組織情報を取得
   const { data: organization } = await supabase
     .from('organizations')
-    .select('name, address, phone, tax_registration_number, is_qualified_invoice_issuer')
+    .select('name, address, phone, invoice_registration_number')
     .eq('id', userData?.organization_id)
     .single()
 
@@ -157,6 +166,9 @@ export default async function EstimateDetailPage({
             <div className="text-right">
               <div className="mb-4">
                 <p className="text-xs text-gray-600 mb-1">見積番号: {estimate.estimate_number}</p>
+                {organization?.invoice_registration_number && (
+                  <p className="text-xs text-gray-600 mb-1">登録番号: {organization.invoice_registration_number}</p>
+                )}
                 <p className="text-xs text-gray-600 mb-1">
                   見積日: {new Date(estimate.estimate_date).toLocaleDateString('ja-JP')}
                 </p>
@@ -174,11 +186,6 @@ export default async function EstimateDetailPage({
                 )}
                 {organization?.phone && (
                   <p className="text-sm text-gray-600">TEL: {organization.phone}</p>
-                )}
-                {organization?.tax_registration_number && organization?.is_qualified_invoice_issuer && (
-                  <p className="text-xs text-gray-600 mt-2">
-                    登録番号: {organization.tax_registration_number}
-                  </p>
                 )}
               </div>
 

@@ -39,10 +39,10 @@ export async function GET(
       return NextResponse.json({ error: 'ユーザー情報が見つかりません' }, { status: 404 })
     }
 
-    // 組織情報を取得（角印データも含む）
+    // 組織情報を取得（角印データ・インボイス番号も含む）
     const { data: organization, error: orgError } = await supabase
       .from('organizations')
-      .select('name, postal_code, address, phone, fax, company_seal_url, tax_registration_number, is_qualified_invoice_issuer')
+      .select('name, postal_code, address, phone, fax, company_seal_url, invoice_registration_number')
       .eq('id', userData?.organization_id)
       .single()
 
@@ -150,6 +150,10 @@ export async function GET(
     companyInfoY += 4
     if (organization.fax) {
       doc.text(`FAX: ${organization.fax}`, companyInfoX, companyInfoY)
+      companyInfoY += 4
+    }
+    if (organization.invoice_registration_number) {
+      doc.text(`登録番号: ${organization.invoice_registration_number}`, companyInfoX, companyInfoY)
       companyInfoY += 4
     }
 

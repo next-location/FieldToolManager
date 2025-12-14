@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { validatePassword, DEFAULT_PASSWORD_POLICY } from '@/lib/password-policy'
 
 // Admin client for auth operations
 function createAdminClient() {
@@ -114,6 +115,7 @@ export async function GET(request: NextRequest) {
 // POST /api/staff - スタッフ追加
 export async function POST(request: NextRequest) {
   try {
+    console.log('[STAFF POST] Starting staff creation...')
     const supabase = await createClient()
 
     // 認証チェック
@@ -123,8 +125,11 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
+      console.log('[STAFF POST] Auth error:', authError)
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
     }
+
+    console.log('[STAFF POST] User authenticated:', user.id)
 
     // ユーザーの組織ID取得
     const { data: userData, error: userError } = await supabase
@@ -134,24 +139,42 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (userError || !userData) {
+      console.log('[STAFF POST] User data error:', userError)
       return NextResponse.json({ error: 'ユーザー情報が見つかりません' }, { status: 404 })
     }
+
+    console.log('[STAFF POST] User data:', userData)
 
     // 権限チェック（admin または manager）
     const isAdmin = userData.role === 'admin'
     const isManager = userData.role === 'manager'
 
     if (!isAdmin && !isManager) {
+      console.log('[STAFF POST] Permission denied. User role:', userData.role)
       return NextResponse.json({ error: '権限がありません' }, { status: 403 })
     }
 
     // リクエストボディ取得
     const body = await request.json()
     const { name, email, password, role, department, employee_id, phone } = body
+    console.log('[STAFF POST] Request body:', { name, email, role, department, employee_id, phone, passwordLength: password?.length })
 
     // バリデーション
     if (!name || !email || !password || !role) {
+      console.log('[STAFF POST] Validation failed - missing fields:', { name: !!name, email: !!email, password: !!password, role: !!role })
       return NextResponse.json({ error: '必須項目が不足しています' }, { status: 400 })
+    }
+
+    // パスワードポリシーチェック（8文字以上、大文字・小文字・数字必須）
+    console.log('[STAFF POST] Validating password...')
+    const passwordValidation = validatePassword(password, DEFAULT_PASSWORD_POLICY)
+    console.log('[STAFF POST] Password validation result:', passwordValidation)
+    if (!passwordValidation.isValid) {
+      console.log('[STAFF POST] Password validation failed:', passwordValidation.errors)
+      return NextResponse.json({
+        error: 'パスワードが要件を満たしていません',
+        details: passwordValidation.errors
+      }, { status: 400 })
     }
 
     // managerは admin/manager を作成できない
@@ -160,25 +183,23 @@ export async function POST(request: NextRequest) {
     }
 
     // プラン上限チェック（契約情報から取得）
-    const { data: contract } = await supabase
+    console.log('[STAFF POST] Checking contract limits...')
+    const { data: contract, error: contractError } = await supabase
       .from('contracts')
-      .select(`
-        id,
-        packages!inner(
-          id,
-          name,
-          user_limit
-        )
-      `)
+      .select('id, user_limit')
       .eq('organization_id', userData?.organization_id)
       .eq('status', 'active')
       .single()
 
+    console.log('[STAFF POST] Contract result:', { contract, contractError })
+
     if (!contract) {
+      console.log('[STAFF POST] No active contract found')
       return NextResponse.json({ error: '有効な契約が見つかりません' }, { status: 400 })
     }
 
-    const maxUsers = (contract.packages as any)?.user_limit || 10
+    const maxUsers = contract.user_limit || 10
+    console.log('[STAFF POST] User limit:', maxUsers)
 
     const { count: currentCount } = await supabase
       .from('users')
@@ -187,7 +208,10 @@ export async function POST(request: NextRequest) {
       .is('deleted_at', null)
       .eq('is_active', true)
 
+    console.log('[STAFF POST] Current user count:', currentCount)
+
     if (currentCount !== null && currentCount >= maxUsers) {
+      console.log('[STAFF POST] User limit exceeded')
       return NextResponse.json(
         {
           error: `プランの上限（${maxUsers}人）に達しています。プランをアップグレードしてください。`,
@@ -199,13 +223,17 @@ export async function POST(request: NextRequest) {
     }
 
     // メールアドレス重複チェック
+    console.log('[STAFF POST] Checking email duplication...')
     const { data: existingUser } = await supabase
       .from('users')
       .select('id')
       .eq('email', email)
       .single()
 
+    console.log('[STAFF POST] Existing user check:', !!existingUser)
+
     if (existingUser) {
+      console.log('[STAFF POST] Email already exists')
       return NextResponse.json({ error: 'このメールアドレスは既に使用されています' }, { status: 400 })
     }
 

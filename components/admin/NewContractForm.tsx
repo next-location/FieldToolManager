@@ -81,10 +81,9 @@ export default function NewContractForm({ organizations, packages, superAdminId 
     billingContactEmail: '',
     billingContactPhone: '',
     billingAddress: '',
-    // 初期管理者情報
+    // 初期管理者情報（パスワードは契約完了時に自動生成）
     adminName: '',
     adminEmail: '',
-    adminPassword: '',
     adminPhone: '',
     notes: '',
   });
@@ -168,15 +167,6 @@ export default function NewContractForm({ organizations, packages, superAdminId 
     setFormData({ ...formData, plan, userLimit: planConfig.userLimit, initialSetupFee: planConfig.setupFee });
   };
 
-  // セキュアなパスワード生成関数
-  const generateSecurePassword = (): string => {
-    const length = 16;
-    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
-    const array = new Uint8Array(length);
-    crypto.getRandomValues(array);
-    return Array.from(array, (byte) => charset[byte % charset.length]).join('');
-  };
-
   const openPricingTable = (e: React.MouseEvent) => {
     e.preventDefault();
     window.open('/admin/pricing-table', 'pricing', 'width=1000,height=800,scrollbars=yes');
@@ -187,9 +177,16 @@ export default function NewContractForm({ organizations, packages, superAdminId 
     setError('');
     setLoading(true);
     try {
+      // CSRFトークンを取得
+      const csrfResponse = await fetch('/api/admin/csrf');
+      const { token: csrfToken } = await csrfResponse.json();
+
       const response = await fetch('/api/admin/contracts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
         credentials: 'include',
         body: JSON.stringify({
           ...formData,
@@ -465,7 +462,14 @@ export default function NewContractForm({ organizations, packages, superAdminId 
 
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">初期管理者情報</h2>
-        <p className="text-xs text-gray-600 mb-4">※ 契約完了後、この情報で初期管理者アカウントが自動作成されます。初回ログイン時にパスワード変更が必要です。</p>
+        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
+          <p className="text-sm text-blue-800">
+            <strong>📧 契約完了時の自動処理：</strong><br />
+            • 初期管理者アカウントが自動作成されます<br />
+            • セキュアなパスワードが自動生成されます<br />
+            • ウェルカムメールが送信されます（ログイン情報含む）
+          </p>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">管理者氏名 <span className="text-red-500">*</span></label>
@@ -488,30 +492,7 @@ export default function NewContractForm({ organizations, packages, superAdminId 
               placeholder="admin@example.com"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E6FFF]"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">初期パスワード <span className="text-red-500">*</span></label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                required
-                value={formData.adminPassword}
-                onChange={(e) => setFormData({ ...formData, adminPassword: e.target.value })}
-                placeholder="自動生成または手動入力"
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E6FFF]"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  const password = generateSecurePassword();
-                  setFormData({ ...formData, adminPassword: password });
-                }}
-                className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap"
-              >
-                自動生成
-              </button>
-            </div>
-            <p className="text-xs text-gray-500 mt-1">12文字以上推奨。自動生成ボタンで安全なパスワードを生成できます。</p>
+            <p className="text-xs text-gray-500 mt-1">このアドレスにウェルカムメールが送信されます</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">管理者電話番号</label>

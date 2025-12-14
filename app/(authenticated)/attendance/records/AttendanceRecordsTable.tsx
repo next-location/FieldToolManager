@@ -47,11 +47,25 @@ export function AttendanceRecordsTable({
   // 編集モーダル状態
   const [editingRecord, setEditingRecord] = useState<any | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [sitesList, setSitesList] = useState<Site[]>([])
 
   // データ取得
   useEffect(() => {
     fetchRecords()
+    fetchSites()
   }, [page, filters])
+
+  const fetchSites = async () => {
+    try {
+      const response = await fetch('/api/sites')
+      if (response.ok) {
+        const data = await response.json()
+        setSitesList(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch sites:', error)
+    }
+  }
 
   const fetchRecords = async () => {
     setLoading(true)
@@ -141,8 +155,8 @@ export function AttendanceRecordsTable({
   }
 
   return (
-    <div className="p-6">
-
+    <>
+      {/* 件数表示（背景なし） */}
       <div className="mb-4">
         <div className="text-sm text-gray-700">
           全 {total} 件中 {(page - 1) * 50 + 1} 〜{' '}
@@ -150,8 +164,9 @@ export function AttendanceRecordsTable({
         </div>
       </div>
 
-      {/* テーブル */}
-      <div className="overflow-x-auto">
+      {/* テーブル部分（白い背景） */}
+      <div className="bg-white shadow sm:rounded-lg p-6">
+        <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -229,34 +244,35 @@ export function AttendanceRecordsTable({
         </table>
       </div>
 
-      {records.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500">勤怠記録がありません</p>
-        </div>
-      )}
+        {records.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-500">勤怠記録がありません</p>
+          </div>
+        )}
 
-      {/* ページネーション */}
-      {totalPages > 1 && (
-        <div className="mt-6 flex items-center justify-between">
-          <button
-            onClick={() => setPage(Math.max(1, page - 1))}
-            disabled={page === 1}
-            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
-          >
-            前へ
-          </button>
-          <span className="text-sm text-gray-700">
-            {page} / {totalPages} ページ
-          </span>
-          <button
-            onClick={() => setPage(Math.min(totalPages, page + 1))}
-            disabled={page === totalPages}
-            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
-          >
-            次へ
-          </button>
-        </div>
-      )}
+        {/* ページネーション */}
+        {totalPages > 1 && (
+          <div className="mt-6 flex items-center justify-between">
+            <button
+              onClick={() => setPage(Math.max(1, page - 1))}
+              disabled={page === 1}
+              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              前へ
+            </button>
+            <span className="text-sm text-gray-700">
+              {page} / {totalPages} ページ
+            </span>
+            <button
+              onClick={() => setPage(Math.min(totalPages, page + 1))}
+              disabled={page === totalPages}
+              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              次へ
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* 編集モーダル */}
       {editingRecord && (
@@ -271,6 +287,6 @@ export function AttendanceRecordsTable({
           onSuccess={handleEditSuccess}
         />
       )}
-    </div>
+    </>
   )
 }

@@ -455,6 +455,9 @@ CREATE TABLE organizations (
   billing_cycle_day INTEGER DEFAULT 1 CHECK (billing_cycle_day BETWEEN 1 AND 28),
   initial_setup_fee_paid BOOLEAN DEFAULT false,
 
+  -- インボイス番号（2025-12-14追加）
+  invoice_registration_number TEXT,
+
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -464,6 +467,7 @@ COMMENT ON COLUMN organizations.stripe_customer_id IS 'Stripe Customer ID（cus_
 COMMENT ON COLUMN organizations.stripe_subscription_id IS 'Stripe Subscription ID（sub_xxxxx）';
 COMMENT ON COLUMN organizations.billing_cycle_day IS '毎月の請求日（1-28日）';
 COMMENT ON COLUMN organizations.initial_setup_fee_paid IS '初回導入費用の支払い済みフラグ';
+COMMENT ON COLUMN organizations.invoice_registration_number IS '適格請求書発行事業者の登録番号（Tから始まる13桁の番号）';
 
 CREATE INDEX idx_organizations_subdomain ON organizations(subdomain);
 CREATE INDEX idx_organizations_is_active ON organizations(is_active);

@@ -14,6 +14,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [postalCodeLoading, setPostalCodeLoading] = useState(false)
 
   // フォームデータ
   const [formData, setFormData] = useState({
@@ -64,6 +65,38 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
     // ステータス
     is_active: client?.is_active !== undefined ? client.is_active : true,
   })
+
+  // 郵便番号から住所を検索
+  const handlePostalCodeChange = useCallback(async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const postalCode = e.target.value.replace(/[^0-9]/g, '') // ハイフンを削除
+
+    setFormData((prev) => ({
+      ...prev,
+      postal_code: e.target.value,
+    }))
+
+    // 7桁の郵便番号が入力されたら自動検索
+    if (postalCode.length === 7) {
+      setPostalCodeLoading(true)
+      try {
+        const response = await fetch(`/api/postal-code?zipcode=${postalCode}`)
+        const data = await response.json()
+
+        if (data.success && data.address) {
+          setFormData((prev) => ({
+            ...prev,
+            address: data.address,
+          }))
+        }
+      } catch (error) {
+        console.error('郵便番号検索エラー:', error)
+      } finally {
+        setPostalCodeLoading(false)
+      }
+    }
+  }, [])
 
   const handleChange = useCallback((
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -151,7 +184,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -165,7 +198,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="name_kana"
                   value={formData.name_kana || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -179,7 +212,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="short_name"
                   value={formData.short_name || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -193,7 +226,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   required
                   value={formData.client_type}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="customer">顧客</option>
                   <option value="supplier">仕入先</option>
@@ -212,7 +245,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="industry"
                   value={formData.industry || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -240,15 +273,25 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                 <label htmlFor="postal_code" className="block text-sm font-medium text-gray-700">
                   郵便番号
                 </label>
-                <input
-                  type="text"
-                  name="postal_code"
-                  id="postal_code"
-                  placeholder="123-4567"
-                  value={formData.postal_code || ''}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="postal_code"
+                    id="postal_code"
+                    placeholder="123-4567"
+                    value={formData.postal_code || ''}
+                    onChange={handlePostalCodeChange}
+                    className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  {postalCodeLoading && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 mt-0.5">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                    </div>
+                  )}
+                </div>
+                <p className="mt-1 text-xs text-gray-500">
+                  7桁の郵便番号を入力すると自動で住所が入力されます
+                </p>
               </div>
 
               <div className="sm:col-span-2">
@@ -261,7 +304,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="address"
                   value={formData.address || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -275,7 +318,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="phone"
                   value={formData.phone || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -289,7 +332,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="fax"
                   value={formData.fax || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -303,7 +346,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="email"
                   value={formData.email || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -317,7 +360,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="website"
                   value={formData.website || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </div>
@@ -337,7 +380,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="contact_person"
                   value={formData.contact_person || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -354,7 +397,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="contact_department"
                   value={formData.contact_department || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -368,7 +411,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="contact_phone"
                   value={formData.contact_phone || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -382,7 +425,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="contact_email"
                   value={formData.contact_email || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </div>
@@ -403,7 +446,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   placeholder="例: 月末締め翌月末払い"
                   value={formData.payment_terms || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -416,7 +459,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="payment_method"
                   value={formData.payment_method || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">選択してください</option>
                   <option value="bank_transfer">銀行振込</option>
@@ -440,7 +483,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="payment_due_days"
                   value={formData.payment_due_days || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -454,7 +497,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="credit_limit"
                   value={formData.credit_limit || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </div>
@@ -474,7 +517,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="bank_name"
                   value={formData.bank_name || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -488,7 +531,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="bank_branch"
                   value={formData.bank_branch || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -504,7 +547,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="bank_account_type"
                   value={formData.bank_account_type || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">選択してください</option>
                   <option value="savings">普通預金</option>
@@ -526,7 +569,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="bank_account_number"
                   value={formData.bank_account_number || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -543,7 +586,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="bank_account_holder"
                   value={formData.bank_account_holder || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </div>
@@ -563,7 +606,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="tax_id"
                   value={formData.tax_id || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -580,7 +623,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="tax_registration_number"
                   value={formData.tax_registration_number || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -613,7 +656,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   id="rating"
                   value={formData.rating || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">選択してください</option>
                   <option value="1">⭐</option>
@@ -634,13 +677,13 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   rows={4}
                   value={formData.notes || ''}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               <div>
                 <label htmlFor="internal_notes" className="block text-sm font-medium text-gray-700">
-                  社内用メモ 🔒
+                  メモ
                 </label>
                 <textarea
                   name="internal_notes"
@@ -648,28 +691,28 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   rows={4}
                   value={formData.internal_notes || ''}
                   onChange={handleChange}
-                  placeholder="社内のみで共有されるメモです"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </div>
         </div>
 
         {/* アクションボタン */}
-        <div className="flex justify-end space-x-3">
-          <Link
-            href="/clients"
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            キャンセル
-          </Link>
+        {/* アクションボタン */}
+        <div className="flex gap-4 pt-4">
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? '保存中...' : mode === 'create' ? '登録' : '更新'}
+            {loading ? '保存中...' : mode === 'create' ? '登録する' : '更新する'}
           </button>
+          <Link
+            href="/clients"
+            className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 font-medium text-center"
+          >
+            キャンセル
+          </Link>
         </div>
       </div>
     </form>

@@ -46,9 +46,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // 管理者情報のバリデーション
-    if (!body.adminName || !body.adminEmail || !body.adminPassword) {
+    if (!body.adminName || !body.adminEmail) {
       return NextResponse.json({
-        error: '初期管理者情報が不足しています。管理者氏名、メールアドレス、パスワードは必須です。'
+        error: '初期管理者情報が不足しています。管理者氏名、メールアドレスは必須です。'
       }, { status: 400 });
     }
 
@@ -132,10 +132,9 @@ export async function POST(request: NextRequest) {
         billing_contact_phone: body.billingContactPhone || null,
         billing_address: body.billingAddress || null,
 
-        // 🔥 初期管理者情報（契約完了時に使用）
+        // 🔥 初期管理者情報（契約完了時に使用、パスワードは自動生成）
         admin_name: body.adminName,
         admin_email: body.adminEmail,
-        admin_password: body.adminPassword, // プレーンテキストで保存（契約完了時に使用）
         admin_phone: body.adminPhone || null,
 
         notes: body.notes || null,
