@@ -343,6 +343,16 @@ export default async function EstimateDetailPage({
           </div>
         )}
 
+        {/* 差し戻し理由（下書きステータスで差し戻し理由がある場合のみ表示） */}
+        {estimate.status === 'draft' && estimate.manager_approval_notes?.startsWith('【差し戻し理由】') && (
+          <div className="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded print:hidden">
+            <h3 className="text-sm font-semibold mb-2 text-orange-800">⚠ 差し戻されました</h3>
+            <div className="text-sm text-orange-700">
+              <p className="whitespace-pre-wrap">{estimate.manager_approval_notes.replace('【差し戻し理由】', '')}</p>
+            </div>
+          </div>
+        )}
+
         {/* メタデータ */}
         <div className="text-xs text-gray-500 pt-6 border-t print:hidden">
           <p>作成者: {estimate.created_by?.name} - {new Date(estimate.created_at).toLocaleString('ja-JP')}</p>
