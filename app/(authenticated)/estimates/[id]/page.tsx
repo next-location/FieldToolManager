@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { DownloadPdfButton } from './DownloadPdfButton'
 import { ApproveEstimateButton } from '@/components/estimates/ApproveEstimateButton'
+import { SendToCustomerButton } from '@/components/estimates/SendToCustomerButton'
+import { CustomerDecisionButtons } from '@/components/estimates/CustomerDecisionButtons'
 
 // キャッシュを無効化
 export const dynamic = 'force-dynamic'
@@ -114,6 +116,7 @@ export default async function EstimateDetailPage({
               編集
             </Link>
           )}
+
           {/* 提出済み状態: 承認ボタンのみ表示（manager/admin のみ）、編集不可 */}
           {estimate.status === 'submitted' && !estimate.manager_approved_at && (
             <ApproveEstimateButton
@@ -122,25 +125,55 @@ export default async function EstimateDetailPage({
               userRole={userData?.role || ''}
             />
           )}
-          {/* 提出済み&承認済み: 承認取り消しボタン */}
+
+          {/* 提出済み&承認済み: 承認取り消しボタン、PDF、顧客送付ボタン */}
           {estimate.status === 'submitted' && estimate.manager_approved_at && (
-            <ApproveEstimateButton
-              estimateId={id}
-              isApproved={true}
-              userRole={userData?.role || ''}
-            />
+            <>
+              <ApproveEstimateButton
+                estimateId={id}
+                isApproved={true}
+                userRole={userData?.role || ''}
+              />
+              <DownloadPdfButton estimateId={id} />
+              <SendToCustomerButton
+                estimateId={id}
+                status={estimate.status}
+                isApproved={true}
+                userRole={userData?.role || ''}
+              />
+            </>
           )}
-          {estimate.manager_approved_at && (
+
+          {/* 顧客送付済み: PDF、顧客判断ボタン */}
+          {estimate.status === 'sent' && (
+            <>
+              <DownloadPdfButton estimateId={id} />
+              <CustomerDecisionButtons
+                estimateId={id}
+                status={estimate.status}
+                userRole={userData?.role || ''}
+              />
+            </>
+          )}
+
+          {/* 顧客承認済み: PDF、請求書作成ボタン */}
+          {estimate.status === 'accepted' && (
+            <>
+              <DownloadPdfButton estimateId={id} />
+              <Link
+                href={`/invoices/new?estimate_id=${id}`}
+                className="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600"
+              >
+                請求書作成
+              </Link>
+            </>
+          )}
+
+          {/* 顧客却下済み: PDFのみ */}
+          {estimate.status === 'rejected' && (
             <DownloadPdfButton estimateId={id} />
           )}
-          {estimate.status === 'accepted' && (
-            <Link
-              href={`/invoices/new?estimate_id=${id}`}
-              className="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600"
-            >
-              請求書作成
-            </Link>
-          )}
+
           <Link
             href="/estimates"
             className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
