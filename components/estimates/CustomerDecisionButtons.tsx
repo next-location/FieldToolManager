@@ -86,7 +86,10 @@ export function CustomerDecisionButtons({
       <button
         onClick={handleApprove}
         disabled={isLoading}
-        className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+        className="px-4 py-2 text-white rounded-md disabled:bg-gray-400 disabled:cursor-not-allowed"
+        style={{ backgroundColor: isLoading ? undefined : '#1d51da' }}
+        onMouseEnter={(e) => !isLoading && (e.currentTarget.style.backgroundColor = '#1646c4')}
+        onMouseLeave={(e) => !isLoading && (e.currentTarget.style.backgroundColor = '#1d51da')}
       >
         {isLoading ? '記録中...' : '顧客承認'}
       </button>
