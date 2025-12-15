@@ -5,6 +5,7 @@ import { DownloadPdfButton } from './DownloadPdfButton'
 import { ApproveEstimateButton } from '@/components/estimates/ApproveEstimateButton'
 import { SendToCustomerButton } from '@/components/estimates/SendToCustomerButton'
 import { CustomerDecisionButtons } from '@/components/estimates/CustomerDecisionButtons'
+import { DeleteEstimateButton } from '@/components/estimates/DeleteEstimateButton'
 
 // キャッシュを無効化
 export const dynamic = 'force-dynamic'
@@ -173,29 +174,10 @@ export default async function EstimateDetailPage({
 
           {/* 削除ボタン: 未承認の見積書のみ */}
           {!estimate.manager_approved_at && (
-            <button
-              onClick={async () => {
-                if (!confirm(`見積書「${estimate.estimate_number}」を削除してもよろしいですか？\nこの操作は取り消せません。`)) {
-                  return
-                }
-                try {
-                  const response = await fetch(`/api/estimates/${id}`, {
-                    method: 'DELETE',
-                  })
-                  if (!response.ok) {
-                    const error = await response.json()
-                    throw new Error(error.error || '削除に失敗しました')
-                  }
-                  alert('見積書を削除しました')
-                  window.location.href = '/estimates'
-                } catch (error) {
-                  alert(error instanceof Error ? error.message : '見積書の削除に失敗しました')
-                }
-              }}
-              className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
-            >
-              削除
-            </button>
+            <DeleteEstimateButton
+              estimateId={id}
+              estimateNumber={estimate.estimate_number}
+            />
           )}
 
           <Link
