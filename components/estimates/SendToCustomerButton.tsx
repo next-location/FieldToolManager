@@ -8,19 +8,26 @@ interface SendToCustomerButtonProps {
   status: string
   isApproved: boolean
   userRole: string
+  userId?: string
+  createdById?: string
 }
 
 export function SendToCustomerButton({
   estimateId,
   status,
   isApproved,
-  userRole
+  userRole,
+  userId,
+  createdById
 }: SendToCustomerButtonProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
-  // manager以上のみ表示
-  if (!['manager', 'admin', 'super_admin'].includes(userRole)) {
+  // manager以上、または作成者本人（リーダー）のみ表示
+  const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userRole)
+  const isCreator = userId && createdById && userId === createdById
+
+  if (!isManagerOrAdmin && !isCreator) {
     return null
   }
 

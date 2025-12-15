@@ -26,9 +26,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'ユーザー情報が見つかりません' }, { status: 404 })
     }
 
-    // 管理者権限チェック
-    if (userData.role !== 'admin') {
-      return NextResponse.json({ error: '管理者権限が必要です' }, { status: 403 })
+    // リーダー以上は閲覧可能
+    if (!['leader', 'manager', 'admin', 'super_admin'].includes(userData.role)) {
+      return NextResponse.json({ error: 'アクセス権限がありません' }, { status: 403 })
     }
 
     // クエリパラメータ取得

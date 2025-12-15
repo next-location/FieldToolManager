@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { createEstimateHistory } from '@/lib/estimate-history'
 
 export async function POST(
   request: NextRequest,
@@ -18,17 +19,12 @@ export async function POST(
     // ユーザー情報取得
     const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('id, role, organization_id')
+      .select('id, role, organization_id, name')
       .eq('id', user.id)
       .single()
 
     if (userError || !userData) {
       return NextResponse.json({ error: 'ユーザー情報が見つかりません' }, { status: 404 })
-    }
-
-    // manager以上の権限チェック
-    if (!['manager', 'admin', 'super_admin'].includes(userData.role)) {
-      return NextResponse.json({ error: '送付権限がありません' }, { status: 403 })
     }
 
     // 見積書取得
@@ -41,6 +37,14 @@ export async function POST(
 
     if (estimateError || !estimate) {
       return NextResponse.json({ error: '見積書が見つかりません' }, { status: 404 })
+    }
+
+    // manager以上、または作成者本人の権限チェック
+    const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userData.role)
+    const isCreator = estimate.created_by === userData.id
+
+    if (!isManagerOrAdmin && !isCreator) {
+      return NextResponse.json({ error: '送付権限がありません' }, { status: 403 })
     }
 
     // submitted かつ承認済みのみ送付可能
@@ -69,6 +73,15 @@ export async function POST(
       console.error('見積書送付エラー:', updateError)
       return NextResponse.json({ error: '見積書の送付に失敗しました' }, { status: 500 })
     }
+
+    // 履歴記録
+    await createEstimateHistory({
+      estimateId: id,
+      organizationId: userData.organization_id,
+      actionType: 'sent',
+      performedBy: userData.id,
+      performedByName: userData.name || 'Unknown',
+    })
 
     return NextResponse.json({
       message: '見積書を顧客に送付しました',

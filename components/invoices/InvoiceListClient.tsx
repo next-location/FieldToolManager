@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { ChevronUp, ChevronDown } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 interface Invoice {
   id: string
@@ -14,26 +14,46 @@ interface Invoice {
   status: string
   client?: { name: string }
   project?: { project_name: string }
+  created_by_user?: { name: string }
+  approved_by_user?: { name: string }
+  manager_approved_at?: string
 }
 
 interface InvoiceListClientProps {
   invoices: Invoice[]
+  userRole: string
 }
 
-export function InvoiceListClient({ invoices }: InvoiceListClientProps) {
+export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps) {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [paymentFilter, setPaymentFilter] = useState('all')
   const [sortField, setSortField] = useState<'invoice_date' | 'due_date' | 'total_amount'>('invoice_date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
-  // ソート処理
-  const handleSort = (field: typeof sortField) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortField(field)
-      setSortOrder('desc')
+  const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userRole)
+
+  const handleDelete = async (invoiceId: string, invoiceNumber: string) => {
+    if (!confirm(`請求書「${invoiceNumber}」を削除してもよろしいですか？`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/invoices/${invoiceId}/delete`, {
+        method: 'DELETE',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || '削除に失敗しました')
+      }
+
+      alert('請求書を削除しました')
+      router.refresh()
+    } catch (error: any) {
+      alert(error.message || '削除に失敗しました')
     }
   }
 
@@ -92,13 +112,26 @@ export function InvoiceListClient({ invoices }: InvoiceListClientProps) {
     return filtered
   }, [invoices, searchQuery, statusFilter, paymentFilter, sortField, sortOrder])
 
-  const SortIcon = ({ field }: { field: typeof sortField }) => {
-    if (sortField !== field) return null
-    return sortOrder === 'asc' ? (
-      <ChevronUp className="w-4 h-4 inline ml-1" />
-    ) : (
-      <ChevronDown className="w-4 h-4 inline ml-1" />
-    )
+  const getStatusColor = (status: string, isOverdue: boolean) => {
+    if (isOverdue && status !== 'paid') return 'bg-red-100 text-red-800'
+    switch (status) {
+      case 'draft': return 'bg-gray-100 text-gray-800'
+      case 'approved': return 'bg-blue-100 text-blue-800'
+      case 'sent': return 'bg-purple-100 text-purple-800'
+      case 'paid': return 'bg-green-100 text-green-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const getStatusText = (status: string, isOverdue: boolean) => {
+    if (isOverdue && status !== 'paid') return '期限超過'
+    switch (status) {
+      case 'draft': return '下書き'
+      case 'approved': return '承認済'
+      case 'sent': return '送付済'
+      case 'paid': return '入金済'
+      default: return status
+    }
   }
 
   return (
@@ -157,173 +190,195 @@ export function InvoiceListClient({ invoices }: InvoiceListClientProps) {
         </div>
       </div>
 
-      {/* 件数表示 */}
-      <div className="mb-4">
+      {/* 件数表示とソート */}
+      <div className="mb-4 flex items-center justify-between">
         <div className="text-sm text-gray-700">
           全 {invoices.length} 件中 {filteredAndSortedInvoices.length} 件を表示
         </div>
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-gray-600">並び替え:</label>
+          <select
+            value={`${sortField}-${sortOrder}`}
+            onChange={(e) => {
+              const [field, order] = e.target.value.split('-') as [typeof sortField, 'asc' | 'desc']
+              setSortField(field)
+              setSortOrder(order)
+            }}
+            className="px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="invoice_date-desc">請求日（新しい順）</option>
+            <option value="invoice_date-asc">請求日（古い順）</option>
+            <option value="due_date-desc">支払期日（新しい順）</option>
+            <option value="due_date-asc">支払期日（古い順）</option>
+            <option value="total_amount-desc">金額（高い順）</option>
+            <option value="total_amount-asc">金額（安い順）</option>
+          </select>
+        </div>
       </div>
 
-      {/* テーブル */}
-      <div className="bg-white shadow-sm rounded-lg">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  請求番号
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  取引先
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  工事名
-                </th>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('invoice_date')}
-                >
-                  請求日 <SortIcon field="invoice_date" />
-                </th>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('due_date')}
-                >
-                  支払期日 <SortIcon field="due_date" />
-                </th>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('total_amount')}
-                >
-                  金額（税込） <SortIcon field="total_amount" />
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  入金状況
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ステータス
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  操作
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredAndSortedInvoices.map((invoice) => {
-                const isPaid = invoice.paid_amount >= invoice.total_amount
-                const isPartiallyPaid = invoice.paid_amount > 0 && !isPaid
-                const isOverdue = !isPaid && new Date(invoice.due_date) < new Date()
+      {/* カード表示 */}
+      <div className="space-y-4">
+        {filteredAndSortedInvoices.map((invoice) => {
+          const isPaid = invoice.paid_amount >= invoice.total_amount
+          const isPartiallyPaid = invoice.paid_amount > 0 && !isPaid
+          const isOverdue = !isPaid && new Date(invoice.due_date) < new Date()
+          const statusColors = getStatusColor(invoice.status, isOverdue)
+          const statusText = getStatusText(invoice.status, isOverdue)
 
-                return (
-                  <tr key={invoice.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {invoice.invoice_number}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {invoice.client?.name || '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {invoice.project?.project_name || '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(invoice.invoice_date).toLocaleDateString('ja-JP')}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <div className="flex items-center gap-2">
-                        {new Date(invoice.due_date).toLocaleDateString('ja-JP')}
-                        {isOverdue && !isPaid && (
-                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
-                            <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                            </svg>
-                            期限超過
-                          </span>
-                        )}
+          return (
+            <div key={invoice.id} className="bg-white border border-gray-300 rounded-lg shadow-sm">
+              {/* クリック可能なカード本体 */}
+              <div
+                className="px-6 py-5 cursor-pointer hover:bg-gray-50 transition-colors relative"
+                onClick={() => router.push(`/invoices/${invoice.id}`)}
+              >
+                {/* ステータスと請求番号（左上） */}
+                <div className="absolute top-2 left-2 flex items-center gap-2">
+                  <span className={`inline-block px-2 py-0.5 text-xs font-bold rounded ${statusColors}`}>
+                    {statusText}
+                  </span>
+                  <span className="text-xs font-bold text-gray-700 whitespace-nowrap">{invoice.invoice_number}</span>
+                </div>
+
+                {/* 請求日・支払期日（右上・横並び） */}
+                <div className="absolute top-2 right-2 flex items-center gap-4 text-xs text-gray-500">
+                  <div className="whitespace-nowrap">
+                    請求日: {new Date(invoice.invoice_date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </div>
+                  <div className="whitespace-nowrap">
+                    支払期日: {new Date(invoice.due_date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    {isOverdue && (
+                      <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                        期限超過
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-6">
+                  {/* 左側：取引先名・工事名（横並び） */}
+                  <div className="flex-1 min-w-0 flex items-center gap-8">
+                    <div className="min-w-0">
+                      <div className="text-xs text-gray-500 mb-0.5">取引先</div>
+                      <div className="font-bold text-gray-900 truncate">
+                        {invoice.client?.name || '-'}
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                      ¥{invoice.total_amount.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs text-gray-500 mb-0.5">工事名</div>
+                      <div className="text-sm text-gray-900 truncate">
+                        {invoice.project?.project_name || '-'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 中央：作成者・承認者（縦並び） */}
+                  <div className="mx-8">
+                    {isManagerOrAdmin && invoice.created_by_user && (
+                      <div className="mb-1">
+                        <span className="text-xs text-gray-500">作成者: </span>
+                        <span className="text-xs text-gray-900">
+                          {invoice.created_by_user.name}
+                        </span>
+                      </div>
+                    )}
+                    {invoice.manager_approved_at && invoice.approved_by_user && (
+                      <div>
+                        <span className="text-xs text-gray-500">承認者: </span>
+                        <span className="text-xs text-gray-900">
+                          {invoice.approved_by_user.name}
+                        </span>
+                      </div>
+                    )}
+                    <div className="mt-1">
                       {isPaid ? (
-                        <span className="text-green-600 font-medium">入金済</span>
+                        <span className="text-xs font-bold text-green-600">入金済</span>
                       ) : isPartiallyPaid ? (
-                        <span className="text-yellow-600 font-medium">
+                        <span className="text-xs font-bold text-yellow-600">
                           一部入金 ¥{invoice.paid_amount.toLocaleString()}
                         </span>
                       ) : (
-                        <span className="text-gray-500">未入金</span>
+                        <span className="text-xs text-gray-500">未入金</span>
                       )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 text-xs leading-5 font-semibold rounded-full ${
-                        invoice.status === 'draft'
-                          ? 'bg-gray-100 text-gray-800'
-                          : invoice.status === 'approved'
-                          ? 'bg-blue-100 text-blue-800'
-                          : invoice.status === 'sent'
-                          ? 'bg-purple-100 text-purple-800'
-                          : invoice.status === 'paid'
-                          ? 'bg-green-100 text-green-800'
-                          : isOverdue
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {invoice.status === 'draft' ? '下書き'
-                          : invoice.status === 'approved' ? '承認済'
-                          : invoice.status === 'sent' ? '送付済'
-                          : invoice.status === 'paid' ? '入金済'
-                          : isOverdue ? '期限超過'
-                          : invoice.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <Link
-                        href={`/invoices/${invoice.id}`}
-                        className="text-blue-600 hover:text-blue-900 mr-3"
-                      >
-                        詳細
-                      </Link>
-                      {invoice.status === 'draft' && (
-                        <Link
-                          href={`/invoices/${invoice.id}/edit`}
-                          className="text-blue-600 hover:text-blue-900 mr-3"
-                        >
-                          編集
-                        </Link>
-                      )}
-                      <a
-                        href={`/api/invoices/${invoice.id}/pdf`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-green-600 hover:text-green-900 mr-3"
-                      >
-                        PDF
-                      </a>
-                      {!isPaid && (
-                        <Link
-                          href={`/payments/new?invoice_id=${invoice.id}`}
-                          className="text-purple-600 hover:text-purple-900"
-                        >
-                          入金登録
-                        </Link>
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                    </div>
+                  </div>
 
-          {filteredAndSortedInvoices.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              {searchQuery || statusFilter !== 'all' || paymentFilter !== 'all'
-                ? '検索条件に一致する請求書がありません'
-                : '請求書データがありません'}
+                  {/* 右側：金額 */}
+                  <div className="text-right ml-8">
+                    <div className="text-xs text-gray-500 mb-0.5">金額（税込）</div>
+                    <div className="text-2xl font-bold text-gray-900 whitespace-nowrap">
+                      ¥{Math.floor(invoice.total_amount).toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ボタンエリア（カード外・右寄せ） */}
+              <div className="border-t border-gray-200 px-4 py-2 bg-gray-50 flex items-center justify-end gap-2">
+                {invoice.status === 'draft' && (
+                  <Link
+                    href={`/invoices/${invoice.id}/edit`}
+                    className="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    編集
+                  </Link>
+                )}
+                {/* PDF出力: 下書き以外 */}
+                {invoice.status !== 'draft' && (
+                  <a
+                    href={`/api/invoices/${invoice.id}/pdf`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 bg-green-600 text-white text-sm font-bold rounded-md hover:bg-green-700 transition-colors"
+                  >
+                    PDF出力
+                  </a>
+                )}
+                {/* 削除ボタン: 下書きのみ */}
+                {invoice.status === 'draft' && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDelete(invoice.id, invoice.invoice_number)
+                    }}
+                    className="px-4 py-2 bg-red-600 text-white text-sm font-bold rounded-md hover:bg-red-700 transition-colors"
+                  >
+                    削除
+                  </button>
+                )}
+                {invoice.status === 'approved' && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      // TODO: 送付処理を実装
+                      alert('送付機能は実装中です')
+                    }}
+                    className="px-4 py-2 bg-purple-600 text-white text-sm font-bold rounded-md hover:bg-purple-700 transition-colors"
+                  >
+                    送付
+                  </button>
+                )}
+                {!isPaid && invoice.status !== 'draft' && (
+                  <Link
+                    href={`/payments/new?invoice_id=${invoice.id}`}
+                    className="px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-md hover:bg-indigo-700 transition-colors"
+                  >
+                    入金登録
+                  </Link>
+                )}
+              </div>
             </div>
-          )}
-        </div>
+          )
+        })}
       </div>
+
+      {filteredAndSortedInvoices.length === 0 && (
+        <div className="text-center py-8 text-gray-500">
+          {searchQuery || statusFilter !== 'all' || paymentFilter !== 'all'
+            ? '検索条件に一致する請求書がありません'
+            : '請求書データがありません'}
+        </div>
+      )}
     </>
   )
 }

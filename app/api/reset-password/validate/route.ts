@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/service'
+import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 // GET /api/reset-password/validate?token=xxx - トークンの有効性を確認

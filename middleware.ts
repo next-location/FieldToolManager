@@ -22,14 +22,19 @@ export async function middleware(request: NextRequest) {
 
   // Content Security Policyの設定（管理画面とAPIは除外）
   if (!request.nextUrl.pathname.startsWith('/admin') && !request.nextUrl.pathname.startsWith('/api')) {
+    const isDevelopment = process.env.NODE_ENV === 'development'
+    const connectSrc = isDevelopment
+      ? "'self' http://localhost:54321 ws://localhost:3000"
+      : "'self' https://*.supabase.co wss://*.supabase.co"
+
     response.headers.set(
       'Content-Security-Policy',
       "default-src 'self'; " +
       "script-src 'self' 'unsafe-eval' 'unsafe-inline'; " +
       "style-src 'self' 'unsafe-inline'; " +
-      "img-src 'self' data: blob: https:; " +
+      "img-src 'self' data: blob: https: http://localhost:54321; " +
       "font-src 'self' data:; " +
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co; " +
+      `connect-src ${connectSrc}; ` +
       "frame-ancestors 'none';"
     )
   }

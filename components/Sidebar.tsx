@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useFeatures } from '@/hooks/useFeatures'
@@ -15,11 +15,12 @@ interface SidebarProps {
 export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = false }: SidebarProps) {
   const pathname = usePathname()
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null)
+  const [submittedEstimatesCount, setSubmittedEstimatesCount] = useState(0)
   const features = useFeatures()
 
   const isAdmin = userRole === 'admin' || userRole === 'super_admin'
   const isManagerOrAdmin = userRole === 'manager' || userRole === 'admin' || userRole === 'super_admin'
-  const isLeaderOrAbove = userRole === 'leader' || userRole === 'manager' | userRole === 'admin' || userRole === 'super_admin'
+  const isLeaderOrAbove = userRole === 'leader' || userRole === 'manager' || userRole === 'admin' || userRole === 'super_admin'
 
   // パッケージに応じた表示制御
   const hasAssetPackage = features.contract.packages.asset_management
@@ -31,6 +32,27 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
   const toggleMenu = (menuName: string) => {
     setExpandedMenu(expandedMenu === menuName ? null : menuName)
   }
+
+  // 未読の提出済み見積もりの数を取得（管理者とマネージャーのみ）
+  useEffect(() => {
+    if (isManagerOrAdmin) {
+      const fetchUnreadEstimates = async () => {
+        try {
+          const response = await fetch('/api/estimates/unread-count')
+          if (response.ok) {
+            const result = await response.json()
+            setSubmittedEstimatesCount(result.unreadCount || 0)
+          }
+        } catch (error) {
+          console.error('Failed to fetch unread estimates:', error)
+        }
+      }
+      fetchUnreadEstimates()
+      // 30秒ごとに更新
+      const interval = setInterval(fetchUnreadEstimates, 30000)
+      return () => clearInterval(interval)
+    }
+  }, [isManagerOrAdmin])
 
   return (
     <div>
@@ -627,8 +649,8 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
             </div>
           )}
 
-          {/* 帳票管理（管理者 & 現場DX業務効率化パックが必要） */}
-          {isAdmin && hasDxPackage && (
+          {/* 帳票管理（リーダー以上 & 現場DX業務効率化パックが必要） */}
+          {isLeaderOrAbove && hasDxPackage && (
             <div>
               <button
                 onClick={() => toggleMenu('billing')}
@@ -675,13 +697,18 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                   <Link
                     href="/estimates"
                     onClick={onClose}
-                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                    className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
                       isActive('/estimates')
                         ? 'bg-blue-50 text-blue-700 font-medium'
                         : 'text-gray-600 hover:bg-gray-50'
                     }`}
                   >
-                    見積書一覧
+                    <span>見積書一覧</span>
+                    {submittedEstimatesCount > 0 && (
+                      <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
+                        {submittedEstimatesCount}
+                      </span>
+                    )}
                   </Link>
                   <Link
                     href="/invoices"

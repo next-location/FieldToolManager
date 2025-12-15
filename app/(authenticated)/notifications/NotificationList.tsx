@@ -33,6 +33,8 @@ export function NotificationList({ initialNotifications }: NotificationListProps
             n.id === notificationId ? { ...n, is_read: true, read_at: new Date().toISOString() } : n
           )
         )
+        // ヘッダーの通知バッジを即座に更新
+        window.dispatchEvent(new Event('notificationRead'))
       }
     } catch (error) {
       console.error('Failed to mark as read:', error)
@@ -49,6 +51,8 @@ export function NotificationList({ initialNotifications }: NotificationListProps
         setNotifications((prev) =>
           prev.map((n) => ({ ...n, is_read: true, read_at: new Date().toISOString() }))
         )
+        // ヘッダーの通知バッジを即座に更新
+        window.dispatchEvent(new Event('notificationRead'))
       }
     } catch (error) {
       console.error('Failed to mark all as read:', error)
@@ -177,7 +181,14 @@ export function NotificationList({ initialNotifications }: NotificationListProps
                     </h3>
                     <p className="text-sm text-gray-700 mb-2">{notification.message}</p>
                     <p className="text-xs text-gray-500">
-                      {new Date(notification.sent_at).toLocaleString('ja-JP')}
+                      {new Date(notification.created_at + (notification.created_at.endsWith('Z') ? '' : 'Z')).toLocaleString('ja-JP', {
+                        timeZone: 'Asia/Tokyo',
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
                     </p>
                   </div>
                 </div>

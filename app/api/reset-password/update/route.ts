@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/service'
+import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { validatePassword, DEFAULT_PASSWORD_POLICY } from '@/lib/password-policy'
 

@@ -26,11 +26,13 @@ export default async function NotificationsPage() {
   }
 
   // 通知一覧を取得（最新30件、削除されていないもの）
+  // target_user_idが指定されている場合はそのユーザー宛、なければ組織全体の通知
   const { data: notifications } = await supabase
     .from('notifications')
     .select('*')
     .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
+    .or(`target_user_id.eq.${user.id},target_user_id.is.null`)
     .order('created_at', { ascending: false })
     .limit(30)
 

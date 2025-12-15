@@ -16,24 +16,52 @@ interface Estimate {
   manager_approved_by_user?: { name: string }
   client?: { name: string }
   project?: { project_name: string }
+  created_by_user?: { id: string; name: string }
+}
+
+interface Staff {
+  id: string
+  name: string
 }
 
 interface EstimateListClientProps {
   estimates: Estimate[]
+  userRole: string
+  staffList: Staff[]
 }
 
-export function EstimateListClient({ estimates: initialEstimates }: EstimateListClientProps) {
+export function EstimateListClient({ estimates: initialEstimates, userRole, staffList }: EstimateListClientProps) {
   const router = useRouter()
   const [estimates, setEstimates] = useState(initialEstimates)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [creatorFilter, setCreatorFilter] = useState('')
+  const [creatorSearchQuery, setCreatorSearchQuery] = useState('')
+  const [showCreatorDropdown, setShowCreatorDropdown] = useState(false)
   const [sortField, setSortField] = useState<'estimate_date' | 'valid_until' | 'total_amount'>('estimate_date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+
+  const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userRole)
 
   // propsが変更されたらローカル状態も更新
   useEffect(() => {
     setEstimates(initialEstimates)
   }, [initialEstimates])
+
+  // ドロップダウンの外側クリックで閉じる
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (!target.closest('.creator-dropdown-container')) {
+        setShowCreatorDropdown(false)
+      }
+    }
+
+    if (showCreatorDropdown) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showCreatorDropdown])
 
   const handleDelete = async (id: string, estimateNumber: string) => {
     if (!confirm(`見積書「${estimateNumber}」を削除してもよろしいですか？`)) {
@@ -68,6 +96,16 @@ export function EstimateListClient({ estimates: initialEstimates }: EstimateList
     }
   }
 
+  // 作成者の絞り込み
+  const filteredStaffList = useMemo(() => {
+    if (!creatorSearchQuery) return staffList
+
+    const query = creatorSearchQuery.toLowerCase()
+    return staffList.filter((staff) => {
+      return staff.name.toLowerCase().includes(query)
+    })
+  }, [staffList, creatorSearchQuery])
+
   // フィルタ・ソート済みデータ
   const filteredAndSortedEstimates = useMemo(() => {
     let filtered = estimates.filter((estimate) => {
@@ -83,7 +121,11 @@ export function EstimateListClient({ estimates: initialEstimates }: EstimateList
       const matchesStatus =
         statusFilter === 'all' || estimate.status === statusFilter
 
-      return matchesSearch && matchesStatus
+      // 作成者フィルタ（マネージャー・管理者のみ）
+      const matchesCreator =
+        !creatorFilter || estimate.created_by_user?.id === creatorFilter
+
+      return matchesSearch && matchesStatus && matchesCreator
     })
 
     // ソート
@@ -110,7 +152,7 @@ export function EstimateListClient({ estimates: initialEstimates }: EstimateList
     })
 
     return filtered
-  }, [estimates, searchQuery, statusFilter, sortField, sortOrder])
+  }, [estimates, searchQuery, statusFilter, creatorFilter, sortField, sortOrder])
 
   const SortIcon = ({ field }: { field: typeof sortField }) => {
     if (sortField !== field) return null
@@ -125,7 +167,7 @@ export function EstimateListClient({ estimates: initialEstimates }: EstimateList
     <>
       {/* 検索・フィルタエリア */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className={`grid grid-cols-1 ${isManagerOrAdmin ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4`}>
           {/* キーワード検索 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -159,170 +201,243 @@ export function EstimateListClient({ estimates: initialEstimates }: EstimateList
               <option value="expired">期限切れ</option>
             </select>
           </div>
-        </div>
-      </div>
 
-      {/* 件数表示 */}
-      <div className="mb-4">
-        <div className="text-sm text-gray-700">
-          全 {estimates.length} 件中 {filteredAndSortedEstimates.length} 件を表示
-        </div>
-      </div>
+          {/* 作成者フィルタ（マネージャー・管理者のみ） */}
+          {isManagerOrAdmin && (
+            <div className="relative creator-dropdown-container">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                作成者
+              </label>
+              <input
+                type="text"
+                placeholder="スタッフ名で検索"
+                value={creatorSearchQuery}
+                onChange={(e) => setCreatorSearchQuery(e.target.value)}
+                onFocus={() => setShowCreatorDropdown(true)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
 
-      {/* テーブル */}
-      <div className="bg-white shadow-sm rounded-lg">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  見積番号
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  取引先
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  工事名
-                </th>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('estimate_date')}
-                >
-                  見積日 <SortIcon field="estimate_date" />
-                </th>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('valid_until')}
-                >
-                  有効期限 <SortIcon field="valid_until" />
-                </th>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('total_amount')}
-                >
-                  金額（税込） <SortIcon field="total_amount" />
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ステータス
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  承認
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  操作
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredAndSortedEstimates.map((estimate) => (
-                <tr key={estimate.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {estimate.estimate_number}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {estimate.client?.name || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {estimate.project?.project_name || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(estimate.estimate_date).toLocaleDateString('ja-JP')}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {estimate.valid_until
-                      ? new Date(estimate.valid_until).toLocaleDateString('ja-JP')
-                      : '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                    ¥{estimate.total_amount.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 text-xs leading-5 font-semibold rounded-full ${
-                      estimate.status === 'draft'
-                        ? 'bg-gray-100 text-gray-800'
-                        : estimate.status === 'submitted'
-                        ? 'bg-orange-100 text-orange-800'
-                        : estimate.status === 'sent'
-                        ? 'bg-blue-100 text-blue-800'
-                        : estimate.status === 'accepted'
-                        ? 'bg-green-100 text-green-800'
-                        : estimate.status === 'rejected'
-                        ? 'bg-red-100 text-red-800'
-                        : estimate.status === 'expired'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {estimate.status === 'draft' ? '下書き'
-                        : estimate.status === 'submitted' ? '提出済み'
-                        : estimate.status === 'sent' ? '顧客送付済'
-                        : estimate.status === 'accepted' ? '顧客承認'
-                        : estimate.status === 'rejected' ? '顧客却下'
-                        : estimate.status === 'expired' ? '期限切れ'
-                        : estimate.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {estimate.manager_approved_at ? (
-                      <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                        ✓ {estimate.manager_approved_by_user?.name}
-                      </span>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <Link
-                      href={`/estimates/${estimate.id}`}
-                      className="text-blue-600 hover:text-blue-900 mr-3"
-                    >
-                      詳細
-                    </Link>
-                    {estimate.status === 'draft' && (
-                      <Link
-                        href={`/estimates/${estimate.id}/edit`}
-                        className="text-blue-600 hover:text-blue-900 mr-3"
-                      >
-                        編集
-                      </Link>
-                    )}
-                    <a
-                      href={`/api/estimates/${estimate.id}/pdf`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-green-600 hover:text-green-900 mr-3"
-                    >
-                      PDF
-                    </a>
-                    {estimate.status === 'accepted' && (
-                      <Link
-                        href={`/invoices/new?estimate_id=${estimate.id}`}
-                        className="text-purple-600 hover:text-purple-900 mr-3"
-                      >
-                        請求書作成
-                      </Link>
-                    )}
-                    {!estimate.manager_approved_at && (
+              {/* ドロップダウンリスト */}
+              {showCreatorDropdown && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  {/* 全て表示オプション */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCreatorFilter('')
+                      setCreatorSearchQuery('')
+                      setShowCreatorDropdown(false)
+                    }}
+                    className={`w-full text-left px-4 py-2 hover:bg-gray-100 ${
+                      !creatorFilter ? 'bg-blue-50 text-blue-700 font-semibold' : ''
+                    }`}
+                  >
+                    全て表示
+                  </button>
+
+                  {/* スタッフリスト */}
+                  {filteredStaffList.length > 0 ? (
+                    filteredStaffList.map((staff) => (
                       <button
-                        onClick={() => handleDelete(estimate.id, estimate.estimate_number)}
-                        className="text-red-600 hover:text-red-900"
+                        key={staff.id}
+                        type="button"
+                        onClick={() => {
+                          setCreatorFilter(staff.id)
+                          setCreatorSearchQuery(staff.name)
+                          setShowCreatorDropdown(false)
+                        }}
+                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 ${
+                          creatorFilter === staff.id ? 'bg-blue-50 text-blue-700 font-semibold' : ''
+                        }`}
                       >
-                        削除
+                        {staff.name}
                       </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {filteredAndSortedEstimates.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              {searchQuery || statusFilter !== 'all'
-                ? '検索条件に一致する見積書がありません'
-                : '見積書データがありません'}
+                    ))
+                  ) : (
+                    <div className="px-4 py-2 text-gray-500 text-sm">
+                      該当するスタッフが見つかりません
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
+      </div>
+
+      {/* 件数表示とソート */}
+      <div className="mb-4 flex items-center justify-between">
+        <div className="text-sm text-gray-700">
+          全 {estimates.length} 件中 {filteredAndSortedEstimates.length} 件を表示
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-gray-600">並び替え:</label>
+          <select
+            value={`${sortField}-${sortOrder}`}
+            onChange={(e) => {
+              const [field, order] = e.target.value.split('-') as [typeof sortField, 'asc' | 'desc']
+              setSortField(field)
+              setSortOrder(order)
+            }}
+            className="px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="estimate_date-desc">見積日（新しい順）</option>
+            <option value="estimate_date-asc">見積日（古い順）</option>
+            <option value="valid_until-desc">有効期限（新しい順）</option>
+            <option value="valid_until-asc">有効期限（古い順）</option>
+            <option value="total_amount-desc">金額（高い順）</option>
+            <option value="total_amount-asc">金額（安い順）</option>
+          </select>
+        </div>
+      </div>
+
+      {/* カード一覧 */}
+      <div className="space-y-4">
+        {filteredAndSortedEstimates.map((estimate) => (
+          <div key={estimate.id} className="bg-white border border-gray-300 rounded-lg shadow-sm">
+            {/* クリック可能なカード本体 */}
+            <div
+              className="px-6 py-5 cursor-pointer hover:bg-gray-50 transition-colors relative"
+              onClick={() => router.push(`/estimates/${estimate.id}`)}
+            >
+              {/* ステータスと見積番号（左上） */}
+              <div className="absolute top-2 left-2 flex items-center gap-2">
+                <span className={`inline-block px-2 py-0.5 text-xs font-bold rounded ${
+                  estimate.status === 'draft'
+                    ? 'bg-gray-200 text-gray-800'
+                    : estimate.status === 'submitted' && estimate.manager_approved_at
+                    ? 'bg-indigo-500 text-white'
+                    : estimate.status === 'submitted'
+                    ? 'bg-orange-500 text-white'
+                    : estimate.status === 'sent'
+                    ? 'bg-blue-500 text-white'
+                    : estimate.status === 'accepted'
+                    ? 'bg-green-500 text-white'
+                    : estimate.status === 'rejected'
+                    ? 'bg-red-500 text-white'
+                    : estimate.status === 'expired'
+                    ? 'bg-yellow-500 text-white'
+                    : 'bg-gray-200 text-gray-800'
+                }`}>
+                  {estimate.status === 'draft' ? '下書き'
+                    : estimate.status === 'submitted' && estimate.manager_approved_at ? '送付可能'
+                    : estimate.status === 'submitted' ? '提出済み'
+                    : estimate.status === 'sent' ? '送付済'
+                    : estimate.status === 'accepted' ? '承認'
+                    : estimate.status === 'rejected' ? '却下'
+                    : estimate.status === 'expired' ? '期限切れ'
+                    : estimate.status}
+                </span>
+                <span className="text-xs font-bold text-gray-700 whitespace-nowrap">{estimate.estimate_number}</span>
+              </div>
+
+              {/* 見積日・有効期限（右上・横並び） */}
+              <div className="absolute top-2 right-2 flex items-center gap-4 text-xs text-gray-500">
+                <div className="whitespace-nowrap">
+                  見積日: {new Date(estimate.estimate_date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                </div>
+                {estimate.valid_until && (
+                  <div className="whitespace-nowrap">
+                    有効期限: {new Date(estimate.valid_until).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between pt-6">
+                {/* 左側：取引先名・工事名（横並び） */}
+                <div className="flex-1 min-w-0 flex items-center gap-8">
+                  <div className="min-w-0">
+                    <div className="text-xs text-gray-500 mb-0.5">取引先</div>
+                    <div className="font-bold text-gray-900 truncate">
+                      {estimate.client?.name || '-'}
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs text-gray-500 mb-0.5">工事名</div>
+                    <div className="text-sm text-gray-900 truncate">
+                      {estimate.project?.project_name || '-'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 中央：作成者・承認者（縦並び） */}
+                <div className="mx-8">
+                  {isManagerOrAdmin && estimate.created_by_user && (
+                    <div className="mb-1">
+                      <span className="text-xs text-gray-500">作成者: </span>
+                      <span className="text-xs font-bold text-gray-900">
+                        {estimate.created_by_user.name}
+                      </span>
+                    </div>
+                  )}
+                  {estimate.manager_approved_at && (
+                    <div>
+                      <span className="text-xs text-gray-500">承認者: </span>
+                      <span className="text-xs font-bold text-gray-900">
+                        {estimate.manager_approved_by_user?.name}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* 右側：金額 */}
+                <div className="text-right ml-8">
+                  <div className="text-xs text-gray-500 mb-0.5">金額（税込）</div>
+                  <div className="text-2xl font-bold text-gray-900 whitespace-nowrap">
+                    ¥{Math.floor(estimate.total_amount).toLocaleString()}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ボタンエリア（カード外・右寄せ） */}
+            <div className="border-t border-gray-200 px-4 py-2 bg-gray-50 flex items-center justify-end gap-2">
+              {estimate.status === 'draft' && (
+                <Link
+                  href={`/estimates/${estimate.id}/edit`}
+                  className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors"
+                >
+                  編集
+                </Link>
+              )}
+              {/* PDF出力: 送信前またはマネージャー以上のみ */}
+              {(estimate.status === 'draft' || estimate.status === 'submitted' || isManagerOrAdmin) && (
+                <a
+                  href={`/api/estimates/${estimate.id}/pdf`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded hover:bg-green-700 transition-colors"
+                >
+                  PDF出力
+                </a>
+              )}
+              {estimate.status === 'accepted' && (
+                <Link
+                  href={`/invoices/new?estimate_id=${estimate.id}`}
+                  className="px-3 py-1.5 bg-purple-600 text-white text-sm font-medium rounded hover:bg-purple-700 transition-colors"
+                >
+                  請求書作成
+                </Link>
+              )}
+              {!estimate.manager_approved_at && (
+                <button
+                  onClick={() => handleDelete(estimate.id, estimate.estimate_number)}
+                  className="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors"
+                >
+                  削除
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+
+        {filteredAndSortedEstimates.length === 0 && (
+          <div className="bg-white border border-gray-200 rounded-lg py-12 text-center text-gray-500">
+            {searchQuery || statusFilter !== 'all' || creatorFilter
+              ? '検索条件に一致する見積書がありません'
+              : '見積書データがありません'}
+          </div>
+        )}
       </div>
     </>
   )

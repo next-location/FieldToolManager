@@ -48,7 +48,9 @@
       "Bash(lsof:*)",
       "Bash(npx eslint:*)",
       "Bash(grep:*)",
-      "Bash(export PGPASSWORD=postgres)"
+      "Bash(export PGPASSWORD=postgres)",
+      "Bash(wc:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []

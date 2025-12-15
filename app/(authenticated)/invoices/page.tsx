@@ -16,7 +16,7 @@ async function InvoiceList() {
 
   const { data: userData } = await supabase
     .from('users')
-    .select('organization_id')
+    .select('organization_id, role')
     .eq('id', user.id)
     .single()
 
@@ -25,7 +25,9 @@ async function InvoiceList() {
     .select(`
       *,
       client:clients(name),
-      project:projects(project_name)
+      project:projects(project_name),
+      created_by_user:users!billing_invoices_created_by_fkey(name),
+      approved_by_user:users!billing_invoices_manager_approved_by_fkey(name)
     `)
     .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
@@ -42,7 +44,7 @@ async function InvoiceList() {
         </Link>
       </div>
 
-      <InvoiceListClient invoices={invoices || []} />
+      <InvoiceListClient invoices={invoices || []} userRole={userData?.role || ''} />
     </>
   )
 }

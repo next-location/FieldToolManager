@@ -77,6 +77,66 @@ approved_by            UUID           -- 顧客承認を記録したユーザー
 created_by             UUID           -- 作成者ID
 ```
 
+### estimate_history テーブル（操作履歴）✨ 2025-12-15 追加
+
+見積書の全操作履歴を記録するテーブル：
+
+```sql
+CREATE TABLE estimate_history (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  estimate_id UUID NOT NULL REFERENCES estimates(id) ON DELETE CASCADE,
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  action_type TEXT NOT NULL CHECK (action_type IN (
+    'created',              -- 作成
+    'draft_saved',          -- 下書き保存
+    'submitted',            -- 確定・提出
+    'approved',             -- 上司承認
+    'returned',             -- 差し戻し
+    'sent',                 -- 顧客送付
+    'pdf_generated',        -- PDF出力
+    'customer_approved',    -- 顧客承認
+    'customer_rejected'     -- 顧客却下
+  )),
+  performed_by UUID REFERENCES users(id),           -- 操作実行者ID
+  performed_by_name TEXT,                           -- 操作実行者名（削除されても履歴に残す）
+  notes TEXT,                                       -- 操作メモ（差し戻し理由など）
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- インデックス
+CREATE INDEX idx_estimate_history_estimate ON estimate_history(estimate_id);
+CREATE INDEX idx_estimate_history_org ON estimate_history(organization_id);
+CREATE INDEX idx_estimate_history_created_at ON estimate_history(created_at DESC);
+
+-- RLSポリシー
+-- 組織内のユーザーは履歴を閲覧可能
+CREATE POLICY "Users can view estimate history in their organization"
+  ON estimate_history FOR SELECT
+  USING (organization_id IN (
+    SELECT organization_id FROM users WHERE id = auth.uid()
+  ));
+
+-- システムからの履歴記録を許可
+CREATE POLICY "Allow insert estimate history"
+  ON estimate_history FOR INSERT
+  WITH CHECK (organization_id IN (
+    SELECT organization_id FROM users WHERE id = auth.uid()
+  ));
+```
+
+**履歴記録のタイミング:**
+- 見積書作成時: `created` または `draft_saved` または `submitted`
+- 見積書編集時: `draft_saved` または `submitted`
+- 上司承認時: `approved`
+- 差し戻し時: `returned` + notes に理由
+- 顧客送付時: `sent`
+- PDF出力時: `pdf_generated`
+- 顧客承認時: `customer_approved`
+- 顧客却下時: `customer_rejected`
+
+**見積書詳細ページでの表示:**
+操作履歴セクションに時系列で全履歴を表示。各履歴には操作種別、実行者、日時、メモを含む。
+
 ## 実装が必要な機能
 
 ### 1. 上司承認機能

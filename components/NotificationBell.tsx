@@ -15,7 +15,33 @@ export function NotificationBell({ organizationId }: NotificationBellProps) {
     fetchUnreadCount()
     // 1分ごとに未読数を更新
     const interval = setInterval(fetchUnreadCount, 60000)
-    return () => clearInterval(interval)
+
+    // ページがフォーカスされたときに更新
+    const handleFocus = () => {
+      fetchUnreadCount()
+    }
+    window.addEventListener('focus', handleFocus)
+
+    // visibilitychangeイベントでも更新（タブ切り替え時）
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchUnreadCount()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    // 通知が既読になったときに即座に更新
+    const handleNotificationRead = () => {
+      fetchUnreadCount()
+    }
+    window.addEventListener('notificationRead', handleNotificationRead)
+
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('focus', handleFocus)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('notificationRead', handleNotificationRead)
+    }
   }, [organizationId])
 
   const fetchUnreadCount = async () => {
@@ -59,7 +85,7 @@ export function NotificationBell({ organizationId }: NotificationBellProps) {
 
       {/* 未読バッジ */}
       {!isLoading && unreadCount > 0 && (
-        <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+        <span className="absolute top-1 right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full min-w-[18px]">
           {unreadCount > 99 ? '99+' : unreadCount}
         </span>
       )}

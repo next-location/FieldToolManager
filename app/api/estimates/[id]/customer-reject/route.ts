@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { createEstimateHistory } from '@/lib/estimate-history'
 
 export async function POST(
   request: NextRequest,
@@ -18,7 +19,7 @@ export async function POST(
     // ユーザー情報取得
     const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('id, role, organization_id')
+      .select('id, role, organization_id, name')
       .eq('id', user.id)
       .single()
 
@@ -34,7 +35,7 @@ export async function POST(
     // 見積書取得
     const { data: estimate, error: estimateError } = await supabase
       .from('estimates')
-      .select('*')
+      .select('id, status, organization_id, estimate_number, created_by')
       .eq('id', id)
       .eq('organization_id', userData.organization_id)
       .single()
@@ -62,6 +63,30 @@ export async function POST(
     if (updateError) {
       console.error('顧客却下記録エラー:', updateError)
       return NextResponse.json({ error: '顧客却下の記録に失敗しました' }, { status: 500 })
+    }
+
+    // 履歴記録
+    await createEstimateHistory({
+      estimateId: id,
+      organizationId: userData.organization_id,
+      actionType: 'customer_rejected',
+      performedBy: userData.id,
+      performedByName: userData.name || 'Unknown',
+    })
+
+    // 通知を作成（作成者に通知）
+    if (estimate.created_by && estimate.created_by !== userData.id) {
+      await supabase
+        .from('notifications')
+        .insert({
+          organization_id: userData.organization_id,
+          target_user_id: estimate.created_by,
+          related_estimate_id: id,
+          type: 'estimate_customer_rejected',
+          title: '見積書が顧客却下されました',
+          message: `見積書「${estimate.estimate_number}」が顧客により却下されました（記録者: ${userData.name}）。`,
+          metadata: { estimate_id: id, estimate_number: estimate.estimate_number, link: `/estimates/${id}` }
+        })
     }
 
     return NextResponse.json({

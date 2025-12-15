@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createEstimateHistory } from '@/lib/estimate-history'
 
 // POST - 見積書を承認
 export async function POST(
@@ -18,7 +19,7 @@ export async function POST(
   // ユーザー情報取得
   const { data: userData, error: userError } = await supabase
     .from('users')
-    .select('id, organization_id, role')
+    .select('id, organization_id, role, name')
     .eq('id', user.id)
     .single()
 
@@ -38,7 +39,7 @@ export async function POST(
     // 見積書が存在し、組織が一致するか確認
     const { data: estimate, error: fetchError } = await supabase
       .from('estimates')
-      .select('id, organization_id, status, manager_approved_at')
+      .select('id, organization_id, status, manager_approved_at, estimate_number, created_by')
       .eq('id', id)
       .eq('organization_id', userData.organization_id)
       .single()
@@ -72,6 +73,31 @@ export async function POST(
     if (updateError) {
       console.error('Approval error:', updateError)
       return NextResponse.json({ error: '承認処理に失敗しました' }, { status: 500 })
+    }
+
+    // 履歴を記録
+    await createEstimateHistory({
+      estimateId: id,
+      organizationId: userData.organization_id,
+      actionType: 'approved',
+      performedBy: userData.id,
+      performedByName: userData.name || 'Unknown',
+      notes: notes || undefined,
+    })
+
+    // 通知を作成（作成者に通知）
+    if (estimate.created_by && estimate.created_by !== userData.id) {
+      await supabase
+        .from('notifications')
+        .insert({
+          organization_id: userData.organization_id,
+          target_user_id: estimate.created_by,
+          related_estimate_id: id,
+          type: 'estimate_approved',
+          title: '見積書が承認されました',
+          message: `見積書「${estimate.estimate_number}」が${userData.name}により承認されました。顧客に送付できます。`,
+          metadata: { estimate_id: id, estimate_number: estimate.estimate_number, link: `/estimates/${id}` }
+        })
     }
 
     return NextResponse.json({

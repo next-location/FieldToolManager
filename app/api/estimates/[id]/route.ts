@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { createEstimateHistory } from '@/lib/estimate-history'
 
 // DELETE - 見積書削除
 export async function DELETE(
@@ -85,7 +86,7 @@ export async function PUT(
 
   const { data: userData } = await supabase
     .from('users')
-    .select('organization_id, role')
+    .select('organization_id, role, name')
     .eq('id', user.id)
     .single()
 
@@ -172,6 +173,16 @@ export async function PUT(
         throw itemsError
       }
     }
+
+    // 履歴を記録
+    const actionType = body.status === 'submitted' ? 'submitted' : 'draft_saved'
+    await createEstimateHistory({
+      estimateId: id,
+      organizationId: userData?.organization_id,
+      actionType,
+      performedBy: user.id,
+      performedByName: userData?.name || 'Unknown',
+    })
 
     console.log('[見積書更新API] 更新成功')
     return NextResponse.json({ message: '見積書を更新しました' }, { status: 200 })

@@ -7,6 +7,7 @@ import path from 'path'
 import { drawCompanyName, getTableConfig } from '@/lib/pdf/helpers'
 import { svgToPngDataUrl } from '@/lib/pdf/svg-to-png'
 import { generateCompanySeal } from '@/lib/company-seal/generate-seal'
+import { createEstimateHistory } from '@/lib/estimate-history'
 
 export async function GET(
   request: NextRequest,
@@ -155,24 +156,24 @@ export async function GET(
     // ========================================
     // 右側：発行者情報（右端寄せ）
     // ========================================
-    let rightY = 35
+    let rightY = 20
 
-    // 見積番号・登録番号・日付（小さく、右端寄せ）
-    doc.setFontSize(7)
+    // 見積番号・登録番号・日付（さらに小さく、右端寄せ）
+    doc.setFontSize(6)
     doc.text(`見積番号: ${estimate.estimate_number}`, rightEdge, rightY, { align: 'right' })
-    rightY += 3.5
+    rightY += 3
     if (organization.invoice_registration_number) {
       doc.text(`登録番号: ${organization.invoice_registration_number}`, rightEdge, rightY, { align: 'right' })
-      rightY += 3.5
+      rightY += 3
     }
     doc.text(`見積日: ${new Date(estimate.estimate_date).toLocaleDateString('ja-JP')}`, rightEdge, rightY, { align: 'right' })
-    rightY += 3.5
+    rightY += 3
     if (estimate.valid_until) {
       doc.text(`有効期限: ${new Date(estimate.valid_until).toLocaleDateString('ja-JP')}`, rightEdge, rightY, { align: 'right' })
-      rightY += 3.5
+      rightY += 3
     }
 
-    rightY += 5
+    rightY += 6
 
     // 会社名（右端寄せ、少し小さく）
     doc.setFontSize(9)
@@ -372,6 +373,15 @@ export async function GET(
     // ファイル名を生成
     const dateStr = new Date(estimate.estimate_date).toISOString().split('T')[0]
     const fileName = `見積書_${estimate.estimate_number}_${dateStr}.pdf`
+
+    // 履歴記録
+    await createEstimateHistory({
+      estimateId: id,
+      organizationId: userData.organization_id,
+      actionType: 'pdf_generated',
+      performedBy: user.id,
+      performedByName: userData.name || 'Unknown',
+    })
 
     // PDFを返す
     console.log('[Estimate PDF API] PDF generated successfully')

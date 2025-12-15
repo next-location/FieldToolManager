@@ -6,6 +6,7 @@ import { ApproveEstimateButton } from '@/components/estimates/ApproveEstimateBut
 import { SendToCustomerButton } from '@/components/estimates/SendToCustomerButton'
 import { CustomerDecisionButtons } from '@/components/estimates/CustomerDecisionButtons'
 import { DeleteEstimateButton } from '@/components/estimates/DeleteEstimateButton'
+import { getEstimateHistory, getActionTypeLabel } from '@/lib/estimate-history'
 
 // キャッシュを無効化
 export const dynamic = 'force-dynamic'
@@ -40,8 +41,8 @@ export default async function EstimateDetailPage({
       client:clients(name, postal_code, address, contact_person),
       project:projects(project_name, project_code),
       estimate_items(*),
-      created_by:users!estimates_created_by_fkey(name),
-      approved_by:users!estimates_approved_by_fkey(name),
+      created_by_user:users!estimates_created_by_fkey(name),
+      approved_by_user:users!estimates_approved_by_fkey(name),
       manager_approved_by_user:users!estimates_manager_approved_by_fkey(name)
     `)
     .eq('id', id)
@@ -52,6 +53,8 @@ export default async function EstimateDetailPage({
   console.log('[見積書詳細] 見積書データ:', estimate)
   console.log('[見積書詳細] 明細件数:', estimate?.estimate_items?.length || 0)
   console.log('[見積書詳細] エラー:', estimateError)
+  console.log('[見積書詳細] created_by:', estimate?.created_by)
+  console.log('[見積書詳細] user.id:', user.id)
 
   if (!estimate) {
     redirect('/estimates')
@@ -63,6 +66,24 @@ export default async function EstimateDetailPage({
     .select('name, address, phone, invoice_registration_number')
     .eq('id', userData?.organization_id)
     .single()
+
+  // 操作履歴を取得
+  const history = await getEstimateHistory(id)
+
+  // マネージャー・管理者が提出済み見積もりを閲覧した場合、既読記録を追加
+  const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userData?.role || '')
+  if (isManagerOrAdmin && estimate.status === 'submitted') {
+    await supabase
+      .from('estimate_reads')
+      .upsert({
+        estimate_id: id,
+        user_id: user.id,
+        organization_id: userData?.organization_id,
+      }, {
+        onConflict: 'estimate_id,user_id',
+        ignoreDuplicates: true
+      })
+  }
 
   const subtotal = estimate.estimate_items?.reduce((sum: number, item: any) => sum + item.amount, 0) || 0
   const taxAmount = estimate.estimate_items?.reduce((sum: number, item: any) =>
@@ -135,12 +156,15 @@ export default async function EstimateDetailPage({
                 isApproved={true}
                 userRole={userData?.role || ''}
               />
-              <DownloadPdfButton estimateId={id} />
+              {/* PDFボタン: マネージャー以上のみ表示 */}
+              {isManagerOrAdmin && <DownloadPdfButton estimateId={id} />}
               <SendToCustomerButton
                 estimateId={id}
                 status={estimate.status}
                 isApproved={true}
                 userRole={userData?.role || ''}
+                userId={user.id}
+                createdById={estimate.created_by}
               />
             </>
           )}
@@ -148,7 +172,9 @@ export default async function EstimateDetailPage({
           {/* 顧客送付済み: PDF、顧客判断ボタン */}
           {estimate.status === 'sent' && (
             <>
-              <DownloadPdfButton estimateId={id} />
+              {/* PDFボタン: マネージャー以上のみ表示 */}
+              {isManagerOrAdmin && <DownloadPdfButton estimateId={id} />}
+
               <CustomerDecisionButtons
                 estimateId={id}
                 status={estimate.status}
@@ -160,7 +186,8 @@ export default async function EstimateDetailPage({
           {/* 顧客承認済み: PDF、請求書作成ボタン */}
           {estimate.status === 'accepted' && (
             <>
-              <DownloadPdfButton estimateId={id} />
+              {/* PDFボタン: マネージャー以上のみ表示 */}
+              {isManagerOrAdmin && <DownloadPdfButton estimateId={id} />}
               <Link
                 href={`/invoices/new?estimate_id=${id}`}
                 className="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600"
@@ -352,6 +379,16 @@ export default async function EstimateDetailPage({
           </div>
         )}
 
+        {/* リーダーが作成した見積書で送付済みの場合の注意メッセージ */}
+        {estimate.status === 'sent' && userData?.role === 'leader' && estimate.created_by === user.id && (
+          <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded print:hidden">
+            <h3 className="text-sm font-semibold mb-2 text-blue-800">ℹ️ お知らせ</h3>
+            <div className="text-sm text-blue-700">
+              <p>次の操作（顧客承認・顧客却下）はマネージャー以上のみが実行できます。</p>
+            </div>
+          </div>
+        )}
+
         {/* 差し戻し理由（下書きステータスで差し戻し理由がある場合のみ表示） */}
         {estimate.status === 'draft' && estimate.manager_approval_notes?.startsWith('【差し戻し理由】') && (
           <div className="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded print:hidden">
@@ -362,11 +399,43 @@ export default async function EstimateDetailPage({
           </div>
         )}
 
+        {/* 操作履歴 */}
+        {history.length > 0 && (
+          <div className="mt-8 print:hidden">
+            <h3 className="text-lg font-semibold mb-4">操作履歴</h3>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="space-y-3">
+                {history.map((record: any, index: number) => (
+                  <div key={record.id} className="flex items-start space-x-3">
+                    <div className="flex-shrink-0 w-2 h-2 mt-2 bg-blue-500 rounded-full"></div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline space-x-2">
+                        <span className="font-medium text-gray-900">{getActionTypeLabel(record.action_type)}</span>
+                        <span className="text-sm text-gray-500">
+                          {new Date(record.created_at).toLocaleString('ja-JP')}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-700 mt-1">
+                        {record.performed_by_name && (
+                          <span>実行者: {record.performed_by_name}</span>
+                        )}
+                        {record.notes && (
+                          <div className="mt-1 text-gray-600 whitespace-pre-wrap">{record.notes}</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* メタデータ */}
         <div className="text-xs text-gray-500 pt-6 border-t print:hidden">
-          <p>作成者: {estimate.created_by?.name} - {new Date(estimate.created_at).toLocaleString('ja-JP')}</p>
-          {estimate.approved_by && (
-            <p>承認者: {estimate.approved_by.name}</p>
+          <p>作成者: {estimate.created_by_user?.name} - {new Date(estimate.created_at).toLocaleString('ja-JP')}</p>
+          {estimate.approved_by_user && (
+            <p>承認者: {estimate.approved_by_user.name}</p>
           )}
           <p>最終更新: {new Date(estimate.updated_at).toLocaleString('ja-JP')}</p>
         </div>

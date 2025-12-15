@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createEstimateHistory } from '@/lib/estimate-history'
 
 export async function GET(request: NextRequest) {
   try {
@@ -101,7 +102,7 @@ export async function POST(request: NextRequest) {
 
     const { data: userData, error: userDataError } = await supabase
       .from('users')
-      .select('organization_id, role')
+      .select('organization_id, role, name')
       .eq('id', user.id)
       .single()
 
@@ -184,6 +185,16 @@ export async function POST(request: NextRequest) {
         )
       }
     }
+
+    // 履歴を記録
+    const actionType = body.status === 'submitted' ? 'submitted' : body.status === 'draft' ? 'draft_saved' : 'created'
+    await createEstimateHistory({
+      estimateId: estimate.id,
+      organizationId: userData.organization_id,
+      actionType,
+      performedBy: user.id,
+      performedByName: userData.name || 'Unknown',
+    })
 
     return NextResponse.json({ data: estimate }, { status: 201 })
   } catch (error) {
