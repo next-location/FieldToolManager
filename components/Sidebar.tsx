@@ -16,6 +16,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
   const pathname = usePathname()
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null)
   const [submittedEstimatesCount, setSubmittedEstimatesCount] = useState(0)
+  const [submittedInvoicesCount, setSubmittedInvoicesCount] = useState(0)
   const features = useFeatures()
 
   const isAdmin = userRole === 'admin' || userRole === 'super_admin'
@@ -33,23 +34,31 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
     setExpandedMenu(expandedMenu === menuName ? null : menuName)
   }
 
-  // 未読の提出済み見積もりの数を取得（管理者とマネージャーのみ）
+  // 未読の提出済み見積もりと請求書の数を取得（管理者とマネージャーのみ）
   useEffect(() => {
     if (isManagerOrAdmin) {
-      const fetchUnreadEstimates = async () => {
+      const fetchUnreadCounts = async () => {
         try {
-          const response = await fetch('/api/estimates/unread-count')
-          if (response.ok) {
-            const result = await response.json()
+          // 見積もりの承認待ち件数
+          const estimatesResponse = await fetch('/api/estimates/unread-count')
+          if (estimatesResponse.ok) {
+            const result = await estimatesResponse.json()
             setSubmittedEstimatesCount(result.unreadCount || 0)
           }
+
+          // 請求書の承認待ち件数
+          const invoicesResponse = await fetch('/api/invoices/pending-count')
+          if (invoicesResponse.ok) {
+            const result = await invoicesResponse.json()
+            setSubmittedInvoicesCount(result.count || 0)
+          }
         } catch (error) {
-          console.error('Failed to fetch unread estimates:', error)
+          console.error('Failed to fetch unread counts:', error)
         }
       }
-      fetchUnreadEstimates()
+      fetchUnreadCounts()
       // 30秒ごとに更新
-      const interval = setInterval(fetchUnreadEstimates, 30000)
+      const interval = setInterval(fetchUnreadCounts, 30000)
       return () => clearInterval(interval)
     }
   }, [isManagerOrAdmin])
@@ -713,13 +722,18 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                   <Link
                     href="/invoices"
                     onClick={onClose}
-                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                    className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
                       isActive('/invoices')
                         ? 'bg-blue-50 text-blue-700 font-medium'
                         : 'text-gray-600 hover:bg-gray-50'
                     }`}
                   >
-                    請求書一覧
+                    <span>請求書一覧</span>
+                    {submittedInvoicesCount > 0 && (
+                      <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
+                        {submittedInvoicesCount}
+                      </span>
+                    )}
                   </Link>
                   <Link
                     href="/purchase-orders"
@@ -732,17 +746,20 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                   >
                     発注書一覧
                   </Link>
-                  <Link
-                    href="/payments"
-                    onClick={onClose}
-                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                      isActive('/payments')
-                        ? 'bg-blue-50 text-blue-700 font-medium'
-                        : 'text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    入出金管理
-                  </Link>
+                  {/* 入出金管理（マネージャー・管理者のみ） */}
+                  {isManagerOrAdmin && (
+                    <Link
+                      href="/payments"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive('/payments')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      入出金管理
+                    </Link>
+                  )}
                 </div>
               )}
             </div>

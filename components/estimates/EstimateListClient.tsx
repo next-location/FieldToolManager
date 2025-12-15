@@ -400,8 +400,8 @@ export function EstimateListClient({ estimates: initialEstimates, userRole, staf
                   編集
                 </Link>
               )}
-              {/* PDF出力: 送信前またはマネージャー以上のみ */}
-              {(estimate.status === 'draft' || estimate.status === 'submitted' || isManagerOrAdmin) && (
+              {/* PDF出力: 提出済み以降、またはマネージャー以上のみ */}
+              {(estimate.status === 'submitted' || (estimate.status !== 'draft' && isManagerOrAdmin)) && (
                 <a
                   href={`/api/estimates/${estimate.id}/pdf`}
                   target="_blank"

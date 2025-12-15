@@ -84,7 +84,12 @@ export default function EditInvoicePage({
       })
 
       if (invoice.billing_invoice_items) {
-        setItems(invoice.billing_invoice_items.sort((a: any, b: any) => a.display_order - b.display_order))
+        setItems(invoice.billing_invoice_items.map((item: any) => ({
+          ...item,
+          description: item.description || '',
+          item_name: item.item_name || '',
+          unit: item.unit || ''
+        })).sort((a: any, b: any) => a.display_order - b.display_order))
       }
     }
   }
@@ -175,7 +180,7 @@ export default function EditInvoicePage({
     return { subtotal, taxAmount, total }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, shouldSubmit: boolean = false) => {
     e.preventDefault()
     setLoading(true)
 
@@ -222,10 +227,25 @@ export default function EditInvoicePage({
 
       if (itemsError) throw itemsError
 
+      // 提出フラグが立っている場合は提出APIを呼ぶ
+      if (shouldSubmit) {
+        const response = await fetch(`/api/invoices/${invoiceId}/submit`, {
+          method: 'POST'
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || '提出に失敗しました')
+        }
+
+        alert('請求書を更新して提出しました')
+      }
+
       router.push(`/invoices/${invoiceId}`)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating invoice:', error)
-      alert('請求書の更新に失敗しました')
+      alert(error.message || '請求書の更新に失敗しました')
     } finally {
       setLoading(false)
     }
@@ -372,121 +392,157 @@ export default function EditInvoicePage({
         </div>
 
         <div className="bg-white shadow-sm rounded-lg p-6 mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">明細</h2>
-            <button
-              type="button"
-              onClick={addItem}
-              className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
-            >
-              行追加
-            </button>
-          </div>
+          <h2 className="text-lg font-semibold mb-4">明細</h2>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">種別</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">項目名</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">説明</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">数量</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">単位</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">単価</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">金額</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">税率</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase"></th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {items.map((item, index) => (
-                  <tr key={item.id || index}>
-                    <td className="px-3 py-2">
+          {/* カード表示（全サイズ共通） */}
+          <div className="space-y-4">
+            {items.map((item, index) => (
+              <div key={item.id || index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <div className="flex justify-between items-start mb-3">
+                  <span className="text-sm font-medium text-gray-700">明細 #{index + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeItem(index)}
+                    className="text-red-600 hover:text-red-900 text-sm font-medium"
+                    disabled={items.length === 1}
+                  >
+                    削除
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {/* 種別・項目名・説明を1行 */}
+                  <div className="grid gap-2" style={{ gridTemplateColumns: '140px 1fr 1fr' }}>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">種別</label>
                       <select
                         value={item.item_type}
                         onChange={(e) => handleItemChange(index, 'item_type', e.target.value)}
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                       >
-                        <option value="material">材料</option>
-                        <option value="labor">労務</option>
-                        <option value="subcontract">外注</option>
-                        <option value="expense">経費</option>
+                        <option value="construction">工事費</option>
+                        <option value="material">材料費</option>
+                        <option value="expense">諸経費</option>
                         <option value="other">その他</option>
                       </select>
-                    </td>
-                    <td className="px-3 py-2">
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        項目名 <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="text"
-                        value={item.item_name}
+                        value={item.item_name || ''}
                         onChange={(e) => handleItemChange(index, 'item_name', e.target.value)}
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                         required
                       />
-                    </td>
-                    <td className="px-3 py-2">
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">説明</label>
                       <input
                         type="text"
-                        value={item.description}
+                        value={item.description || ''}
                         onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                       />
-                    </td>
-                    <td className="px-3 py-2">
+                    </div>
+                  </div>
+
+                  {/* 数量・単位・単価・税率・金額を1行 */}
+                  <div className="grid gap-2" style={{ gridTemplateColumns: '80px 100px 1fr 90px 1fr' }}>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        数量 <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="number"
                         value={item.quantity}
                         onChange={(e) => handleItemChange(index, 'quantity', parseFloat(e.target.value) || 0)}
-                        className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                        className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm"
+                        placeholder="0"
                         step="0.01"
                         required
                       />
-                    </td>
-                    <td className="px-3 py-2">
-                      <input
-                        type="text"
-                        value={item.unit}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        単位 <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={item.unit || ''}
                         onChange={(e) => handleItemChange(index, 'unit', e.target.value)}
-                        className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
+                        className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm"
                         required
-                      />
-                    </td>
-                    <td className="px-3 py-2">
+                      >
+                        <option value="式">式</option>
+                        <option value="個">個</option>
+                        <option value="台">台</option>
+                        <option value="本">本</option>
+                        <option value="枚">枚</option>
+                        <option value="m">m</option>
+                        <option value="m²">m²</option>
+                        <option value="m³">m³</option>
+                        <option value="kg">kg</option>
+                        <option value="t">t</option>
+                        <option value="L">L</option>
+                        <option value="日">日</option>
+                        <option value="時間">時間</option>
+                        <option value="人">人</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        単価 <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="number"
                         value={item.unit_price}
                         onChange={(e) => handleItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)}
-                        className="w-24 px-2 py-1 border border-gray-300 rounded text-sm"
+                        className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm"
+                        placeholder="0"
                         required
                       />
-                    </td>
-                    <td className="px-3 py-2 text-right font-medium">
-                      ¥{item.amount.toLocaleString()}
-                    </td>
-                    <td className="px-3 py-2">
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">税率</label>
                       <select
                         value={item.tax_rate}
                         onChange={(e) => handleItemChange(index, 'tax_rate', parseFloat(e.target.value))}
-                        className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                        className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm"
                       >
                         <option value="10">10%</option>
                         <option value="8">8%</option>
                         <option value="0">0%</option>
                       </select>
-                    </td>
-                    <td className="px-3 py-2">
-                      <button
-                        type="button"
-                        onClick={() => removeItem(index)}
-                        className="text-red-600 hover:text-red-900 text-sm"
-                        disabled={items.length === 1}
-                      >
-                        削除
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">金額</label>
+                      <div className="w-full px-2 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm font-medium text-right">
+                        ¥{item.amount.toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* 明細追加ボタン */}
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={addItem}
+              className="w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+            >
+              + 明細を追加
+            </button>
           </div>
 
           <div className="mt-4 flex justify-end">
@@ -543,13 +599,28 @@ export default function EditInvoicePage({
           >
             キャンセル
           </button>
-          <button
-            type="submit"
-            className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600"
-            disabled={loading}
-          >
-            {loading ? '更新中...' : '更新'}
-          </button>
+          <div className="flex space-x-2">
+            <button
+              type="submit"
+              onClick={(e) => handleSubmit(e, false)}
+              className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600"
+              disabled={loading}
+            >
+              {loading ? '保存中...' : '下書き保存'}
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                if (confirm('この請求書を更新して提出してもよろしいですか？\n提出後は編集できなくなります。')) {
+                  handleSubmit(e, true)
+                }
+              }}
+              className="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600"
+              disabled={loading}
+            >
+              {loading ? '提出中...' : '確定・提出'}
+            </button>
+          </div>
         </div>
       </form>
     </div>

@@ -29,10 +29,23 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [paymentFilter, setPaymentFilter] = useState('all')
+  const [staffFilter, setStaffFilter] = useState('all')
   const [sortField, setSortField] = useState<'invoice_date' | 'due_date' | 'total_amount'>('invoice_date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
   const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userRole)
+
+  // スタッフリストを取得（マネージャー・管理者のみ）
+  const staffList = useMemo(() => {
+    if (!isManagerOrAdmin) return []
+    const uniqueStaff = new Set<string>()
+    invoices.forEach((invoice) => {
+      if (invoice.created_by_user?.name) {
+        uniqueStaff.add(invoice.created_by_user.name)
+      }
+    })
+    return Array.from(uniqueStaff).sort()
+  }, [invoices, isManagerOrAdmin])
 
   const handleDelete = async (invoiceId: string, invoiceNumber: string) => {
     if (!confirm(`請求書「${invoiceNumber}」を削除してもよろしいですか？`)) {
@@ -83,7 +96,13 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
         (paymentFilter === 'partial' && isPartiallyPaid) ||
         (paymentFilter === 'unpaid' && isUnpaid)
 
-      return matchesSearch && matchesStatus && matchesPayment
+      // スタッフフィルタ（マネージャー・管理者のみ）
+      const matchesStaff =
+        !isManagerOrAdmin ||
+        staffFilter === 'all' ||
+        invoice.created_by_user?.name === staffFilter
+
+      return matchesSearch && matchesStatus && matchesPayment && matchesStaff
     })
 
     // ソート
@@ -110,12 +129,13 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
     })
 
     return filtered
-  }, [invoices, searchQuery, statusFilter, paymentFilter, sortField, sortOrder])
+  }, [invoices, searchQuery, statusFilter, paymentFilter, staffFilter, sortField, sortOrder, isManagerOrAdmin])
 
   const getStatusColor = (status: string, isOverdue: boolean) => {
     if (isOverdue && status !== 'paid') return 'bg-red-100 text-red-800'
     switch (status) {
       case 'draft': return 'bg-gray-100 text-gray-800'
+      case 'submitted': return 'bg-orange-100 text-orange-800'
       case 'approved': return 'bg-blue-100 text-blue-800'
       case 'sent': return 'bg-purple-100 text-purple-800'
       case 'paid': return 'bg-green-100 text-green-800'
@@ -127,9 +147,10 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
     if (isOverdue && status !== 'paid') return '期限超過'
     switch (status) {
       case 'draft': return '下書き'
-      case 'approved': return '承認済'
-      case 'sent': return '送付済'
-      case 'paid': return '入金済'
+      case 'submitted': return '提出済み'
+      case 'approved': return '承認済み'
+      case 'sent': return '送付済み'
+      case 'paid': return '入金済み'
       default: return status
     }
   }
@@ -138,7 +159,7 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
     <>
       {/* 検索・フィルタエリア */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className={`grid grid-cols-1 ${isManagerOrAdmin ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-4`}>
           {/* キーワード検索 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -165,6 +186,7 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
             >
               <option value="all">全て</option>
               <option value="draft">下書き</option>
+              <option value="submitted">提出済み</option>
               <option value="approved">承認済</option>
               <option value="sent">送付済</option>
               <option value="paid">入金済</option>
@@ -187,6 +209,27 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
               <option value="unpaid">未入金</option>
             </select>
           </div>
+
+          {/* スタッフフィルタ（マネージャー・管理者のみ） */}
+          {isManagerOrAdmin && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                作成スタッフ
+              </label>
+              <select
+                value={staffFilter}
+                onChange={(e) => setStaffFilter(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="all">全て</option>
+                {staffList.map((staff) => (
+                  <option key={staff} value={staff}>
+                    {staff}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
       </div>
 
@@ -323,8 +366,9 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
                     編集
                   </Link>
                 )}
-                {/* PDF出力: 下書き以外 */}
-                {invoice.status !== 'draft' && (
+                {/* PDF出力: 承認済み以降、かつ送付済み以降はマネージャー・管理者のみ */}
+                {invoice.status !== 'draft' && invoice.status !== 'submitted' &&
+                 (invoice.status === 'approved' || isManagerOrAdmin) && (
                   <a
                     href={`/api/invoices/${invoice.id}/pdf`}
                     target="_blank"
@@ -346,19 +390,7 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
                     削除
                   </button>
                 )}
-                {invoice.status === 'approved' && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      // TODO: 送付処理を実装
-                      alert('送付機能は実装中です')
-                    }}
-                    className="px-4 py-2 bg-purple-600 text-white text-sm font-bold rounded-md hover:bg-purple-700 transition-colors"
-                  >
-                    送付
-                  </button>
-                )}
-                {!isPaid && invoice.status !== 'draft' && (
+                {!isPaid && invoice.status === 'sent' && isManagerOrAdmin && (
                   <Link
                     href={`/payments/new?invoice_id=${invoice.id}`}
                     className="px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-md hover:bg-indigo-700 transition-colors"

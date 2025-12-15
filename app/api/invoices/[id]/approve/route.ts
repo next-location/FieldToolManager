@@ -8,9 +8,8 @@ export async function POST(
   try {
     const { id } = await params
     const supabase = await createClient()
-
-    // ユーザー認証
     const { data: { user } } = await supabase.auth.getUser()
+
     if (!user) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
     }
@@ -18,84 +17,86 @@ export async function POST(
     // ユーザー情報を取得
     const { data: userData } = await supabase
       .from('users')
-      .select('role, organization_id, name')
+      .select('id, role, organization_id, name')
       .eq('id', user.id)
       .single()
 
-    // マネージャー以上の権限チェック
-    if (!['manager', 'admin', 'super_admin'].includes(userData?.role || '')) {
+    // マネージャー以上のみ承認可能
+    if (!userData || !['manager', 'admin', 'super_admin'].includes(userData.role)) {
       return NextResponse.json({ error: '承認権限がありません' }, { status: 403 })
     }
-
-    // リクエストボディを取得
-    const body = await request.json()
-    const { notes } = body
 
     // 請求書を取得
     const { data: invoice, error: fetchError } = await supabase
       .from('billing_invoices')
       .select('*')
       .eq('id', id)
-      .eq('organization_id', userData?.organization_id)
+      .eq('organization_id', userData.organization_id)
       .single()
 
     if (fetchError || !invoice) {
       return NextResponse.json({ error: '請求書が見つかりません' }, { status: 404 })
     }
 
-    // ステータスチェック
+    // 提出済み状態のみ承認可能
     if (invoice.status !== 'submitted') {
-      return NextResponse.json(
-        { error: '承認できるのは提出済みの請求書のみです' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: '提出済み状態の請求書のみ承認できます' }, { status: 400 })
     }
 
-    // 請求書を承認
+    // ステータスを承認済みに変更
     const { error: updateError } = await supabase
       .from('billing_invoices')
       .update({
         status: 'approved',
         manager_approved_at: new Date().toISOString(),
-        manager_approved_by: user.id,
+        manager_approved_by: userData.id,
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
 
-    if (updateError) throw updateError
+    if (updateError) {
+      console.error('Update error:', updateError)
+      return NextResponse.json({ error: '承認処理に失敗しました' }, { status: 500 })
+    }
 
-    // 履歴を記録
-    await supabase
-      .from('invoice_history')
-      .insert({
-        invoice_id: id,
-        organization_id: userData?.organization_id,
-        action_type: 'approved',
-        performed_by: user.id,
-        performed_by_name: userData?.name || 'Unknown',
-        notes: notes || '請求書を承認しました'
+    // 操作履歴を記録
+    await supabase.from('invoice_history').insert({
+      invoice_id: id,
+      organization_id: userData.organization_id,
+      action_type: 'approved',
+      performed_by: userData.id,
+      performed_by_name: userData.name || 'Unknown',
+      notes: null
+    })
+
+    // 作成者に通知を送信
+    if (invoice.created_by && invoice.created_by !== userData.id) {
+      console.log('[APPROVE INVOICE] Sending notification to creator:', invoice.created_by)
+      const { error: notificationError } = await supabase.from('notifications').insert({
+        target_user_id: invoice.created_by,
+        organization_id: userData.organization_id,
+        type: 'estimate_approved', // 既存のタイプを使用
+        title: '請求書が承認されました',
+        message: `請求書「${invoice.invoice_number}」が${userData.name || 'マネージャー'}により承認されました。顧客に送付できます。`,
+        metadata: {
+          invoice_id: id,
+          invoice_number: invoice.invoice_number,
+          approved_by: userData.name || 'Unknown'
+        }
       })
 
-    // 通知を作成（作成者へ）
-    if (invoice.created_by) {
-      await supabase
-        .from('notifications')
-        .insert({
-          user_id: invoice.created_by,
-          organization_id: userData?.organization_id,
-          type: 'invoice_approved',
-          title: '請求書が承認されました',
-          message: `請求書「${invoice.invoice_number}」が承認されました`,
-          related_id: id,
-          related_type: 'invoice'
-        })
+      if (notificationError) {
+        console.error('[APPROVE INVOICE] Notification error:', notificationError)
+      } else {
+        console.log('[APPROVE INVOICE] Notification sent successfully')
+      }
     }
 
     return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Error approving invoice:', error)
+  } catch (error: any) {
+    console.error('Approve invoice error:', error)
     return NextResponse.json(
-      { error: '請求書の承認に失敗しました' },
+      { error: error.message || '承認に失敗しました' },
       { status: 500 }
     )
   }

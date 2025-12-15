@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { DownloadPdfButton } from './DownloadPdfButton'
+import { SubmitInvoiceButton } from '@/components/invoices/SubmitInvoiceButton'
 import { ApproveInvoiceButton } from '@/components/invoices/ApproveInvoiceButton'
 import { SendInvoiceButton } from '@/components/invoices/SendInvoiceButton'
 import { ReturnInvoiceButton } from '@/components/invoices/ReturnInvoiceButton'
@@ -127,14 +128,17 @@ export default async function InvoiceDetailPage({
           </div>
 
           <div className="flex space-x-2">
-            {/* 下書き状態: 編集のみ可能 */}
+            {/* 下書き状態: 編集・提出が可能 */}
             {invoice.status === 'draft' && (
-              <Link
-                href={`/invoices/${id}/edit`}
-                className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-600"
-              >
-                編集
-              </Link>
+              <>
+                <Link
+                  href={`/invoices/${id}/edit`}
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-600"
+                >
+                  編集
+                </Link>
+                <SubmitInvoiceButton invoiceId={id} />
+              </>
             )}
 
             {/* 提出済み状態: 承認・差し戻しボタン（manager/admin のみ） */}
@@ -145,20 +149,26 @@ export default async function InvoiceDetailPage({
               </>
             )}
 
-            {/* 承認済み状態: 送付ボタン（manager/admin のみ） */}
+            {/* 承認済み状態: 送付ボタン */}
             {invoice.status === 'approved' && (
               <SendInvoiceButton
                 invoiceId={id}
+                status={invoice.status}
+                isApproved={true}
                 userRole={userData?.role || ''}
-                clientEmail={invoice.client?.email}
+                userId={user.id}
+                createdById={invoice.created_by}
               />
             )}
 
-            {/* PDF出力は常に表示 */}
-            <DownloadPdfButton invoiceId={id} />
+            {/* PDF出力: 承認済み以降、かつ送付済み以降はマネージャー・管理者のみ */}
+            {invoice.status !== 'draft' && invoice.status !== 'submitted' &&
+             (invoice.status === 'approved' || ['manager', 'admin', 'super_admin'].includes(userData?.role || '')) && (
+              <DownloadPdfButton invoiceId={id} />
+            )}
 
-            {/* 入金登録: 送付済み・未入金の場合 */}
-            {!isPaid && invoice.status !== 'draft' && (
+            {/* 入金登録: 送付済み以降・未入金・マネージャー以上のみ */}
+            {!isPaid && invoice.status === 'sent' && ['manager', 'admin', 'super_admin'].includes(userData?.role || '') && (
               <Link
                 href={`/payments/new?invoice_id=${id}`}
                 className="bg-indigo-500 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-600"

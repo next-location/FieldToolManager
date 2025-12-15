@@ -27,29 +27,25 @@ export async function GET(
     }
 
     // ユーザー情報取得
-    const { data: userData, error: userError } = await supabase
+    const { data: userData } = await supabase
       .from('users')
-      .select('organization_id')
+      .select('organization_id, name')
       .eq('id', user.id)
       .single()
-
-    console.log('[Invoice PDF API] User data:', { userData, userError })
 
     if (!userData) {
       return NextResponse.json({ error: 'ユーザー情報が見つかりません' }, { status: 404 })
     }
 
     // 組織情報を取得（角印データ・インボイス番号も含む）
-    const { data: organization, error: orgError } = await supabase
+    const { data: organization } = await supabase
       .from('organizations')
       .select('name, postal_code, address, phone, fax, company_seal_url, invoice_registration_number')
       .eq('id', userData?.organization_id)
       .single()
 
-    console.log('[Invoice PDF API] Organization data:', { organization, orgError, orgId: userData?.organization_id })
-
     if (!organization) {
-      return NextResponse.json({ error: '組織情報が見つかりません', details: orgError }, { status: 404 })
+      return NextResponse.json({ error: '組織情報が見つかりません' }, { status: 404 })
     }
 
     // 請求書を取得
@@ -68,6 +64,14 @@ export async function GET(
     if (error || !invoice) {
       console.log('[Invoice PDF API] Invoice not found:', error)
       return NextResponse.json({ error: '請求書が見つかりません' }, { status: 404 })
+    }
+
+    // 承認チェック: 下書き・提出済み状態の請求書は承認済みのみPDF出力可能
+    if ((invoice.status === 'draft' || invoice.status === 'submitted')) {
+      console.log('[Invoice PDF API] Invoice not approved yet')
+      return NextResponse.json({
+        error: 'この請求書は未承認のため、PDF出力できません。上司の承認が必要です。'
+      }, { status: 403 })
     }
 
     console.log('[Invoice PDF API] Invoice found, generating PDF...')
@@ -93,74 +97,105 @@ export async function GET(
       console.error('[Invoice PDF API] Font registration error:', fontError)
     }
 
-    let yPos = 15
+    let yPos = 20
 
     // ========================================
-    // ヘッダー部分
+    // タイトル（中央）
     // ========================================
-
-    // タイトル（中央配置）
-    doc.setFontSize(18)
+    doc.setFontSize(16)
     doc.setFont('NotoSansJP', 'normal')
-    doc.text('請 求 書', 105, yPos, { align: 'center' })
+    doc.text('請　求　書', 105, yPos, { align: 'center' })
 
     yPos += 15
 
-    // 取引先情報（左側）
-    doc.setFontSize(12)
+    // ========================================
+    // 左側：取引先情報
+    // ========================================
+    const leftX = 15
+    const rightEdge = 195
+
+    // 取引先名（大きく）
+    doc.setFontSize(13)
     const clientName = invoice.client?.name || '-'
-    doc.text(`${clientName} 御中`, 15, yPos)
+    doc.text(`${clientName} 様`, leftX, yPos)
 
-    yPos += 2
+    // 下線（細く、少し離す）
+    yPos += 3
     doc.setLineWidth(0.2)
-    doc.line(15, yPos, 100, yPos)
+    doc.line(leftX, yPos, leftX + 80, yPos)
+    yPos += 6
+
+    // 取引先住所
+    if (invoice.client?.postal_code) {
+      doc.setFontSize(8)
+      doc.text(`〒${invoice.client.postal_code}`, leftX, yPos)
+      yPos += 4
+    }
+    if (invoice.client?.address) {
+      doc.setFontSize(8)
+      doc.text(invoice.client.address, leftX, yPos)
+      yPos += 4
+    }
 
     yPos += 8
 
-    // 請求金額（強調表示）
-    doc.setFontSize(10)
-    doc.text('下記の通りご請求申し上げます', 15, yPos)
-
-    yPos += 8
-
-    doc.setFontSize(10)
-    doc.text('ご請求金額', 15, yPos)
-    doc.setFontSize(16)
-    doc.text(`¥${invoice.total_amount.toLocaleString()}`, 50, yPos)
-    doc.setFontSize(10)
-    doc.text('（税込）', 100, yPos)
-
-    // 自社情報と角印（右側）
-    const companyInfoStartY = 35
-    const companyInfoX = 130
-
-    let companyInfoY = companyInfoStartY
-
-    // 社名
-    doc.setFont('NotoSansJP', 'normal')
-    companyInfoY = drawCompanyName(doc, organization.name, companyInfoX, companyInfoY, 60, 11, 8)
-
-    // その他の情報
+    // 説明文（金額ボックスの少し上、小さく）
     doc.setFontSize(8)
-    doc.text(`〒${organization.postal_code || '-'}`, companyInfoX, companyInfoY)
-    companyInfoY += 4
-    doc.text(organization.address || '-', companyInfoX, companyInfoY)
-    companyInfoY += 4
-    doc.text(`TEL: ${organization.phone || '-'}`, companyInfoX, companyInfoY)
-    companyInfoY += 4
-    if (organization.fax) {
-      doc.text(`FAX: ${organization.fax}`, companyInfoX, companyInfoY)
-      companyInfoY += 4
-    }
+    doc.text('下記のとおりご請求申し上げます。', leftX, yPos)
+    yPos += 5
+
+    // 請求金額ボックス
+    doc.setFillColor(239, 246, 255) // 薄い青色
+    doc.rect(leftX, yPos, 85, 18, 'F')
+    doc.setFontSize(8)
+    doc.text('ご請求金額（税込）', leftX + 2, yPos + 5)
+    doc.setFontSize(16)
+    doc.text(`¥${Math.floor(invoice.total_amount).toLocaleString()}`, leftX + 2, yPos + 14)
+
+    // ========================================
+    // 右側：発行者情報（右端寄せ）
+    // ========================================
+    let rightY = 20
+
+    // 請求番号・登録番号・日付（さらに小さく、右端寄せ）
+    doc.setFontSize(6)
+    doc.text(`請求番号: ${invoice.invoice_number}`, rightEdge, rightY, { align: 'right' })
+    rightY += 3
     if (organization.invoice_registration_number) {
-      doc.text(`登録番号: ${organization.invoice_registration_number}`, companyInfoX, companyInfoY)
-      companyInfoY += 4
+      doc.text(`登録番号: ${organization.invoice_registration_number}`, rightEdge, rightY, { align: 'right' })
+      rightY += 3
+    }
+    doc.text(`請求日: ${new Date(invoice.invoice_date).toLocaleDateString('ja-JP')}`, rightEdge, rightY, { align: 'right' })
+    rightY += 3
+    doc.text(`支払期日: ${new Date(invoice.due_date).toLocaleDateString('ja-JP')}`, rightEdge, rightY, { align: 'right' })
+    rightY += 3
+
+    rightY += 6
+
+    // 会社名（右端寄せ、少し小さく）
+    doc.setFontSize(9)
+    doc.text(organization.name, rightEdge, rightY, { align: 'right' })
+    rightY += 5
+
+    // 住所・電話（右端寄せ）
+    doc.setFontSize(8)
+    if (organization.address) {
+      doc.text(organization.address, rightEdge, rightY, { align: 'right' })
+      rightY += 4
+    }
+    if (organization.phone) {
+      doc.text(`TEL: ${organization.phone}`, rightEdge, rightY, { align: 'right' })
+      rightY += 4
+    }
+    if (userData?.name) {
+      doc.text(`担当: ${userData.name}`, rightEdge, rightY, { align: 'right' })
+      rightY += 4
     }
 
-    // 角印の位置（自社情報の右側）
-    const sealX = 175
-    const sealY = companyInfoStartY
-    const sealSize = 25
+    // 角印の位置（自社情報の下、右寄せ、少し上に配置）
+    const sealSize = 17  // 25 * 2/3 ≈ 17
+    const sealX = rightEdge - sealSize
+    const sealY = rightY - 2  // 少し上に移動
 
     // 角印を表示
     try {
@@ -197,35 +232,24 @@ export async function GET(
       console.error('[Invoice PDF API] Error adding company seal:', err)
     }
 
-    yPos = Math.max(yPos, companyInfoY) + 10
+    // 件名セクション（上に移動、小さく）
+    yPos = 95
 
-    // 請求情報
-    autoTable(doc, {
-      ...getTableConfig({ type: 'info' }),
-      startY: yPos,
-      body: [
-        ['請求番号', invoice.invoice_number, '請求日', new Date(invoice.invoice_date).toLocaleDateString('ja-JP')],
-        ['工事名', invoice.project?.project_name || invoice.title, '支払期日', new Date(invoice.due_date).toLocaleDateString('ja-JP')],
-      ],
-      columnStyles: {
-        0: { cellWidth: 30, fontStyle: 'normal', fillColor: [240, 240, 240] },
-        1: { cellWidth: 65 },
-        2: { cellWidth: 30, fontStyle: 'normal', fillColor: [240, 240, 240] },
-        3: { cellWidth: 65 },
-      },
-    })
+    doc.setFontSize(8)
+    doc.text('件名', 15, yPos)
+    yPos += 5
+    doc.setFontSize(9)
+    doc.text(invoice.title, 15, yPos)
 
-    yPos = (doc as any).lastAutoTable.finalY + 10
-
-    // 件名
-    if (invoice.title) {
-      doc.setFontSize(11)
-      doc.setFont('NotoSansJP', 'normal')
-      doc.text(`件名: ${invoice.title}`, 15, yPos)
-      yPos += 8
+    if (invoice.project) {
+      yPos += 4
+      doc.setFontSize(7)
+      doc.text(`工事: ${invoice.project.project_name}`, 15, yPos)
     }
 
-    // 明細テーブル
+    yPos += 8
+
+    // 明細テーブル（税率列を削除、「明細」テキストを削除）
     const items = invoice.billing_invoice_items?.sort((a: any, b: any) => a.display_order - b.display_order) || []
 
     const tableData = items.map((item: any) => [
@@ -238,57 +262,97 @@ export async function GET(
     ])
 
     autoTable(doc, {
-      ...getTableConfig({ type: 'list' }),
       startY: yPos,
-      head: [['項目', '仕様・備考', '数量', '単位', '単価', '金額']],
+      head: [['項目', '説明', '数量', '単位', '単価', '金額']],
       body: tableData,
-      foot: [
-        ['', '', '', '', '小計', `¥${invoice.subtotal.toLocaleString()}`],
-        ['', '', '', '', `消費税（${items[0]?.tax_rate || 10}%）`, `¥${invoice.tax_amount.toLocaleString()}`],
-        ['', '', '', '', 'ご請求金額', `¥${invoice.total_amount.toLocaleString()}`],
-      ],
       columnStyles: {
-        0: { cellWidth: 40 },
-        1: { cellWidth: 60 },
-        2: { cellWidth: 15, halign: 'right' },
-        3: { cellWidth: 15 },
-        4: { cellWidth: 25, halign: 'right' },
-        5: { cellWidth: 35, halign: 'right' },
+        0: { cellWidth: 38 },
+        1: { cellWidth: 52 },
+        2: { cellWidth: 18, halign: 'right' },
+        3: { cellWidth: 18, halign: 'center' },
+        4: { cellWidth: 28, halign: 'right' },
+        5: { cellWidth: 26, halign: 'right' },
       },
-      footStyles: {
-        fillColor: [255, 255, 255],
+      headStyles: {
+        fillColor: [240, 240, 240],  // 薄いグレーの背景色
         textColor: [0, 0, 0],
         fontStyle: 'normal',
         lineWidth: 0.1,
+        font: 'NotoSansJP',
+        fontSize: 8,
       },
+      bodyStyles: {
+        fillColor: [255, 255, 255],  // 白背景（ストライプなし）
+        font: 'NotoSansJP',
+        fontSize: 8,
+        lineColor: [0, 0, 0],
+        lineWidth: 0.1,
+      },
+      alternateRowStyles: {
+        fillColor: [255, 255, 255],  // 白背景（ストライプなし）
+      },
+      tableWidth: 180,
+      margin: { left: 15 },
+      pageBreak: 'auto',           // 自動改ページを許可
+      rowPageBreak: 'auto',        // 行の途中での改ページも許可
+      showHead: 'everyPage',       // 各ページで見出し行を表示
     })
 
     yPos = (doc as any).lastAutoTable.finalY + 10
 
-    // お振込先情報（現在は未実装のため省略）
-    // 銀行情報はorganizationsテーブルに存在しないため、将来的に別テーブルで管理予定
+    // 合計セクション（右寄せ、下に移動）
+    const summaryX = 130
+    const summaryWidth = 65
 
-    // 備考
+    doc.setFontSize(9)
+    doc.text('小計:', summaryX, yPos)
+    doc.text(`¥${invoice.subtotal.toLocaleString()}`, summaryX + summaryWidth, yPos, { align: 'right' })
+    yPos += 5
+
+    doc.text('消費税:', summaryX, yPos)
+    doc.text(`¥${Math.floor(invoice.tax_amount).toLocaleString()}`, summaryX + summaryWidth, yPos, { align: 'right' })
+    yPos += 5
+
+    doc.setLineWidth(0.3)
+    doc.line(summaryX, yPos, summaryX + summaryWidth, yPos)
+    yPos += 5
+
+    doc.setFontSize(11)
+    doc.text('合計:', summaryX, yPos)
+    doc.text(`¥${Math.floor(invoice.total_amount).toLocaleString()}`, summaryX + summaryWidth, yPos, { align: 'right' })
+
+    yPos += 15
+
+    // 備考（一番下部に配置、枠で囲む）
     if (invoice.notes) {
-      autoTable(doc, {
-        ...getTableConfig({ type: 'content' }),
-        startY: yPos,
-        head: [['備考']],
-        body: [[invoice.notes]],
-        columnStyles: {
-          0: { cellWidth: 190 },
-        },
-      })
-      yPos = (doc as any).lastAutoTable.finalY + 5
-    }
+      const notesBoxX = 15
+      const notesBoxWidth = 180
+      const notesPadding = 3
 
-    // 適格請求書の記載（組織情報から取得）
-    if (organization.is_qualified_invoice_issuer && organization.tax_registration_number) {
-      yPos += 5
+      // テキストを分割
       doc.setFontSize(8)
-      doc.text('※この請求書は適格請求書の記載事項を満たしています。', 15, yPos)
-      yPos += 4
-      doc.text(`　登録番号: ${organization.tax_registration_number}`, 15, yPos)
+      const noteLines = doc.splitTextToSize(invoice.notes, notesBoxWidth - (notesPadding * 2))
+
+      // 枠の高さを計算（タイトル分を追加、最低25mm）
+      const lineHeight = 4
+      const titleHeight = 6  // タイトル「備考」の高さ
+      const minBoxHeight = 25
+      const contentHeight = noteLines.length * lineHeight
+      const boxHeight = Math.max(minBoxHeight, contentHeight + titleHeight + (notesPadding * 2))
+
+      // 枠を描画
+      doc.setLineWidth(0.2)
+      doc.rect(notesBoxX, yPos, notesBoxWidth, boxHeight)
+
+      // 備考タイトルを枠内に描画
+      doc.setFontSize(9)
+      doc.text('備考', notesBoxX + notesPadding, yPos + notesPadding + 3)
+
+      // テキストを枠内に描画（タイトルの下）
+      doc.setFontSize(8)
+      doc.text(noteLines, notesBoxX + notesPadding, yPos + notesPadding + titleHeight + 3)
+
+      yPos += boxHeight
     }
 
     // フッター（ページ番号）

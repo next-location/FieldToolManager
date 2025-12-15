@@ -50,7 +50,8 @@
       "Bash(grep:*)",
       "Bash(export PGPASSWORD=postgres)",
       "Bash(wc:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
