@@ -301,12 +301,14 @@ export function EstimateListClient({ estimates: initialEstimates }: EstimateList
                         請求書作成
                       </Link>
                     )}
-                    <button
-                      onClick={() => handleDelete(estimate.id, estimate.estimate_number)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      削除
-                    </button>
+                    {!estimate.manager_approved_at && (
+                      <button
+                        onClick={() => handleDelete(estimate.id, estimate.estimate_number)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        削除
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

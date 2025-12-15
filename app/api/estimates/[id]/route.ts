@@ -22,6 +22,25 @@ export async function DELETE(
     .eq('id', user.id)
     .single()
 
+  // 見積書を取得して承認済みかチェック
+  const { data: estimate, error: fetchError } = await supabase
+    .from('estimates')
+    .select('manager_approved_at')
+    .eq('id', id)
+    .eq('organization_id', userData?.organization_id)
+    .single()
+
+  if (fetchError || !estimate) {
+    return NextResponse.json({ error: '見積書が見つかりません' }, { status: 404 })
+  }
+
+  // 承認済みの見積書は削除不可
+  if (estimate.manager_approved_at) {
+    return NextResponse.json({
+      error: '承認済みの見積書は削除できません。重要な記録として保持する必要があります。'
+    }, { status: 403 })
+  }
+
   // 明細を削除（カスケード削除されるが、明示的に実行）
   console.log('[見積書削除API] 明細削除開始')
   const { error: itemsDeleteError } = await supabase
