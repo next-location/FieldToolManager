@@ -169,10 +169,7 @@ export default async function EstimateDetailPage({
             </>
           )}
 
-          {/* 顧客却下済み: PDFのみ */}
-          {estimate.status === 'rejected' && (
-            <DownloadPdfButton estimateId={id} />
-          )}
+          {/* 顧客却下済み: ボタンなし（一覧に戻るのみ） */}
 
           <Link
             href="/estimates"
