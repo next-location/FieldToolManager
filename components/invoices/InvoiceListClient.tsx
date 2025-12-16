@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { toHiragana, toKatakana } from '@/lib/utils/japanese'
 
 interface Invoice {
   id: string
@@ -22,6 +23,30 @@ interface Invoice {
 interface InvoiceListClientProps {
   invoices: Invoice[]
   userRole: string
+}
+
+// ひらがな・カタカナ変換関数
+function normalizeKana(text: string): string {
+  // 全角・半角を正規化し、ひらがなとカタカナ両方のパターンを生成
+  const normalized = text.normalize('NFKC')
+  const hiragana = toHiragana(normalized)
+  const katakana = toKatakana(normalized)
+  return `${normalized}|${hiragana}|${katakana}`
+}
+
+function matchesKanaSearch(text: string, searchQuery: string): boolean {
+  if (!text || !searchQuery) return false
+
+  const normalizedText = normalizeKana(text.toLowerCase())
+  const normalizedQuery = normalizeKana(searchQuery.toLowerCase())
+
+  // いずれかのパターンでマッチするか確認
+  const queryPatterns = normalizedQuery.split('|')
+  const textPatterns = normalizedText.split('|')
+
+  return queryPatterns.some(qp =>
+    textPatterns.some(tp => tp.includes(qp))
+  )
 }
 
 export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps) {
@@ -73,13 +98,12 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
   // フィルタ・ソート済みデータ
   const filteredAndSortedInvoices = useMemo(() => {
     let filtered = invoices.filter((invoice) => {
-      // 検索クエリフィルタ
-      const searchLower = searchQuery.toLowerCase()
+      // 検索クエリフィルタ（ひらがな・カタカナ対応）
       const matchesSearch =
         !searchQuery ||
-        invoice.invoice_number.toLowerCase().includes(searchLower) ||
-        invoice.client?.name.toLowerCase().includes(searchLower) ||
-        invoice.project?.project_name?.toLowerCase().includes(searchLower)
+        invoice.invoice_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (invoice.client?.name && matchesKanaSearch(invoice.client.name, searchQuery)) ||
+        (invoice.project?.project_name && matchesKanaSearch(invoice.project.project_name, searchQuery))
 
       // ステータスフィルタ
       const matchesStatus =
@@ -333,17 +357,6 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
                         </span>
                       </div>
                     )}
-                    <div className="mt-1">
-                      {isPaid ? (
-                        <span className="text-xs font-bold text-green-600">入金済</span>
-                      ) : isPartiallyPaid ? (
-                        <span className="text-xs font-bold text-yellow-600">
-                          一部入金 ¥{invoice.paid_amount.toLocaleString()}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-gray-500">未入金</span>
-                      )}
-                    </div>
                   </div>
 
                   {/* 右側：金額 */}

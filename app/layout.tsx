@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Field Tool Manager",
-  description: "工具管理システム",
+  title: "ザイロク",
+  description: "現場管理システム",
 };
 
 export default function RootLayout({

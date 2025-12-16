@@ -12,6 +12,25 @@
 
 Please conduct your thinking process in English, but **output all final responses and code explanations to the user in Japanese (日本語)**.
 
+## 🚨 CRITICAL: Debugging Protocol
+
+**When the user explicitly says "デバッグしろ" (Debug this) or "調べろ" (Investigate this):**
+
+1. **DO NOT修正するな (DO NOT FIX ANYTHING)**
+2. **ONLY investigate and report findings**
+3. **Steps to follow:**
+   - サーバーログを確認 (Check server logs)
+   - データベーススキーマを確認 (Check database schema)
+   - 関連するコードを確認 (Check related code)
+   - エラーの原因を特定 (Identify the root cause)
+   - 調査結果のみを報告 (Report findings ONLY)
+4. **Wait for explicit permission before making any changes**
+5. **Never assume you should fix the issue unless explicitly told to do so**
+
+**Example:**
+- User: "デバッグしろ" → You: Investigate and report findings only
+- User: "修正しろ" → You: Now you can make changes
+
 ## Goal and Context 🎯
 
 The primary goal is to build the frontend development environment for a web application that solves the analog tool management challenges faced by field operations (civil engineering, painting, etc.). The system must provide real-time inventory and location tracking (traceability).
