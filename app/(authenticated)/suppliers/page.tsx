@@ -1,19 +1,16 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { ClientTabs } from './ClientTabs'
-import { Client, ClientType } from '@/types/clients'
+import { SupplierListClient } from './SupplierListClient'
 
-export default async function ClientsPage({
+export default async function SuppliersPage({
   searchParams,
 }: {
   searchParams: Promise<{
-    client_type?: string
     is_active?: string
     search?: string
   }>
 }) {
   const params = await searchParams
-  const clientType = (params.client_type || 'all') as 'all' | ClientType
   const search = params.search || ''
 
   const supabase = await createClient()
@@ -37,41 +34,40 @@ export default async function ClientsPage({
     redirect('/login')
   }
 
-  // 管理者権限チェック
-  if (userData.role !== 'admin') {
+  // 管理者・リーダー権限チェック
+  if (!['admin', 'leader'].includes(userData.role)) {
     redirect('/')
   }
 
-  // 取引先一覧を取得（有効なもののみ）
+  // 仕入先一覧を取得（有効なもののみ）
   let query = supabase
-    .from('clients')
+    .from('suppliers')
     .select('*')
     .eq('organization_id', userData?.organization_id)
     .eq('is_active', true)
-    .is('deleted_at', null)
-    .order('created_at', { ascending: false})
+    .order('created_at', { ascending: false })
 
   if (search) {
     query = query.or(
-      `name.ilike.%${search}%,name_kana.ilike.%${search}%,client_code.ilike.%${search}%,address.ilike.%${search}%,phone.ilike.%${search}%`
+      `name.ilike.%${search}%,name_kana.ilike.%${search}%,supplier_code.ilike.%${search}%,address.ilike.%${search}%,phone.ilike.%${search}%`
     )
   }
 
-  const { data: clients } = await query
+  const { data: suppliers } = await query
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
         {/* ヘッダー */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">取引先マスタ</h1>
+          <h1 className="text-2xl font-bold text-gray-900">仕入先マスタ</h1>
           <p className="mt-2 text-sm text-gray-600">
-            顧客・仕入先・協力会社などの取引先情報を管理します
+            外部業者（サプライヤー）の情報を管理します
           </p>
         </div>
 
-        {/* タブ付き取引先一覧 */}
-        <ClientTabs clients={clients || []} initialTab={clientType} />
+        {/* 仕入先一覧 */}
+        <SupplierListClient suppliers={suppliers || []} />
       </div>
     </div>
   )

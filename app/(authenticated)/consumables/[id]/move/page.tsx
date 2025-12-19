@@ -74,9 +74,9 @@ export default async function ConsumableMovePage({
     inventories?.filter((inv) => inv.location_type === 'site') || []
 
   return (
-    <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
-        <div className="mb-6">
+        <div className="mb-8">
           <Link
             href={`/consumables/${id}`}
             className="text-sm font-medium text-gray-600 hover:text-gray-900"

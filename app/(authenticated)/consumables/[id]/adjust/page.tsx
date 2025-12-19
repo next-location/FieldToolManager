@@ -52,28 +52,22 @@ export default async function ConsumableAdjustPage({
     .single()
 
   return (
-    <div className="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
-        <div className="mb-6">
+        <div className="mb-8">
           <Link
             href={`/consumables/${id}`}
-            className="text-sm font-medium text-gray-600 hover:text-gray-900"
+            className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-4 inline-block"
           >
             ← 消耗品詳細に戻る
           </Link>
+          <h1 className="text-2xl font-bold text-gray-900">在庫調整：{consumable.name}</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            現在の倉庫在庫：{warehouseInventory?.quantity || 0} {consumable.unit}
+          </p>
         </div>
 
         <div className="bg-white shadow sm:rounded-lg">
-          <div className="px-4 py-5 sm:p-6 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900">
-              在庫調整：{consumable.name}
-            </h2>
-            <p className="mt-1 text-sm text-gray-500">
-              現在の倉庫在庫：
-              {warehouseInventory?.quantity || 0} {consumable.unit}
-            </p>
-          </div>
-
           <div className="px-4 py-5 sm:p-6">
             <AdjustmentForm
               consumableId={id}

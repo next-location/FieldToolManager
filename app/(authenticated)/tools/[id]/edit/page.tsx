@@ -124,23 +124,20 @@ export default function EditToolPage({ params }: { params: Promise<{ id: string 
   }
 
   return (
-    <div className="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
-          <div className="mb-6">
+          <div className="mb-8">
             <Link
               href={`/tools/${id}`}
-              className="text-sm font-medium text-gray-600 hover:text-gray-900"
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-4 inline-block"
             >
               ← 道具詳細に戻る
             </Link>
+            <h1 className="text-2xl font-bold text-gray-900">道具の編集</h1>
           </div>
 
           <div className="bg-white shadow sm:rounded-lg">
             <div className="px-4 py-5 sm:p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-6">
-                道具の編集
-              </h2>
-
               {error && (
                 <div className="rounded-md bg-red-50 p-4 mb-4">
                   <p className="text-sm text-red-800">{error}</p>
