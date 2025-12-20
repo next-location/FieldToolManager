@@ -31,6 +31,7 @@ export function EquipmentCategoriesClient({
   const [formData, setFormData] = useState({
     name: '',
     code_prefix: '',
+    icon: '',
   })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -63,7 +64,7 @@ export function EquipmentCategoriesClient({
       if (insertError) throw insertError
 
       setCategories([...categories, data])
-      setFormData({ name: '', code_prefix: '' })
+      setFormData({ name: '', code_prefix: '', icon: '' })
       setIsAdding(false)
       router.refresh()
     } catch (err: any) {
@@ -147,6 +148,7 @@ export function EquipmentCategoriesClient({
     setFormData({
       name: category.name,
       code_prefix: category.code_prefix || '',
+      icon: category.icon || '',
     })
     setIsAdding(false)
     setError(null)
@@ -155,7 +157,7 @@ export function EquipmentCategoriesClient({
   const cancelEdit = () => {
     setEditingId(null)
     setIsAdding(false)
-    setFormData({ name: '', code_prefix: '' })
+    setFormData({ name: '', code_prefix: '', icon: '' })
     setError(null)
   }
 

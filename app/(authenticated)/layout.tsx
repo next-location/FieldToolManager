@@ -58,10 +58,10 @@ export default async function AuthenticatedLayout({ children }: AuthenticatedLay
 
   return (
     <AppLayout
-      user={{ email: user.email, id: user.id, name: userData.name }}
+      user={{ email: user.email || null, id: user.id, name: userData.name }}
       userRole={userData.role}
       organizationId={userData?.organization_id}
-      organizationName={organization?.name}
+      organizationName={organization?.name || null}
       heavyEquipmentEnabled={organization?.heavy_equipment_enabled || false}
     >
       {children}

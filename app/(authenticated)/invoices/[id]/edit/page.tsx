@@ -15,6 +15,8 @@ interface InvoiceItem {
   tax_rate: number
   amount: number
   display_order: number
+  custom_type?: string
+  custom_unit?: string
 }
 
 export default function EditInvoicePage({

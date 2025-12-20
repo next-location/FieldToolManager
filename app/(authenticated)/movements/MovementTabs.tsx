@@ -16,7 +16,7 @@ interface ToolMovement {
     tools: {
       name: string
       model_number: string
-    }
+    }[]
   } | null
   from_site: { name: string } | null
   to_site: { name: string } | null
@@ -34,10 +34,10 @@ interface ConsumableMovement {
   tools: {
     name: string
     model_number: string | null
-  } | null
-  from_site: { name: string } | null
-  to_site: { name: string } | null
-  users: { name: string } | null
+  }[]
+  from_site: { name: string }[]
+  to_site: { name: string }[]
+  users: { name: string }[]
 }
 
 interface EquipmentMovement {
@@ -230,7 +230,7 @@ export function MovementTabs({
                               href={`/tool-items/${movement.tool_items.id}`}
                               className="text-blue-600 hover:text-blue-800"
                             >
-                              {movement.tool_items.tools.name} #{movement.tool_items.serial_number}
+                              {movement.tool_items.tools[0]?.name || '不明'} #{movement.tool_items.serial_number}
                             </Link>
                           ) : (
                             <span className="text-gray-500">削除済み</span>
@@ -278,11 +278,11 @@ export function MovementTabs({
                             {movement.movement_type}
                           </span>
                           <h3 className="text-sm font-medium text-gray-900">
-                            {movement.tools?.name || '不明な道具'}
+                            {movement.tools[0]?.name || '不明な道具'}
                           </h3>
-                          {movement.tools?.model_number && (
+                          {movement.tools[0]?.model_number && (
                             <span className="text-sm text-gray-500">
-                              ({movement.tools.model_number})
+                              ({movement.tools[0].model_number})
                             </span>
                           )}
                         </div>
@@ -292,14 +292,14 @@ export function MovementTabs({
                             <span className="font-medium mr-1">移動元:</span>
                             {movement.from_location_type === 'warehouse'
                               ? '倉庫'
-                              : movement.from_site?.name || '不明'}
+                              : movement.from_site?.[0]?.name || '不明'}
                           </div>
                           <span>→</span>
                           <div className="flex items-center">
                             <span className="font-medium mr-1">移動先:</span>
                             {movement.to_location_type === 'warehouse'
                               ? '倉庫'
-                              : movement.to_site?.name || '不明'}
+                              : movement.to_site?.[0]?.name || '不明'}
                           </div>
                           <div className="flex items-center">
                             <span className="font-medium mr-1">数量:</span>
@@ -316,7 +316,7 @@ export function MovementTabs({
 
                         <div className="mt-2 flex items-center space-x-4 text-xs text-gray-400">
                           <span>
-                            実行者: {movement.users?.name || '不明'}
+                            実行者: {movement.users?.[0]?.name || '不明'}
                           </span>
                           <span>
                             {new Date(movement.created_at).toLocaleString(

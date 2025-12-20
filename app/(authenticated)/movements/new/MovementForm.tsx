@@ -14,7 +14,7 @@ type ToolItem = {
     id: string
     name: string
     model_number: string | null
-  }
+  }[]
 }
 
 type Site = {
@@ -176,7 +176,7 @@ export function MovementForm({
         formData.append('movement_type', getMovementType())
         formData.append('quantity', '1')
 
-        if (selectedItem?.current_site_id) {
+        if (selectedItem && selectedItem.current_site_id) {
           formData.append('from_site_id', selectedItem.current_site_id)
         }
 
@@ -194,13 +194,8 @@ export function MovementForm({
           formData.append('notes', '[位置修正]')
         }
 
-        const result = await createMovement(formData)
-
-        if (result && result.error) {
-          setError(result.error)
-        } else {
-          router.push('/movements')
-        }
+        await createMovement(formData)
+        // 成功時は自動的にリダイレクトされる
       }
     } catch (err: any) {
       setError(err.message || '登録に失敗しました')
@@ -224,7 +219,7 @@ export function MovementForm({
                   key={item.id}
                   className="px-4 py-2 border-b border-gray-100 last:border-b-0 text-sm"
                 >
-                  <span className="font-medium">{item.tools.name}</span>
+                  <span className="font-medium">{item.tools[0]?.name || '不明'}</span>
                   <span className="ml-2 font-mono text-gray-600">#{item.serial_number}</span>
                   <span className="ml-2 text-gray-500">
                     現在地:{' '}
@@ -258,7 +253,7 @@ export function MovementForm({
               <option value="">選択してください</option>
               {toolItems.map((item) => (
                 <option key={item.id} value={item.id}>
-                  {item.tools.name} #{item.serial_number} ({item.tools.model_number || '型番なし'}) - 現在地:{' '}
+                  {item.tools[0]?.name || '不明'} #{item.serial_number} ({item.tools[0]?.model_number || '型番なし'}) - 現在地:{' '}
                   {item.current_location === 'warehouse'
                     ? '倉庫'
                     : item.current_location === 'site'
@@ -305,7 +300,7 @@ export function MovementForm({
                 </label>
                 <div className="space-y-3">
                   {/* 倉庫オプション */}
-                  {selectedItem.current_location !== 'warehouse' && (
+                  {selectedItem && selectedItem.current_location !== 'warehouse' && (
                     <div>
                       <button
                         type="button"
@@ -321,8 +316,8 @@ export function MovementForm({
                       >
                         <div className="font-medium">🏢 倉庫に戻す</div>
                         <div className="text-sm text-gray-600 mt-1">
-                          {selectedItem.current_location === 'site' && '返却'}
-                          {selectedItem.current_location === 'repair' && '修理完了'}
+                          {selectedItem?.current_location === 'site' && '返却'}
+                          {selectedItem?.current_location === 'repair' && '修理完了'}
                         </div>
                       </button>
                       {destination === 'warehouse' && warehouseLocations.length > 0 && (
@@ -343,7 +338,7 @@ export function MovementForm({
                   )}
 
                   {/* 現場オプション */}
-                  {selectedItem.current_location !== 'repair' && (
+                  {selectedItem && selectedItem.current_location !== 'repair' && (
                     <div>
                       <button
                         type="button"
@@ -356,8 +351,8 @@ export function MovementForm({
                       >
                         <div className="font-medium">🏗️ 現場に移動</div>
                         <div className="text-sm text-gray-600 mt-1">
-                          {selectedItem.current_location === 'warehouse' && '持ち出し'}
-                          {selectedItem.current_location === 'site' && '現場間移動'}
+                          {selectedItem?.current_location === 'warehouse' && '持ち出し'}
+                          {selectedItem?.current_location === 'site' && '現場間移動'}
                         </div>
                       </button>
                       {destination === 'site' && (
@@ -379,7 +374,7 @@ export function MovementForm({
                   )}
 
                   {/* 修理オプション */}
-                  {selectedItem.current_location !== 'repair' && (
+                  {selectedItem && selectedItem.current_location !== 'repair' && (
                     <button
                       type="button"
                       onClick={() => {

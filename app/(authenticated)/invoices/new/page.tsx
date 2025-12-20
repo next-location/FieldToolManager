@@ -14,6 +14,8 @@ interface InvoiceItem {
   unit_price: number
   tax_rate: number
   amount: number
+  custom_type?: string
+  custom_unit?: string
 }
 
 export default function NewInvoicePage() {
