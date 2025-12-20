@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { verifySuperAdminPassword, setSuperAdminCookie } from '@/lib/auth/super-admin';
 import { rateLimiters, getClientIp, rateLimitResponse } from '@/lib/security/rate-limiter';
+import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,6 +10,13 @@ const supabase = createClient(
 );
 
 export async function POST(request: NextRequest) {
+  // CSRF検証（セキュリティ強化）
+  const isValidCsrf = await verifyCsrfToken(request);
+  if (!isValidCsrf) {
+    console.error('[ADMIN LOGIN API] CSRF validation failed');
+    return csrfErrorResponse();
+  }
+
   try {
     // レート制限チェック
     const clientIp = getClientIp(request);

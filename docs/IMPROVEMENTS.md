@@ -312,7 +312,12 @@ export async function POST(request: Request) {
 **作業報告書管理:**
 - `app/api/work-reports/route.ts` - POST（作成）
 
-**実装完了ファイル数: 24ファイル**
+**システム管理者API:**
+- `app/api/admin/login/route.ts` - POST（ログイン）
+- `app/api/admin/login/verify-2fa/route.ts` - POST（2FA検証）
+- `app/api/admin/2fa/enable/route.ts` - POST（2FA有効化）
+
+**実装完了ファイル数: 27ファイル**
 
 **セキュリティスコア改善:**
 - 実装前: CSRF保護 40/100

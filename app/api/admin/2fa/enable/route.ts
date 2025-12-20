@@ -13,8 +13,15 @@ import {
   hashBackupCodes,
   encryptSecret,
 } from '@/lib/security/2fa';
+import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf';
 
 export async function POST(request: NextRequest) {
+  // CSRF検証（セキュリティ強化）
+  const isValidCsrf = await verifyCsrfToken(request);
+  if (!isValidCsrf) {
+    console.error('[ADMIN 2FA ENABLE API] CSRF validation failed');
+    return csrfErrorResponse();
+  }
   console.log('[2FA Enable] ========== API Called ==========');
   console.log('[2FA Enable] Method:', request.method);
   console.log('[2FA Enable] URL:', request.url);
