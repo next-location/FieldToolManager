@@ -136,7 +136,7 @@ export function WorkReportEditForm({
 
   // カスタムフィールドの値を保持（既存データで初期化）
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>(
-    report.custom_fields_data || report.custom_fields || {}
+    (report as any).custom_fields_data || report.custom_fields || {}
   )
 
   // ひらがな⇔カタカナ変換関数
