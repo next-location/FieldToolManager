@@ -13,7 +13,9 @@ Next.js 15.1.6の本番環境ビルド時に発生したTypeScriptエラーの�
 - `c5e50b2` - Add production build fixes documentation
 - `a879376` - Fix final build errors: project_name and Supplier type
 - `5c911cd` - Update production build fixes documentation with latest changes
-- `90beb4e` - Fix Supplier type: add is_active and supplier_code ✅ **最終**
+- `90beb4e` - Fix Supplier type: add is_active and supplier_code
+- `ab47ff0` - Update docs: add final commit 90beb4e
+- `a3f517c` - Fix ToolSetForm and tools actions type errors ✅ **最終**
 
 ---
 
@@ -259,7 +261,13 @@ await createMovement(formData)
     - `app/(authenticated)/suppliers/SupplierFormModal.tsx`
     - `app/(authenticated)/suppliers/SupplierListClient.tsx`
 
-**合計: 約43ファイル**
+14. **Tool Sets関連** (1ファイル)
+    - `app/(authenticated)/tool-sets/new/ToolSetForm.tsx`
+
+15. **Tools Actions** (1ファイル)
+    - `app/(authenticated)/tools/actions.ts`
+
+**合計: 約45ファイル**
 
 ---
 
