@@ -12,6 +12,8 @@ Next.js 15.1.6の本番環境ビルド時に発生したTypeScriptエラーの�
 - `9bf7c28` - Fix final build errors: display_order and supplier_code
 - `c5e50b2` - Add production build fixes documentation
 - `a879376` - Fix final build errors: project_name and Supplier type
+- `5c911cd` - Update production build fixes documentation with latest changes
+- `90beb4e` - Fix Supplier type: add is_active and supplier_code ✅ **最終**
 
 ---
 
@@ -253,10 +255,11 @@ await createMovement(formData)
     - `app/(authenticated)/receivables/page.tsx`
     - `app/(authenticated)/recurring-invoices/page.tsx`
 
-13. **Suppliers関連** (1ファイル)
+13. **Suppliers関連** (2ファイル)
     - `app/(authenticated)/suppliers/SupplierFormModal.tsx`
+    - `app/(authenticated)/suppliers/SupplierListClient.tsx`
 
-**合計: 約42ファイル**
+**合計: 約43ファイル**
 
 ---
 
