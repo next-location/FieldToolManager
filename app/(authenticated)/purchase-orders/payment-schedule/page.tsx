@@ -207,7 +207,6 @@ async function PaymentScheduleContent() {
           </div>
         )}
       </div>
-      </div>
     </div>
   )
 }

@@ -428,7 +428,6 @@ async function AlertsContent() {
           </div>
         </div>
       )}
-      </div>
     </div>
   )
 }

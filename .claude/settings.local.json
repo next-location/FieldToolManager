@@ -65,7 +65,13 @@
       "Bash(/Users/youichiakashi/FieldToolManager/app/api/purchase-orders/[id]/reject/route.ts )",
       "Bash(/Users/youichiakashi/FieldToolManager/app/api/purchase-orders/[id]/update/route.ts)",
       "Bash(if ! grep -q \"verifyCsrfToken\" \"$file\")",
-      "Bash(if [ -d \"/Users/youichiakashi/FieldToolManager/app/api/$dir\" ])"
+      "Bash(if [ -d \"/Users/youichiakashi/FieldToolManager/app/api/$dir\" ])",
+      "Bash(/Users/youichiakashi/FieldToolManager/app/api/admin/2fa/enable/route.ts )",
+      "Bash(/Users/youichiakashi/FieldToolManager/app/api/admin/2fa/disable/route.ts )",
+      "Bash(/Users/youichiakashi/FieldToolManager/app/api/admin/2fa/verify/route.ts )",
+      "Bash(/Users/youichiakashi/FieldToolManager/app/api/admin/organizations/route.ts )",
+      "Bash(/Users/youichiakashi/FieldToolManager/app/api/admin/contracts/route.ts)",
+      "Bash(! grep -q \"verifyCsrfToken\" \"$file\")"
     ],
     "deny": [],
     "ask": []

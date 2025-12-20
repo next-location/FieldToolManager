@@ -7,6 +7,7 @@ import { DeleteConfirmModal } from './DeleteConfirmModal'
 import { HistoryModal } from './HistoryModal'
 import { BulkImportModal } from './BulkImportModal'
 import { PermissionMatrixModal } from './PermissionMatrixModal'
+import { PlanUpgradeModal } from './PlanUpgradeModal'
 
 interface User {
   id: string
@@ -44,6 +45,7 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isBulkImportModalOpen, setIsBulkImportModalOpen] = useState(false)
   const [isPermissionMatrixOpen, setIsPermissionMatrixOpen] = useState(false)
+  const [isPlanUpgradeModalOpen, setIsPlanUpgradeModalOpen] = useState(false)
   const [editingStaff, setEditingStaff] = useState<User | null>(null)
   const [deletingStaff, setDeletingStaff] = useState<User | null>(null)
   const [historyStaff, setHistoryStaff] = useState<User | null>(null)
@@ -270,7 +272,10 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
               )}
             </div>
             {usagePercent >= 100 && (
-              <button className="px-4 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700">
+              <button
+                onClick={() => setIsPlanUpgradeModalOpen(true)}
+                className="px-4 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700"
+              >
                 プランをアップグレード
               </button>
             )}
@@ -676,6 +681,16 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
         isOpen={isPermissionMatrixOpen}
         onClose={() => setIsPermissionMatrixOpen(false)}
       />
+
+      {organization && (
+        <PlanUpgradeModal
+          isOpen={isPlanUpgradeModalOpen}
+          onClose={() => setIsPlanUpgradeModalOpen(false)}
+          currentPlan={organization.plan}
+          currentUserCount={organization.current_count}
+          maxUsers={organization.max_users}
+        />
+      )}
     </div>
   )
 }

@@ -206,7 +206,6 @@ async function ReceiptScheduleContent() {
           </div>
         )}
       </div>
-      </div>
     </div>
   )
 }

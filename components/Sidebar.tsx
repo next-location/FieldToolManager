@@ -93,7 +93,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
-        <nav className="p-4 space-y-1">
+        <nav className="p-4 space-y-2">
           {/* ダッシュボード */}
           <Link
             href="/"
@@ -171,7 +171,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
               </button>
 
               {expandedMenu === 'tools' && (
-                <div className="ml-8 mt-1 space-y-1">
+                <div className="ml-6 mt-2 space-y-1.5">
                   <Link
                     href="/tools"
                     onClick={onClose}
@@ -254,7 +254,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
               </button>
 
               {expandedMenu === 'equipment' && (
-                <div className="ml-8 mt-1 space-y-1">
+                <div className="ml-6 mt-2 space-y-1.5">
                   <Link
                     href="/equipment"
                     onClick={onClose}
@@ -304,7 +304,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
               </button>
 
               {expandedMenu === 'movement' && (
-                <div className="ml-8 mt-1 space-y-1">
+                <div className="ml-6 mt-2 space-y-1.5">
                   <Link
                     href="/movements/bulk"
                     onClick={onClose}
@@ -400,7 +400,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
               </button>
 
               {expandedMenu === 'work-reports' && (
-                <div className="ml-4 mt-1 space-y-1 border-l border-gray-200 pl-4">
+                <div className="ml-6 mt-2 space-y-1.5">
                   <Link
                     href="/work-reports"
                     onClick={onClose}
@@ -461,7 +461,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
               </button>
 
               {expandedMenu === 'attendance' && (
-                <div className="ml-8 mt-1 space-y-1">
+                <div className="ml-6 mt-2 space-y-1.5">
                   {/* 出退勤（全員） */}
                   <Link
                     href="/attendance/clock"
@@ -573,7 +573,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
               </button>
 
               {expandedMenu === 'master' && (
-                <div className="ml-8 mt-1 space-y-1">
+                <div className="ml-6 mt-2 space-y-1.5">
                   {isAdmin && (
                     <Link
                       href="/clients"
@@ -602,7 +602,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                     現場マスタ
                   </Link>
                   {isAdmin && hasAssetPackage && (
-                    <div>
+                    <>
                       <Link
                         href="/warehouse-locations"
                         onClick={onClose}
@@ -633,7 +633,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                           </span>
                         </Link>
                       )}
-                    </div>
+                    </>
                   )}
                   {/* マスタ管理（道具・消耗品）- Manager/Admin only + 現場資産パック必須 */}
                   {isManagerOrAdmin && hasAssetPackage && (
@@ -690,7 +690,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
               </button>
 
               {expandedMenu === 'billing' && (
-                <div className="ml-8 mt-1 space-y-1">
+                <div className="ml-6 mt-2 space-y-1.5">
                   <Link
                     href="/projects"
                     onClick={onClose}
@@ -802,7 +802,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
               </button>
 
               {expandedMenu === 'analytics' && (
-                <div className="ml-8 mt-1 space-y-1">
+                <div className="ml-6 mt-2 space-y-1.5">
                   {/* 現場DX業務効率化パック必須の分析 */}
                   {isManagerOrAdmin && hasDxPackage && (
                     <Link
@@ -997,7 +997,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
             </button>
 
             {expandedMenu === 'settings' && (
-              <div className="ml-8 mt-1 space-y-1">
+              <div className="ml-6 mt-2 space-y-1.5">
                 {isAdmin && (
                   <Link
                     href="/organization"

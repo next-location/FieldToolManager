@@ -153,7 +153,6 @@ async function RecurringInvoicesContent() {
           </div>
         </div>
       </div>
-      </div>
     </div>
   )
 }

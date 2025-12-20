@@ -250,7 +250,6 @@ async function ReportsContent() {
           <p>• 📈 四半期決算サマリー</p>
         </div>
       </div>
-      </div>
     </div>
   )
 }

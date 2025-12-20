@@ -258,7 +258,6 @@ async function PayablesList() {
           )}
         </div>
       </div>
-      </div>
     </div>
   )
 }

@@ -211,12 +211,12 @@ export default async function ClientDetailPage({
                   />
                   <InfoItem
                     label="支払期日"
-                    value={typedClient.payment_due_days && `${typedClient.payment_due_days}日`}
+                    value={typedClient.payment_due_days ? `${typedClient.payment_due_days}日` : undefined}
                   />
                   <InfoItem
                     label="与信限度額"
                     value={
-                      typedClient.credit_limit && `¥${typedClient.credit_limit.toLocaleString()}`
+                      typedClient.credit_limit ? `¥${typedClient.credit_limit.toLocaleString()}` : undefined
                     }
                   />
                   <InfoItem

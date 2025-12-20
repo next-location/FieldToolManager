@@ -50,14 +50,14 @@ export interface UsageAnalyticsReport {
 /**
  * 使用頻度分析を実行
  */
-export async function analyzeUsage(
+export function analyzeUsage(
   tools: any[],
   movements: any[],
   sites: any[],
   users: any[],
   periodStart: Date,
   periodEnd: Date
-): Promise<UsageAnalyticsReport> {
+): UsageAnalyticsReport {
   const analyses: UsageAnalysis[] = []
   const totalDays = Math.ceil((periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24))
 

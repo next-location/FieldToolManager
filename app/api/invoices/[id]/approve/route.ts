@@ -77,27 +77,28 @@ export async function POST(
       notes: null
     })
 
-    // 作成者に通知を送信
-    if (invoice.created_by && invoice.created_by !== userData.id) {
-      console.log('[APPROVE INVOICE] Sending notification to creator:', invoice.created_by)
+    // 提出者に通知を送信（承認者本人でない場合）
+    if (invoice.submitted_by && invoice.submitted_by !== userData.id) {
+      console.log('[APPROVE INVOICE] Sending notification to submitter:', invoice.submitted_by)
       const { error: notificationError } = await supabase.from('notifications').insert({
-        target_user_id: invoice.created_by,
+        target_user_id: invoice.submitted_by,
         organization_id: userData.organization_id,
-        type: 'estimate_approved', // 既存のタイプを使用
+        type: 'invoice_approved',
         title: '請求書が承認されました',
         message: `請求書「${invoice.invoice_number}」が${userData.name || 'マネージャー'}により承認されました。顧客に送付できます。`,
         severity: 'success',
         metadata: {
           invoice_id: id,
           invoice_number: invoice.invoice_number,
-          approved_by: userData.name || 'Unknown'
+          approved_by: userData.name || 'Unknown',
+          approved_by_id: userData.id
         }
       })
 
       if (notificationError) {
         console.error('[APPROVE INVOICE] Notification error:', notificationError)
       } else {
-        console.log('[APPROVE INVOICE] Notification sent successfully')
+        console.log('[APPROVE INVOICE] Notification sent successfully to submitter')
       }
     }
 

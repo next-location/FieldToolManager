@@ -65,6 +65,32 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // マルチテナント検証（開発・本番共通）
+  const hostname = request.headers.get('host') || ''
+
+  // サブドメインを抽出
+  const subdomain = extractSubdomain(hostname)
+
+  // ルートパスの処理
+  if (request.nextUrl.pathname === '/') {
+    // サブドメインがある場合は、認証済みユーザーを/dashboardにリダイレクト
+    if (subdomain) {
+      const supabase = await createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (user) {
+        console.log('[Middleware] Authenticated user accessing root, redirecting to /dashboard')
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
+    } else {
+      // サブドメインなしの場合はランディングページを表示
+      console.log('[Middleware] No subdomain, showing landing page')
+      return response
+    }
+  }
+
   // ログイン・公開ページ・API・静的ファイル・スーパーアドミンはスキップ
   if (request.nextUrl.pathname.startsWith('/login') ||
       request.nextUrl.pathname.startsWith('/admin') ||
@@ -75,12 +101,6 @@ export async function middleware(request: NextRequest) {
     console.log('[Middleware] Skipping auth check for:', request.nextUrl.pathname)
     return response
   }
-
-  // マルチテナント検証（開発・本番共通）
-  const hostname = request.headers.get('host') || ''
-
-  // サブドメインを抽出
-  const subdomain = extractSubdomain(hostname)
 
   console.log('[Middleware] hostname:', hostname)
   console.log('[Middleware] subdomain:', subdomain)

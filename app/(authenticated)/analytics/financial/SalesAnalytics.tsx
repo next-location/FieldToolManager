@@ -80,11 +80,14 @@ export default async function SalesAnalytics() {
   const clientSales = (invoices || []).reduce((acc: any, invoice) => {
     if (!invoice.client) return acc
 
-    const clientId = invoice.client.id
+    const client = Array.isArray(invoice.client) ? invoice.client[0] : invoice.client
+    const clientId = client?.id
+    if (!clientId) return acc
+
     if (!acc[clientId]) {
       acc[clientId] = {
         clientId,
-        clientName: invoice.client.name,
+        clientName: client.name,
         totalAmount: 0,
         paidAmount: 0,
         invoiceCount: 0
@@ -106,11 +109,14 @@ export default async function SalesAnalytics() {
   const projectSales = (invoices || []).reduce((acc: any, invoice) => {
     if (!invoice.project) return acc
 
-    const projectId = invoice.project.id
+    const project = Array.isArray(invoice.project) ? invoice.project[0] : invoice.project
+    const projectId = project?.id
+    if (!projectId) return acc
+
     if (!acc[projectId]) {
       acc[projectId] = {
         projectId,
-        projectName: invoice.project.project_name,
+        projectName: project.project_name,
         totalAmount: 0,
         paidAmount: 0,
         invoiceCount: 0

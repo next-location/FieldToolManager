@@ -343,7 +343,6 @@ async function CashflowAnalyticsContent() {
           ))}
         </div>
       </div>
-      </div>
     </div>
   )
 }

@@ -57,7 +57,7 @@ export interface CostAnalyticsReport {
 /**
  * コスト分析を実行
  */
-export async function analyzeCosts(
+export function analyzeCosts(
   tools: any[],
   toolItems: any[],
   movements: any[],
@@ -66,7 +66,7 @@ export async function analyzeCosts(
   consumableInventory: any[],
   periodStart: Date,
   periodEnd: Date
-): Promise<CostAnalyticsReport> {
+): CostAnalyticsReport {
   const analyses: ToolCostAnalysis[] = []
 
   for (const tool of tools) {

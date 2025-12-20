@@ -245,7 +245,6 @@ async function ReceivablesList() {
           )}
         </div>
       </div>
-      </div>
     </div>
   )
 }

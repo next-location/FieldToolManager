@@ -113,7 +113,7 @@ export default async function CashflowAnalytics() {
       number: invoice.invoice_number,
       date: invoice.due_date,
       amount: remaining,
-      client: invoice.client?.name
+      client: Array.isArray(invoice.client) ? (invoice.client[0] as any)?.name : (invoice.client as any)?.name
     })
   })
 
@@ -142,7 +142,7 @@ export default async function CashflowAnalytics() {
       number: po.po_number,
       date: po.payment_due_date,
       amount: remaining,
-      supplier: po.supplier?.name
+      supplier: Array.isArray(po.supplier) ? (po.supplier[0] as any)?.name : (po.supplier as any)?.name
     })
   })
 
