@@ -303,7 +303,7 @@ export default async function Home() {
                 </h3>
                 <div className="mt-2 text-sm text-red-700">
                   <ul className="list-disc pl-5 space-y-1">
-                    {lowStockConsumables.map((item) => (
+                    {lowStockConsumables.map((item) => item && (
                       <li key={item.id}>
                         <Link
                           href="/consumables"
