@@ -14,10 +14,10 @@ type ToolItem = {
     name: string
     model_number: string | null
     manufacturer: string | null
-  }
+  }[]
   current_site?: {
     name: string
-  }
+  }[]
 }
 
 type ToolSetFormProps = {
@@ -38,10 +38,10 @@ export function ToolSetForm({ toolItems, action }: ToolSetFormProps) {
   }
 
   const filteredItems = toolItems.filter((item) => {
-    const tool = item.tools as any
+    const tool = (item.tools[0] || {}) as any
     const searchLower = searchTerm.toLowerCase()
     return (
-      tool.name.toLowerCase().includes(searchLower) ||
+      tool.name?.toLowerCase().includes(searchLower) ||
       item.serial_number.includes(searchLower) ||
       tool.model_number?.toLowerCase().includes(searchLower) ||
       false
@@ -50,7 +50,7 @@ export function ToolSetForm({ toolItems, action }: ToolSetFormProps) {
 
   // 道具マスタごとにグループ化
   const groupedItems = filteredItems.reduce((acc, item) => {
-    const tool = item.tools as any
+    const tool = (item.tools[0] || {}) as any
     const key = tool.id
     if (!acc[key]) {
       acc[key] = {

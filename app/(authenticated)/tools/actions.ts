@@ -61,7 +61,7 @@ export async function createTool(formData: {
 
   if (insertError || !toolData) {
     console.error('Insert error:', insertError)
-    return { error: '登録に失敗しました: ' + insertError.message }
+    return { error: '登録に失敗しました: ' + (insertError?.message || '不明なエラー') }
   }
 
   // 指定された数量分の個別アイテムを作成
