@@ -345,7 +345,7 @@ async function ProjectLedgerContent({ projectId }: { projectId: string }) {
                         {po.po_number}
                       </Link>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">{po.supplier?.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{Array.isArray(po.supplier) ? (po.supplier[0] as any)?.name : (po.supplier as any)?.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       {new Date(po.order_date).toLocaleDateString('ja-JP')}
                     </td>

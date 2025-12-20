@@ -161,7 +161,7 @@ async function ProfitLossContent() {
                     <div className="font-medium">{project.project_name}</div>
                     <div className="text-xs text-gray-500">{project.project_code}</div>
                   </td>
-                  <td className="px-6 py-4 text-sm">{project.client?.name}</td>
+                  <td className="px-6 py-4 text-sm">{Array.isArray(project.client) ? (project.client[0] as any)?.name : (project.client as any)?.name}</td>
                   <td className="px-6 py-4 text-center">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                       project.status === 'planning' ? 'bg-gray-100 text-gray-800' :
