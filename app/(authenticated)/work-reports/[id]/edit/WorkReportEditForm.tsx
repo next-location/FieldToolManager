@@ -131,8 +131,8 @@ export function WorkReportEditForm({
   const [overtimeHours, setOvertimeHours] = useState<Record<string, number>>(initialOvertimeHours)
 
   // 特記事項・備考
-  const [specialNotes, setSpecialNotes] = useState(report.special_notes || '')
-  const [remarks, setRemarks] = useState(report.remarks || '')
+  const [specialNotes, setSpecialNotes] = useState((report as any).special_notes || '')
+  const [remarks, setRemarks] = useState((report as any).remarks || '')
 
   // カスタムフィールドの値を保持（既存データで初期化）
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>(

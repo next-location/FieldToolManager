@@ -397,7 +397,7 @@ export async function createToolWithItems(formData: {
 
     if (insertError || !newTool) {
       console.error('Tool insert error:', insertError)
-      return { error: '道具マスタの登録に失敗しました: ' + insertError.message }
+      return { error: '道具マスタの登録に失敗しました: ' + (insertError?.message || '不明なエラー') }
     }
 
     toolId = newTool.id
