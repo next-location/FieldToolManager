@@ -22,6 +22,7 @@ interface Supplier {
   account_number?: string
   account_holder?: string
   notes?: string
+  is_active: boolean
 }
 
 interface SupplierFormModalProps {
