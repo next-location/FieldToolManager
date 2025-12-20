@@ -15,7 +15,9 @@ Next.js 15.1.6の本番環境ビルド時に発生したTypeScriptエラーの�
 - `5c911cd` - Update production build fixes documentation with latest changes
 - `90beb4e` - Fix Supplier type: add is_active and supplier_code
 - `ab47ff0` - Update docs: add final commit 90beb4e
-- `a3f517c` - Fix ToolSetForm and tools actions type errors ✅ **最終**
+- `a3f517c` - Fix ToolSetForm and tools actions type errors
+- `efaaf1f` - Update docs: add commit a3f517c
+- `c5307de` - Fix final build errors: insertError and work report fields ✅ **最終**
 
 ---
 
@@ -267,7 +269,10 @@ await createMovement(formData)
 15. **Tools Actions** (1ファイル)
     - `app/(authenticated)/tools/actions.ts`
 
-**合計: 約45ファイル**
+16. **Work Reports関連** (1ファイル)
+    - `app/(authenticated)/work-reports/[id]/edit/WorkReportEditForm.tsx`
+
+**合計: 約46ファイル**
 
 ---
 
@@ -347,6 +352,18 @@ projects: { id: string; name: string }[]  // nameプロパティが存在しな�
 // After: データベースのカラム名に合わせる
 projects: { id: string; project_name: string }[]  // project_nameを使用
 ```
+
+### パターン8: 廃止されたフィールドへの対応
+
+```typescript
+// Before: 型定義にないプロパティにアクセス
+const [specialNotes, setSpecialNotes] = useState(report.special_notes || '')  // エラー
+
+// After: Type Assertionで回避
+const [specialNotes, setSpecialNotes] = useState((report as any).special_notes || '')
+```
+
+**注意**: このパターンは一時的な回避策です。理想的には、データベースマイグレーションと型定義の更新が必要です。
 
 ---
 
