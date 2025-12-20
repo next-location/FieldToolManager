@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useDebounce } from '@/hooks/useDebounce'
 
 interface Site {
   id: string
@@ -29,17 +30,21 @@ export function WorkReportFilter({ sites, users }: WorkReportFilterProps) {
   const [dateTo, setDateTo] = useState(searchParams.get('date_to') || '')
   const [keyword, setKeyword] = useState(searchParams.get('keyword') || '')
 
-  const applyFilter = () => {
+  // キーワードのみデバウンス（500ms）
+  const debouncedKeyword = useDebounce(keyword, 500)
+
+  // フィルター自動適用
+  useEffect(() => {
     const params = new URLSearchParams()
     if (status !== 'all') params.set('status', status)
     if (siteId) params.set('site_id', siteId)
     if (createdBy) params.set('created_by', createdBy)
     if (dateFrom) params.set('date_from', dateFrom)
     if (dateTo) params.set('date_to', dateTo)
-    if (keyword) params.set('keyword', keyword)
+    if (debouncedKeyword) params.set('keyword', debouncedKeyword)
 
     router.push(`/work-reports?${params.toString()}`)
-  }
+  }, [status, siteId, createdBy, dateFrom, dateTo, debouncedKeyword, router])
 
   const clearFilter = () => {
     setStatus('all')
@@ -48,11 +53,24 @@ export function WorkReportFilter({ sites, users }: WorkReportFilterProps) {
     setDateFrom('')
     setDateTo('')
     setKeyword('')
-    router.push('/work-reports')
   }
 
+  const hasActiveFilters = status !== 'all' || siteId || createdBy || dateFrom || dateTo || keyword
+
   return (
-    <div className="bg-white shadow sm:rounded-lg p-4 mb-4">
+    <div className="bg-white shadow rounded-lg p-6 mb-6">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold text-gray-900">検索・フィルター</h2>
+        {hasActiveFilters && (
+          <button
+            onClick={clearFilter}
+            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+          >
+            クリア
+          </button>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* ステータス */}
         <div>
@@ -155,24 +173,6 @@ export function WorkReportFilter({ sites, users }: WorkReportFilterProps) {
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
-
-        {/* ボタン群 */}
-        <div className="flex items-end gap-2">
-          <button
-            type="button"
-            onClick={applyFilter}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium"
-          >
-            検索
-          </button>
-          <button
-            type="button"
-            onClick={clearFilter}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 font-medium"
-          >
-            クリア
-          </button>
-        </div>
       </div>
 
       {/* タブ型ステータスフィルター（モバイル向け簡易版） */}
@@ -188,16 +188,7 @@ export function WorkReportFilter({ sites, users }: WorkReportFilterProps) {
           return (
             <button
               key={s}
-              onClick={() => {
-                setStatus(s)
-                const params = new URLSearchParams(searchParams)
-                if (s !== 'all') {
-                  params.set('status', s)
-                } else {
-                  params.delete('status')
-                }
-                router.push(`/work-reports?${params.toString()}`)
-              }}
+              onClick={() => setStatus(s)}
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
                 status === s
                   ? 'bg-blue-600 text-white'

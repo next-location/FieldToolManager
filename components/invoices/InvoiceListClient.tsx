@@ -179,14 +179,35 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
     }
   }
 
+  const hasActiveFilters = searchQuery || statusFilter !== 'all' || paymentFilter !== 'all' || (isManagerOrAdmin && staffFilter !== 'all')
+
+  const handleReset = () => {
+    setSearchQuery('')
+    setStatusFilter('all')
+    setPaymentFilter('all')
+    setStaffFilter('all')
+  }
+
   return (
     <>
       {/* 検索・フィルタエリア */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
+      <div className="bg-white shadow rounded-lg p-6 mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">検索・フィルター</h2>
+          {hasActiveFilters && (
+            <button
+              onClick={handleReset}
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            >
+              クリア
+            </button>
+          )}
+        </div>
+
         <div className={`grid grid-cols-1 ${isManagerOrAdmin ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-4`}>
           {/* キーワード検索 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               キーワード検索
             </label>
             <input
@@ -194,21 +215,21 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
               placeholder="請求番号・取引先・工事名で検索"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
             />
           </div>
 
           {/* ステータス */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               ステータス
             </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
             >
-              <option value="all">全て</option>
+              <option value="all">すべて</option>
               <option value="draft">下書き</option>
               <option value="submitted">提出済み</option>
               <option value="approved">承認済</option>
@@ -219,15 +240,15 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
 
           {/* 入金状況 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               入金状況
             </label>
             <select
               value={paymentFilter}
               onChange={(e) => setPaymentFilter(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
             >
-              <option value="all">全て</option>
+              <option value="all">すべて</option>
               <option value="paid">入金済</option>
               <option value="partial">一部入金</option>
               <option value="unpaid">未入金</option>
@@ -237,15 +258,15 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
           {/* スタッフフィルタ（マネージャー・管理者のみ） */}
           {isManagerOrAdmin && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 作成スタッフ
               </label>
               <select
                 value={staffFilter}
                 onChange={(e) => setStaffFilter(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
               >
-                <option value="all">全て</option>
+                <option value="all">すべて</option>
                 {staffList.map((staff) => (
                   <option key={staff} value={staff}>
                     {staff}

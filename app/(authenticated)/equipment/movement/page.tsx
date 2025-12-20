@@ -69,18 +69,20 @@ export default async function EquipmentMovementPage() {
       <div className="px-4 py-6 sm:px-0">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">重機移動</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-gray-600">
             重機の持出・返却・現場間移動を記録します
           </p>
         </div>
 
-        <EquipmentMovementForm
-          equipment={equipment || []}
-          sites={sites || []}
-          currentUserId={user.id}
-          currentUserName={userData.name}
-          organizationSettings={orgData.heavy_equipment_settings}
-        />
+        <div className="bg-white rounded-lg shadow p-6">
+          <EquipmentMovementForm
+            equipment={equipment || []}
+            sites={sites || []}
+            currentUserId={user.id}
+            currentUserName={userData.name}
+            organizationSettings={orgData.heavy_equipment_settings}
+          />
+        </div>
       </div>
     </div>
   )

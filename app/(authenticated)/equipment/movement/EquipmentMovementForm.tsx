@@ -219,9 +219,6 @@ export default function EquipmentMovementForm({
           </div>
         </div>
       )}
-
-      <div className="bg-white shadow sm:rounded-lg">
-        <div className="px-4 py-5 sm:p-6 space-y-6">
           {/* アクションタイプ選択 */}
           <div>
             <label htmlFor="action_type" className="block text-sm font-medium text-gray-700 mb-2">
@@ -485,8 +482,6 @@ export default function EquipmentMovementForm({
               {isSubmitting ? '記録中...' : '記録する'}
             </button>
           </div>
-        </div>
-      </div>
     </form>
   )
 }

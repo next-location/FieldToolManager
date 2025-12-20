@@ -114,10 +114,12 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
       filtered = filtered.filter(payment => payment.payment_type === paymentTypeFilter)
     }
 
-    // 日付順でソート（新しい順）
-    filtered.sort((a, b) =>
-      new Date(b.payment_date).getTime() - new Date(a.payment_date).getTime()
-    )
+    // 日付順でソート（新しい順 - 降順）
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.payment_date).getTime()
+      const dateB = new Date(b.payment_date).getTime()
+      return dateB - dateA
+    })
 
     return filtered
   }, [payments, searchQuery, selectedYear, selectedMonth, startDate, endDate, paymentTypeFilter, useMonthFilter])
@@ -139,13 +141,37 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
     }
   }, [filteredPayments])
 
+  const hasActiveFilters = searchQuery || paymentTypeFilter !== 'all' || !useMonthFilter || startDate || endDate
+
+  const handleReset = () => {
+    setSearchQuery('')
+    setPaymentTypeFilter('all')
+    setUseMonthFilter(true)
+    setStartDate('')
+    setEndDate('')
+    setSelectedYear(currentDate.getFullYear())
+    setSelectedMonth(currentDate.getMonth() + 1)
+  }
+
   return (
     <>
       {/* フィルターエリア */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <div className="bg-white shadow rounded-lg p-6 mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">検索・フィルター</h2>
+          {hasActiveFilters && (
+            <button
+              onClick={handleReset}
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            >
+              クリア
+            </button>
+          )}
+        </div>
+
         {/* キーワード検索 */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             キーワード検索
           </label>
           <input

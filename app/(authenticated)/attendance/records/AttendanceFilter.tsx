@@ -46,8 +46,22 @@ export function AttendanceFilter({
     setFilters(resetFilters)
   }
 
+  const hasActiveFilters = filters.user_id || filters.start_date || filters.end_date || filters.location_type || filters.site_id
+
   return (
-    <div className="bg-white shadow sm:rounded-lg p-4 mb-4">
+    <div className="bg-white shadow rounded-lg p-6 mb-6">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold text-gray-900">検索・フィルター</h2>
+        {hasActiveFilters && (
+          <button
+            onClick={handleResetFilters}
+            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+          >
+            クリア
+          </button>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* スタッフ */}
         <div>
@@ -134,16 +148,6 @@ export function AttendanceFilter({
             ))}
           </select>
         </div>
-      </div>
-
-      {/* ボタン */}
-      <div className="mt-4 flex gap-2">
-        <button
-          onClick={handleResetFilters}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-        >
-          クリア
-        </button>
       </div>
     </div>
   )
