@@ -77,7 +77,7 @@ export function ClientTabs({ clients, initialTab = 'all' }: ClientTabsProps) {
       client.name?.toLowerCase().includes(query) ||
       client.name_kana?.toLowerCase().includes(query) ||
       client.name_kana?.toLowerCase().includes(queryKatakana.toLowerCase()) ||
-      client.client_code?.toLowerCase().includes(query) ||
+      client.code?.toLowerCase().includes(query) ||
       client.address?.toLowerCase().includes(query) ||
       client.phone?.toLowerCase().includes(query)
 
