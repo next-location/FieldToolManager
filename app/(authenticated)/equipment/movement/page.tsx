@@ -80,7 +80,7 @@ export default async function EquipmentMovementPage() {
             sites={sites || []}
             currentUserId={user.id}
             currentUserName={userData.name}
-            organizationSettings={orgData.heavy_equipment_settings}
+            organizationSettings={orgData?.heavy_equipment_settings}
           />
         </div>
       </div>

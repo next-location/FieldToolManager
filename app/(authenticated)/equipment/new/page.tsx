@@ -77,7 +77,7 @@ export default async function NewEquipmentPage() {
               organizationId={userData?.organization_id}
               categories={categories || []}
               sites={sites || []}
-              organizationSettings={orgData.heavy_equipment_settings}
+              organizationSettings={orgData?.heavy_equipment_settings}
             />
           </div>
         </div>

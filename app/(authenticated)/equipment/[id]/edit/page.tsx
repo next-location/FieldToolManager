@@ -103,7 +103,7 @@ export default async function EditEquipmentPage({
               equipment={equipment}
               categories={categories || []}
               sites={sites || []}
-              organizationSettings={orgData.heavy_equipment_settings}
+              organizationSettings={orgData?.heavy_equipment_settings}
             />
           </div>
         </div>
