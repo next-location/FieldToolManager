@@ -58,7 +58,9 @@ export default async function EquipmentBulkQRPage() {
     name: eq.name,
     code: `重機コード: ${eq.equipment_code}`,
     equipmentCode: eq.equipment_code,
-    category: eq.heavy_equipment_categories?.name || '未分類',
+    category: Array.isArray(eq.heavy_equipment_categories)
+      ? (eq.heavy_equipment_categories[0] as any)?.name || '未分類'
+      : (eq.heavy_equipment_categories as any)?.name || '未分類',
   }))
 
   return (
