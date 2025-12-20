@@ -48,7 +48,9 @@ export default async function ConsumablesBulkQRPage() {
     name: consumable.name,
     code: `ID: ${consumable.id.substring(0, 8)}...`,
     unit: consumable.unit,
-    category: consumable.tool_categories?.name || '未分類',
+    category: Array.isArray(consumable.tool_categories)
+      ? (consumable.tool_categories[0] as any)?.name || '未分類'
+      : (consumable.tool_categories as any)?.name || '未分類',
   }))
 
   return (
