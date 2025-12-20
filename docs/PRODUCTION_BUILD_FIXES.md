@@ -10,6 +10,8 @@ Next.js 15.1.6の本番環境ビルド時に発生したTypeScriptエラーの�
 - `f9c320e` - Fix all TypeScript build errors for production deployment
 - `13ace7e` - Fix remaining Supabase array type errors
 - `9bf7c28` - Fix final build errors: display_order and supplier_code
+- `c5e50b2` - Add production build fixes documentation
+- `a879376` - Fix final build errors: project_name and Supplier type
 
 ---
 
@@ -178,10 +180,13 @@ await createMovement(formData)
 - `supplier` → `client` (Purchase Orders関連)
 - `supplier_code` → `client_code`
 - `display_order` → `sort_order`
+- `name` → `project_name` (Projects関連)
+- `Supplier`型のimportエラー（型定義ファイルから削除されていた）
 
 **影響を受けたファイル**:
 - `app/(authenticated)/purchase-orders/[id]/PurchaseOrderDetailClient.tsx`
 - `app/(authenticated)/purchase-orders/PurchaseOrderListClient.tsx`
+- `app/(authenticated)/suppliers/SupplierFormModal.tsx`
 
 ---
 
@@ -248,7 +253,10 @@ await createMovement(formData)
     - `app/(authenticated)/receivables/page.tsx`
     - `app/(authenticated)/recurring-invoices/page.tsx`
 
-**合計: 約40ファイル**
+13. **Suppliers関連** (1ファイル)
+    - `app/(authenticated)/suppliers/SupplierFormModal.tsx`
+
+**合計: 約42ファイル**
 
 ---
 
@@ -303,6 +311,30 @@ if (userData?.organization_id) { ... }
 const client = Array.isArray(invoice.client)
   ? (invoice.client[0] as any)?.name
   : (invoice.client as any)?.name
+```
+
+### パターン6: インターフェースの定義（廃止された型への対応）
+
+```typescript
+// Before: 外部からimport（エラー）
+import { Supplier } from '@/types/purchase-orders'  // 廃止されている
+
+// After: ローカルで定義
+interface Supplier {
+  id: string
+  name: string
+  // ... 必要なプロパティ
+}
+```
+
+### パターン7: プロパティ名の統一
+
+```typescript
+// Before: データベースとの不一致
+projects: { id: string; name: string }[]  // nameプロパティが存在しない
+
+// After: データベースのカラム名に合わせる
+projects: { id: string; project_name: string }[]  // project_nameを使用
 ```
 
 ---
