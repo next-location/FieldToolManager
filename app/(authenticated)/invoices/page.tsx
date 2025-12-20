@@ -33,20 +33,7 @@ async function InvoiceList() {
     .is('deleted_at', null)
     .order('created_at', { ascending: false})
 
-  return (
-    <>
-      <div className="mb-4 flex justify-end">
-        <Link
-          href="/invoices/new"
-          className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-600"
-        >
-          新規請求書作成
-        </Link>
-      </div>
-
-      <InvoiceListClient invoices={invoices || []} userRole={userData?.role || ''} />
-    </>
-  )
+  return <InvoiceListClient invoices={invoices || []} userRole={userData?.role || ''} />
 }
 
 export default async function InvoicesPage() {
@@ -77,23 +64,33 @@ export default async function InvoicesPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">請求書管理</h1>
-        <p className="text-gray-600">
-          請求書の作成・管理を行います
-        </p>
-      </div>
-
-      <Suspense
-        fallback={
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
+        <div className="mb-6 flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">請求書管理</h1>
+            <p className="mt-2 text-sm text-gray-600">
+              請求書の作成・管理を行います
+            </p>
           </div>
-        }
-      >
-        <InvoiceList />
-      </Suspense>
+          <Link
+            href="/invoices/new"
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+          >
+            + 新規請求書作成
+          </Link>
+        </div>
+
+        <Suspense
+          fallback={
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            </div>
+          }
+        >
+          <InvoiceList />
+        </Suspense>
+      </div>
     </div>
   )
 }

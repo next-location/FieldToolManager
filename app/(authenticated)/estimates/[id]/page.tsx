@@ -6,7 +6,8 @@ import { ApproveEstimateButton } from '@/components/estimates/ApproveEstimateBut
 import { SendToCustomerButton } from '@/components/estimates/SendToCustomerButton'
 import { CustomerDecisionButtons } from '@/components/estimates/CustomerDecisionButtons'
 import { DeleteEstimateButton } from '@/components/estimates/DeleteEstimateButton'
-import { getEstimateHistory, getActionTypeLabel } from '@/lib/estimate-history'
+import { getEstimateHistory } from '@/lib/estimate-history'
+import { EstimateHistoryTimeline } from '@/components/estimates/EstimateHistoryTimeline'
 
 // キャッシュを無効化
 export const dynamic = 'force-dynamic'
@@ -122,13 +123,23 @@ export default async function EstimateDetailPage({
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold mb-2">見積書詳細</h1>
+          <h1 className="text-2xl font-bold mb-2">見積書詳細</h1>
           <p className="text-gray-600">{estimate.estimate_number}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {/* 期限切れの場合は警告メッセージを表示 */}
+          {estimate.status === 'expired' && (
+            <div className="w-full mb-4">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-yellow-800 text-sm">
+                ⚠️ この見積書は有効期限が切れています。編集・承認・送付はできません。
+              </div>
+            </div>
+          )}
+
           {/* 下書き状態: 編集のみ可能 */}
           {estimate.status === 'draft' && (
             <Link
@@ -197,10 +208,18 @@ export default async function EstimateDetailPage({
             </>
           )}
 
-          {/* 顧客却下済み: ボタンなし（一覧に戻るのみ） */}
+          {/* 顧客却下済み・期限切れ: ボタンなし（一覧に戻るのみ） */}
 
-          {/* 削除ボタン: 未承認の見積書のみ */}
-          {!estimate.manager_approved_at && (
+          {/* 削除ボタン: 未承認の見積書のみ（期限切れも削除可能） */}
+          {!estimate.manager_approved_at && estimate.status !== 'expired' && (
+            <DeleteEstimateButton
+              estimateId={id}
+              estimateNumber={estimate.estimate_number}
+            />
+          )}
+
+          {/* 期限切れの場合のみ削除ボタン表示 */}
+          {estimate.status === 'expired' && (
             <DeleteEstimateButton
               estimateId={id}
               estimateNumber={estimate.estimate_number}
@@ -400,36 +419,10 @@ export default async function EstimateDetailPage({
         )}
 
         {/* 操作履歴 */}
-        {history.length > 0 && (
-          <div className="mt-8 print:hidden">
-            <h3 className="text-lg font-semibold mb-4">操作履歴</h3>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="space-y-3">
-                {history.map((record: any, index: number) => (
-                  <div key={record.id} className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-2 h-2 mt-2 bg-blue-500 rounded-full"></div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline space-x-2">
-                        <span className="font-medium text-gray-900">{getActionTypeLabel(record.action_type)}</span>
-                        <span className="text-sm text-gray-500">
-                          {new Date(record.created_at).toLocaleString('ja-JP')}
-                        </span>
-                      </div>
-                      <div className="text-sm text-gray-700 mt-1">
-                        {record.performed_by_name && (
-                          <span>実行者: {record.performed_by_name}</span>
-                        )}
-                        {record.notes && (
-                          <div className="mt-1 text-gray-600 whitespace-pre-wrap">{record.notes}</div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+        <div className="mt-8 print:hidden bg-white shadow-sm rounded-lg p-6">
+          <h2 className="text-xl font-bold mb-4">操作履歴</h2>
+          <EstimateHistoryTimeline history={history} />
+        </div>
 
         {/* メタデータ */}
         <div className="text-xs text-gray-500 pt-6 border-t print:hidden">
@@ -439,6 +432,7 @@ export default async function EstimateDetailPage({
           )}
           <p>最終更新: {new Date(estimate.updated_at).toLocaleString('ja-JP')}</p>
         </div>
+      </div>
       </div>
     </div>
   )

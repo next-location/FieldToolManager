@@ -7,6 +7,7 @@ import path from 'path'
 import { drawCompanyName, getTableConfig } from '@/lib/pdf/helpers'
 import { svgToPngDataUrl } from '@/lib/pdf/svg-to-png'
 import { generateCompanySeal } from '@/lib/company-seal/generate-seal'
+import { createInvoiceHistory } from '@/lib/invoice-history'
 
 export async function GET(
   request: NextRequest,
@@ -370,6 +371,15 @@ export async function GET(
     // ファイル名を生成
     const dateStr = new Date(invoice.invoice_date).toISOString().split('T')[0]
     const fileName = `請求書_${invoice.invoice_number}_${dateStr}.pdf`
+
+    // 履歴記録
+    await createInvoiceHistory({
+      invoiceId: id,
+      organizationId: userData.organization_id,
+      actionType: 'pdf_generated',
+      performedBy: user.id,
+      performedByName: userData.name || 'Unknown',
+    })
 
     // PDFを返す
     console.log('[Invoice PDF API] PDF generated successfully')

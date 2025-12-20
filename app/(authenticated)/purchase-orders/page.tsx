@@ -1,209 +1,146 @@
-import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import Link from 'next/link'
+import { PurchaseOrderListClient } from './PurchaseOrderListClient'
 
-async function PurchaseOrderList() {
+export default async function PurchaseOrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    status?: string
+    search?: string
+  }>
+}) {
+  const params = await searchParams
+  const status = params.status || 'all'
+  const search = params.search || ''
+
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   if (!user) {
     redirect('/login')
   }
 
+  // ユーザー情報取得
   const { data: userData } = await supabase
     .from('users')
-    .select('organization_id')
+    .select('organization_id, role')
     .eq('id', user.id)
     .single()
 
-  const { data: purchaseOrders } = await supabase
+  if (!userData) {
+    redirect('/login')
+  }
+
+  // 発注書一覧を取得（新しい順）
+  // リーダーは自分が作成した発注書のみ、マネージャー・管理者は全て表示
+  let query = supabase
     .from('purchase_orders')
     .select(`
       *,
-      supplier:clients(name),
-      project:projects(project_name)
+      client:clients!purchase_orders_client_id_fkey(id, name, client_code),
+      project:projects(id, project_name),
+      created_by_user:users!purchase_orders_created_by_fkey(id, name),
+      approved_by_user:users!purchase_orders_approved_by_fkey(id, name)
     `)
     .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
+
+  // リーダーは自分が作成した発注書のみ表示
+  if (userData.role === 'leader') {
+    query = query.eq('created_by', user.id)
+  }
+
+  query = query
     .order('created_at', { ascending: false })
+    .limit(100)
 
-  return (
-    <div className="bg-white shadow-sm rounded-lg">
-      <div className="px-6 py-4 border-b flex justify-between items-center">
-        <h2 className="text-lg font-semibold">発注書一覧</h2>
-        <Link
-          href="/purchase-orders/new"
-          className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-600"
-        >
-          新規発注書作成
-        </Link>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                発注番号
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                仕入先
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                工事名
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                発注日
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                納期
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                金額（税込）
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ステータス
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                操作
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {purchaseOrders?.map((order) => {
-              const isOverdue = order.delivery_date && new Date(order.delivery_date) < new Date() && order.status !== 'received'
-              return (
-              <tr key={order.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {order.order_number}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {order.supplier?.name || '-'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {order.project?.project_name || '-'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(order.order_date).toLocaleDateString('ja-JP')}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  <div className="flex items-center gap-2">
-                    {order.delivery_date
-                      ? new Date(order.delivery_date).toLocaleDateString('ja-JP')
-                      : '-'}
-                    {isOverdue && (
-                      <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
-                        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                        </svg>
-                        納品遅延
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                  ¥{order.total_amount.toLocaleString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 text-xs leading-5 font-semibold rounded-full ${
-                    order.status === 'draft'
-                      ? 'bg-gray-100 text-gray-800'
-                      : order.status === 'ordered'
-                      ? 'bg-blue-100 text-blue-800'
-                      : order.status === 'partially_received'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : order.status === 'received'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {order.status === 'draft' ? '下書き'
-                      : order.status === 'ordered' ? '発注済'
-                      : order.status === 'partially_received' ? '一部納品'
-                      : order.status === 'received' ? '納品済'
-                      : 'キャンセル'}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <Link
-                    href={`/purchase-orders/${order.id}`}
-                    className="text-blue-600 hover:text-blue-900 mr-3"
-                  >
-                    詳細
-                  </Link>
-                  {order.status === 'draft' && (
-                    <Link
-                      href={`/purchase-orders/${order.id}/edit`}
-                      className="text-blue-600 hover:text-blue-900 mr-3"
-                    >
-                      編集
-                    </Link>
-                  )}
-                  <button className="text-green-600 hover:text-green-900 mr-3">
-                    PDF
-                  </button>
-                  {order.status === 'received' && (
-                    <Link
-                      href={`/payments/new?purchase_order_id=${order.id}`}
-                      className="text-purple-600 hover:text-purple-900"
-                    >
-                      支払登録
-                    </Link>
-                  )}
-                </td>
-              </tr>
-              )
-            })}
-          </tbody>
-        </table>
-
-        {(!purchaseOrders || purchaseOrders.length === 0) && (
-          <div className="text-center py-8 text-gray-500">
-            発注書データがありません
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-export default async function PurchaseOrdersPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
+  if (status && status !== 'all') {
+    query = query.eq('status', status)
   }
 
-  const { data: userData } = await supabase
+  if (search) {
+    query = query.or(
+      `order_number.ilike.%${search}%,notes.ilike.%${search}%`
+    )
+  }
+
+  const { data: orders, error: ordersError } = await query
+
+  console.log('[PURCHASE ORDERS PAGE] ===== デバッグ開始 =====')
+  console.log('[PURCHASE ORDERS PAGE] organization_id:', userData?.organization_id)
+  console.log('[PURCHASE ORDERS PAGE] status filter:', status)
+  console.log('[PURCHASE ORDERS PAGE] search filter:', search)
+  console.log('[PURCHASE ORDERS PAGE] orders count:', orders?.length || 0)
+  if (ordersError) {
+    console.error('[PURCHASE ORDERS PAGE] ERROR CODE:', ordersError.code)
+    console.error('[PURCHASE ORDERS PAGE] ERROR MESSAGE:', ordersError.message)
+    console.error('[PURCHASE ORDERS PAGE] ERROR DETAILS:', ordersError.details)
+    console.error('[PURCHASE ORDERS PAGE] ERROR HINT:', ordersError.hint)
+  }
+  if (orders && orders.length > 0) {
+    orders.forEach((order, index) => {
+      console.log(`[PURCHASE ORDERS PAGE] Order ${index + 1}:`, {
+        id: order.id,
+        order_number: order.order_number,
+        status: order.status,
+        total_amount: order.total_amount,
+        order_date: order.order_date,
+        deleted_at: order.deleted_at,
+        created_by_user: order.created_by_user,
+        approved_by_user: order.approved_by_user,
+        approved_at: order.approved_at
+      })
+    })
+  } else {
+    console.log('[PURCHASE ORDERS PAGE] orders data: null or empty')
+  }
+
+  // 仕入先一覧取得（フィルター用）- clientsテーブルから取得
+  const { data: suppliers } = await supabase
+    .from('clients')
+    .select('id, name, client_code')
+    .eq('organization_id', userData?.organization_id)
+    .in('client_type', ['supplier', 'both'])
+    .eq('is_active', true)
+    .order('name')
+
+  console.log('[PURCHASE ORDERS PAGE] suppliers count:', suppliers?.length || 0)
+
+  // プロジェクト一覧取得（フィルター用）
+  const { data: projects } = await supabase
+    .from('projects')
+    .select('id, project_name')
+    .eq('organization_id', userData?.organization_id)
+    .order('project_name')
+
+  console.log('[PURCHASE ORDERS PAGE] projects count:', projects?.length || 0)
+
+  // スタッフ一覧取得（作成者フィルタ用）
+  const { data: staffList } = await supabase
     .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single()
+    .select('id, name')
+    .eq('organization_id', userData?.organization_id)
+    .order('name')
 
-  // 管理者のみアクセス可能
-  if (!['admin', 'super_admin'].includes(userData?.role || '')) {
-    redirect('/')
-  }
+  console.log('[PURCHASE ORDERS PAGE] staff count:', staffList?.length || 0)
+  console.log('[PURCHASE ORDERS PAGE] ===== デバッグ終了 =====')
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">発注書管理</h1>
-        <p className="text-gray-600">
-          発注書の作成・管理を行います
-        </p>
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
+        {/* 発注書一覧 */}
+        <PurchaseOrderListClient
+          orders={orders || []}
+          suppliers={suppliers || []}
+          projects={projects || []}
+          currentUserRole={userData.role}
+          staffList={staffList || []}
+        />
       </div>
-
-      <Suspense
-        fallback={
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-          </div>
-        }
-      >
-        <PurchaseOrderList />
-      </Suspense>
     </div>
   )
 }

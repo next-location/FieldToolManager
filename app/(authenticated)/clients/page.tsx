@@ -62,14 +62,6 @@ export default async function ClientsPage({
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
-        {/* ヘッダー */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">取引先マスタ</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            顧客・仕入先・協力会社などの取引先情報を管理します
-          </p>
-        </div>
-
         {/* タブ付き取引先一覧 */}
         <ClientTabs clients={clients || []} initialTab={clientType} />
       </div>

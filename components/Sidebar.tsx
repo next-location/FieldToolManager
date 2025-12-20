@@ -17,6 +17,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null)
   const [submittedEstimatesCount, setSubmittedEstimatesCount] = useState(0)
   const [submittedInvoicesCount, setSubmittedInvoicesCount] = useState(0)
+  const [submittedPurchaseOrdersCount, setSubmittedPurchaseOrdersCount] = useState(0)
   const features = useFeatures()
 
   const isAdmin = userRole === 'admin' || userRole === 'super_admin'
@@ -26,6 +27,10 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
   // パッケージに応じた表示制御
   const hasAssetPackage = features.contract.packages.asset_management
   const hasDxPackage = features.contract.packages.dx_efficiency
+  const hasFullPackage = features.package_type === 'full' // フル機能統合パック
+
+  // DX機能が使えるか（DXパック または フルパック）
+  const canUseDxFeatures = hasDxPackage || hasFullPackage
 
   const isActive = (path: string) => pathname === path || pathname?.startsWith(path + '/')
 
@@ -34,7 +39,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
     setExpandedMenu(expandedMenu === menuName ? null : menuName)
   }
 
-  // 未読の提出済み見積もりと請求書の数を取得（管理者とマネージャーのみ）
+  // 未読の提出済み見積もり、請求書、発注書の数を取得（管理者とマネージャーのみ）
   useEffect(() => {
     if (isManagerOrAdmin) {
       const fetchUnreadCounts = async () => {
@@ -51,6 +56,13 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
           if (invoicesResponse.ok) {
             const result = await invoicesResponse.json()
             setSubmittedInvoicesCount(result.count || 0)
+          }
+
+          // 発注書の承認待ち件数
+          const purchaseOrdersResponse = await fetch('/api/purchase-orders/pending-count')
+          if (purchaseOrdersResponse.ok) {
+            const result = await purchaseOrdersResponse.json()
+            setSubmittedPurchaseOrdersCount(result.count || 0)
           }
         } catch (error) {
           console.error('Failed to fetch unread counts:', error)
@@ -534,7 +546,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
               <button
                 onClick={() => toggleMenu('master')}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                  isActive('/sites') || (pathname === '/clients' || (pathname?.startsWith('/clients/') && !pathname?.startsWith('/clients/stats'))) || isActive('/warehouse-locations') || isActive('/categories') || isActive('/master')
+                  isActive('/sites') || (pathname === '/clients' || (pathname?.startsWith('/clients/') && !pathname?.startsWith('/clients/stats'))) || isActive('/warehouse-locations') || isActive('/master/tools-consumables') || isActive('/master/equipment-categories')
                     ? 'bg-blue-50 text-blue-700 font-medium'
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
@@ -605,22 +617,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                           <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                         </span>
                       </Link>
-                      <Link
-                        href="/categories"
-                        onClick={onClose}
-                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                          isActive('/categories')
-                            ? 'bg-blue-50 text-blue-700 font-medium'
-                            : 'text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span className="flex items-center justify-between">
-                          <span>道具カテゴリ管理</span>
-                          <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                        </span>
-                      </Link>
                       {heavyEquipmentEnabled && (
-                        <div>
                         <Link
                           href="/master/equipment-categories"
                           onClick={onClose}
@@ -635,31 +632,33 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                             <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                           </span>
                         </Link>
-                        <Link
-                          href="/master/tools"
-                        onClick={onClose}
-                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                          isActive('/master/tools')
-                            ? 'bg-blue-50 text-blue-700 font-medium'
-                            : 'text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span className="flex items-center justify-between">
-                          <span>道具マスタ管理</span>
-                          <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                        </span>
-                        </Link>
-                        </div>
                       )}
                     </div>
+                  )}
+                  {/* マスタ管理（道具・消耗品）- Manager/Admin only + 現場資産パック必須 */}
+                  {isManagerOrAdmin && hasAssetPackage && (
+                    <Link
+                      href="/master/tools-consumables"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive('/master/tools-consumables')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="flex items-center justify-between">
+                        <span>道具マスタ</span>
+                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      </span>
+                    </Link>
                   )}
                 </div>
               )}
             </div>
           )}
 
-          {/* 帳票管理（リーダー以上 & 現場DX業務効率化パックが必要） */}
-          {isLeaderOrAbove && hasDxPackage && (
+          {/* 帳票管理（リーダー以上 & 現場DX業務効率化パック または フル機能統合パックが必要） */}
+          {isLeaderOrAbove && canUseDxFeatures && (
             <div>
               <button
                 onClick={() => toggleMenu('billing')}
@@ -738,13 +737,18 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                   <Link
                     href="/purchase-orders"
                     onClick={onClose}
-                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                    className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
                       isActive('/purchase-orders')
                         ? 'bg-blue-50 text-blue-700 font-medium'
                         : 'text-gray-600 hover:bg-gray-50'
                     }`}
                   >
-                    発注書一覧
+                    <span>発注書一覧</span>
+                    {submittedPurchaseOrdersCount > 0 && (
+                      <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
+                        {submittedPurchaseOrdersCount}
+                      </span>
+                    )}
                   </Link>
                   {/* 入出金管理（マネージャー・管理者のみ） */}
                   {isManagerOrAdmin && (

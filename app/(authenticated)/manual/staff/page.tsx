@@ -14,7 +14,7 @@ export default async function StaffManualPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
         {/* ヘッダー */}
         <div className="mb-6">
@@ -24,7 +24,7 @@ export default async function StaffManualPage() {
           >
             ← マニュアル一覧に戻る
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
             📱 現場スタッフ向け 操作マニュアル
           </h1>
           <p className="text-gray-600">

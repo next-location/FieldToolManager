@@ -97,6 +97,15 @@ export function NotificationList({ initialNotifications }: NotificationListProps
       user_invited: 'ユーザー招待',
       contract_expiring: '契約期限',
       system_announcement: 'システムお知らせ',
+      work_report_submitted: '作業報告書提出',
+      work_report_approved: '作業報告書承認',
+      work_report_rejected: '作業報告書差し戻し',
+      estimate_approved: '見積書承認',
+      estimate_returned: '見積書差し戻し',
+      estimate_customer_approved: '見積書顧客承認',
+      estimate_customer_rejected: '見積書顧客却下',
+      purchase_order_approved: '発注書承認',
+      purchase_order_rejected: '発注書差し戻し',
     }
     return labels[type] || type
   }

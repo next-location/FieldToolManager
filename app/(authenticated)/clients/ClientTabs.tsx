@@ -112,6 +112,30 @@ export function ClientTabs({ clients, initialTab = 'all' }: ClientTabsProps) {
 
   return (
     <>
+      {/* ヘッダー */}
+      <div className="mb-6 flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">取引先マスタ</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            顧客・仕入先・協力会社などの取引先情報を管理します
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <ImportExportButtons
+            filters={{
+              client_type: activeTab !== 'all' ? activeTab : undefined,
+              is_active: 'true',
+            }}
+          />
+          <Link
+            href="/clients/new"
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+          >
+            + 新規登録
+          </Link>
+        </div>
+      </div>
+
       {/* タブナビゲーション */}
       <div className="mb-6">
         <div className="flex flex-wrap gap-2">
@@ -131,9 +155,9 @@ export function ClientTabs({ clients, initialTab = 'all' }: ClientTabsProps) {
         </div>
       </div>
 
-      {/* 検索とアクションボタン */}
-      <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex-1 max-w-md">
+      {/* 検索 */}
+      <div className="mb-6">
+        <div className="max-w-md">
           <div className="relative">
             <input
               type="text"
@@ -154,21 +178,6 @@ export function ClientTabs({ clients, initialTab = 'all' }: ClientTabsProps) {
               </button>
             )}
           </div>
-        </div>
-
-        <div className="flex gap-3">
-          <ImportExportButtons
-            filters={{
-              client_type: activeTab !== 'all' ? activeTab : undefined,
-              is_active: 'true',
-            }}
-          />
-          <Link
-            href="/clients/new"
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-          >
-            + 新規登録
-          </Link>
         </div>
       </div>
 

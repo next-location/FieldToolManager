@@ -70,7 +70,7 @@ async function ReceiptScheduleContent() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">入金予定表</h1>
+        <h1 className="text-2xl font-bold mb-2">入金予定表</h1>
         <p className="text-gray-600">請求書の入金期日を月別に管理します</p>
       </div>
 
@@ -206,13 +206,15 @@ async function ReceiptScheduleContent() {
           </div>
         )}
       </div>
+      </div>
     </div>
   )
 }
 
 export default async function ReceiptSchedulePage() {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
       <Suspense
         fallback={
           <div className="flex justify-center items-center h-64">
@@ -222,6 +224,7 @@ export default async function ReceiptSchedulePage() {
       >
         <ReceiptScheduleContent />
       </Suspense>
+      </div>
     </div>
   )
 }

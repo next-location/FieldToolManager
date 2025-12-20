@@ -47,13 +47,15 @@ export default async function EditProjectPage({
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">工事編集</h1>
+        <h1 className="text-2xl font-bold mb-2">工事編集</h1>
         <p className="text-gray-600">{project.project_name}の情報を編集します</p>
       </div>
 
       <ProjectForm project={project} mode="edit" />
+      </div>
     </div>
   )
 }

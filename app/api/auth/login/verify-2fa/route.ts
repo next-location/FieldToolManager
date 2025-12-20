@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import speakeasy from 'speakeasy';
 import bcrypt from 'bcrypt';
+import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,6 +13,13 @@ const supabase = createClient(
 );
 
 export async function POST(request: NextRequest) {
+  // CSRF検証（セキュリティ強化）
+  const isValidCsrf = await verifyCsrfToken(request);
+  if (!isValidCsrf) {
+    console.error('[2FA VERIFY API] CSRF validation failed');
+    return csrfErrorResponse();
+  }
+
   try {
     const { userId, code, method } = await request.json();
 

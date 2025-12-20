@@ -87,6 +87,23 @@ export default async function Home() {
     .eq('is_active', true)
     .order('name')
 
+  // 発注書統計取得（DXパッケージ有効時）
+  let purchaseOrderStats = null
+  if (contractData?.has_dx_efficiency_package) {
+    const { data: purchaseOrders } = await supabase
+      .from('purchase_orders')
+      .select('id, status, total_amount')
+      .eq('organization_id', userData?.organization_id)
+      .is('deleted_at', null)
+
+    purchaseOrderStats = {
+      total_count: purchaseOrders?.length || 0,
+      total_amount: purchaseOrders?.reduce((sum, po) => sum + Number(po.total_amount || 0), 0) || 0,
+      pending_approval: purchaseOrders?.filter(po => po.status === 'submitted').length || 0,
+      approved: purchaseOrders?.filter(po => ['approved', 'ordered', 'partially_received', 'received'].includes(po.status)).length || 0,
+    }
+  }
+
   // 重機のアラートをチェック
   let equipmentAlerts: any[] = []
   if (orgData?.heavy_equipment_enabled) {
@@ -505,6 +522,42 @@ export default async function Home() {
                       </dt>
                       <dd className="mt-1 text-xs text-gray-400">
                         倉庫内の位置を管理
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          )}
+
+          {/* 発注書管理（DXパッケージ） */}
+          {contractData?.has_dx_efficiency_package && purchaseOrderStats && (
+            <Link
+              href="/purchase-orders"
+              className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow"
+            >
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <span className="text-3xl">📄</span>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-medium text-gray-500 truncate">
+                        発注書管理
+                      </dt>
+                      <dd className="mt-2 flex items-baseline gap-4">
+                        <span className="text-2xl font-semibold text-gray-900">
+                          {purchaseOrderStats.total_count}件
+                        </span>
+                        {purchaseOrderStats.pending_approval > 0 && (
+                          <span className="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-1 rounded">
+                            承認待ち: {purchaseOrderStats.pending_approval}件
+                          </span>
+                        )}
+                      </dd>
+                      <dd className="mt-1 text-xs text-gray-400">
+                        総額: ¥{purchaseOrderStats.total_amount.toLocaleString()}
                       </dd>
                     </dl>
                   </div>

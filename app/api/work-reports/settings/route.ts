@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { createClient } from '@/lib/supabase/server'
 
 // 組織の作業報告書設定を取得

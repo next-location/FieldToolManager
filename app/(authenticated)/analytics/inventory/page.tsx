@@ -99,9 +99,10 @@ export default async function InventoryOptimizationPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0 space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">在庫最適化レポート</h1>
+        <h1 className="text-2xl font-bold text-gray-900">在庫最適化レポート</h1>
         <p className="mt-1 text-sm text-gray-600">消耗品の在庫状況と推奨在庫レベル</p>
       </div>
 
@@ -203,6 +204,7 @@ export default async function InventoryOptimizationPage() {
               ))}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   )

@@ -85,7 +85,7 @@ async function ProjectLedgerContent({ projectId }: { projectId: string }) {
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold mb-2">{project.project_name}</h1>
+            <h1 className="text-2xl font-bold mb-2">{project.project_name}</h1>
             <p className="text-gray-600 mb-1">工事コード: {project.project_code}</p>
             <p className="text-gray-600 mb-1">発注者: {project.client?.name}</p>
             <p className="text-gray-600">
@@ -393,7 +393,7 @@ export default async function ProjectLedgerPage({
 }) {
   const { id } = await params
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <Suspense
         fallback={
           <div className="flex justify-center items-center h-64">

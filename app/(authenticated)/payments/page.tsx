@@ -23,32 +23,13 @@ async function PaymentList() {
     .select(`
       *,
       invoice:billing_invoices(invoice_number, client:clients(name)),
-      purchase_order:purchase_orders(order_number, supplier:clients(name))
+      purchase_order:purchase_orders(order_number, supplier:clients!purchase_orders_client_id_fkey(name))
     `)
     .eq('organization_id', userData?.organization_id)
     .is('deleted_at', null)
     .order('payment_date', { ascending: false })
 
-  return (
-    <>
-      <div className="mb-4 flex justify-end space-x-2">
-        <Link
-          href="/payments/new?type=receipt"
-          className="bg-green-500 text-white px-4 py-2 rounded-md text-sm hover:bg-green-600"
-        >
-          入金登録
-        </Link>
-        <Link
-          href="/payments/new?type=payment"
-          className="bg-red-500 text-white px-4 py-2 rounded-md text-sm hover:bg-red-600"
-        >
-          支払登録
-        </Link>
-      </div>
-
-      <PaymentListClient payments={payments || []} />
-    </>
-  )
+  return <PaymentListClient payments={payments || []} />
 }
 
 export default async function PaymentsPage() {
@@ -71,23 +52,41 @@ export default async function PaymentsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">入出金管理</h1>
-        <p className="text-gray-600">
-          入金・支払の記録と管理を行います
-        </p>
-      </div>
-
-      <Suspense
-        fallback={
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
+        <div className="mb-6 flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">入出金管理</h1>
+            <p className="mt-2 text-sm text-gray-600">
+              入金・支払の記録と管理を行います
+            </p>
           </div>
-        }
-      >
-        <PaymentList />
-      </Suspense>
+          <div className="flex gap-3">
+            <Link
+              href="/payments/new?type=receipt"
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
+            >
+              + 入金登録
+            </Link>
+            <Link
+              href="/payments/new?type=payment"
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700"
+            >
+              + 支払登録
+            </Link>
+          </div>
+        </div>
+
+        <Suspense
+          fallback={
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            </div>
+          }
+        >
+          <PaymentList />
+        </Suspense>
+      </div>
     </div>
   )
 }

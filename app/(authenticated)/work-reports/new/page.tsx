@@ -74,7 +74,7 @@ export default async function NewWorkReportPage() {
     .order('display_order', { ascending: true })
 
   return (
-    <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">作業報告書 新規作成</h1>

@@ -258,6 +258,7 @@ async function PayablesList() {
           )}
         </div>
       </div>
+      </div>
     </div>
   )
 }
@@ -282,9 +283,10 @@ export default async function PayablesPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">買掛金管理</h1>
+        <h1 className="text-2xl font-bold mb-2">買掛金管理</h1>
         <p className="text-gray-600">
           未払いの発注書と買掛金の管理を行います
         </p>
@@ -299,6 +301,7 @@ export default async function PayablesPage() {
       >
         <PayablesList />
       </Suspense>
+      </div>
     </div>
   )
 }

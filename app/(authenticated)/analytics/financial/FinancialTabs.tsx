@@ -11,7 +11,13 @@ export default function FinancialTabs({ salesContent, cashflowContent }: Financi
   const [activeTab, setActiveTab] = useState<'sales' | 'cashflow'>('sales')
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold mb-2">財務分析</h1>
+        <p className="text-gray-600">売上分析と資金繰り予測を確認できます</p>
+      </div>
+
       {/* タブナビゲーション */}
       <div className="mb-6">
         <div className="border-b border-gray-200">
@@ -46,6 +52,7 @@ export default function FinancialTabs({ salesContent, cashflowContent }: Financi
       </div>
       <div className={activeTab === 'cashflow' ? 'block' : 'hidden'}>
         {cashflowContent}
+      </div>
       </div>
     </div>
   )

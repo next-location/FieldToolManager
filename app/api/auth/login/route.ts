@@ -9,8 +9,15 @@ import {
   checkAndLockAccount,
   checkPasswordExpiration,
 } from '@/lib/security-middleware'
+import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 
 export async function POST(request: Request) {
+  // CSRF検証（セキュリティ強化）
+  const isValidCsrf = await verifyCsrfToken(request)
+  if (!isValidCsrf) {
+    console.error('[LOGIN API] CSRF validation failed')
+    return csrfErrorResponse()
+  }
   const { email, password } = await request.json()
 
   console.log('[LOGIN API] Starting login for:', email)

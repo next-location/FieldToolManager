@@ -24,8 +24,8 @@ export async function middleware(request: NextRequest) {
   if (!request.nextUrl.pathname.startsWith('/admin') && !request.nextUrl.pathname.startsWith('/api')) {
     const isDevelopment = process.env.NODE_ENV === 'development'
     const connectSrc = isDevelopment
-      ? "'self' http://localhost:54321 ws://localhost:3000"
-      : "'self' https://*.supabase.co wss://*.supabase.co"
+      ? "'self' http://localhost:54321 ws://localhost:3000 https://zipcloud.ibsnet.co.jp"
+      : "'self' https://*.supabase.co wss://*.supabase.co https://zipcloud.ibsnet.co.jp"
 
     response.headers.set(
       'Content-Security-Policy',

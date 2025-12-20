@@ -45,7 +45,7 @@ export default async function EquipmentMaintenancePage({
   }
 
   return (
-    <div className="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
         <div className="mb-6">
           <a
@@ -59,17 +59,15 @@ export default async function EquipmentMaintenancePage({
           </a>
         </div>
 
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">点検記録の登録</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            {equipment.name} ({equipment.equipment_code}) - {equipment.heavy_equipment_categories?.name}
+          </p>
+        </div>
+
         <div className="bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-2">
-              点検記録の登録
-            </h2>
-            <p className="text-sm text-gray-500 mb-1">
-              {equipment.name} ({equipment.equipment_code})
-            </p>
-            <p className="text-xs text-gray-400 mb-6">
-              {equipment.heavy_equipment_categories?.name}
-            </p>
 
             <MaintenanceRecordForm
               equipmentId={id}

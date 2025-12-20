@@ -175,11 +175,6 @@ export default async function CashflowAnalytics() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">資金繰り予測</h1>
-        <p className="text-gray-600">今後6ヶ月の入出金予定とキャッシュフロー分析</p>
-      </div>
-
       {/* 全体サマリー */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow-sm p-6">

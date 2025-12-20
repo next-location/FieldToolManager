@@ -75,7 +75,7 @@ export default async function EditEquipmentPage({
     .order('name')
 
   return (
-    <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
         <div className="mb-6">
           <a
@@ -89,14 +89,15 @@ export default async function EditEquipmentPage({
           </a>
         </div>
 
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">重機情報の編集</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            重機の情報を編集します。
+          </p>
+        </div>
+
         <div className="bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-2">
-              重機情報の編集
-            </h2>
-            <p className="text-sm text-gray-500 mb-6">
-              重機の情報を編集します。
-            </p>
 
             <EquipmentEditForm
               equipment={equipment}

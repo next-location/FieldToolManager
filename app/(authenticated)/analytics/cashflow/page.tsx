@@ -343,13 +343,15 @@ async function CashflowAnalyticsContent() {
           ))}
         </div>
       </div>
+      </div>
     </div>
   )
 }
 
 export default async function CashflowAnalyticsPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
       <Suspense
         fallback={
           <div className="flex justify-center items-center h-64">
@@ -359,6 +361,7 @@ export default async function CashflowAnalyticsPage() {
       >
         <CashflowAnalyticsContent />
       </Suspense>
+      </div>
     </div>
   )
 }

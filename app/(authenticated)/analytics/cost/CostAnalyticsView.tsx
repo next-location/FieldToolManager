@@ -105,11 +105,12 @@ export default function CostAnalyticsView({
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0 space-y-6">
       {/* ヘッダー */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">コスト分析レポート</h1>
+          <h1 className="text-2xl font-bold text-gray-900">コスト分析レポート</h1>
           <p className="mt-1 text-sm text-gray-600">
             道具・消耗品のコスト分析と効率評価
           </p>
@@ -234,14 +235,14 @@ export default function CostAnalyticsView({
       </div>
 
       {/* フィルター */}
-      <div className="bg-white shadow rounded-lg p-4">
-        <div className="flex flex-wrap gap-4">
+      <div className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
+        <div className="flex items-center gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">分析期間</label>
+            <label className="text-sm font-medium text-gray-700">分析期間</label>
             <select
               value={periodMonths}
               onChange={(e) => setPeriodMonths(Number(e.target.value))}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="ml-2 rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value={3}>過去3ヶ月</option>
               <option value={6}>過去6ヶ月</option>
@@ -250,11 +251,11 @@ export default function CostAnalyticsView({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">種別</label>
+            <label className="text-sm font-medium text-gray-700">種別</label>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value as any)}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="ml-2 rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="all">すべて</option>
               <option value="tool">道具のみ</option>
@@ -262,11 +263,11 @@ export default function CostAnalyticsView({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">ソート</label>
+            <label className="text-sm font-medium text-gray-700">ソート</label>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="ml-2 rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="cost">コストが高い順</option>
               <option value="efficiency">効率スコアが高い順</option>
@@ -365,6 +366,7 @@ export default function CostAnalyticsView({
             ))}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   )

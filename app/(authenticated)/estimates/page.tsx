@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { EstimateListClient } from '@/components/estimates/EstimateListClient'
+import { checkAndUpdateExpiredEstimates } from '@/lib/estimate-expiry'
 
 // キャッシュを無効化
 export const dynamic = 'force-dynamic'
@@ -21,6 +22,11 @@ async function EstimateList() {
     .select('organization_id, role')
     .eq('id', user.id)
     .single()
+
+  // 期限切れチェックを実行
+  if (userData?.organization_id) {
+    await checkAndUpdateExpiredEstimates(userData.organization_id)
+  }
 
   // リーダーは自分の見積もりのみ、マネージャー・管理者は全ての見積もりを表示
   let estimatesQuery = supabase
@@ -64,22 +70,11 @@ async function EstimateList() {
   }
 
   return (
-    <>
-      <div className="mb-4 flex justify-end">
-        <Link
-          href="/estimates/new"
-          className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-600"
-        >
-          新規見積書作成
-        </Link>
-      </div>
-
-      <EstimateListClient
-        estimates={estimates || []}
-        userRole={userData?.role || 'staff'}
-        staffList={staffList}
-      />
-    </>
+    <EstimateListClient
+      estimates={estimates || []}
+      userRole={userData?.role || 'staff'}
+      staffList={staffList}
+    />
   )
 }
 
@@ -94,23 +89,33 @@ export default async function EstimatesPage() {
   // 全ユーザーがアクセス可能（権限チェックなし）
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">見積書管理</h1>
-        <p className="text-gray-600">
-          見積書の作成・管理を行います
-        </p>
-      </div>
-
-      <Suspense
-        fallback={
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
+        <div className="mb-6 flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">見積書管理</h1>
+            <p className="mt-2 text-sm text-gray-600">
+              見積書の作成・管理を行います
+            </p>
           </div>
-        }
-      >
-        <EstimateList />
-      </Suspense>
+          <Link
+            href="/estimates/new"
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+          >
+            + 新規見積書作成
+          </Link>
+        </div>
+
+        <Suspense
+          fallback={
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            </div>
+          }
+        >
+          <EstimateList />
+        </Suspense>
+      </div>
     </div>
   )
 }

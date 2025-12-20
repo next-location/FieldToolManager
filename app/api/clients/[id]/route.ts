@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 
 // GET /api/clients/:id - 取引先詳細取得
 export async function GET(
@@ -60,6 +61,13 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // CSRF検証（セキュリティ強化）
+  const isValidCsrf = await verifyCsrfToken(request)
+  if (!isValidCsrf) {
+    console.error('[CLIENTS UPDATE API] CSRF validation failed')
+    return csrfErrorResponse()
+  }
+
   try {
     const { id } = await params
     const supabase = await createClient()
@@ -186,6 +194,13 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // CSRF検証（セキュリティ強化）
+  const isValidCsrf = await verifyCsrfToken(request)
+  if (!isValidCsrf) {
+    console.error('[CLIENTS DELETE API] CSRF validation failed')
+    return csrfErrorResponse()
+  }
+
   try {
     const { id } = await params
     const supabase = await createClient()

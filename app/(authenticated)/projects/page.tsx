@@ -28,20 +28,7 @@ async function ProjectList() {
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
 
-  return (
-    <>
-      <div className="mb-4 flex justify-end">
-        <Link
-          href="/projects/new"
-          className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-600"
-        >
-          新規工事登録
-        </Link>
-      </div>
-
-      <ProjectListClient projects={projects || []} />
-    </>
-  )
+  return <ProjectListClient projects={projects || []} />
 }
 
 export default async function ProjectsPage() {
@@ -64,23 +51,33 @@ export default async function ProjectsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">工事管理</h1>
-        <p className="text-gray-600">
-          工事の基本情報と進捗を管理します
-        </p>
-      </div>
-
-      <Suspense
-        fallback={
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
+        <div className="mb-6 flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">工事管理</h1>
+            <p className="mt-2 text-sm text-gray-600">
+              工事の基本情報と進捗を管理します
+            </p>
           </div>
-        }
-      >
-        <ProjectList />
-      </Suspense>
+          <Link
+            href="/projects/new"
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+          >
+            + 新規工事登録
+          </Link>
+        </div>
+
+        <Suspense
+          fallback={
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            </div>
+          }
+        >
+          <ProjectList />
+        </Suspense>
+      </div>
     </div>
   )
 }

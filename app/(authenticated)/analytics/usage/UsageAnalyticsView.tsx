@@ -115,11 +115,12 @@ export default function UsageAnalyticsView({ tools, movements, sites, users }: P
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0 space-y-6">
       {/* ヘッダー */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">使用頻度分析</h1>
+          <h1 className="text-2xl font-bold text-gray-900">使用頻度分析</h1>
           <p className="mt-1 text-sm text-gray-600">
             道具・消耗品の使用パターンと利用状況を分析
           </p>
@@ -355,6 +356,7 @@ export default function UsageAnalyticsView({ tools, movements, sites, users }: P
             ))}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   )

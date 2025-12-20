@@ -207,9 +207,10 @@ export default function NewPaymentPage() {
   const isReceipt = paymentType === 'receipt'
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">
+        <h1 className="text-2xl font-bold mb-2">
           {isReceipt ? '入金登録' : '支払登録'}
         </h1>
         <p className="text-gray-600">
@@ -217,7 +218,7 @@ export default function NewPaymentPage() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-2xl">
+      <form onSubmit={handleSubmit}>
         <div className="bg-white shadow-sm rounded-lg p-6 mb-6">
           <h2 className="text-lg font-semibold mb-4">基本情報</h2>
 
@@ -389,6 +390,7 @@ export default function NewPaymentPage() {
           </button>
         </div>
       </form>
+      </div>
     </div>
   )
 }

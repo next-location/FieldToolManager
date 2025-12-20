@@ -96,6 +96,7 @@ export async function POST(
           type: 'estimate_approved',
           title: '見積書が承認されました',
           message: `見積書「${estimate.estimate_number}」が${userData.name}により承認されました。顧客に送付できます。`,
+          severity: 'success',
           metadata: { estimate_id: id, estimate_number: estimate.estimate_number, link: `/estimates/${id}` }
         })
     }

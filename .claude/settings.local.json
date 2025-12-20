@@ -51,7 +51,21 @@
       "Bash(export PGPASSWORD=postgres)",
       "Bash(wc:*)",
       "Bash(npx tsc:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(ls:*)",
+      "Bash(docker-compose logs:*)",
+      "Bash(docker-compose:*)",
+      "Read(//dev/**)",
+      "Bash(tail:*)",
+      "Bash(for:*)",
+      "Bash(kill:*)",
+      "Bash(head:*)",
+      "Bash(/Users/youichiakashi/FieldToolManager/app/api/purchase-orders/[id]/submit/route.ts )",
+      "Bash(/Users/youichiakashi/FieldToolManager/app/api/purchase-orders/[id]/approve/route.ts )",
+      "Bash(/Users/youichiakashi/FieldToolManager/app/api/purchase-orders/[id]/reject/route.ts )",
+      "Bash(/Users/youichiakashi/FieldToolManager/app/api/purchase-orders/[id]/update/route.ts)",
+      "Bash(if ! grep -q \"verifyCsrfToken\" \"$file\")",
+      "Bash(if [ -d \"/Users/youichiakashi/FieldToolManager/app/api/$dir\" ])"
     ],
     "deny": [],
     "ask": []

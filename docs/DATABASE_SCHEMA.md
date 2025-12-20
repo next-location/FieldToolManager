@@ -4390,3 +4390,473 @@ const { data: oldBackups } = await supabase
 ```
 
 ---
+
+## 23. 発注書管理テーブル（Purchase Orders） ✨ 2025-12-16
+
+### 🚨 重要な変更（2025-12-17）
+
+**suppliersテーブルは廃止予定**です。仕入先情報は`clients`テーブルに統合されます。
+
+#### 変更内容
+1. `suppliers`テーブルを廃止
+2. `purchase_orders.supplier_id`を`purchase_orders.client_id`に変更
+3. `clients`テーブルの`client_type`で区別:
+   - `'supplier'`: 仕入先のみ
+   - `'both'`: 顧客兼仕入先
+
+詳細は[PURCHASE_ORDER_SPEC.md](./PURCHASE_ORDER_SPEC.md)を参照。
+
+---
+
+### 23.1 suppliers（仕入先マスタ）【廃止予定】
+
+~~外部業者（サプライヤー）の基本情報を管理します。~~
+
+**このテーブルは廃止され、`clients`テーブルに統合されます。**
+
+```sql
+CREATE TABLE suppliers (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  supplier_code VARCHAR(50) NOT NULL,
+  name VARCHAR(200) NOT NULL,
+  name_kana VARCHAR(200),
+  postal_code VARCHAR(10),
+  address TEXT,
+  phone VARCHAR(20),
+  fax VARCHAR(20),
+  email VARCHAR(255),
+  website VARCHAR(255),
+  contact_person VARCHAR(100),
+  payment_terms VARCHAR(100),
+  bank_name VARCHAR(100),
+  branch_name VARCHAR(100),
+  account_type VARCHAR(20),
+  account_number VARCHAR(20),
+  account_holder VARCHAR(100),
+  notes TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(organization_id, supplier_code)
+);
+```
+
+#### TypeScript型定義
+```typescript
+export interface Supplier {
+  id: string;
+  organization_id: string;
+  supplier_code: string;
+  name: string;
+  name_kana?: string;
+  postal_code?: string;
+  address?: string;
+  phone?: string;
+  fax?: string;
+  email?: string;
+  website?: string;
+  contact_person?: string;
+  payment_terms?: string;
+  bank_name?: string;
+  branch_name?: string;
+  account_type?: string;
+  account_number?: string;
+  account_holder?: string;
+  notes?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+```
+
+### 23.2 purchase_orders（発注書）【修正後】
+
+仕入先への発注内容を管理します。
+
+```sql
+CREATE TABLE purchase_orders (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  order_number VARCHAR(50) NOT NULL,
+  client_id UUID NOT NULL REFERENCES clients(id), -- 変更: supplier_id → client_id
+  project_id UUID REFERENCES projects(id),
+  order_date DATE NOT NULL,
+  delivery_date DATE,
+  delivery_location TEXT,
+  payment_terms VARCHAR(100),
+  subtotal DECIMAL(12, 2) NOT NULL DEFAULT 0,
+  tax_amount DECIMAL(12, 2) NOT NULL DEFAULT 0,
+  total_amount DECIMAL(12, 2) NOT NULL DEFAULT 0,
+  status VARCHAR(20) NOT NULL DEFAULT 'draft',
+  notes TEXT, -- 発注備考（仕入先向け）
+  internal_memo TEXT, -- 社内メモ
+  created_by UUID NOT NULL REFERENCES users(id),
+  approved_by UUID REFERENCES users(id),
+  approved_at TIMESTAMP WITH TIME ZONE,
+  rejected_by UUID REFERENCES users(id), -- 追加: 差戻し者
+  rejected_at TIMESTAMP WITH TIME ZONE, -- 追加: 差戻し日時
+  rejection_reason TEXT, -- 追加: 差戻し理由
+  ordered_at TIMESTAMP WITH TIME ZONE,
+  delivered_at TIMESTAMP WITH TIME ZONE,
+  paid_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  deleted_at TIMESTAMP WITH TIME ZONE,
+  UNIQUE(organization_id, order_number),
+  CONSTRAINT purchase_orders_status_check
+    CHECK (status IN ('draft', 'submitted', 'approved', 'rejected', 'ordered', 'partially_received', 'received', 'paid', 'cancelled'))
+);
+```
+
+#### ステータス説明
+- `draft`: 下書き
+- `submitted`: 承認申請中
+- `approved`: 承認済み
+- `rejected`: 差戻し
+- `ordered`: 発注済み
+- `partially_received`: 一部納品済み
+- `received`: 納品済み
+- `paid`: 支払済み
+- `cancelled`: キャンセル
+
+#### TypeScript型定義
+```typescript
+export type PurchaseOrderStatus =
+  | 'draft' | 'submitted' | 'approved' | 'rejected'
+  | 'ordered' | 'partially_received' | 'received' | 'paid' | 'cancelled';
+
+export interface PurchaseOrder {
+  id: string;
+  organization_id: string;
+  order_number: string;
+  client_id: string; // 変更: supplier_id → client_id
+  project_id?: string;
+  order_date: string;
+  delivery_date?: string;
+  delivery_location?: string;
+  payment_terms?: string;
+  subtotal: number;
+  tax_amount: number;
+  total_amount: number;
+  status: PurchaseOrderStatus;
+  notes?: string; // 発注備考（仕入先向け）
+  internal_memo?: string; // 社内メモ
+  created_by: string;
+  approved_by?: string;
+  approved_at?: string;
+  rejected_by?: string; // 追加: 差戻し者
+  rejected_at?: string; // 追加: 差戻し日時
+  rejection_reason?: string; // 追加: 差戻し理由
+  ordered_at?: string;
+  delivered_at?: string;
+  paid_at?: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string;
+}
+```
+
+### 23.3 purchase_order_items（発注明細）
+
+発注書の明細行を管理します。
+
+```sql
+CREATE TABLE purchase_order_items (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  purchase_order_id UUID NOT NULL REFERENCES purchase_orders(id) ON DELETE CASCADE,
+  display_order INTEGER NOT NULL,
+  item_type VARCHAR(20) NOT NULL,
+  item_code VARCHAR(50),
+  item_name VARCHAR(200) NOT NULL,
+  description TEXT,
+  quantity DECIMAL(10, 2) NOT NULL,
+  unit VARCHAR(50) NOT NULL,
+  unit_price DECIMAL(12, 2) NOT NULL,
+  amount DECIMAL(12, 2) NOT NULL,
+  tax_rate DECIMAL(5, 2) NOT NULL DEFAULT 10.0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  CONSTRAINT purchase_order_items_item_type_check
+    CHECK (item_type IN ('material', 'labor', 'subcontract', 'expense', 'other'))
+);
+```
+
+#### 品目タイプ説明
+- `material`: 材料
+- `labor`: 労務
+- `subcontract`: 外注
+- `expense`: 経費
+- `other`: その他
+
+#### TypeScript型定義
+```typescript
+export type PurchaseOrderItemType =
+  | 'material' | 'labor' | 'subcontract' | 'expense' | 'other';
+
+export interface PurchaseOrderItem {
+  id: string;
+  purchase_order_id: string;
+  display_order: number;
+  item_type: PurchaseOrderItemType;
+  item_code?: string;
+  item_name: string;
+  description?: string;
+  quantity: number;
+  unit: string;
+  unit_price: number;
+  amount: number;
+  tax_rate: number;
+  created_at: string;
+  updated_at: string;
+}
+```
+
+### 23.4 purchase_order_history（発注書履歴）
+
+発注書の変更履歴を記録します。
+
+```sql
+CREATE TABLE purchase_order_history (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  purchase_order_id UUID NOT NULL REFERENCES purchase_orders(id) ON DELETE CASCADE,
+  action VARCHAR(50) NOT NULL,
+  old_status VARCHAR(20),
+  new_status VARCHAR(20),
+  comment TEXT,
+  created_by UUID NOT NULL REFERENCES users(id),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+#### TypeScript型定義
+```typescript
+export interface PurchaseOrderHistory {
+  id: string;
+  purchase_order_id: string;
+  action: string;
+  old_status?: PurchaseOrderStatus;
+  new_status?: PurchaseOrderStatus;
+  comment?: string;
+  created_by: string;
+  created_at: string;
+}
+```
+
+### 23.5 インデックス設計
+
+```sql
+-- suppliers
+CREATE INDEX idx_suppliers_organization_id ON suppliers(organization_id);
+CREATE INDEX idx_suppliers_supplier_code ON suppliers(supplier_code);
+CREATE INDEX idx_suppliers_is_active ON suppliers(is_active);
+
+-- purchase_orders
+CREATE INDEX idx_purchase_orders_organization_id ON purchase_orders(organization_id);
+CREATE INDEX idx_purchase_orders_order_number ON purchase_orders(order_number);
+CREATE INDEX idx_purchase_orders_supplier_id ON purchase_orders(supplier_id);
+CREATE INDEX idx_purchase_orders_project_id ON purchase_orders(project_id);
+CREATE INDEX idx_purchase_orders_status ON purchase_orders(status);
+CREATE INDEX idx_purchase_orders_order_date ON purchase_orders(order_date);
+CREATE INDEX idx_purchase_orders_org_status ON purchase_orders(organization_id, status);
+
+-- purchase_order_items
+CREATE INDEX idx_purchase_order_items_purchase_order_id ON purchase_order_items(purchase_order_id);
+
+-- purchase_order_history
+CREATE INDEX idx_purchase_order_history_purchase_order_id ON purchase_order_history(purchase_order_id);
+CREATE INDEX idx_purchase_order_history_created_at ON purchase_order_history(created_at);
+```
+
+### 23.6 Row Level Security (RLS)
+
+```sql
+-- suppliers
+ALTER TABLE suppliers ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view suppliers in their organization"
+  ON suppliers FOR SELECT
+  USING (organization_id IN (SELECT organization_id FROM users WHERE id = auth.uid()));
+
+CREATE POLICY "Admins can insert suppliers"
+  ON suppliers FOR INSERT
+  WITH CHECK (organization_id IN (
+    SELECT organization_id FROM users WHERE id = auth.uid() AND role IN ('admin', 'leader')
+  ));
+
+CREATE POLICY "Admins can update suppliers"
+  ON suppliers FOR UPDATE
+  USING (organization_id IN (
+    SELECT organization_id FROM users WHERE id = auth.uid() AND role IN ('admin', 'leader')
+  ));
+
+CREATE POLICY "Admins can delete suppliers"
+  ON suppliers FOR DELETE
+  USING (organization_id IN (
+    SELECT organization_id FROM users WHERE id = auth.uid() AND role = 'admin'
+  ));
+
+-- purchase_orders
+ALTER TABLE purchase_orders ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view purchase orders in their organization"
+  ON purchase_orders FOR SELECT
+  USING (organization_id IN (SELECT organization_id FROM users WHERE id = auth.uid()));
+
+CREATE POLICY "Users can insert purchase orders"
+  ON purchase_orders FOR INSERT
+  WITH CHECK (
+    organization_id IN (SELECT organization_id FROM users WHERE id = auth.uid())
+    AND created_by = auth.uid()
+  );
+
+CREATE POLICY "Users can update their own purchase orders"
+  ON purchase_orders FOR UPDATE
+  USING (
+    organization_id IN (SELECT organization_id FROM users WHERE id = auth.uid())
+    AND (created_by = auth.uid() OR EXISTS (
+      SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('admin', 'leader')
+    ))
+  );
+
+CREATE POLICY "Admins can delete purchase orders"
+  ON purchase_orders FOR DELETE
+  USING (organization_id IN (
+    SELECT organization_id FROM users WHERE id = auth.uid() AND role = 'admin'
+  ));
+
+-- purchase_order_items
+ALTER TABLE purchase_order_items ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view purchase order items"
+  ON purchase_order_items FOR SELECT
+  USING (purchase_order_id IN (
+    SELECT id FROM purchase_orders WHERE organization_id IN (
+      SELECT organization_id FROM users WHERE id = auth.uid()
+    )
+  ));
+
+CREATE POLICY "Users can manage purchase order items"
+  ON purchase_order_items FOR ALL
+  USING (purchase_order_id IN (
+    SELECT id FROM purchase_orders WHERE organization_id IN (
+      SELECT organization_id FROM users WHERE id = auth.uid()
+    )
+  ));
+
+-- purchase_order_history
+ALTER TABLE purchase_order_history ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view purchase order history"
+  ON purchase_order_history FOR SELECT
+  USING (purchase_order_id IN (
+    SELECT id FROM purchase_orders WHERE organization_id IN (
+      SELECT organization_id FROM users WHERE id = auth.uid()
+    )
+  ));
+
+CREATE POLICY "Users can insert purchase order history"
+  ON purchase_order_history FOR INSERT
+  WITH CHECK (
+    purchase_order_id IN (
+      SELECT id FROM purchase_orders WHERE organization_id IN (
+        SELECT organization_id FROM users WHERE id = auth.uid()
+      )
+    ) AND created_by = auth.uid()
+  );
+```
+
+### 23.7 使用例
+
+**仕入先の登録**:
+```typescript
+const { data: supplier } = await supabase
+  .from('suppliers')
+  .insert({
+    organization_id: user.organization_id,
+    supplier_code: 'SUP-001',
+    name: '山田建材株式会社',
+    name_kana: 'ヤマダケンザイカブシキガイシャ',
+    postal_code: '100-0001',
+    address: '東京都千代田区千代田1-1-1',
+    phone: '03-1234-5678',
+    email: 'info@yamada-kenzai.co.jp',
+    payment_terms: '月末締め翌月末払い',
+  })
+  .select()
+  .single();
+```
+
+**発注書の作成**:
+```typescript
+const { data: order } = await supabase
+  .from('purchase_orders')
+  .insert({
+    organization_id: user.organization_id,
+    order_number: 'PO-2025-001',
+    supplier_id: supplier.id,
+    project_id: project.id,
+    order_date: '2025-12-16',
+    delivery_date: '2025-12-20',
+    subtotal: 100000,
+    tax_amount: 10000,
+    total_amount: 110000,
+    status: 'draft',
+    created_by: user.id,
+  })
+  .select()
+  .single();
+```
+
+**発注明細の追加**:
+```typescript
+await supabase.from('purchase_order_items').insert([
+  {
+    purchase_order_id: order.id,
+    display_order: 1,
+    item_type: 'material',
+    item_name: 'コンクリート',
+    quantity: 10,
+    unit: 'm³',
+    unit_price: 8000,
+    amount: 80000,
+    tax_rate: 10,
+  },
+  {
+    purchase_order_id: order.id,
+    display_order: 2,
+    item_type: 'material',
+    item_name: '鉄筋',
+    quantity: 500,
+    unit: 'kg',
+    unit_price: 40,
+    amount: 20000,
+    tax_rate: 10,
+  },
+]);
+```
+
+**発注書の承認**:
+```typescript
+// ステータスを更新
+await supabase
+  .from('purchase_orders')
+  .update({
+    status: 'approved',
+    approved_by: approver.id,
+    approved_at: new Date().toISOString(),
+  })
+  .eq('id', order.id);
+
+// 履歴を記録
+await supabase.from('purchase_order_history').insert({
+  purchase_order_id: order.id,
+  action: 'approved',
+  old_status: 'submitted',
+  new_status: 'approved',
+  comment: '承認しました',
+  created_by: approver.id,
+});
+```
+
+---

@@ -90,7 +90,7 @@ async function ProfitLossContent() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">工事別損益計算</h1>
+        <h1 className="text-2xl font-bold mb-2">工事別損益計算</h1>
         <p className="text-gray-600">全工事の収支状況を一覧表示します</p>
       </div>
 
@@ -221,7 +221,7 @@ async function ProfitLossContent() {
 
 export default async function ProfitLossPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <Suspense
         fallback={
           <div className="flex justify-center items-center h-64">

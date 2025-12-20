@@ -30,14 +30,16 @@ export default async function NewEquipmentPage() {
     redirect('/equipment')
   }
 
-  // 組織の重機管理機能が有効かチェック
+  // 組織の重機管理機能設定を取得（設定がなくてもデフォルト値で動作）
   const { data: orgData } = await supabase
     .from('organizations')
     .select('heavy_equipment_enabled, heavy_equipment_settings')
     .eq('id', userData?.organization_id)
     .single()
 
-  if (!orgData?.heavy_equipment_enabled) {
+  // heavy_equipment_enabled が明示的に false の場合のみリダイレクト
+  // null や undefined の場合は利用可能とする
+  if (orgData?.heavy_equipment_enabled === false) {
     redirect('/')
   }
 
@@ -58,9 +60,9 @@ export default async function NewEquipmentPage() {
     .order('name')
 
   return (
-    <div className="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
-        <div className="mb-6">
+        <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">
             重機の新規登録
           </h1>

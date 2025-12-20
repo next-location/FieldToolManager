@@ -90,8 +90,9 @@ export default function NewInvoicePage() {
   const fetchClients = async () => {
     const { data } = await supabase
       .from('clients')
-      .select('id, name, client_code, payment_terms, payment_due_days')
+      .select('id, name, client_code, payment_terms, payment_due_days, client_type')
       .eq('is_active', true)
+      .in('client_type', ['customer', 'both']) // 顧客と顧客兼仕入先のみ
       .order('name')
 
     if (data) setClients(data)
@@ -311,15 +312,16 @@ export default function NewInvoicePage() {
   const { subtotal, taxAmount, total } = calculateTotals()
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">請求書作成</h1>
+        <h1 className="text-2xl font-bold mb-2">請求書作成</h1>
         {estimateId && (
           <p className="text-gray-600">見積書から作成</p>
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-6xl">
+      <form onSubmit={handleSubmit}>
         <div className="bg-white shadow-sm rounded-lg p-6 mb-6">
           <h2 className="text-lg font-semibold mb-4">基本情報</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -687,6 +689,7 @@ export default function NewInvoicePage() {
           </div>
         </div>
       </form>
+      </div>
     </div>
   )
 }

@@ -150,11 +150,6 @@ export default async function SalesAnalytics() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">売上分析ダッシュボード</h1>
-        <p className="text-gray-600">過去12ヶ月の売上データを分析します</p>
-      </div>
-
       {/* 全体サマリー */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow-sm p-6">

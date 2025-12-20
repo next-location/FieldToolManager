@@ -95,7 +95,8 @@ CREATE TABLE estimate_history (
     'sent',                 -- 顧客送付
     'pdf_generated',        -- PDF出力
     'customer_approved',    -- 顧客承認
-    'customer_rejected'     -- 顧客却下
+    'customer_rejected',    -- 顧客却下
+    'expired'               -- 有効期限切れ（自動処理）✨ 2025-12-20 追加
   )),
   performed_by UUID REFERENCES users(id),           -- 操作実行者ID
   performed_by_name TEXT,                           -- 操作実行者名（削除されても履歴に残す）
@@ -133,6 +134,7 @@ CREATE POLICY "Allow insert estimate history"
 - PDF出力時: `pdf_generated`
 - 顧客承認時: `customer_approved`
 - 顧客却下時: `customer_rejected`
+- 有効期限切れ時: `expired` + notes に有効期限日（自動処理）✨ 2025-12-20 追加
 
 **見積書詳細ページでの表示:**
 操作履歴セクションに時系列で全履歴を表示。各履歴には操作種別、実行者、日時、メモを含む。
@@ -689,6 +691,66 @@ if (!['leader', 'manager', 'admin', 'super_admin'].includes(userData?.role || ''
 
 ---
 
+## 有効期限切れ自動処理機能 ✨ 2025-12-20 実装
+
+### 概要
+見積書の有効期限（`valid_until`）が過ぎた場合、顧客承認されていない見積書を自動的に`expired`ステータスに更新する機能。
+
+### 自動処理の条件
+以下の条件を**すべて満たす**見積書が期限切れ対象：
+1. `valid_until < 今日` （有効期限が今日より前）
+2. `valid_until IS NOT NULL` （有効期限が設定されている）
+3. `status IN ('draft', 'submitted', 'sent')` （顧客承認・却下以外）
+4. `deleted_at IS NULL` （論理削除されていない）
+
+### 除外条件（期限切れにしない）
+- `status = 'accepted'` : 顧客承認済み → 有効期限切れにしない
+- `status = 'rejected'` : 顧客却下済み → 既に終了状態なので対象外
+- `status = 'expired'` : 既に期限切れ → 再処理不要
+
+### 実行タイミング
+- **見積一覧ページアクセス時に自動実行**
+- ページロード時に`checkAndUpdateExpiredEstimates()`関数を呼び出し
+- バッチジョブではなくリアルタイム処理
+
+### 履歴記録
+期限切れ更新時に`estimate_history`に以下を記録：
+- `action_type`: `'expired'`
+- `performed_by`: `'system'` （システムによる自動処理）
+- `performed_by_name`: `'システム'`
+- `notes`: `'有効期限切れにより自動更新（有効期限: YYYY-MM-DD）'`
+
+### UI制御（期限切れ見積書）
+
+#### 一覧画面
+- ステータスバッジ: 黄色「期限切れ」
+- 編集ボタン: 非表示
+- 承認ボタン: 非表示
+- 削除ボタン: 表示（承認前の場合のみ）
+
+#### 詳細画面
+- 警告メッセージ表示: 「この見積書は有効期限が切れています。編集・承認・送付はできません。」
+- 編集ボタン: 非表示
+- 承認ボタン: 非表示
+- 送付ボタン: 非表示
+- PDFボタン: 非表示
+- 一覧に戻るボタン: 表示
+- 削除ボタン: 表示（承認前の場合のみ）
+
+#### 編集ページ
+- `status !== 'draft'` の場合、詳細ページにリダイレクト
+- 期限切れ見積書は編集ページにアクセス不可
+
+### 実装ファイル
+- `/lib/estimate-expiry.ts` : 期限切れチェック関数
+- `/lib/estimate-history.ts` : `'expired'`アクション追加
+- `/app/(authenticated)/estimates/page.tsx` : 一覧ページで自動チェック実行
+- `/app/(authenticated)/estimates/[id]/edit/page.tsx` : 編集ガード追加
+- `/app/(authenticated)/estimates/[id]/page.tsx` : ボタン制御
+- `/components/estimates/EstimateListClient.tsx` : UI改善
+
+---
+
 ## 将来の拡張案
 
 ### 差戻し機能
@@ -709,4 +771,4 @@ if (!['leader', 'manager', 'admin', 'super_admin'].includes(userData?.role || ''
 ### 通知機能
 - 見積書作成時にマネージャーに通知
 - 承認時に作成者に通知
-- 期限切れ前にアラート
+- 期限切れ前にアラート（例: 3日前、1日前）

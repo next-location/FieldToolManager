@@ -1,10 +1,18 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // CSRF検証（セキュリティ強化）
+  const isValidCsrf = await verifyCsrfToken(request)
+  if (!isValidCsrf) {
+    console.error('[INVOICES SUBMIT API] CSRF validation failed')
+    return csrfErrorResponse()
+  }
+
   try {
     const { id } = await params
     console.log('[SUBMIT INVOICE] Starting submission for invoice:', id)

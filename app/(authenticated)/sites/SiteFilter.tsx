@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { useDebounce } from '@/hooks/useDebounce'
 import { PREFECTURES } from '@/lib/prefectures'
 
 interface SiteFilterProps {
@@ -17,13 +18,16 @@ export function SiteFilter({ cities }: SiteFilterProps) {
   const [selectedCity, setSelectedCity] = useState(searchParams.get('city') || '')
   const [keyword, setKeyword] = useState(searchParams.get('keyword') || '')
 
+  // キーワードのみデバウンス（500ms）
+  const debouncedKeyword = useDebounce(keyword, 500)
+
   // 選択された都道府県に該当する市区町村のみ表示
   const filteredCities = selectedPrefecture
     ? cities.filter((city) => city.startsWith(selectedPrefecture))
     : cities
 
-  // フィルター適用
-  const applyFilters = () => {
+  // フィルター自動適用
+  useEffect(() => {
     const params = new URLSearchParams()
 
     if (currentStatus && currentStatus !== 'all') {
@@ -38,47 +42,24 @@ export function SiteFilter({ cities }: SiteFilterProps) {
       params.set('city', selectedCity)
     }
 
-    if (keyword.trim()) {
-      params.set('keyword', keyword.trim())
+    if (debouncedKeyword.trim()) {
+      params.set('keyword', debouncedKeyword.trim())
     }
 
     router.push(`/sites?${params.toString()}`)
-  }
+  }, [currentStatus, selectedPrefecture, selectedCity, debouncedKeyword, router])
 
   // フィルタークリア
   const clearFilters = () => {
     setSelectedPrefecture('')
     setSelectedCity('')
     setKeyword('')
-    router.push(`/sites?status=${currentStatus}`)
-  }
-
-  // ステータス変更時は即座に適用
-  const handleStatusChange = (status: string) => {
-    setCurrentStatus(status)
-    const params = new URLSearchParams(searchParams.toString())
-
-    if (status === 'all') {
-      params.delete('status')
-    } else {
-      params.set('status', status)
-    }
-
-    router.push(`/sites?${params.toString()}`)
   }
 
   // 都道府県変更時は市区町村をクリア
   const handlePrefectureChange = (prefecture: string) => {
     setSelectedPrefecture(prefecture)
     setSelectedCity('') // 都道府県変更時は市区町村をリセット
-  }
-
-  // キーワード検索でEnterキー押下時
-  const handleKeywordKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      applyFilters()
-    }
   }
 
   return (
@@ -88,7 +69,7 @@ export function SiteFilter({ cities }: SiteFilterProps) {
         <label className="block text-sm font-medium text-gray-700 mb-2">ステータス</label>
         <div className="flex space-x-2">
           <button
-            onClick={() => handleStatusChange('active')}
+            onClick={() => setCurrentStatus('active')}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               currentStatus === 'active'
                 ? 'bg-blue-600 text-white'
@@ -98,7 +79,7 @@ export function SiteFilter({ cities }: SiteFilterProps) {
             稼働中
           </button>
           <button
-            onClick={() => handleStatusChange('completed')}
+            onClick={() => setCurrentStatus('completed')}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               currentStatus === 'completed'
                 ? 'bg-blue-600 text-white'
@@ -108,7 +89,7 @@ export function SiteFilter({ cities }: SiteFilterProps) {
             完了
           </button>
           <button
-            onClick={() => handleStatusChange('all')}
+            onClick={() => setCurrentStatus('all')}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               currentStatus === 'all'
                 ? 'bg-blue-600 text-white'
@@ -122,7 +103,7 @@ export function SiteFilter({ cities }: SiteFilterProps) {
 
       {/* 住所検索フィルター */}
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h3 className="text-sm font-medium text-gray-900 mb-3">現場を検索</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">現場を検索</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* 都道府県 */}
@@ -189,31 +170,23 @@ export function SiteFilter({ cities }: SiteFilterProps) {
               type="text"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              onKeyPress={handleKeywordKeyPress}
               placeholder="現場名、住所で検索..."
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             />
-            <p className="mt-1 text-xs text-gray-500">
-              Enterキーで検索
-            </p>
           </div>
         </div>
 
-        {/* アクションボタン */}
-        <div className="flex gap-2 mt-4">
-          <button
-            onClick={applyFilters}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium transition-colors"
-          >
-            検索
-          </button>
-          <button
-            onClick={clearFilters}
-            className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 text-sm font-medium transition-colors"
-          >
-            クリア
-          </button>
-        </div>
+        {/* クリアボタン */}
+        {(selectedPrefecture || selectedCity || keyword) && (
+          <div className="flex justify-end mt-4">
+            <button
+              onClick={clearFilters}
+              className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 text-sm font-medium transition-colors"
+            >
+              クリア
+            </button>
+          </div>
+        )}
 
         {/* 現在の検索条件表示 */}
         {(selectedPrefecture || selectedCity || keyword) && (
@@ -223,10 +196,7 @@ export function SiteFilter({ cities }: SiteFilterProps) {
               <span className="inline-flex items-center px-2 py-1 rounded-md bg-blue-100 text-blue-800 text-xs font-medium">
                 {selectedPrefecture}
                 <button
-                  onClick={() => {
-                    handlePrefectureChange('')
-                    applyFilters()
-                  }}
+                  onClick={() => handlePrefectureChange('')}
                   className="ml-1 text-blue-600 hover:text-blue-800"
                 >
                   ×
@@ -237,10 +207,7 @@ export function SiteFilter({ cities }: SiteFilterProps) {
               <span className="inline-flex items-center px-2 py-1 rounded-md bg-blue-100 text-blue-800 text-xs font-medium">
                 {selectedPrefecture ? selectedCity.replace(selectedPrefecture, '') : selectedCity}
                 <button
-                  onClick={() => {
-                    setSelectedCity('')
-                    applyFilters()
-                  }}
+                  onClick={() => setSelectedCity('')}
                   className="ml-1 text-blue-600 hover:text-blue-800"
                 >
                   ×
@@ -251,10 +218,7 @@ export function SiteFilter({ cities }: SiteFilterProps) {
               <span className="inline-flex items-center px-2 py-1 rounded-md bg-blue-100 text-blue-800 text-xs font-medium">
                 「{keyword}」
                 <button
-                  onClick={() => {
-                    setKeyword('')
-                    applyFilters()
-                  }}
+                  onClick={() => setKeyword('')}
                   className="ml-1 text-blue-600 hover:text-blue-800"
                 >
                   ×

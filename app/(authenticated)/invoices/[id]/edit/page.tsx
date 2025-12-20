@@ -254,9 +254,10 @@ export default function EditInvoicePage({
   const { subtotal, taxAmount, total } = calculateTotals()
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">請求書編集</h1>
+        <h1 className="text-2xl font-bold mb-2">請求書編集</h1>
         <p className="text-gray-600">{formData.invoice_number}</p>
       </div>
 
@@ -623,6 +624,7 @@ export default function EditInvoicePage({
           </div>
         </div>
       </form>
+      </div>
     </div>
   )
 }

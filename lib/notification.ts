@@ -205,3 +205,127 @@ export async function markAllNotificationsAsRead(): Promise<boolean> {
     return false
   }
 }
+
+/**
+ * 発注書承認通知
+ */
+export async function notifyPurchaseOrderApproved(
+  purchaseOrderId: string,
+  orderNumber: string,
+  createdBy: string,
+  approvedBy: string
+): Promise<void> {
+  try {
+    const supabase = await createClient()
+
+    // 現在のユーザー情報を取得
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      console.warn('[Notification] No authenticated user, skipping notification')
+      return
+    }
+
+    // ユーザーの組織IDを取得
+    const { data: userData } = await supabase
+      .from('users')
+      .select('organization_id')
+      .eq('id', user.id)
+      .single()
+
+    if (!userData) {
+      console.warn('[Notification] User data not found, skipping notification')
+      return
+    }
+
+    // 通知を作成（作成者宛て）
+    const { error } = await supabase.from('notifications').insert({
+      organization_id: userData.organization_id,
+      type: 'purchase_order_approved',
+      title: '発注書が承認されました',
+      message: `発注書「${orderNumber}」が承認されました`,
+      severity: 'success',
+      target_user_id: createdBy,
+      related_purchase_order_id: purchaseOrderId,
+      metadata: {
+        order_number: orderNumber,
+        approved_by: approvedBy,
+      },
+      sent_via: ['in_app'],
+    })
+
+    if (error) {
+      console.error('[Notification] Failed to create purchase order approved notification:', error)
+    } else {
+      console.log(`[Notification] Created: purchase_order_approved - ${orderNumber}`)
+    }
+  } catch (error) {
+    console.error('[Notification] Unexpected error:', error)
+  }
+}
+
+/**
+ * 発注書差し戻し通知
+ */
+export async function notifyPurchaseOrderRejected(
+  purchaseOrderId: string,
+  orderNumber: string,
+  createdBy: string,
+  rejectedBy: string,
+  reason?: string
+): Promise<void> {
+  try {
+    const supabase = await createClient()
+
+    // 現在のユーザー情報を取得
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      console.warn('[Notification] No authenticated user, skipping notification')
+      return
+    }
+
+    // ユーザーの組織IDを取得
+    const { data: userData } = await supabase
+      .from('users')
+      .select('organization_id')
+      .eq('id', user.id)
+      .single()
+
+    if (!userData) {
+      console.warn('[Notification] User data not found, skipping notification')
+      return
+    }
+
+    // 通知を作成（作成者宛て）
+    const { error } = await supabase.from('notifications').insert({
+      organization_id: userData.organization_id,
+      type: 'purchase_order_rejected',
+      title: '発注書が差し戻されました',
+      message: reason
+        ? `発注書「${orderNumber}」が差し戻されました。理由: ${reason}`
+        : `発注書「${orderNumber}」が差し戻されました`,
+      severity: 'warning',
+      target_user_id: createdBy,
+      related_purchase_order_id: purchaseOrderId,
+      metadata: {
+        order_number: orderNumber,
+        rejected_by: rejectedBy,
+        reason: reason || '',
+      },
+      sent_via: ['in_app'],
+    })
+
+    if (error) {
+      console.error('[Notification] Failed to create purchase order rejected notification:', error)
+    } else {
+      console.log(`[Notification] Created: purchase_order_rejected - ${orderNumber}`)
+    }
+  } catch (error) {
+    console.error('[Notification] Unexpected error:', error)
+  }
+}

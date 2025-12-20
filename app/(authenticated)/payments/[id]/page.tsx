@@ -54,7 +54,7 @@ export default async function PaymentDetailPage({
         order_date,
         delivery_date,
         total_amount,
-        supplier:clients!purchase_orders_supplier_id_fkey(name, address, phone)
+        supplier:clients!purchase_orders_client_id_fkey(name, address, phone)
       ),
       recorded_by_user:users!payments_recorded_by_fkey(name)
     `)
@@ -78,12 +78,13 @@ export default async function PaymentDetailPage({
   const client = isReceipt ? payment.invoice?.client : payment.purchase_order?.supplier
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
       {/* ヘッダー */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold mb-2">入出金詳細</h1>
+            <h1 className="text-2xl font-bold mb-2">入出金詳細</h1>
             <p className="text-gray-600">
               {isReceipt ? '入金' : '支払'}記録の詳細情報
             </p>
@@ -307,6 +308,7 @@ export default async function PaymentDetailPage({
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

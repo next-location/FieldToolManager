@@ -92,65 +92,38 @@ export default async function InvoiceDetailPage({
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold mb-2">請求書詳細</h1>
+          <h1 className="text-2xl font-bold mb-2">請求書詳細</h1>
           <p className="text-gray-600">{invoice.invoice_number}</p>
         </div>
-        <Link
-          href="/invoices"
-          className="text-blue-600 hover:text-blue-800"
-        >
-          ← 請求書一覧に戻る
-        </Link>
-      </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* 下書き状態: 編集・提出が可能 */}
+          {invoice.status === 'draft' && (
+            <>
+              <Link
+                href={`/invoices/${id}/edit`}
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+              >
+                編集
+              </Link>
+              <SubmitInvoiceButton invoiceId={id} />
+            </>
+          )}
 
-      {/* ステータスバーとアクションボタン */}
-      <div className="bg-white shadow-sm rounded-lg p-4 mb-6">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getStatusBadge(invoice.status)}`}>
-              {getStatusText(invoice.status)}
-            </span>
+          {/* 提出済み状態: 承認・差し戻しボタン（manager/admin のみ） */}
+          {invoice.status === 'submitted' && (
+            <>
+              <ApproveInvoiceButton invoiceId={id} userRole={userData?.role || ''} />
+              <ReturnInvoiceButton invoiceId={id} userRole={userData?.role || ''} />
+            </>
+          )}
 
-            {isPaid ? (
-              <span className="text-green-600 font-medium">✓ 入金完了</span>
-            ) : isPartiallyPaid ? (
-              <span className="text-yellow-600 font-medium">
-                一部入金済 (¥{invoice.paid_amount.toLocaleString()} / ¥{invoice.total_amount.toLocaleString()})
-              </span>
-            ) : isOverdue ? (
-              <span className="text-red-600 font-medium">⚠ 支払期限超過</span>
-            ) : (
-              <span className="text-gray-500">未入金</span>
-            )}
-          </div>
-
-          <div className="flex space-x-2">
-            {/* 下書き状態: 編集・提出が可能 */}
-            {invoice.status === 'draft' && (
-              <>
-                <Link
-                  href={`/invoices/${id}/edit`}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-600"
-                >
-                  編集
-                </Link>
-                <SubmitInvoiceButton invoiceId={id} />
-              </>
-            )}
-
-            {/* 提出済み状態: 承認・差し戻しボタン（manager/admin のみ） */}
-            {invoice.status === 'submitted' && (
-              <>
-                <ApproveInvoiceButton invoiceId={id} userRole={userData?.role || ''} />
-                <ReturnInvoiceButton invoiceId={id} userRole={userData?.role || ''} />
-              </>
-            )}
-
-            {/* 承認済み状態: 送付ボタン */}
-            {invoice.status === 'approved' && (
+          {/* 承認済み状態: 送付ボタン・PDF出力 */}
+          {invoice.status === 'approved' && (
+            <>
               <SendInvoiceButton
                 invoiceId={id}
                 status={invoice.status}
@@ -159,24 +132,62 @@ export default async function InvoiceDetailPage({
                 userId={user.id}
                 createdById={invoice.created_by}
               />
-            )}
-
-            {/* PDF出力: 承認済み以降、かつ送付済み以降はマネージャー・管理者のみ */}
-            {invoice.status !== 'draft' && invoice.status !== 'submitted' &&
-             (invoice.status === 'approved' || ['manager', 'admin', 'super_admin'].includes(userData?.role || '')) && (
               <DownloadPdfButton invoiceId={id} />
-            )}
+            </>
+          )}
 
-            {/* 入金登録: 送付済み以降・未入金・マネージャー以上のみ */}
-            {!isPaid && invoice.status === 'sent' && ['manager', 'admin', 'super_admin'].includes(userData?.role || '') && (
-              <Link
-                href={`/payments/new?invoice_id=${id}`}
-                className="bg-indigo-500 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-600"
-              >
-                入金登録
-              </Link>
-            )}
-          </div>
+          {/* 送付済み状態: 入金登録・PDFボタンの順（入金登録を先に配置） */}
+          {invoice.status === 'sent' && (
+            <>
+              {/* 入金登録: 未入金・マネージャー以上のみ */}
+              {!isPaid && ['manager', 'admin', 'super_admin'].includes(userData?.role || '') && (
+                <Link
+                  href={`/payments/new?invoice_id=${id}`}
+                  className="bg-indigo-500 text-white px-4 py-2 rounded-md hover:bg-indigo-600"
+                >
+                  入金登録
+                </Link>
+              )}
+              {/* PDF出力: マネージャー以上のみ */}
+              {['manager', 'admin', 'super_admin'].includes(userData?.role || '') && (
+                <DownloadPdfButton invoiceId={id} />
+              )}
+            </>
+          )}
+
+          {/* 入金済み状態: PDF出力のみ（マネージャー以上） */}
+          {invoice.status === 'paid' && ['manager', 'admin', 'super_admin'].includes(userData?.role || '') && (
+            <DownloadPdfButton invoiceId={id} />
+          )}
+
+          {/* 一覧に戻るボタン（常に表示・最後に配置） */}
+          <Link
+            href="/invoices"
+            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
+          >
+            一覧に戻る
+          </Link>
+        </div>
+      </div>
+
+      {/* ステータス表示 */}
+      <div className="bg-white shadow-sm rounded-lg p-4 mb-6">
+        <div className="flex items-center space-x-4">
+          <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getStatusBadge(invoice.status)}`}>
+            {getStatusText(invoice.status)}
+          </span>
+
+          {isPaid ? (
+            <span className="text-green-600 font-medium">✓ 入金完了</span>
+          ) : isPartiallyPaid ? (
+            <span className="text-yellow-600 font-medium">
+              一部入金済 (¥{invoice.paid_amount.toLocaleString()} / ¥{invoice.total_amount.toLocaleString()})
+            </span>
+          ) : isOverdue ? (
+            <span className="text-red-600 font-medium">⚠ 支払期限超過</span>
+          ) : (
+            <span className="text-gray-500">未入金</span>
+          )}
         </div>
       </div>
 
@@ -283,6 +294,7 @@ export default async function InvoiceDetailPage({
       <div className="bg-white shadow-sm rounded-lg p-6">
         <h2 className="text-xl font-bold mb-4">操作履歴</h2>
         <InvoiceHistoryTimeline history={history} />
+      </div>
       </div>
     </div>
   )

@@ -353,12 +353,13 @@ export default function NewEstimatePage() {
   const { subtotal, taxAmount, total } = calculateTotals()
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">見積書作成</h1>
-      </div>
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold mb-2">見積書作成</h1>
+        </div>
 
-      <form onSubmit={(e) => handleSubmit(e, 'draft')} className="max-w-6xl">
+        <form onSubmit={(e) => handleSubmit(e, 'draft')}>
         <div className="bg-white shadow-sm rounded-lg p-6 mb-6">
           <h2 className="text-lg font-semibold mb-4">基本情報</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -823,6 +824,7 @@ export default function NewEstimatePage() {
           </div>
         </div>
       </form>
+      </div>
     </div>
   )
 }

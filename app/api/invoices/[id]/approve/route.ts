@@ -1,10 +1,18 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // CSRF検証（セキュリティ強化）
+  const isValidCsrf = await verifyCsrfToken(request)
+  if (!isValidCsrf) {
+    console.error('[INVOICES APPROVE API] CSRF validation failed')
+    return csrfErrorResponse()
+  }
+
   try {
     const { id } = await params
     const supabase = await createClient()
@@ -78,6 +86,7 @@ export async function POST(
         type: 'estimate_approved', // 既存のタイプを使用
         title: '請求書が承認されました',
         message: `請求書「${invoice.invoice_number}」が${userData.name || 'マネージャー'}により承認されました。顧客に送付できます。`,
+        severity: 'success',
         metadata: {
           invoice_id: id,
           invoice_number: invoice.invoice_number,

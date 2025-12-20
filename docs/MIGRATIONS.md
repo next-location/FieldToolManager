@@ -113,6 +113,128 @@ npm run health-check
 
 ## 3. マイグレーション履歴
 
+### 🔄 発注書管理: 仕入先マスタを取引先マスタに統合（2025-12-17）
+
+#### 20251217000001_migrate_suppliers_to_clients.sql ✅ APPLIED
+
+**適用日**: 2025-12-17
+**適用環境**: ローカル開発環境（適用済み）
+**影響範囲**: `suppliers`テーブル廃止、`purchase_orders`テーブル構造変更、`clients`テーブルへのデータ移行
+
+**背景**:
+- `suppliers`テーブルと`clients`テーブル（`client_type='supplier'`）が重複
+- 顧客兼仕入先（`client_type='both'`）に対応するため統合が必要
+- データの二重管理を解消し、整合性を向上
+
+**変更内容**:
+1. **purchase_ordersテーブル拡張**:
+   - `client_id` (UUID NOT NULL): `supplier_id`を`client_id`に変更、`clients`テーブル参照
+   - `rejected_by` (UUID): 差戻したユーザーID
+   - `rejected_at` (TIMESTAMP): 差戻日時
+   - `rejection_reason` (TEXT): 差戻理由
+   - `internal_notes` → `internal_memo`にリネーム
+
+2. **データマイグレーション**:
+   - `suppliers`テーブルの全データ（4件）を`clients`テーブルに移行
+   - `client_type='supplier'`として登録
+   - `purchase_orders.supplier_id`のデータを`client_id`にコピー
+
+3. **suppliersテーブル削除**:
+   - テーブルと関連する外部キー制約を削除
+   - インデックスを`idx_purchase_orders_client_id`に更新
+
+**ロールバック手順**:
+```sql
+-- 注意: データロストの可能性があるため、実行前にバックアップ必須
+
+-- 1. suppliersテーブルを再作成
+CREATE TABLE suppliers (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  supplier_code VARCHAR(50) NOT NULL,
+  name VARCHAR(200) NOT NULL,
+  name_kana VARCHAR(200),
+  postal_code VARCHAR(10),
+  address TEXT,
+  phone VARCHAR(20),
+  fax VARCHAR(20),
+  email VARCHAR(255),
+  website VARCHAR(255),
+  contact_person VARCHAR(100),
+  payment_terms VARCHAR(100),
+  bank_name VARCHAR(100),
+  branch_name VARCHAR(100),
+  account_type VARCHAR(20),
+  account_number VARCHAR(20),
+  account_holder VARCHAR(100),
+  notes TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(organization_id, supplier_code)
+);
+
+-- 2. clientsからsuppliersにデータを戻す
+INSERT INTO suppliers (
+  organization_id, supplier_code, name, name_kana, postal_code,
+  address, phone, fax, email, contact_person, payment_terms,
+  bank_name, branch_name, account_type, account_number, account_holder,
+  notes, is_active, created_at, updated_at
+)
+SELECT
+  organization_id, client_code, name, name_kana, postal_code,
+  address, phone, fax, email, contact_person, payment_terms,
+  bank_name, bank_branch, bank_account_type, bank_account_number, bank_account_holder,
+  notes, is_active, created_at, updated_at
+FROM clients
+WHERE client_type = 'supplier';
+
+-- 3. purchase_ordersにsupplier_idを追加
+ALTER TABLE purchase_orders ADD COLUMN supplier_id UUID;
+
+-- 4. client_idからsupplier_idにデータをコピー
+UPDATE purchase_orders po
+SET supplier_id = s.id
+FROM clients c
+JOIN suppliers s ON s.organization_id = c.organization_id AND s.supplier_code = c.client_code
+WHERE po.client_id = c.id
+AND c.client_type = 'supplier';
+
+-- 5. 外部キー制約を追加
+ALTER TABLE purchase_orders
+  ADD CONSTRAINT purchase_orders_supplier_id_fkey
+  FOREIGN KEY (supplier_id) REFERENCES suppliers(id);
+
+-- 6. client_idを削除
+ALTER TABLE purchase_orders DROP COLUMN client_id;
+
+-- 7. 差戻し関連カラムを削除
+ALTER TABLE purchase_orders
+  DROP COLUMN IF EXISTS rejected_by,
+  DROP COLUMN IF EXISTS rejected_at,
+  DROP COLUMN IF EXISTS rejection_reason;
+
+-- 8. internal_memoをinternal_notesに戻す
+ALTER TABLE purchase_orders RENAME COLUMN internal_memo TO internal_notes;
+
+-- 9. client_type='supplier'のレコードを削除
+DELETE FROM clients WHERE client_type = 'supplier';
+```
+
+**関連ファイル**:
+- `docs/PURCHASE_ORDER_SPEC.md`: 発注書管理仕様（修正方針を追記）
+- `docs/DATABASE_SCHEMA.md`: データベーススキーマ（変更内容を追記）
+- `app/(authenticated)/invoices/new/page.tsx`: 請求書の取引先フィルタリング修正
+- `app/(authenticated)/purchase-orders/*`: 発注書フォーム（今後修正予定）
+
+**影響範囲**:
+- ✅ `clients`テーブル: 4件の仕入先データ追加（`client_type='supplier'`）
+- ✅ `purchase_orders`テーブル: 構造変更（0件のデータに影響）
+- ✅ `suppliers`テーブル: 削除済み
+- ⚠️ 発注書作成UIは未修正（次ステップで対応）
+
+---
+
 ### 💳 Stripe Billing統合（2025-12-12）
 
 > **実装方式**: A方式（Invoice Item方式）
@@ -2306,4 +2428,252 @@ DROP TABLE IF EXISTS organization_attendance_settings CASCADE;
 - [ ] 自分の履歴ページ（スタッフ用）
 - [ ] 休憩時間管理（simple/detailed/none）
 - [ ] 手動修正機能（管理者用）
+
+
+---
+
+## 20251216001500_create_purchase_orders.sql
+
+### 概要
+発注書管理機能のデータベーステーブルを作成します。仕入先マスタ、発注書、発注明細、発注履歴の4つのテーブルを追加します。
+
+### 作成テーブル
+1. **suppliers** - 仕入先マスタ
+2. **purchase_orders** - 発注書
+3. **purchase_order_items** - 発注明細
+4. **purchase_order_history** - 発注履歴
+
+### SQL内容
+
+```sql
+-- 仕入先マスタテーブル
+CREATE TABLE suppliers (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  supplier_code VARCHAR(50) NOT NULL,
+  name VARCHAR(200) NOT NULL,
+  name_kana VARCHAR(200),
+  postal_code VARCHAR(10),
+  address TEXT,
+  phone VARCHAR(20),
+  fax VARCHAR(20),
+  email VARCHAR(255),
+  website VARCHAR(255),
+  contact_person VARCHAR(100),
+  payment_terms VARCHAR(100),
+  bank_name VARCHAR(100),
+  branch_name VARCHAR(100),
+  account_type VARCHAR(20),
+  account_number VARCHAR(20),
+  account_holder VARCHAR(100),
+  notes TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(organization_id, supplier_code)
+);
+
+-- 発注書テーブル
+CREATE TABLE purchase_orders (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  order_number VARCHAR(50) NOT NULL,
+  supplier_id UUID NOT NULL REFERENCES suppliers(id),
+  project_id UUID REFERENCES projects(id),
+  order_date DATE NOT NULL,
+  delivery_date DATE,
+  delivery_location TEXT,
+  payment_terms VARCHAR(100),
+  subtotal DECIMAL(12, 2) NOT NULL DEFAULT 0,
+  tax_amount DECIMAL(12, 2) NOT NULL DEFAULT 0,
+  total_amount DECIMAL(12, 2) NOT NULL DEFAULT 0,
+  status VARCHAR(20) NOT NULL DEFAULT 'draft',
+  notes TEXT,
+  created_by UUID NOT NULL REFERENCES users(id),
+  approved_by UUID REFERENCES users(id),
+  approved_at TIMESTAMP WITH TIME ZONE,
+  ordered_at TIMESTAMP WITH TIME ZONE,
+  delivered_at TIMESTAMP WITH TIME ZONE,
+  paid_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(organization_id, order_number)
+);
+
+-- 発注明細テーブル
+CREATE TABLE purchase_order_items (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  purchase_order_id UUID NOT NULL REFERENCES purchase_orders(id) ON DELETE CASCADE,
+  item_name VARCHAR(200) NOT NULL,
+  description TEXT,
+  quantity DECIMAL(10, 2) NOT NULL,
+  unit VARCHAR(50),
+  unit_price DECIMAL(12, 2) NOT NULL,
+  tax_rate DECIMAL(5, 2) NOT NULL DEFAULT 10,
+  amount DECIMAL(12, 2) NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 発注書履歴テーブル
+CREATE TABLE purchase_order_history (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  purchase_order_id UUID NOT NULL REFERENCES purchase_orders(id) ON DELETE CASCADE,
+  action VARCHAR(50) NOT NULL,
+  old_status VARCHAR(20),
+  new_status VARCHAR(20),
+  comment TEXT,
+  created_by UUID NOT NULL REFERENCES users(id),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- インデックス作成
+CREATE INDEX idx_suppliers_organization_id ON suppliers(organization_id);
+CREATE INDEX idx_suppliers_supplier_code ON suppliers(supplier_code);
+CREATE INDEX idx_suppliers_is_active ON suppliers(is_active);
+
+CREATE INDEX idx_purchase_orders_organization_id ON purchase_orders(organization_id);
+CREATE INDEX idx_purchase_orders_order_number ON purchase_orders(order_number);
+CREATE INDEX idx_purchase_orders_supplier_id ON purchase_orders(supplier_id);
+CREATE INDEX idx_purchase_orders_project_id ON purchase_orders(project_id);
+CREATE INDEX idx_purchase_orders_status ON purchase_orders(status);
+CREATE INDEX idx_purchase_orders_order_date ON purchase_orders(order_date);
+
+CREATE INDEX idx_purchase_order_items_purchase_order_id ON purchase_order_items(purchase_order_id);
+CREATE INDEX idx_purchase_order_items_sort_order ON purchase_order_items(sort_order);
+
+CREATE INDEX idx_purchase_order_history_purchase_order_id ON purchase_order_history(purchase_order_id);
+CREATE INDEX idx_purchase_order_history_created_at ON purchase_order_history(created_at);
+
+-- RLS (Row Level Security) ポリシー設定
+ALTER TABLE suppliers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE purchase_orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE purchase_order_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE purchase_order_history ENABLE ROW LEVEL SECURITY;
+
+-- 各テーブルのRLSポリシーは20251216001600で設定
+```
+
+### 適用日
+**ローカル開発環境**: 2025-12-16 (既存テーブルと重複のため未適用)
+**ステータス**: ⏭️ スキップ（既存テーブル存在）
+
+### ロールバック手順
+```sql
+DROP TABLE IF EXISTS purchase_order_history CASCADE;
+DROP TABLE IF EXISTS purchase_order_items CASCADE;
+DROP TABLE IF EXISTS purchase_orders CASCADE;
+DROP TABLE IF EXISTS suppliers CASCADE;
+```
+
+---
+
+## 20251216001600_add_purchase_order_missing_columns.sql
+
+### 概要
+既存の発注書関連テーブルに不足しているカラムを追加し、制約を更新します。
+
+### 変更内容
+
+#### 1. purchase_ordersテーブルにカラム追加
+- `payment_terms` - 支払条件
+- `ordered_at` - 発注日時
+- `delivered_at` - 納品日時
+- `paid_at` - 支払日時
+
+#### 2. ステータス制約の更新
+より詳細なワークフロー管理のため、ステータスの種類を拡張：
+- `draft` - 下書き
+- `submitted` - 承認申請中
+- `approved` - 承認済み
+- `rejected` - 差戻し
+- `ordered` - 発注済み
+- `partially_received` - 一部納品済み
+- `received` - 納品済み
+- `paid` - 支払済み
+- `cancelled` - キャンセル
+
+#### 3. purchase_order_historyテーブル作成
+変更履歴を記録するテーブルを追加（存在しない場合のみ）
+
+#### 4. RLSポリシー設定
+全テーブルに組織単位のデータ分離ポリシーを設定
+
+### SQL内容
+
+```sql
+-- カラム追加
+ALTER TABLE purchase_orders ADD COLUMN IF NOT EXISTS payment_terms VARCHAR(100);
+ALTER TABLE purchase_orders ADD COLUMN IF NOT EXISTS ordered_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE purchase_orders ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE purchase_orders ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP WITH TIME ZONE;
+
+-- ステータス制約更新
+ALTER TABLE purchase_orders DROP CONSTRAINT IF EXISTS purchase_orders_status_check;
+ALTER TABLE purchase_orders ADD CONSTRAINT purchase_orders_status_check
+  CHECK (status IN ('draft', 'submitted', 'approved', 'rejected', 'ordered', 
+                    'partially_received', 'received', 'paid', 'cancelled'));
+
+-- 履歴テーブル作成（存在しない場合のみ）
+CREATE TABLE IF NOT EXISTS purchase_order_history (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  purchase_order_id UUID NOT NULL REFERENCES purchase_orders(id) ON DELETE CASCADE,
+  action VARCHAR(50) NOT NULL,
+  old_status VARCHAR(20),
+  new_status VARCHAR(20),
+  comment TEXT,
+  created_by UUID NOT NULL REFERENCES users(id),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- RLSポリシー設定（詳細は省略）
+```
+
+### 適用日
+**ローカル開発環境**: 2025-12-16
+**ステータス**: ✅ 適用完了
+
+### ロールバック手順
+```sql
+-- カラム削除
+ALTER TABLE purchase_orders DROP COLUMN IF EXISTS payment_terms;
+ALTER TABLE purchase_orders DROP COLUMN IF EXISTS ordered_at;
+ALTER TABLE purchase_orders DROP COLUMN IF EXISTS delivered_at;
+ALTER TABLE purchase_orders DROP COLUMN IF EXISTS paid_at;
+
+-- ステータス制約を元に戻す
+ALTER TABLE purchase_orders DROP CONSTRAINT IF EXISTS purchase_orders_status_check;
+ALTER TABLE purchase_orders ADD CONSTRAINT purchase_orders_status_check
+  CHECK (status IN ('draft', 'ordered', 'partially_received', 'received', 'cancelled'));
+```
+
+### 注意事項
+1. 既存の`purchase_orders`テーブルが存在することを前提としています
+2. `supplier_id`の外部キー制約を`clients`から`suppliers`に変更する処理が含まれています
+3. すべてのカラム追加は`IF NOT EXISTS`チェック付きで安全に実行されます
+
+### 関連ドキュメント
+- [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) - Section 23: 発注書管理テーブル
+- [PURCHASE_ORDER_SPEC.md](./PURCHASE_ORDER_SPEC.md) - 完全仕様書
+
+---
+
+### Phase 1 実装状況（発注書管理）
+
+#### データベース設計・マイグレーション（2025-12-16）
+- [x] suppliersテーブル作成
+- [x] purchase_ordersテーブル作成
+- [x] purchase_order_itemsテーブル作成
+- [x] purchase_order_historyテーブル作成
+- [x] RLSポリシー設定
+- [x] インデックス設計
+- [x] TypeScript型定義作成（types/purchase-orders.ts）
+- [x] DATABASE_SCHEMA.md更新
+- [x] MIGRATIONS.md更新
+- [ ] 仕入先マスタ管理API実装
+- [ ] 仕入先マスタ管理UI実装
+- [ ] 発注書CRUD API実装
+- [ ] 発注書CRUD UI実装
+- [ ] PDF出力機能実装
 

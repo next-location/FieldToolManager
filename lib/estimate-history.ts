@@ -10,6 +10,7 @@ export type EstimateActionType =
   | 'pdf_generated'
   | 'customer_approved'
   | 'customer_rejected'
+  | 'expired'
 
 interface CreateHistoryParams {
   estimateId: string
@@ -83,6 +84,7 @@ export function getActionTypeLabel(actionType: EstimateActionType): string {
     pdf_generated: 'PDF出力',
     customer_approved: '顧客承認',
     customer_rejected: '顧客却下',
+    expired: '有効期限切れ',
   }
   return labels[actionType] || actionType
 }

@@ -34,15 +34,20 @@ export default async function NewConsumablePage() {
     .single()
 
   return (
-    <div className="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">
             消耗品の新規登録
           </h1>
           <p className="mt-1 text-sm text-gray-500">
-            新しい消耗品を登録します。在庫数量と単位を設定してください。
+            実際の消耗品（在庫）を登録します。在庫数量と単位を設定してください。
           </p>
+          <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-xs text-blue-700">
+              <strong>💡 ヒント：</strong>消耗品の種類（テンプレート）を事前に登録したい場合は、「道具・消耗品マスタ」ページから登録できます。
+            </p>
+          </div>
         </div>
 
         <div className="bg-white shadow sm:rounded-lg">

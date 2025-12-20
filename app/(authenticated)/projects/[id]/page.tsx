@@ -45,6 +45,22 @@ export default async function ProjectDetailPage({
     redirect('/projects')
   }
 
+  // 発注書集計情報取得
+  const { data: purchaseOrderSummary } = await supabase
+    .from('purchase_orders')
+    .select('id, status, total_amount')
+    .eq('project_id', id)
+    .eq('organization_id', userData.organization_id)
+    .is('deleted_at', null)
+
+  // 発注書統計計算
+  const purchaseStats = {
+    total_count: purchaseOrderSummary?.length || 0,
+    total_amount: purchaseOrderSummary?.reduce((sum, po) => sum + Number(po.total_amount || 0), 0) || 0,
+    approved_count: purchaseOrderSummary?.filter(po => ['approved', 'ordered', 'partially_received', 'received', 'paid'].includes(po.status)).length || 0,
+    approved_amount: purchaseOrderSummary?.filter(po => ['approved', 'ordered', 'partially_received', 'received', 'paid'].includes(po.status)).reduce((sum, po) => sum + Number(po.total_amount || 0), 0) || 0,
+  }
+
   // ステータス表示
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -85,11 +101,12 @@ export default async function ProjectDetailPage({
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 py-6 sm:px-0">
       {/* ヘッダー */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold mb-2">{project.project_name}</h1>
+          <h1 className="text-2xl font-bold mb-2">{project.project_name}</h1>
           <p className="text-gray-600">工事番号: {project.project_code}</p>
         </div>
         <div className="flex gap-3">
@@ -187,6 +204,63 @@ export default async function ProjectDetailPage({
         </div>
       </div>
 
+      {/* 発注情報 */}
+      <div className="bg-white shadow-sm rounded-lg p-6 mb-6">
+        <div className="flex items-center justify-between mb-4 border-b pb-2">
+          <h2 className="text-lg font-semibold">発注情報</h2>
+          <Link
+            href={`/purchase-orders?project=${id}`}
+            className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+          >
+            発注書一覧を見る →
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-500 mb-1">発注書件数</label>
+            <p className="text-gray-900 text-2xl font-semibold">{purchaseStats.total_count}件</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-500 mb-1">発注総額</label>
+            <p className="text-gray-900 text-2xl font-semibold">{formatCurrency(purchaseStats.total_amount)}</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-500 mb-1">承認済件数</label>
+            <p className="text-blue-600 text-2xl font-semibold">{purchaseStats.approved_count}件</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-500 mb-1">承認済金額</label>
+            <p className="text-blue-600 text-2xl font-semibold">{formatCurrency(purchaseStats.approved_amount)}</p>
+          </div>
+
+          {project.budget_amount && purchaseStats.approved_amount > 0 && (
+            <div className="md:col-span-2 lg:col-span-4">
+              <label className="block text-sm font-medium text-gray-500 mb-2">予算消化率</label>
+              <div className="relative w-full bg-gray-200 rounded-full h-6">
+                <div
+                  className={`h-6 rounded-full flex items-center justify-center text-xs font-semibold text-white ${
+                    (purchaseStats.approved_amount / Number(project.budget_amount)) * 100 > 100
+                      ? 'bg-red-500'
+                      : (purchaseStats.approved_amount / Number(project.budget_amount)) * 100 > 80
+                      ? 'bg-yellow-500'
+                      : 'bg-green-500'
+                  }`}
+                  style={{ width: `${Math.min((purchaseStats.approved_amount / Number(project.budget_amount)) * 100, 100)}%` }}
+                >
+                  {((purchaseStats.approved_amount / Number(project.budget_amount)) * 100).toFixed(1)}%
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 mt-1">
+                予算残: {formatCurrency(Number(project.budget_amount) - purchaseStats.approved_amount)}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* システム情報 */}
       <div className="bg-white shadow-sm rounded-lg p-6">
         <h2 className="text-lg font-semibold mb-4 border-b pb-2">システム情報</h2>
@@ -201,6 +275,7 @@ export default async function ProjectDetailPage({
             <p className="text-gray-900 text-sm">{new Date(project.updated_at).toLocaleString('ja-JP')}</p>
           </div>
         </div>
+      </div>
       </div>
     </div>
   )

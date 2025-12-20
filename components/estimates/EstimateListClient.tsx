@@ -413,6 +413,13 @@ export function EstimateListClient({ estimates: initialEstimates, userRole, staf
 
             {/* ボタンエリア（カード外・右寄せ） */}
             <div className="border-t border-gray-200 px-4 py-2 bg-gray-50 flex items-center justify-end gap-2">
+              {/* 期限切れの場合は警告テキストのみ */}
+              {estimate.status === 'expired' && (
+                <span className="text-xs text-yellow-700 mr-auto">
+                  有効期限: {estimate.valid_until ? new Date(estimate.valid_until).toLocaleDateString('ja-JP') : '-'}（期限切れ）
+                </span>
+              )}
+
               {estimate.status === 'draft' && (
                 <Link
                   href={`/estimates/${estimate.id}/edit`}
@@ -421,8 +428,8 @@ export function EstimateListClient({ estimates: initialEstimates, userRole, staf
                   編集
                 </Link>
               )}
-              {/* PDF出力: 提出済み以降、またはマネージャー以上のみ */}
-              {(estimate.status === 'submitted' || (estimate.status !== 'draft' && isManagerOrAdmin)) && (
+              {/* PDF出力: 提出済み以降、またはマネージャー以上のみ（期限切れは除外） */}
+              {(estimate.status === 'submitted' || (estimate.status !== 'draft' && estimate.status !== 'expired' && isManagerOrAdmin)) && (
                 <a
                   href={`/api/estimates/${estimate.id}/pdf`}
                   target="_blank"
@@ -440,7 +447,8 @@ export function EstimateListClient({ estimates: initialEstimates, userRole, staf
                   請求書作成
                 </Link>
               )}
-              {!estimate.manager_approved_at && (
+              {/* 削除ボタン: 未承認または期限切れの見積のみ */}
+              {(!estimate.manager_approved_at || estimate.status === 'expired') && (
                 <button
                   onClick={() => handleDelete(estimate.id, estimate.estimate_number)}
                   className="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors"

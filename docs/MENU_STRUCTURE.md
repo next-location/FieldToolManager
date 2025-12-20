@@ -179,28 +179,30 @@ const hasDxPackage = features.contract.packages.dx_efficiency
 |------|--------|------|
 | **（Manager権限の現場資産パック機能）** | |
 | `/warehouse-locations` | 倉庫位置管理 | ⭐Admin only |
-| `/categories` | 道具カテゴリ管理 | ⭐Admin only |
+| `/master/tools-consumables` | 道具マスタ | ⭐Manager/Admin only ※カテゴリ管理含む |
 | `/master/equipment-categories` | 重機カテゴリ管理 | ⭐Admin only ※重機有効時 |
-| `/master/tools` | 道具マスタ管理 | ⭐Admin only ※重機有効時 |
 | **削除権限** | 道具・消耗品・道具セット・重機・現場 | ⭐Admin only |
 
 #### 現場DX業務効率化パック必須（Admin追加機能）
 | パス | 機能名 | 備考 |
 |------|--------|------|
 | **（Manager権限の現場DX機能）** | |
-| `/clients` | 取引先マスタ | ⭐Admin only |
+| `/clients` | 取引先マスタ | ⭐Admin/Leader以上（閲覧）、Admin（編集） |
+| `/suppliers` | **仕入先マスタ** | ⭐Admin/Leader以上（閲覧）、Admin（編集） |
 | `/attendance/settings` | 出退勤設定 | ⭐Admin only |
 | `/work-reports/settings` | 作業報告書設定 | ⭐Admin only |
 | `/attendance/terminals` | タブレット端末管理 | ⭐Admin only |
-| **帳票管理** | | ⭐Admin only |
-| `/projects` | 工事管理 | |
-| `/estimates` | 見積書一覧 | |
-| `/invoices` | 請求書一覧 | |
-| `/purchase-orders` | 発注書一覧 | |
-| `/payments` | 入出金管理 | |
+| **帳票管理** | | ⭐Leader以上 |
+| `/projects` | 工事管理 | Leader以上 |
+| `/estimates` | 見積書一覧 | Leader以上（作成）、Manager以上（承認） |
+| `/invoices` | 請求書一覧 | Leader以上（作成）、Manager以上（承認） |
+| `/purchase-orders` | **発注書一覧** | **Leader以上（作成）、Admin（100万円以上承認）** |
+| `/payments` | 入出金管理 | Manager以上 |
 | **レポート・分析** | | ⭐Admin only |
 | `/clients/stats` | 取引先統計・分析 | |
 | `/analytics/financial` | 財務分析（売上・資金繰り） | DXパックで全機能利用可 |
+
+**注意**: フル機能統合パックは、現場資産パック + 現場DX業務効率化パックの全機能が利用可能
 
 ---
 

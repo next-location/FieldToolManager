@@ -86,7 +86,7 @@ export default async function ToolSetDetailPage({
   const toolItems = setItems?.map((item) => (item.tool_item as any)) || []
 
   return (
-    <div className="max-w-5xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
         <div className="mb-6">
           <Link
@@ -97,12 +97,16 @@ export default async function ToolSetDetailPage({
           </Link>
         </div>
 
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">道具セット詳細</h1>
+        </div>
+
         {/* セット基本情報 */}
         <div className="bg-white shadow overflow-hidden sm:rounded-lg">
           <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
             <div>
               <h3 className="text-lg leading-6 font-medium text-gray-900">
-                道具セット詳細
+                基本情報
               </h3>
               <p className="mt-1 max-w-2xl text-sm text-gray-500">
                 ID: {toolSet.id}
