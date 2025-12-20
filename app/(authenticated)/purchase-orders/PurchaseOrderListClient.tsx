@@ -30,7 +30,7 @@ interface Staff {
 
 interface PurchaseOrderListClientProps {
   orders: PurchaseOrder[]
-  suppliers: { id: string; name: string; supplier_code: string }[]
+  suppliers: { id: string; name: string; client_code: string }[]
   projects: { id: string; name: string }[]
   currentUserRole: string
   staffList: Staff[]

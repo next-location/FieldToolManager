@@ -480,7 +480,7 @@ export function PurchaseOrderDetailClient({
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {order.items
-                ?.sort((a, b) => a.display_order - b.display_order)
+                ?.sort((a, b) => a.sort_order - b.sort_order)
                 .map((item) => (
                   <tr key={item.id}>
                     <td className="px-6 py-4 text-sm text-gray-900">{item.item_name}</td>
