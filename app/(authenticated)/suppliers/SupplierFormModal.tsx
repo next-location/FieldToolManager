@@ -1,8 +1,28 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Supplier } from '@/types/purchase-orders'
 import { XMarkIcon } from '@heroicons/react/24/outline'
+
+// Supplier型は廃止 - Client型を使用
+interface Supplier {
+  id: string
+  name: string
+  name_kana?: string
+  postal_code?: string
+  address?: string
+  phone?: string
+  fax?: string
+  email?: string
+  website?: string
+  contact_person?: string
+  payment_terms?: string
+  bank_name?: string
+  branch_name?: string
+  account_type?: string
+  account_number?: string
+  account_holder?: string
+  notes?: string
+}
 
 interface SupplierFormModalProps {
   supplier?: Supplier
