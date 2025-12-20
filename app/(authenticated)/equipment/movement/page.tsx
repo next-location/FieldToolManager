@@ -76,7 +76,7 @@ export default async function EquipmentMovementPage() {
 
         <div className="bg-white rounded-lg shadow p-6">
           <EquipmentMovementForm
-            equipment={equipment || []}
+            equipment={(equipment as any) || []}
             sites={sites || []}
             currentUserId={user.id}
             currentUserName={userData.name}
