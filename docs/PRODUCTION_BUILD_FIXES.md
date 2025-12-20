@@ -17,7 +17,9 @@ Next.js 15.1.6の本番環境ビルド時に発生したTypeScriptエラーの�
 - `ab47ff0` - Update docs: add final commit 90beb4e
 - `a3f517c` - Fix ToolSetForm and tools actions type errors
 - `efaaf1f` - Update docs: add commit a3f517c
-- `c5307de` - Fix final build errors: insertError and work report fields ✅ **最終**
+- `c5307de` - Fix final build errors: insertError and work report fields
+- `3f9424e` - Update docs: final fixes for insertError and work report fields
+- `b3f566f` - Fix custom_fields_data type error in WorkReportEditForm ✅ **最終**
 
 ---
 
