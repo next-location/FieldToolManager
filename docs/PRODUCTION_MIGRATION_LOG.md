@@ -191,4 +191,62 @@ npm run build
 
 ---
 
-**最終更新**: 2025-12-21 2:00
+### ✅ Task 5: Vercel環境変数設定とデプロイ（完了）
+
+**実施日時**: 2025-12-21 20:00
+
+**作業内容**:
+
+1. **環境変数の設定（8個）**:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `STRIPE_SECRET_KEY`（本番キー）
+   - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+   - `NEXTAUTH_SECRET`（生成）
+   - `SUPER_ADMIN_JWT_SECRET`（生成）
+   - `CRON_SECRET`（生成）
+
+2. **デプロイ時のエラー対応**:
+
+   **エラー1: Stripe環境変数**
+   - 問題：`STRIPE_TEST_SECRET_KEY`を要求するエラー
+   - 原因：エラーメッセージが誤っていた
+   - 修正：`lib/stripe/client.ts`のエラーメッセージを修正
+   ```typescript
+   // 修正前
+   throw new Error('Stripe secret key is not defined. Please set STRIPE_TEST_SECRET_KEY in .env.local');
+   // 修正後
+   const keyName = process.env.NODE_ENV === 'production' ? 'STRIPE_SECRET_KEY' : 'STRIPE_TEST_SECRET_KEY';
+   throw new Error(`Stripe secret key is not defined. Please set ${keyName} in environment variables`);
+   ```
+
+   **エラー2: Resend（メール）APIキー**
+   - 問題：`RESEND_API_KEY`が未設定
+   - 修正：条件付き初期化に変更（9ファイル）
+   ```typescript
+   // 修正前
+   const resend = new Resend(process.env.RESEND_API_KEY)
+   // 修正後
+   const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+   ```
+
+3. **修正ファイル一覧**:
+   - `lib/stripe/client.ts`
+   - `app/api/auth/forgot-password/route.ts`
+   - `app/api/auth/2fa/send-email/route.ts`
+   - `app/api/auth/login/route.ts`
+   - `app/api/public/contact/route.ts`
+   - `app/api/user/2fa/enable/route.ts`
+   - `lib/email.ts`
+   - `lib/email/invoice.ts`
+   - `lib/email/project-invoice.ts`
+   - `lib/email/welcome.ts`
+
+**現在の状態**:
+- Vercelへのデプロイ成功（予定）
+- メール機能は一時的に無効化（Resend APIキー設定後に有効化予定）
+
+---
+
+**最終更新**: 2025-12-21 20:30

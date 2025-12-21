@@ -358,6 +358,55 @@
 
 ---
 
+#### Task 5-2: メール送信機能の有効化 ★★★☆☆ 🆕
+
+**説明**: Resend APIを設定してメール送信機能を復旧
+**現在の状態**: 一時的に無効化中（2025-12-21の初回デプロイ対応）
+
+**必要な作業**:
+1. **Resendアカウント作成**:
+   - [Resend](https://resend.com)でアカウント作成
+   - APIキーを生成
+
+2. **Vercel環境変数に追加**:
+   ```
+   RESEND_API_KEY=re_xxxxxxxxxx
+   ```
+
+3. **コード修正を元に戻す**:
+   現在の条件付き初期化を元に戻す必要があります：
+   ```typescript
+   // 現在（一時的な対応）
+   const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+
+   // 本来のコード（メール有効化後）
+   const resend = new Resend(process.env.RESEND_API_KEY)
+   ```
+
+4. **修正が必要なファイル**（9ファイル）:
+   - `app/api/auth/forgot-password/route.ts`
+   - `app/api/auth/2fa/send-email/route.ts`
+   - `app/api/auth/login/route.ts`
+   - `app/api/public/contact/route.ts`
+   - `app/api/user/2fa/enable/route.ts`
+   - `lib/email.ts`
+   - `lib/email/invoice.ts`
+   - `lib/email/project-invoice.ts`
+   - `lib/email/welcome.ts`
+
+5. **メール送信テスト**:
+   - パスワードリセット機能
+   - 2FA認証メール
+   - 請求書送信
+   - ウェルカムメール
+
+**所要時間**: 1時間
+**依存関係**: Task 5（Vercel環境変数設定）完了後
+**優先度**: 中（初期運用では請求書PDFダウンロードで対応可能）
+**検証方法**: 各種メール送信機能の動作確認
+
+---
+
 #### Task 6: 初期スーパーアドミン作成 ★★★★☆
 
 **説明**: 本番環境用の初期管理者アカウント作成

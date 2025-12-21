@@ -193,11 +193,6 @@ ${modelNumber ? `型番: ${modelNumber}\n` : ''}現在の在庫数: ${currentSto
 通知設定を変更する場合は、ダッシュボードの組織設定から行ってください。
 `
 
-    if (!resend) {
-      console.warn('Resend not configured')
-      return { success: false, error: 'メールサービスが設定されていません' }
-    }
-
     await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'noreply@fieldtoolmanager.com',
       to,
@@ -398,11 +393,6 @@ ${isExpired
 このメールは Field Tool Manager から自動送信されています。
 通知設定を変更する場合は、ダッシュボードの組織設定から行ってください。
 `
-
-    if (!resend) {
-      console.warn('Resend not configured')
-      return { success: false, error: 'メールサービスが設定されていません' }
-    }
 
     await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'noreply@fieldtoolmanager.com',

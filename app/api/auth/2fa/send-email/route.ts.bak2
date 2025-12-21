@@ -133,11 +133,6 @@ export async function POST(request: NextRequest) {
         </div>
       `;
 
-      if (!resend) {
-        console.warn("Resend API is not configured. Skipping email send.");
-        return NextResponse.json({ success: true, message: "Email service not configured" });
-      }
-
       const { error: emailError } = await resend.emails.send({
         from: 'FieldTool Manager <noreply@fieldtool.com>',
         to: targetEmail,

@@ -140,10 +140,6 @@ export async function sendInvoiceEmail(params: SendInvoiceEmailParams) {
     logger.info('[Invoice Email] Using Resend for email delivery');
     const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
     try {
-      if (!resend) {
-        console.warn("Resend API is not configured. Skipping email send.");
-        return { success: false, error: "Email service not configured" };
-      }
       const { data, error } = await resend.emails.send({
         from: 'noreply@zairoku.com',
         to: toEmail,
@@ -333,10 +329,6 @@ export async function sendInvoiceReminderEmail(params: SendInvoiceReminderEmailP
     logger.info('[Invoice Reminder] Using Resend for email delivery');
     const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
     try {
-      if (!resend) {
-        console.warn("Resend API is not configured. Skipping email send.");
-        return { success: false, error: "Email service not configured" };
-      }
       const { data, error } = await resend.emails.send({
         from: 'noreply@zairoku.com',
         to,

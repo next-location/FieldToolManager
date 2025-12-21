@@ -17,14 +17,6 @@ export async function POST(request: NextRequest) {
     }
 
     // 管理者への通知メール
-    if (!resend) {
-      console.warn('Resend not configured');
-      return NextResponse.json({
-        success: true,
-        message: 'お問い合わせを受け付けました（メールサービス未設定）'
-      })
-    }
-
     await resend.emails.send({
       from: 'noreply@zairoku.com',
       to: 'info@zairoku.com',
@@ -70,12 +62,11 @@ export async function POST(request: NextRequest) {
     })
 
     // お客様への自動返信メール
-    if (resend) {
-      await resend.emails.send({
-        from: 'noreply@zairoku.com',
-        to: email,
-        subject: '【ザイロク】お問い合わせを受け付けました',
-        html: `
+    await resend.emails.send({
+      from: 'noreply@zairoku.com',
+      to: email,
+      subject: '【ザイロク】お問い合わせを受け付けました',
+      html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #3B82F6;">お問い合わせありがとうございます</h2>
           <p>${name} 様</p>
@@ -130,8 +121,7 @@ export async function POST(request: NextRequest) {
           </div>
         </div>
       `,
-      })
-    }
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {
