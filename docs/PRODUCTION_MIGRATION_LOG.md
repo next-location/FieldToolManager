@@ -59,6 +59,91 @@ npm run build
 
 ---
 
+### ✅ Task 1-2: VS Code強制終了後の復旧とVercelデプロイ修正（完了）
+
+**実施日時**: 2025-12-21 23:00-23:30
+
+**問題**:
+1. VS Codeが強制終了し、作業が中断
+2. Vercelビルドエラー多数発生
+3. useSearchParamsのSuspense boundaryエラー
+4. Next.js脆弱性エラー
+
+**修正内容**:
+
+1. **Resend APIキー対応（9ファイル修正）**:
+   ```typescript
+   // 修正前
+   const resend = new Resend(process.env.RESEND_API_KEY)
+
+   // 修正後
+   const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+   if (!resend) {
+     console.warn("Resend not configured");
+     return { success: false, error: "Email service not configured" };
+   }
+   ```
+
+   修正ファイル:
+   - `lib/email/welcome.ts`
+   - `lib/email/project-invoice.ts`
+   - `lib/email/invoice.ts`
+   - `lib/email/notification.ts`
+   - `lib/email/password-reset.ts`
+   - `lib/email/2fa-reset.ts`
+   - `lib/email/payment-notification.ts`
+   - `lib/email/payment-receipt.ts`
+   - `lib/email/system-alert.ts`
+
+2. **useSearchParams Suspense boundaryエラー修正**:
+   - `app/(public)/reset-password/page.tsx`
+   - `app/auth/reset-2fa/page.tsx`
+
+   ```tsx
+   // コンポーネントをSuspenseでラップ
+   export default function Page() {
+     return (
+       <Suspense fallback={<LoadingUI />}>
+         <ContentComponent />
+       </Suspense>
+     );
+   }
+   ```
+
+3. **Next.js脆弱性対応**:
+   - Next.js 15.1.6 → 15.5.9 へアップグレード
+   - セキュリティ脆弱性を解消
+
+**デプロイ結果**:
+- ✅ Vercel本番デプロイ成功
+- URL: https://field-tool-manager-qm13v9a9t-next-location-4320s-projects.vercel.app
+
+---
+
+### ✅ Task 5: Vercel環境変数設定（部分完了）
+
+**実施日時**: 2025-12-21 22:00
+
+**設定済み環境変数**:
+1. ✅ `NEXTAUTH_URL`: https://field-tool-manager-qm13v9a9t-next-location-4320s-projects.vercel.app
+2. ✅ `NEXTAUTH_SECRET`: （生成済み）
+3. ✅ `JWT_SECRET`: （生成済み）
+4. ✅ `SUPABASE_URL`: （ローカルホスト設定）
+5. ✅ `SUPABASE_ANON_KEY`: （ローカルキー設定）
+6. ✅ `SUPABASE_SERVICE_ROLE_KEY`: （ローカルキー設定）
+7. ✅ `STRIPE_PUBLISHABLE_KEY`: （設定済み）
+8. ✅ `STRIPE_SECRET_KEY`: （設定済み）
+
+**未設定環境変数**（メール機能に必要）:
+- ❌ `RESEND_API_KEY`: 未設定（Task 5-2で対応予定）
+
+**注意事項**:
+- 現在はローカル開発用の値を仮設定
+- 本番Supabaseプロジェクト作成後に更新が必要
+- Resend APIキー取得後にメール機能が有効化される
+
+---
+
 ## Vercelアカウント決定
 
 **決定事項**: 既存のVercel Proアカウントを使用
