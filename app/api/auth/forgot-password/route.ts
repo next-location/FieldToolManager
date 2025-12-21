@@ -3,7 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import crypto from 'crypto'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// メール機能は一時的に無効化（本番環境でResend APIキー設定後に有効化）
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
 export async function POST(request: NextRequest) {
   try {

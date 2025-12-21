@@ -73,7 +73,9 @@
       "Bash(/Users/youichiakashi/FieldToolManager/app/api/admin/contracts/route.ts)",
       "Bash(! grep -q \"verifyCsrfToken\" \"$file\")",
       "Bash(tee:*)",
-      "Bash(vercel:*)"
+      "Bash(vercel:*)",
+      "Bash(while read file)",
+      "Bash(do echo \"Fixing: $file\" sed -i.bak 's/const resend = new Resend(process.env.RESEND_API_KEY)/const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null/g' \"$file\" done)"
     ],
     "deny": [],
     "ask": []
