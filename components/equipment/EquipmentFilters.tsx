@@ -117,7 +117,7 @@ export default function EquipmentFilters({ onFilterChange, categories }: Equipme
           >
             <option value="">すべて</option>
             {uniqueCategories.map((cat) => (
-              <option key={cat?.name} value={categories.find(e => e.heavy_equipment_categories?.name === cat?.name)?.category_id}>
+              <option key={cat?.name} value={categories.find(e => e.heavy_equipment_categories?.name === cat?.name)?.category_id || ''}>
                 {cat?.name}
               </option>
             ))}

@@ -5,9 +5,12 @@ export type EstimateActionType =
   | 'draft_saved'
   | 'submitted'
   | 'approved'
+  | 'approval_cancelled'
   | 'returned'
   | 'sent'
   | 'pdf_generated'
+  | 'accepted'
+  | 'rejected'
   | 'customer_approved'
   | 'customer_rejected'
   | 'expired'
@@ -79,9 +82,12 @@ export function getActionTypeLabel(actionType: EstimateActionType): string {
     draft_saved: '下書き保存',
     submitted: '確定・提出',
     approved: '承認',
+    approval_cancelled: '承認取消',
     returned: '差し戻し',
     sent: '顧客送付',
     pdf_generated: 'PDF出力',
+    accepted: '受理',
+    rejected: '却下',
     customer_approved: '顧客承認',
     customer_rejected: '顧客却下',
     expired: '有効期限切れ',

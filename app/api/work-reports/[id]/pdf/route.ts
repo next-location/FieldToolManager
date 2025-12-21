@@ -404,8 +404,9 @@ export async function GET(
     const workerCount = report.workers && Array.isArray(report.workers) ? report.workers.length : 0
 
     // 2列レイアウト: 左側3項目、右側3項目
+    const tableConfig = getTableConfig({ type: 'info' })
     autoTable(doc, {
-      ...getTableConfig({ type: 'info' }),
+      ...(tableConfig as any),
       startY: yPos,
       body: [
         [
@@ -460,7 +461,7 @@ export async function GET(
       ])
 
       autoTable(doc, {
-        ...getTableConfig({ type: 'list' }),
+        ...(getTableConfig({ type: 'list' }) as any),
         startY: yPos,
         head: [['No.', '作業員', '作業時間', '時間外']],
         body: workerRows,
@@ -477,7 +478,7 @@ export async function GET(
 
     // 作業内容
     autoTable(doc, {
-      ...getTableConfig({ type: 'content' }),
+      ...(getTableConfig({ type: 'content' }) as any),
       startY: yPos,
       head: [['作業内容']],
       body: [[report.description || '-']],
@@ -494,7 +495,7 @@ export async function GET(
       : '-'
 
     autoTable(doc, {
-      ...getTableConfig({ type: 'content' }),
+      ...(getTableConfig({ type: 'content' }) as any),
       startY: yPos,
       head: [['使用資材']],
       body: [[materialsText]],
@@ -507,7 +508,7 @@ export async function GET(
 
     // 特記事項と備考エリア（2列レイアウト）
     autoTable(doc, {
-      ...getTableConfig({ type: 'remarks' }),
+      ...(getTableConfig({ type: 'remarks' }) as any),
       startY: yPos,
       head: [['特記事項', '備考']],
       body: [[report.special_notes || '', report.remarks || '']],

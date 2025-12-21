@@ -21,8 +21,8 @@ export default function SessionTimeoutMonitor({
   const [remainingTime, setRemainingTime] = useState(0)
   const lastActivityRef = useRef(Date.now())
   const warningShownRef = useRef(false)
-  const timeoutIdRef = useRef<NodeJS.Timeout>()
-  const warningTimeoutIdRef = useRef<NodeJS.Timeout>()
+  const timeoutIdRef = useRef<NodeJS.Timeout | null>(null)
+  const warningTimeoutIdRef = useRef<NodeJS.Timeout | null>(null)
 
   // セキュリティ設定を取得
   useEffect(() => {

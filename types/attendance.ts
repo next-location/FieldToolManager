@@ -256,6 +256,7 @@ export interface AttendanceStatusResponse {
   today_record: AttendanceRecord | null;
   is_clocked_in: boolean;
   clock_in_time: string | null;
+  clock_out_time: string | null;
   location_type: 'office' | 'site' | 'remote' | null;
   site_name: string | null;
 }

@@ -106,13 +106,12 @@ export async function POST(request: NextRequest) {
 
       if (histories && histories.length > 10) {
         const toDelete = histories.slice(10).map((h) => h.id)
-        const { count } = await supabase
+        await supabase
           .from('password_history')
           .delete()
           .in('id', toDelete)
-          .select('*', { count: 'exact', head: true })
 
-        passwordHistoryDeleted += count || 0
+        passwordHistoryDeleted += toDelete.length
       }
     }
 

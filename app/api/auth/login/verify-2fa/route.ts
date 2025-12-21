@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     // ユーザー情報を取得
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('id, email, two_factor_enabled, two_factor_secret, backup_codes')
+      .select('id, email, two_factor_enabled, two_factor_secret, backup_codes, backup_codes_used')
       .eq('id', userId)
       .single();
 

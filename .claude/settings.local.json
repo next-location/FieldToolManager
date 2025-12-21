@@ -71,7 +71,9 @@
       "Bash(/Users/youichiakashi/FieldToolManager/app/api/admin/2fa/verify/route.ts )",
       "Bash(/Users/youichiakashi/FieldToolManager/app/api/admin/organizations/route.ts )",
       "Bash(/Users/youichiakashi/FieldToolManager/app/api/admin/contracts/route.ts)",
-      "Bash(! grep -q \"verifyCsrfToken\" \"$file\")"
+      "Bash(! grep -q \"verifyCsrfToken\" \"$file\")",
+      "Bash(tee:*)",
+      "Bash(vercel:*)"
     ],
     "deny": [],
     "ask": []

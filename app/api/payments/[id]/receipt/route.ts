@@ -185,10 +185,10 @@ export async function GET(
     const stampBoxHeight = 25 // 2.5cm
 
     // 点線で枠を描画（細かい点線）
-    doc.setLineDash([1, 1]) // より細かい点線パターン
+    // doc.setLineDash([1, 1]) // より細かい点線パターン
     doc.setLineWidth(0.2)
     doc.rect(stampBoxX, stampBoxY, stampBoxWidth, stampBoxHeight)
-    doc.setLineDash([]) // 点線を解除
+    // doc.setLineDash([]) // 点線を解除
 
     // 収入印紙テキスト（2行、小さく）
     doc.setFontSize(6)

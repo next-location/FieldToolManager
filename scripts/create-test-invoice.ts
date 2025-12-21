@@ -39,7 +39,7 @@ async function main() {
     return;
   }
 
-  console.log('✅ 契約を取得:', contracts.organizations?.name);
+  console.log('✅ 契約を取得:', (contracts.organizations as any)[0]?.name);
 
   // 2. 請求書番号を生成
   const invoiceNumber = `INV-TEST-${Date.now()}`;

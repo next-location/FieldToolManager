@@ -32,7 +32,7 @@ export async function verifySuperAdminPassword(
 
 // JWT生成
 export async function createSuperAdminToken(payload: SuperAdminPayload): Promise<string> {
-  return new SignJWT(payload)
+  return new SignJWT(payload as any)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('8h')

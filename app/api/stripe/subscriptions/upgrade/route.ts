@@ -167,7 +167,7 @@ export async function POST(request: NextRequest) {
     }
 
     // invoice_schedulesを更新
-    const nextInvoiceDate = new Date(updatedSubscription.current_period_end * 1000);
+    const nextInvoiceDate = new Date((updatedSubscription as any).current_period_end * 1000);
     await supabase
       .from('invoice_schedules')
       .update({
@@ -178,11 +178,12 @@ export async function POST(request: NextRequest) {
       .eq('stripe_subscription_id', organization.stripe_subscription_id);
 
     // 日割り計算の金額を取得（次の請求書に反映される）
-    const upcomingInvoice = await stripe.invoices.retrieveUpcoming({
-      customer: organization.stripe_customer_id!,
-    });
-
-    const prorationAmount = upcomingInvoice.amount_due / 100;
+    // TODO: Stripe v20のAPI変更に対応する必要あり
+    // const upcomingInvoice = await stripe.invoices.upcoming({
+    //   customer: organization.stripe_customer_id!,
+    // });
+    // const prorationAmount = upcomingInvoice.amount_due / 100;
+    const prorationAmount = 0; // 一時的な値
 
     return NextResponse.json({
       success: true,

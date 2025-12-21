@@ -222,14 +222,14 @@ async function handleInvoiceCreated(invoice: Stripe.Invoice) {
         email: org.email,
         phone: org.phone,
       },
-      items: invoice.lines.data.map((line) => ({
+      items: invoice.lines.data.map((line: any) => ({
         description: line.description || '',
         quantity: line.quantity || 1,
         unitPrice: (line.price?.unit_amount || 0) / 100,
         amount: (line.amount || 0) / 100,
       })),
       subtotal: (invoice.subtotal || 0) / 100,
-      tax: (invoice.tax || 0) / 100,
+      tax: ((invoice as any).tax || 0) / 100,
       total: (invoice.total || 0) / 100,
     });
 
@@ -288,7 +288,7 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
         amount: invoiceData.amount,
         payment_date: new Date().toISOString().split('T')[0],
         payment_method: 'stripe',
-        stripe_payment_intent_id: invoice.payment_intent as string,
+        stripe_payment_intent_id: (invoice as any).payment_intent as string,
       });
   }
 
@@ -390,7 +390,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   }
 
   // invoice_schedulesテーブルを更新
-  const nextInvoiceDate = new Date(subscription.current_period_end * 1000);
+  const nextInvoiceDate = new Date((subscription as any).current_period_end * 1000);
   await supabase
     .from('invoice_schedules')
     .update({

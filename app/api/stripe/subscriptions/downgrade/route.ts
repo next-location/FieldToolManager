@@ -27,7 +27,9 @@ import { logger } from '@/lib/logger';
  */
 export async function POST(request: NextRequest) {
   try {
-    const { organizationId, newPlan } = await request.json();
+    const body = await request.json();
+    const organizationId: string = body.organizationId;
+    const newPlan: string = body.newPlan;
 
     // バリデーション
     if (!organizationId || !newPlan) {
@@ -149,7 +151,7 @@ export async function POST(request: NextRequest) {
     }
 
     // plan_change_requestsに記録
-    const { data: request, error: requestError } = await supabase
+    const { data: changeRequest, error: requestError } = await supabase
       .from('plan_change_requests')
       .insert({
         organization_id: organizationId,
@@ -178,7 +180,7 @@ export async function POST(request: NextRequest) {
 
     logger.info('Downgrade request created successfully', {
       organizationId,
-      requestId: request.id,
+      requestId: changeRequest?.id,
       scheduledFor,
     });
 
@@ -186,7 +188,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      requestId: request.id,
+      requestId: changeRequest?.id,
       scheduledFor: scheduledFor.toISOString(),
       message,
     });

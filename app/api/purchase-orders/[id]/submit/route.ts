@@ -30,7 +30,7 @@ export async function POST(
     // ユーザー情報取得
     const { data: userData } = await supabase
       .from('users')
-      .select('organization_id, role, name')
+      .select('id, organization_id, role, name')
       .eq('id', user.id)
       .single()
 

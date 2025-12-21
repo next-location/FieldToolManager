@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // トークンをpassword_reset_tokensテーブルから検索
     const { data: resetToken, error: tokenError } = await supabase

@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
           .eq('id', request.id);
 
         // invoice_schedulesを更新
-        const nextInvoiceDate = new Date(updatedSubscription.current_period_end * 1000);
+        const nextInvoiceDate = new Date((updatedSubscription as any).current_period_end * 1000);
         await supabase
           .from('invoice_schedules')
           .update({

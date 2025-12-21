@@ -43,7 +43,7 @@ interface RecentActivity {
   created_at: string;
   created_by_name: string;
   organization_id: string;
-  organizations: { name: string } | null;
+  organizations: { name: string }[] | null;
 }
 
 interface SalesDashboardProps {
@@ -380,7 +380,7 @@ export default function SalesDashboard({
                         href={`/admin/sales/${activity.organization_id}`}
                         className="font-semibold text-gray-900 hover:text-blue-600"
                       >
-                        {activity.organizations?.name || '不明'}
+                        {activity.organizations?.[0]?.name || '不明'}
                       </Link>
                     </div>
                     <p className="text-sm text-gray-900 font-medium">{activity.title}</p>

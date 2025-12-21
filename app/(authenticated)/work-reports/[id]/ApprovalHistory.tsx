@@ -3,7 +3,7 @@ interface ApprovalRecord {
   approver_name: string
   action: 'approved' | 'rejected'
   comment: string | null
-  created_at: string
+  approved_at: string
 }
 
 interface ApprovalHistoryProps {
@@ -51,7 +51,7 @@ export function ApprovalHistory({ approvals }: ApprovalHistoryProps) {
               <div className="flex items-center gap-2 mb-1">
                 {getActionBadge(approval.action)}
                 <span className="text-sm font-medium text-gray-900">{approval.approver_name}</span>
-                <span className="text-xs text-gray-500">{formatDate(approval.created_at)}</span>
+                <span className="text-xs text-gray-500">{formatDate(approval.approved_at)}</span>
               </div>
               {approval.comment && (
                 <p className="text-sm text-gray-600 mt-1">{approval.comment}</p>

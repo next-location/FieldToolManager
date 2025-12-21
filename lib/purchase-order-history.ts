@@ -106,6 +106,7 @@ export function getActionTypeLabel(actionType: PurchaseOrderActionType): string 
     submitted: '確定・提出',
     approved: '承認',
     rejected: '差し戻し',
+    sent: '送付',
     ordered: '発注',
     received: '受領',
     paid: '支払い',

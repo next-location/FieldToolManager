@@ -78,7 +78,7 @@ interface ContractPackage {
     name: string;
     package_key: string;
     monthly_fee: number;
-  };
+  }[];
 }
 
 interface ContractDetailViewProps {
@@ -250,7 +250,7 @@ export default function ContractDetailView({ contract, invoices, contractPackage
                     key={cp.package_id}
                     className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold mr-2 mb-2"
                   >
-                    {cp.packages.name}
+                    {cp.packages[0]?.name || 'パッケージ情報なし'}
                   </span>
                 ))
               ) : (

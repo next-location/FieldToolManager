@@ -99,6 +99,21 @@ export default async function WorkReportDetailPage({
     })
   }
 
+  // 承認履歴を取得
+  let approvalsData: any[] = []
+  if (report.status === 'approved' || report.status === 'rejected') {
+    const { data: approvals } = await supabase
+      .from('work_report_approvals')
+      .select('id, approver_name, action, comment, approved_at')
+      .eq('work_report_id', id)
+      .eq('organization_id', userData?.organization_id)
+      .order('approved_at', { ascending: false })
+
+    if (approvals) {
+      approvalsData = approvals
+    }
+  }
+
   // 編集・削除権限チェック
   // 下書き または 却下された報告書は作成者が編集可能
   const canEdit =
@@ -409,13 +424,8 @@ export default async function WorkReportDetailPage({
         <AttachmentList reportId={id} canEdit={false} />
 
         {/* 承認履歴 */}
-        {(report.status === 'approved' || report.status === 'rejected') && (
-          <div className="bg-white shadow sm:rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">承認履歴</h3>
-              <ApprovalHistory reportId={id} />
-            </div>
-          </div>
+        {(report.status === 'approved' || report.status === 'rejected') && approvalsData.length > 0 && (
+          <ApprovalHistory approvals={approvalsData} />
         )}
 
         {/* メタ情報 */}

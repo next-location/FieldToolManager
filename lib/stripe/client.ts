@@ -1,7 +1,7 @@
 import Stripe from 'stripe';
 
 // Stripe APIバージョン
-const STRIPE_API_VERSION = '2024-11-20.acacia';
+// const STRIPE_API_VERSION = '2024-11-20.acacia';
 
 // 環境に応じたStripe Secret Keyを取得
 const stripeSecretKey = process.env.NODE_ENV === 'production'
@@ -9,12 +9,13 @@ const stripeSecretKey = process.env.NODE_ENV === 'production'
   : process.env.STRIPE_TEST_SECRET_KEY;
 
 if (!stripeSecretKey) {
-  throw new Error('Stripe secret key is not defined. Please set STRIPE_TEST_SECRET_KEY in .env.local');
+  const keyName = process.env.NODE_ENV === 'production' ? 'STRIPE_SECRET_KEY' : 'STRIPE_TEST_SECRET_KEY';
+  throw new Error(`Stripe secret key is not defined. Please set ${keyName} in environment variables`);
 }
 
 // Stripe Clientの初期化
 export const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: STRIPE_API_VERSION,
+  apiVersion: '2025-11-17.clover',
   typescript: true,
 });
 

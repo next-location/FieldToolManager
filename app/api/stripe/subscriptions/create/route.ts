@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
         success: true,
         subscriptionId: subscription.id,
         status: subscription.status,
-        currentPeriodEnd: subscription.current_period_end,
+        currentPeriodEnd: (subscription as any).current_period_end,
         message: 'Stripe Subscriptionは既に存在します',
       });
     }
@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
     }
 
     // invoice_schedulesテーブルに追加
-    const nextInvoiceDate = new Date(subscription.current_period_end * 1000);
+    const nextInvoiceDate = new Date((subscription as any).current_period_end * 1000);
     const { error: scheduleError } = await supabase
       .from('invoice_schedules')
       .insert({
@@ -207,7 +207,7 @@ export async function POST(request: NextRequest) {
       success: true,
       subscriptionId: subscription.id,
       status: subscription.status,
-      currentPeriodEnd: subscription.current_period_end,
+      currentPeriodEnd: (subscription as any).current_period_end,
     });
 
   } catch (error: unknown) {

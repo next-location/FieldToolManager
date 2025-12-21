@@ -37,7 +37,7 @@ export async function AuthenticatedLayout({ children }: AuthenticatedLayoutProps
 
   return (
     <AppLayout
-      user={{ email: user.email, id: user.id }}
+      user={{ email: user.email || '', id: user.id || '' }}
       userRole={userData.role}
       organizationId={userData.organization_id}
       organizationName={organization?.name}

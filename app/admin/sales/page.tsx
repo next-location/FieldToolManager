@@ -97,7 +97,18 @@ export default async function SalesPage() {
           </div>
 
           <SalesDashboard
-            statusCounts={statusCounts || {}}
+            statusCounts={(statusCounts?.data as any) || {
+              not_contacted: 0,
+              appointment: 0,
+              prospect: 0,
+              proposal: 0,
+              negotiation: 0,
+              contracting: 0,
+              contracted: 0,
+              cancelled: 0,
+              lost: 0,
+              do_not_contact: 0,
+            }}
             upcomingAppointments={upcomingAppointments || []}
             activeDeals={activeDeals || []}
             recentActivities={recentActivities || []}

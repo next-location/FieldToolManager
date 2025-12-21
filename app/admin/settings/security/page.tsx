@@ -24,7 +24,7 @@ export default function SecuritySettingsPage() {
 
     // IP制限（取引先用）
     enableIpRestriction: false,
-    allowedIpAddresses: [],
+    allowedIpAddresses: [] as string[],
 
     // 2FA設定（権限別）
     require2FAForOrganizationAdmin: false,  // 組織管理者（admin）

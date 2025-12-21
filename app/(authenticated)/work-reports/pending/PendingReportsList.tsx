@@ -18,12 +18,12 @@ interface Report {
   site: {
     id: string
     name: string
-  } | null
+  }[] | null
   created_by_user: {
     id: string
     name: string
     email: string
-  } | null
+  }[] | null
   workers: Worker[]
 }
 
@@ -268,10 +268,10 @@ export function PendingReportsList({ reports }: PendingReportsListProps) {
                         href={`/work-reports/${report.id}`}
                         className="text-lg font-medium text-blue-600 hover:text-blue-800"
                       >
-                        {report.report_date} - {report.site?.name || '現場名なし'}
+                        {report.report_date} - {report.site?.[0]?.name || '現場名なし'}
                       </Link>
                       <p className="text-sm text-gray-600 mt-1">
-                        作成者: {report.created_by_user?.name || '不明'}
+                        作成者: {report.created_by_user?.[0]?.name || '不明'}
                       </p>
                       <p className="text-sm text-gray-600">
                         作業員: {report.workers.length}名
@@ -322,10 +322,10 @@ export function PendingReportsList({ reports }: PendingReportsListProps) {
                 <strong>報告日:</strong> {selectedReport.report_date}
               </p>
               <p className="text-sm text-gray-700">
-                <strong>現場:</strong> {selectedReport.site?.name || '現場名なし'}
+                <strong>現場:</strong> {selectedReport.site?.[0]?.name || '現場名なし'}
               </p>
               <p className="text-sm text-gray-700">
-                <strong>作成者:</strong> {selectedReport.created_by_user?.name || '不明'}
+                <strong>作成者:</strong> {selectedReport.created_by_user?.[0]?.name || '不明'}
               </p>
             </div>
 

@@ -56,7 +56,7 @@ export async function GET(
         .eq('email', user.email)
         .single()
 
-      if (userData?.organization_id !== toolItem.tools.organization_id) {
+      if (userData?.organization_id !== toolItem.tools[0].organization_id) {
         return NextResponse.json(
           { error: 'Access denied - Different organization' },
           { status: 403 }
@@ -67,7 +67,7 @@ export async function GET(
         type: 'tool_item',
         tool_id: toolItem.tool_id,
         tool_item_id: toolItem.id,
-        name: toolItem.tools.name,
+        name: toolItem.tools[0].name,
         serial_number: toolItem.serial_number,
         current_location: toolItem.current_location,
         status: toolItem.status,

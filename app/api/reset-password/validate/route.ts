@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'トークンが指定されていません' }, { status: 400 })
     }
 
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // トークンをpassword_reset_tokensテーブルから検索
     const { data: resetToken, error } = await supabase

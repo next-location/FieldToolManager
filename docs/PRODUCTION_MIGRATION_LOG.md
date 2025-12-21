@@ -144,4 +144,51 @@ npm run build
 
 ---
 
-**最終更新**: 2025-12-21 1:00
+### ✅ Task 1-2: 追加ビルドエラー修正（完了）
+
+**実施日時**: 2025-12-21 2:00
+
+**問題**:
+VS Code強制終了後、ビルドエラーが多数発生
+
+**修正内容**:
+
+1. **Stripe API関連の型エラー修正（5ファイル）**:
+   - `app/api/stripe/subscriptions/upgrade/route.ts`: invoices APIメソッド名修正、型キャスト追加
+   - `app/api/tools/by-qr/[qrCode]/route.ts`: tools配列アクセス修正
+   - `app/api/webhooks/stripe/route.ts`: invoice関連の型キャスト追加
+   - `lib/stripe/client.ts`: APIバージョンを'2025-11-17.clover'に更新
+   - `scripts/setup-stripe-products.ts`: APIバージョン更新
+
+2. **型定義エラー修正（7ファイル）**:
+   - `components/AuthenticatedLayout.tsx`: undefined型対応
+   - `components/equipment/EquipmentFilters.tsx`: null値対応
+   - `components/estimates/EstimateHistoryTimeline.tsx`: EstimateActionType型追加
+   - `lib/estimate-history.ts`: 'approval_cancelled', 'accepted', 'rejected'追加
+   - `lib/purchase-order-history.ts`: 'sent'アクション追加
+   - `components/SessionTimeoutMonitor.tsx`: useRef初期値修正
+   - `lib/auth/super-admin.ts`: JWT型キャスト追加
+
+3. **PDF生成関連修正（2ファイル）**:
+   - `lib/pdf/helpers.ts`: UserConfig型定義追加、async関数の戻り値型修正
+   - `app/api/work-reports/[id]/pdf/route.ts`: autoTable設定の型キャスト
+
+4. **その他の修正（2ファイル）**:
+   - `lib/supabase/queries/clients.ts`: import名の衝突解決、プロパティ重複修正
+   - `scripts/create-test-invoice.ts`: 配列アクセス修正
+
+**検証結果**:
+```bash
+npm run build
+# ✓ Compiled successfully
+# ページデータ収集でSTRIPE環境変数エラー（想定通り）
+```
+
+**備考**:
+- TypeScriptコンパイルは成功
+- Stripe環境変数は本番環境設定時に追加予定
+- ESLint設定警告は継続（影響なし）
+
+---
+
+**最終更新**: 2025-12-21 2:00

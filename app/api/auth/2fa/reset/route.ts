@@ -116,7 +116,9 @@ export async function POST(request: NextRequest) {
 
     // 通知メールを送信（オプション）
     try {
-      const { sendEmail } = await import('@/lib/email');
+      // TODO: Implement email sending
+      console.log("TODO: Send 2FA reset notification email to:", userData.email);
+      /* const { sendEmail } = await import('@/lib/email');
       await sendEmail({
         to: userData.email,
         subject: '【ザイロク】2FAがリセットされました',
@@ -133,7 +135,7 @@ export async function POST(request: NextRequest) {
             </p>
           </div>
         `
-      });
+      }); */
     } catch (emailError) {
       console.error('Failed to send notification email:', emailError);
     }

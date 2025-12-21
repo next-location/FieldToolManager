@@ -1,5 +1,22 @@
 import { jsPDF } from 'jspdf'
-import { UserConfig } from 'jspdf-autotable'
+import 'jspdf-autotable'
+
+// TypeScript向けの型定義
+interface UserConfig {
+  startY?: number
+  head?: any[]
+  body?: any[]
+  theme?: string
+  headStyles?: any
+  columnStyles?: any
+  styles?: any
+  margin?: any
+  pageBreak?: string
+  rowPageBreak?: string
+  showHead?: string
+  showFoot?: string
+  footStyles?: any
+}
 
 /**
  * PDF生成用の共通ヘルパー関数
@@ -334,7 +351,7 @@ export async function drawPhotos(
   }>,
   supabase: any,
   startY: number
-): number {
+): Promise<number> {
   if (!photos || photos.length === 0) {
     return startY
   }

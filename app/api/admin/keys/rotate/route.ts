@@ -15,16 +15,14 @@ export async function POST(request: NextRequest) {
         {
           status: 429,
           headers: {
-            'Retry-After': Math.ceil(resetTime / 1000).toString(),
+            'Retry-After': Math.ceil((resetTime || 60000) / 1000).toString(),
           }
         }
       );
     }
 
     // CSRF検証
-    const csrfToken = request.headers.get('X-CSRF-Token');
-    const cookieToken = request.cookies.get('csrf-token')?.value;
-    if (!csrfToken || !cookieToken || !verifyCsrfToken(csrfToken, cookieToken)) {
+    if (!(await verifyCsrfToken(request))) {
       return NextResponse.json(
         { error: '無効なリクエストです' },
         { status: 403 }

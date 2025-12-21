@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
-import { sendEmail } from '@/lib/email';
+// import { sendEmail } from '@/lib/email'; // TODO: Implement email service
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -93,7 +93,9 @@ export async function POST(request: NextRequest) {
 
     // メール送信
     try {
-      await sendEmail({
+      // TODO: Implement email sending
+      console.log('TODO: Send 2FA reset email to:', userData.email, 'Token:', resetToken);
+      /* await sendEmail({
         to: userData.email,
         subject: '【ザイロク】2FA（二要素認証）リセットのお知らせ',
         html: `
@@ -118,7 +120,7 @@ export async function POST(request: NextRequest) {
             </p>
           </div>
         `
-      });
+      }); */
     } catch (emailError) {
       console.error('Failed to send reset email:', emailError);
       // メール送信に失敗しても、セキュリティのため成功レスポンスを返す

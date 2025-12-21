@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
 
     // バックアップコードから削除
     const updatedBackupCodes = adminData.backup_codes.filter(
-      (_, index) => index !== codeIndex
+      (_: any, index: number) => index !== codeIndex
     );
 
     // データベースを更新

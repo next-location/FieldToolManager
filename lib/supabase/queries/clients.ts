@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient as createSupabaseClient } from '@/lib/supabase/server'
 import type { Client, CreateClientInput, UpdateClientInput } from '@/types/clients'
 
 /**
@@ -11,7 +11,7 @@ export async function getClients(filters?: {
   page?: number
   limit?: number
 }) {
-  const supabase = await createClient()
+  const supabase = await createSupabaseClient()
 
   // ユーザー認証
   const {
@@ -81,7 +81,7 @@ export async function getClients(filters?: {
  * 取引先詳細を取得
  */
 export async function getClientById(id: string) {
-  const supabase = await createClient()
+  const supabase = await createSupabaseClient()
 
   // ユーザー認証
   const {
@@ -123,7 +123,7 @@ export async function getClientById(id: string) {
  * 取引先を作成
  */
 export async function createClient(input: CreateClientInput) {
-  const supabase = await createClient()
+  const supabase = await createSupabaseClient()
 
   // ユーザー認証
   const {
@@ -153,8 +153,8 @@ export async function createClient(input: CreateClientInput) {
     .from('clients')
     .insert({
       organization_id: userData.organization_id,
-      code,
       ...input,
+      code, // codeは最後に設定して上書き
     })
     .select()
     .single()
@@ -170,7 +170,7 @@ export async function createClient(input: CreateClientInput) {
  * 取引先を更新
  */
 export async function updateClient(id: string, input: UpdateClientInput) {
-  const supabase = await createClient()
+  const supabase = await createSupabaseClient()
 
   // ユーザー認証
   const {
@@ -212,7 +212,7 @@ export async function updateClient(id: string, input: UpdateClientInput) {
  * 取引先を削除（論理削除）
  */
 export async function deleteClient(id: string) {
-  const supabase = await createClient()
+  const supabase = await createSupabaseClient()
 
   // ユーザー認証
   const {
@@ -267,7 +267,7 @@ export async function deleteClient(id: string) {
  * 取引先統計情報を取得
  */
 export async function getClientStats() {
-  const supabase = await createClient()
+  const supabase = await createSupabaseClient()
 
   // ユーザー認証
   const {
@@ -325,7 +325,7 @@ export async function getClientStats() {
  * 取引先コードを生成
  */
 export async function generateClientCode(organizationId: string) {
-  const supabase = await createClient()
+  const supabase = await createSupabaseClient()
 
   const { data, error } = await supabase.rpc('generate_client_code', {
     org_id: organizationId,

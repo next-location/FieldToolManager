@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
       // QR検証結果に基づいて location_type と site_id を上書き
       if (qrValidation.type === 'office') {
         body.location_type = 'office'
-        body.site_id = null
+        body.site_id = undefined
       } else if (qrValidation.type === 'site' || qrValidation.type === 'site_fixed') {
         body.location_type = 'site'
         body.site_id = qrValidation.site_id
