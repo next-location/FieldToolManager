@@ -124,8 +124,7 @@ export async function clearCsrfToken(): Promise<void> {
 export function csrfErrorResponse(): Response {
   return new Response(
     JSON.stringify({
-      error: 'CSRF validation failed',
-      message: 'セキュリティトークンが無効です。ページを再読み込みしてください。',
+      error: 'セキュリティトークンが無効です。ページを再読み込みしてください。',
     }),
     {
       status: 403,

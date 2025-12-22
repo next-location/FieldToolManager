@@ -12,5 +12,18 @@
       "path": "/api/cron/send-invoice-reminders",
       "schedule": "0 9 * * *"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/:path(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.zairoku.com"
+        }
+      ],
+      "destination": "https://zairoku.com/:path*",
+      "permanent": true
+    }
   ]
 }

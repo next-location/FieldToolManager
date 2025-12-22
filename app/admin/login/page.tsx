@@ -22,9 +22,16 @@ export default function SuperAdminLoginPage() {
     setLoading(true);
 
     try {
+      // CSRFトークンを取得
+      const csrfResponse = await fetch('/api/auth/csrf');
+      const { token: csrfToken } = await csrfResponse.json();
+
       const response = await fetch('/api/admin/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
         body: JSON.stringify({ email, password }),
       });
 
