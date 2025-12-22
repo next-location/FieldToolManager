@@ -128,15 +128,145 @@
    - 影響: CI/CDパイプラインでエラー
 
 3. **本番環境変数の設定**
-   - ❌ Supabase本番プロジェクトの作成
+   - ✅ Supabase本番プロジェクトの作成（完了）
    - ❌ Stripe本番APIキーの設定
    - ❌ `CRON_SECRET`の強固な値に変更
-   - ❌ `SUPER_ADMIN_JWT_SECRET`の再生成
-   - ❌ `NEXTAUTH_SECRET`の本番用値生成
+   - ✅ `SUPER_ADMIN_JWT_SECRET`の再生成（完了）
+   - ✅ `NEXTAUTH_SECRET`の本番用値生成（完了）
 
-4. **セキュリティ強化**
-   - ❌ Row Level Security (RLS) ポリシー実装（アプリケーション側）★★★★★
-   - ❌ RLS手動有効化（Supabaseダッシュボードから27テーブル）★★★★☆
+4. **環境整備とスキーマ同期**（最優先）★★★★★
+
+   **フェーズ1: テスト環境構築と本番スキーマ同期（2024年12月実施）**
+
+   **Step 1: テスト環境構築**
+   - ❌ Supabaseテスト環境プロジェクト作成
+     - プロジェクト名: `zairoku-test`
+     - リージョン: Northeast Asia (Tokyo)
+     - プラン: Free Tier（無料）
+     - データベースパスワード: 強固なパスワードを生成・記録
+
+   - ❌ テスト環境ドメイン設定
+     - サブドメイン: `test.zairoku.com`
+     - お名前.comでDNS設定（CNAME: test → cname.vercel-dns.com）
+     - Vercelでドメイン追加・SSL有効化
+
+   - ❌ 環境変数ファイル作成
+     - `.env.test`ファイル作成
+     - Supabaseテスト環境のキー設定
+     - Vercel環境変数（Preview環境）設定
+
+   - ❌ Gitブランチ戦略
+     - `test`ブランチ作成
+     - GitHub保護ルール設定（直接プッシュ禁止）
+     - マージ前レビュー必須設定
+
+   **Step 2: マイグレーション適用スクリプト作成**
+   - ❌ `scripts/migrate-test.sh`作成
+     ```bash
+     # 全115個のマイグレーションをテスト環境に適用
+     # エラーハンドリング、ロールバック機能付き
+     ```
+
+   - ❌ `scripts/migrate-production-safe.sh`作成
+     ```bash
+     # 本番環境への安全な適用スクリプト
+     # バックアップ取得→適用→検証の流れ
+     ```
+
+   - ❌ マイグレーション差分確認スクリプト
+     ```bash
+     # ローカル vs テスト vs 本番の差分表示
+     ```
+
+   **Step 3: テスト環境へのマイグレーション適用**
+   - ❌ 全115個のマイグレーションを順次適用
+     - 基本テーブル（既存3個はスキップ）
+     - 追加テーブル（約30個）
+     - カラム追加・変更（約50個）
+     - インデックス追加（約20個）
+     - RLSポリシー（約12個）
+
+   - ❌ データ投入テスト
+     - テスト組織作成
+     - テストユーザー作成
+     - 各機能の動作確認
+
+   **Step 4: 本番環境スキーマ更新**
+   - ❌ 本番データベースバックアップ取得
+     - Supabaseダッシュボードから手動バックアップ
+     - pg_dumpでローカルバックアップ
+
+   - ❌ 段階的マイグレーション適用
+     - Phase A: 追加のみ（ALTER TABLE ADD COLUMN）- 影響なし
+     - Phase B: インデックス追加 - 低影響
+     - Phase C: 制約追加 - 要確認
+     - Phase D: RLSポリシー更新 - 要テスト
+
+   - ❌ 適用後検証
+     - スーパーアドミンログイン確認
+     - 基本機能動作確認
+     - パフォーマンス確認
+
+   **フェーズ2: 開発プロセス確立（2025年1月）**
+
+   **環境構成（確定）**：
+   | 環境 | Supabase | Vercel | ドメイン | ブランチ | 用途 |
+   |------|----------|--------|----------|----------|------|
+   | ローカル | Docker | localhost:3000 | - | feature/* | 個人開発 |
+   | テスト | zairoku-test (Free) | Preview | test.zairoku.com | test | 統合テスト |
+   | 本番 | zairoku-production | Production | zairoku.com | main | 顧客利用 |
+
+   **デプロイフロー（確定）**：
+   ```
+   1. feature/* → ローカル開発・テスト
+   2. feature/* → test（PR作成・レビュー）
+   3. test → 自動デプロイ（test.zairoku.com）
+   4. テスト環境で1-2日検証
+   5. test → main（PR作成・承認）
+   6. main → 本番自動デプロイ
+   ```
+
+   - ❌ GitHub Actions設定
+     - `.github/workflows/test.yml`: テスト環境デプロイ
+     - `.github/workflows/production.yml`: 本番デプロイ
+     - TypeScriptチェック、ESLint、ビルドテスト含む
+
+   - ❌ マイグレーション運用ルール
+     - ファイル命名: `YYYYMMDDHHMMSS_description.sql`
+     - 必ずロールバック用SQL併記
+     - テスト環境で最低24時間検証
+     - 本番適用は営業時間外
+
+   **フェーズ3: 将来の拡張準備（2025年2月以降）**
+
+   - ❌ ステージング環境（顧客30社到達時）
+     - Supabase: `zairoku-staging`
+     - ドメイン: `staging.zairoku.com`
+     - 本番と同一構成でのリハーサル環境
+
+   - ❌ 開発環境（チーム開発開始時）
+     - Supabase: `zairoku-development`
+     - ドメイン: `dev.zairoku.com`
+     - 複数開発者の統合環境
+
+   **フェーズ4: 完了基準と移行判断**
+
+   **テスト環境構築完了基準**：
+   - [ ] test.zairoku.comでアクセス可能
+   - [ ] 全115マイグレーション適用済み
+   - [ ] スーパーアドミンログイン成功
+   - [ ] 基本機能（組織作成、ユーザー作成）動作確認
+   - [ ] 自動デプロイ動作確認
+
+   **本番移行判断基準**：
+   - [ ] テスト環境で全機能正常動作（24時間以上）
+   - [ ] バックアップ取得完了
+   - [ ] ロールバック手順準備完了
+   - [ ] 実施タイミング決定（営業時間外）
+
+5. **セキュリティ強化**
+   - ✅ Row Level Security (RLS) ポリシー実装（完了）
+   - ✅ RLS手動有効化（Supabaseダッシュボードから26テーブル）（完了）
    - ❌ スーパーアドミン2FA（二要素認証）実装
    - ❌ Rate Limiting実装（現在Redis設定済みだが未実装）
    - ❌ IPアドレス制限（Super Admin）
