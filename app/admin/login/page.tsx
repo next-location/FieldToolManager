@@ -104,6 +104,7 @@ export default function SuperAdminLoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E6FFF] focus:border-transparent"
                 placeholder="superadmin@fieldtool.com"
                 disabled={loading}
@@ -121,6 +122,7 @@ export default function SuperAdminLoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  autoComplete="current-password"
                   className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E6FFF] focus:border-transparent"
                   placeholder="••••••••"
                   disabled={loading}

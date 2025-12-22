@@ -453,4 +453,110 @@ npm run build
 
 ---
 
-**最終更新**: 2025-12-21 20:30
+---
+
+### ✅ Task 10: CSRFトークン実装とスーパーアドミンログイン修正（完了）
+
+**実施日時**: 2025-12-22 19:00-19:35
+
+**問題**:
+1. スーパーアドミンログイン時に「CSRF validation failed」エラー
+2. エラーメッセージが英語表示（日本語化が必要）
+3. www.zairoku.comからzairoku.comへのリダイレクトが未設定
+4. パスワードハッシュが正しく検証されない
+
+**修正内容**:
+
+1. **CSRFトークン処理の追加**:
+   - `/app/api/auth/csrf/route.ts`を新規作成
+   - ログインページ（`app/admin/login/page.tsx`）でCSRFトークンを取得してヘッダーに含めるよう修正
+   ```typescript
+   // CSRFトークンを取得
+   const csrfResponse = await fetch('/api/auth/csrf');
+   const { token: csrfToken } = await csrfResponse.json();
+
+   const response = await fetch('/api/admin/login', {
+     method: 'POST',
+     headers: {
+       'Content-Type': 'application/json',
+       'X-CSRF-Token': csrfToken,
+     },
+     body: JSON.stringify({ email, password }),
+   });
+   ```
+
+2. **エラーメッセージの日本語化**:
+   - `lib/security/csrf.ts`のエラーレスポンスを修正
+   ```typescript
+   // 修正前
+   error: 'CSRF validation failed',
+   message: 'セキュリティトークンが無効です。ページを再読み込みしてください。',
+
+   // 修正後
+   error: 'セキュリティトークンが無効です。ページを再読み込みしてください。',
+   ```
+
+3. **www.zairoku.comリダイレクト設定**:
+   - `vercel.json`にリダイレクトルールを追加
+   ```json
+   "redirects": [
+     {
+       "source": "/:path(.*)",
+       "has": [
+         {
+           "type": "host",
+           "value": "www.zairoku.com"
+         }
+       ],
+       "destination": "https://zairoku.com/:path*",
+       "permanent": true
+     }
+   ]
+   ```
+
+4. **Vercelドメイン設定**:
+   - www.zairoku.comをVercelに追加
+   - お名前.comでCNAMEレコード追加：
+     - TYPE: CNAME
+     - HOST: www
+     - VALUE: cname.vercel-dns.com
+
+5. **スーパーアドミンパスワード再設定**:
+   - 安全なパスワード（20文字、大文字・小文字・数字・記号含む）でbcryptハッシュを生成
+   - Supabase SQL Editorで更新：
+   ```sql
+   UPDATE super_admins
+   SET password_hash = '$2b$10$h5AYTeOOkWbyO5yJFZIeU.IsTDUqLDYDrfbm8LKs.z5OUtrE6B.cS'
+   WHERE email = 'akashi@next-location.com';
+   ```
+
+6. **autocomplete属性の追加**:
+   - ログインフォームにautocomplete属性を追加（Chromeの警告対応）
+   ```typescript
+   // メールアドレス欄
+   autoComplete="email"
+
+   // パスワード欄
+   autoComplete="current-password"
+   ```
+
+**修正ファイル**:
+- `app/admin/login/page.tsx`（CSRFトークン処理、autocomplete追加）
+- `app/api/auth/csrf/route.ts`（新規作成）
+- `lib/security/csrf.ts`（エラーメッセージ日本語化）
+- `vercel.json`（wwwリダイレクト設定）
+
+**検証結果**:
+- ✅ スーパーアドミンログイン成功（email: akashi@next-location.com）
+- ✅ CSRFトークンが正しく検証される
+- ✅ エラーメッセージが日本語で表示される
+- ⏳ www.zairoku.comリダイレクト設定完了（SSL証明書生成中）
+
+**備考**:
+- パスワードは推測不可能な強力なものに変更済み
+- パスワード変更機能は未実装（今後の実装タスクとして記録）
+- SSL証明書は自動生成され、数分で有効になる予定
+
+---
+
+**最終更新**: 2025-12-22 19:35
