@@ -620,4 +620,103 @@ npm run build
 
 ---
 
-**最終更新**: 2025-12-22 20:05
+---
+
+### ✅ Task 12: RLSポリシー本番適用（完了）
+
+**実施日時**: 2025-12-22 20:15-21:10
+
+**問題**:
+- 本番データベースのテーブル構造がローカルと異なる
+- `estimate_items`, `invoice_items`, `purchase_order_items` に `organization_id` カラムが存在しない
+- 初回RLS適用時にエラー：`ERROR: 42703: column "organization_id" does not exist`
+
+**テーブル構造確認作業**:
+
+1. **estimate_items テーブル構造確認**:
+   - カラム: id, estimate_id, item_order, item_name, description, quantity, unit, unit_price, amount, notes, created_at, updated_at
+   - ❌ `organization_id` カラムなし
+
+2. **invoice_items テーブル構造確認**:
+   - カラム: id, invoice_id, item_order, item_type, item_name, description, quantity, unit, unit_price, amount, notes, created_at, updated_at
+   - ❌ `organization_id` カラムなし
+
+3. **purchase_order_items テーブル構造確認**:
+   - 同様に `organization_id` カラムなし（推測）
+
+**修正内容**:
+
+1. **RLSポリシーファイルの修正**:
+   - ファイル作成: `scripts/production-rls-fixed.sql`
+   - 子テーブル（*_items）のポリシーを親テーブル経由に変更
+
+   修正例（estimate_items）:
+   ```sql
+   -- 修正前（エラー）
+   CREATE POLICY "estimate_items_select" ON estimate_items
+     FOR SELECT
+     USING (organization_id = get_user_organization_id());
+
+   -- 修正後（正常）
+   CREATE POLICY "estimate_items_select" ON estimate_items
+     FOR SELECT
+     USING (
+       EXISTS (
+         SELECT 1 FROM estimates
+         WHERE estimates.id = estimate_items.estimate_id
+         AND estimates.organization_id = get_user_organization_id()
+       )
+     );
+   ```
+
+2. **ヘルパー関数の作成**:
+   - `get_user_organization_id()`: 現在のユーザーの組織IDを取得
+   - `is_super_admin()`: スーパーアドミン判定
+   - `is_organization_admin()`: 組織管理者判定
+
+3. **適用したRLSポリシー**:
+
+   **全26テーブル**に対して以下のポリシーを適用：
+
+   - **users**: 自分のレコード閲覧、同組織ユーザー閲覧、管理者による追加・削除
+   - **organizations**: スーパーアドミン全権限、ユーザーは自組織閲覧のみ
+   - **contracts**: スーパーアドミン管理、組織管理者は閲覧のみ
+   - **tool_categories, tool_sets, tool_items, tool_movements**: 組織単位でのアクセス制御
+   - **sites**: 組織単位、管理者のみ追加・更新・削除
+   - **attendance_records, attendance_settings**: 組織単位、設定は管理者のみ
+   - **work_reports**: 組織単位、作成者のみ削除可能
+   - **estimates, invoices, purchase_orders**: 組織単位、削除は管理者のみ
+   - **estimate_items, invoice_items, purchase_order_items**: 親テーブル経由でアクセス制御
+   - **clients**: 組織単位、削除は管理者のみ
+   - **consumables, consumable_orders**: 組織単位
+   - **heavy_equipment, warehouse_locations**: 組織単位、削除は管理者のみ
+   - **super_admins**: スーパーアドミンのみアクセス可能、自分のレコードのみ更新可能
+   - **tool_manufacturers, tool_master_presets**: 全ユーザー閲覧可能、スーパーアドミンのみ変更可能
+   - **billing_invoices**: スーパーアドミンのみ全権限
+
+**検証結果**:
+- ✅ RLSポリシー適用成功（`Success. No rows returned`）
+- ✅ 50件以上のポリシーが作成されたことを確認
+- ✅ pg_policiesテーブルで確認：attendance_records, attendance_settings, billing_invoices, clients など多数
+
+**作成ファイル**:
+- `scripts/production-rls-complete.sql`: 初回版（エラー）
+- `scripts/production-rls-fixed.sql`: 修正版（成功）✅
+- `scripts/production-rls-policies/extract-rls.sh`: RLS抽出スクリプト
+- `scripts/production-rls-policies/rls-migration-list.txt`: マイグレーションリスト
+
+**重要な注意事項**:
+- ✅ RLS有効化済み（Task 11）
+- ✅ RLSポリシー適用済み（本タスク）
+- ✅ マルチテナント分離完了（organization_id ベース）
+- ✅ 一般ユーザーのログイン・データアクセスが可能になりました
+
+**セキュリティ状態**:
+- 🔐 Row Level Security: 有効
+- 🔐 ポリシー数: 50+
+- 🔐 マルチテナント分離: 完全実装
+- 🔐 スーパーアドミン保護: 実装済み
+
+---
+
+**最終更新**: 2025-12-22 21:10

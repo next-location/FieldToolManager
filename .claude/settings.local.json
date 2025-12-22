@@ -79,7 +79,9 @@
       "Bash(npm view:*)",
       "Bash(./scripts/migrate-production.sh:*)",
       "Bash(source:*)",
-      "Bash(PGPASSWORD=cF1!hVERlDgjMD psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT id, email, password_hash, name, role, is_active, created_at FROM super_admins WHERE email = ''akashi@next-location.com'';\")"
+      "Bash(PGPASSWORD=cF1!hVERlDgjMD psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT id, email, password_hash, name, role, is_active, created_at FROM super_admins WHERE email = ''akashi@next-location.com'';\")",
+      "Bash(./scripts/production-rls-policies/extract-rls.sh:*)",
+      "Bash(pbcopy)"
     ],
     "deny": [],
     "ask": []
