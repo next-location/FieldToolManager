@@ -135,6 +135,8 @@
    - ❌ `NEXTAUTH_SECRET`の本番用値生成
 
 4. **セキュリティ強化**
+   - ❌ Row Level Security (RLS) ポリシー実装（アプリケーション側）★★★★★
+   - ❌ RLS手動有効化（Supabaseダッシュボードから27テーブル）★★★★☆
    - ❌ スーパーアドミン2FA（二要素認証）実装
    - ❌ Rate Limiting実装（現在Redis設定済みだが未実装）
    - ❌ IPアドレス制限（Super Admin）
