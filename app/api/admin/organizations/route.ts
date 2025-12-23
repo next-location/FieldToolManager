@@ -34,10 +34,6 @@ export async function POST(request: NextRequest) {
         fax: body.fax || null,
         postal_code: body.postal_code || null,
         address: body.address || null,
-        billing_contact_name: body.billing_contact_name || null,
-        billing_contact_email: body.billing_contact_email || null,
-        billing_contact_phone: body.billing_contact_phone || null,
-        billing_address: body.billing_address || null,
         is_active: body.is_active ?? true,
         plan: 'basic', // デフォルトプラン
         payment_method: 'invoice', // デフォルト支払い方法
