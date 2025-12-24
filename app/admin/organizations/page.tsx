@@ -27,10 +27,6 @@ export default async function OrganizationsPage() {
       subdomain,
       is_active,
       created_at,
-      phone,
-      address,
-      billing_contact_name,
-      billing_contact_email,
       sales_status,
       next_appointment_date
     `)
