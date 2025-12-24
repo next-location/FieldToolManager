@@ -11,6 +11,10 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
+    // デバッグ: 接続先確認
+    console.log('[DEBUG] SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log('[DEBUG] SERVICE_ROLE_KEY exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+
     const session = await getSuperAdminSession();
     if (!session) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
@@ -25,6 +29,7 @@ export async function POST(request: NextRequest) {
     await setSuperAdminAuditContext(supabase, session.id, session.name);
 
     // 組織を作成（最小限のカラムのみ使用）
+    console.log('[DEBUG] Inserting organization:', { name: body.name, subdomain });
     const { data: organization, error } = await supabase
       .from('organizations')
       .insert({
@@ -36,6 +41,8 @@ export async function POST(request: NextRequest) {
       })
       .select()
       .single();
+
+    console.log('[DEBUG] Insert result:', { organization, error });
 
     if (error) {
       console.error('Organization creation error:', error);
