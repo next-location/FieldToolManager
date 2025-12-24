@@ -24,16 +24,12 @@ export async function POST(request: NextRequest) {
     // スーパーアドミンの監査コンテキストを設定
     await setSuperAdminAuditContext(supabase, session.id, session.name);
 
-    // 組織を作成
+    // 組織を作成（最小限のカラムのみ使用）
     const { data: organization, error } = await supabase
       .from('organizations')
       .insert({
         name: body.name,
         subdomain,
-        phone: body.phone || null,
-        fax: body.fax || null,
-        postal_code: body.postal_code || null,
-        address: body.address || null,
         is_active: body.is_active ?? true,
         plan: 'basic', // デフォルトプラン
         payment_method: 'invoice', // デフォルト支払い方法
