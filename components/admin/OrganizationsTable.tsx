@@ -11,14 +11,8 @@ interface Organization {
   subdomain: string;
   is_active: boolean;
   created_at: string;
-  phone: string | null;
-  address: string | null;
-  billing_contact_name: string | null;
-  billing_contact_email: string | null;
   user_count: number;
   has_active_contract: boolean;
-  sales_status: string;
-  next_appointment_date: string | null;
 }
 
 interface OrganizationsTableProps {
@@ -30,7 +24,6 @@ export default function OrganizationsTable({ initialOrganizations }: Organizatio
     searchWord: '',
     status: 'all',
     hasContract: 'all',
-    salesStatus: 'all',
     sortBy: 'newest',
   });
 
@@ -63,11 +56,6 @@ export default function OrganizationsTable({ initialOrganizations }: Organizatio
         if (filters.hasContract === 'no') return !org.has_active_contract;
         return true;
       });
-    }
-
-    // 営業ステータスフィルター
-    if (filters.salesStatus !== 'all') {
-      result = result.filter((org) => org.sales_status === filters.salesStatus);
     }
 
     // ソート処理
@@ -141,9 +129,6 @@ export default function OrganizationsTable({ initialOrganizations }: Organizatio
                   サブドメイン
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  連絡先
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   ユーザー数
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -160,7 +145,7 @@ export default function OrganizationsTable({ initialOrganizations }: Organizatio
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredAndSortedOrganizations.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                     組織が見つかりませんでした
                   </td>
                 </tr>
@@ -169,35 +154,12 @@ export default function OrganizationsTable({ initialOrganizations }: Organizatio
                   <tr key={org.id} className="hover:bg-gray-50 cursor-pointer transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Link href={`/admin/organizations/${org.id}`} className="block">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{org.name}</div>
-                          {org.address && (
-                            <div className="text-xs text-gray-500">{org.address}</div>
-                          )}
-                        </div>
+                        <div className="text-sm font-medium text-gray-900">{org.name}</div>
                       </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Link href={`/admin/organizations/${org.id}`} className="block">
                         <div className="text-sm text-gray-900 font-mono">{org.subdomain || '-'}</div>
-                      </Link>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Link href={`/admin/organizations/${org.id}`} className="block">
-                        <div>
-                          {org.billing_contact_name && (
-                            <div className="text-sm text-gray-900">{org.billing_contact_name}</div>
-                          )}
-                          {org.phone && (
-                            <div className="text-xs text-gray-500">TEL: {org.phone}</div>
-                          )}
-                          {org.billing_contact_email && (
-                            <div className="text-xs text-gray-500">{org.billing_contact_email}</div>
-                          )}
-                          {!org.billing_contact_name && !org.phone && !org.billing_contact_email && (
-                            <div className="text-sm text-gray-400">-</div>
-                          )}
-                        </div>
                       </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

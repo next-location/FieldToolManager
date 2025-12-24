@@ -26,9 +26,7 @@ export default async function OrganizationsPage() {
       name,
       subdomain,
       is_active,
-      created_at,
-      sales_status,
-      next_appointment_date
+      created_at
     `)
     .order('created_at', { ascending: false });
 
