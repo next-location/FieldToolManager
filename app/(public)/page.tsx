@@ -52,7 +52,7 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
             <div className="max-w-2xl">
               <h2 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight" style={{ lineHeight: '1.3' }}>
-                現場の<span className="text-yellow-400">今</span>が<br />見えれば<br /><span className="text-yellow-400">利益</span>が変わる。
+                現場の<span className="text-yellow-400">見えない無駄</span>を<br />会社の<span className="text-yellow-400">利益</span>に変える。
               </h2>
               <p className="text-sm sm:text-base text-gray-200 mb-6 sm:mb-12">
                 道具・重機・人の管理から、見積・請求まで。<br />建設業のあらゆるリソースを一元管理する<br className="sm:hidden" />クラウドサービス「<span className="text-yellow-400">ザイロク</span>」。
