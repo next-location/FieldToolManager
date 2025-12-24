@@ -2677,3 +2677,86 @@ ALTER TABLE purchase_orders ADD CONSTRAINT purchase_orders_status_check
 - [ ] 発注書CRUD UI実装
 - [ ] PDF出力機能実装
 
+
+---
+
+## マイグレーション#8: organizationsテーブルに連絡先情報カラムを追加
+
+### 目的
+組織の連絡先情報（代表者名、住所、電話番号、FAX、メールアドレス）を管理し、重複チェック機能を強化する。
+
+### マイグレーション番号
+`20251224000001_add_contact_info_to_organizations`
+
+### 実行日
+**本番環境**: 2025-12-24
+**テスト環境**: 未実行
+**ローカル環境**: 未実行
+
+### 変更内容
+
+#### 1. カラム追加
+以下のカラムを`organizations`テーブルに追加：
+- `representative_name` TEXT - 代表者名
+- `postal_code` TEXT - 郵便番号
+- `address` TEXT - 住所
+- `phone` TEXT - 電話番号
+- `fax` TEXT - FAX番号
+- `email` TEXT - メールアドレス
+
+#### 2. インデックス作成
+重複チェックのパフォーマンス向上のため：
+- `idx_organizations_phone` - 電話番号でのインデックス（NULLを除外）
+- `idx_organizations_email` - メールアドレスでのインデックス（NULLを除外）
+
+### SQL内容
+
+```sql
+ALTER TABLE organizations
+ADD COLUMN IF NOT EXISTS representative_name TEXT,
+ADD COLUMN IF NOT EXISTS postal_code TEXT,
+ADD COLUMN IF NOT EXISTS address TEXT,
+ADD COLUMN IF NOT EXISTS phone TEXT,
+ADD COLUMN IF NOT EXISTS fax TEXT,
+ADD COLUMN IF NOT EXISTS email TEXT;
+
+COMMENT ON COLUMN organizations.representative_name IS '代表者名';
+COMMENT ON COLUMN organizations.postal_code IS '郵便番号';
+COMMENT ON COLUMN organizations.address IS '住所';
+COMMENT ON COLUMN organizations.phone IS '電話番号';
+COMMENT ON COLUMN organizations.fax IS 'FAX番号';
+COMMENT ON COLUMN organizations.email IS 'メールアドレス';
+
+CREATE INDEX IF NOT EXISTS idx_organizations_phone ON organizations(phone) WHERE phone IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_organizations_email ON organizations(email) WHERE email IS NOT NULL;
+```
+
+### ロールバック手順
+
+```sql
+DROP INDEX IF EXISTS idx_organizations_phone;
+DROP INDEX IF EXISTS idx_organizations_email;
+
+ALTER TABLE organizations
+DROP COLUMN IF EXISTS representative_name,
+DROP COLUMN IF EXISTS postal_code,
+DROP COLUMN IF EXISTS address,
+DROP COLUMN IF EXISTS phone,
+DROP COLUMN IF EXISTS fax,
+DROP COLUMN IF EXISTS email;
+```
+
+### 影響範囲
+
+#### API
+- `POST /api/admin/organizations` - 組織作成時にこれらのフィールドを保存
+- `POST /api/admin/organizations/check-duplicate` - 電話番号・住所での重複チェックを実装
+
+#### UI
+- `/admin/organizations/new` - 組織登録フォームに各項目を追加
+- `/admin/organizations/[id]/edit` - 組織編集フォームに各項目を追加
+
+### 関連ファイル
+- マイグレーションファイル: `supabase/migrations/20251224000001_add_contact_info_to_organizations.sql`
+- ロールバックファイル: `supabase/migrations/20251224000001_add_contact_info_to_organizations_rollback.sql`
+- [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) - Section 2.1: organizationsテーブル

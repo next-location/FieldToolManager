@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     // スーパーアドミンの監査コンテキストを設定
     await setSuperAdminAuditContext(supabase, session.id, session.name);
 
-    // 組織を作成（最小限のカラムのみ使用）
+    // 組織を作成
     console.log('[DEBUG] Inserting organization:', { name: body.name, subdomain });
     const { data: organization, error } = await supabase
       .from('organizations')
@@ -38,6 +38,12 @@ export async function POST(request: NextRequest) {
         is_active: body.is_active ?? true,
         plan: 'basic', // デフォルトプラン
         payment_method: 'invoice', // デフォルト支払い方法
+        representative_name: body.representative_name || null,
+        postal_code: body.postal_code || null,
+        address: body.address || null,
+        phone: body.phone || null,
+        fax: body.fax || null,
+        email: body.email || null,
       })
       .select()
       .single();

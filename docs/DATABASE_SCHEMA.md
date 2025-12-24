@@ -28,6 +28,12 @@ Organization (組織・企業)
 ├── max_users 20
 ├── max_tools 500
 ├── is_active true
+├── representative_name TEXT ← 代表者名 ✨2025-12-24
+├── postal_code TEXT ← 郵便番号 ✨2025-12-24
+├── address TEXT ← 住所 ✨2025-12-24
+├── phone TEXT ← 電話番号 ✨2025-12-24
+├── fax TEXT ← FAX番号 ✨2025-12-24
+├── email TEXT ← メールアドレス ✨2025-12-24
 ├── require_qr_scan_on_movement BOOLEAN ← QRスキャン必須設定
 ├── require_qr_scan_on_return BOOLEAN ← 返却時QRスキャン必須
 ├── require_approval_for_loss BOOLEAN ← 紛失承認フロー
@@ -449,6 +455,14 @@ CREATE TABLE organizations (
   max_tools INTEGER DEFAULT 500,
   is_active BOOLEAN DEFAULT true,
 
+  -- 組織連絡先情報（2025-12-24追加）
+  representative_name TEXT,
+  postal_code TEXT,
+  address TEXT,
+  phone TEXT,
+  fax TEXT,
+  email TEXT,
+
   -- Stripe Billing統合（2025-12-12追加）
   stripe_customer_id TEXT UNIQUE,
   stripe_subscription_id TEXT,
@@ -463,6 +477,12 @@ CREATE TABLE organizations (
 );
 
 COMMENT ON COLUMN organizations.subdomain_security_mode IS 'サブドメインセキュリティモード: standard=会社名のみ(a-kensetsu), secure=ランダム文字列追加(a-kensetsu-x7k2)';
+COMMENT ON COLUMN organizations.representative_name IS '代表者名';
+COMMENT ON COLUMN organizations.postal_code IS '郵便番号';
+COMMENT ON COLUMN organizations.address IS '住所';
+COMMENT ON COLUMN organizations.phone IS '電話番号';
+COMMENT ON COLUMN organizations.fax IS 'FAX番号';
+COMMENT ON COLUMN organizations.email IS 'メールアドレス';
 COMMENT ON COLUMN organizations.stripe_customer_id IS 'Stripe Customer ID（cus_xxxxx）';
 COMMENT ON COLUMN organizations.stripe_subscription_id IS 'Stripe Subscription ID（sub_xxxxx）';
 COMMENT ON COLUMN organizations.billing_cycle_day IS '毎月の請求日（1-28日）';
@@ -471,6 +491,8 @@ COMMENT ON COLUMN organizations.invoice_registration_number IS '適格請求書�
 
 CREATE INDEX idx_organizations_subdomain ON organizations(subdomain);
 CREATE INDEX idx_organizations_is_active ON organizations(is_active);
+CREATE INDEX idx_organizations_phone ON organizations(phone) WHERE phone IS NOT NULL;
+CREATE INDEX idx_organizations_email ON organizations(email) WHERE email IS NOT NULL;
 CREATE INDEX idx_organizations_stripe_customer_id ON organizations(stripe_customer_id);
 CREATE INDEX idx_organizations_stripe_subscription_id ON organizations(stripe_subscription_id);
 ```

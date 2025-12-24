@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { name, excludeId } = body;
+    const { name, address, phone, excludeId } = body;
 
     console.log('[Duplicate Check] Request body:', body);
 
@@ -34,32 +34,31 @@ export async function POST(request: Request) {
 
     let query = supabase
       .from('organizations')
-      .select('id, name, subdomain');
+      .select('id, name, subdomain, address, phone, email');
 
     // 除外するID（編集時に自分自身を除外）
     if (excludeId) {
       query = query.neq('id', excludeId);
     }
 
-    // 1. 完全一致チェック（名前のみ）
-    const { data: exactMatch, error: exactMatchError } = await query
-      .eq('name', name)
-      .maybeSingle();
+    // 1. 完全一致チェック（名前と住所）
+    if (address) {
+      const { data: exactMatch } = await supabase
+        .from('organizations')
+        .select('id, name, subdomain, address, phone, email')
+        .eq('name', name)
+        .eq('address', address)
+        .neq('id', excludeId || '00000000-0000-0000-0000-000000000000')
+        .maybeSingle();
 
-    console.log('[Duplicate Check] Exact match result:', { exactMatch, exactMatchError });
-
-    if (exactMatchError) {
-      console.error('[Duplicate Check] Exact match error:', exactMatchError);
-      throw exactMatchError;
-    }
-
-    if (exactMatch) {
-      return NextResponse.json({
-        isDuplicate: true,
-        matchType: 'exact',
-        message: '同じ組織名の組織が既に登録されています',
-        similarOrganizations: [exactMatch],
-      });
+      if (exactMatch) {
+        return NextResponse.json({
+          isDuplicate: true,
+          matchType: 'exact',
+          message: '同じ組織名と住所の組織が既に登録されています',
+          similarOrganizations: [exactMatch],
+        });
+      }
     }
 
     const similarOrganizations: any[] = [];
@@ -68,7 +67,7 @@ export async function POST(request: Request) {
     if (normalizedName.length >= 2) {
       const { data: nameMatches } = await supabase
         .from('organizations')
-        .select('id, name, subdomain')
+        .select('id, name, subdomain, address, phone, email')
         .or(`name.ilike.%${normalizedName}%,name.ilike.%${name}%`)
         .neq('id', excludeId || '00000000-0000-0000-0000-000000000000')
         .limit(10);
@@ -78,6 +77,45 @@ export async function POST(request: Request) {
       }
     }
 
+    // 3. 住所の前方一致（都道府県+市区町村レベルで一致する可能性）
+    if (address && address.length >= 6) {
+      const addressPrefix = address.substring(0, 10);
+      const { data: addressMatches } = await supabase
+        .from('organizations')
+        .select('id, name, subdomain, address, phone, email')
+        .ilike('address', `${addressPrefix}%`)
+        .neq('id', excludeId || '00000000-0000-0000-0000-000000000000')
+        .limit(10);
+
+      if (addressMatches) {
+        addressMatches.forEach((match) => {
+          if (!similarOrganizations.find((org) => org.id === match.id)) {
+            similarOrganizations.push(match);
+          }
+        });
+      }
+    }
+
+    // 4. 電話番号の一致
+    if (phone) {
+      const cleanedPhone = phone.replace(/[-\s()]/g, '');
+      if (cleanedPhone.length >= 10) {
+        const { data: phoneMatches } = await supabase
+          .from('organizations')
+          .select('id, name, subdomain, address, phone, email')
+          .eq('phone', phone)
+          .neq('id', excludeId || '00000000-0000-0000-0000-000000000000')
+          .limit(5);
+
+        if (phoneMatches) {
+          phoneMatches.forEach((match) => {
+            if (!similarOrganizations.find((org) => org.id === match.id)) {
+              similarOrganizations.push(match);
+            }
+          });
+        }
+      }
+    }
 
     // 重複候補がある場合
     if (similarOrganizations.length > 0) {
