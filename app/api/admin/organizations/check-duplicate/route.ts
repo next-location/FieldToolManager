@@ -19,7 +19,9 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { name, address, phone, excludeId } = body;
+    const { name, excludeId } = body;
+
+    console.log('[Duplicate Check] Request body:', body);
 
     if (!name) {
       return NextResponse.json({ error: '組織名を入力してください' }, { status: 400 });
@@ -40,9 +42,16 @@ export async function POST(request: Request) {
     }
 
     // 1. 完全一致チェック（名前のみ）
-    const { data: exactMatch } = await query
+    const { data: exactMatch, error: exactMatchError } = await query
       .eq('name', name)
       .maybeSingle();
+
+    console.log('[Duplicate Check] Exact match result:', { exactMatch, exactMatchError });
+
+    if (exactMatchError) {
+      console.error('[Duplicate Check] Exact match error:', exactMatchError);
+      throw exactMatchError;
+    }
 
     if (exactMatch) {
       return NextResponse.json({
