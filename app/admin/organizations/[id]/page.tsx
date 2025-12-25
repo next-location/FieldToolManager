@@ -92,7 +92,7 @@ export default async function OrganizationDetailPage({ params }: { params: Promi
                 >
                   編集
                 </Link>
-                <DeleteOrganizationButton organizationId={id} />
+                {session.role === 'owner' && <DeleteOrganizationButton organizationId={id} />}
               </div>
             </div>
           </div>

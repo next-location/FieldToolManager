@@ -84,6 +84,11 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
     }
 
+    // owner権限のみ削除可能
+    if (session.role !== 'owner') {
+      return NextResponse.json({ error: '組織の削除はオーナー権限が必要です' }, { status: 403 });
+    }
+
     const { id } = await params;
 
     // スーパーアドミンの監査コンテキストを設定
