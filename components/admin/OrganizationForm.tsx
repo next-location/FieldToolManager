@@ -8,8 +8,10 @@ interface OrganizationFormProps {
   initialData?: {
     id?: string;
     name: string;
+    representative_name: string;
     phone: string;
     fax: string;
+    email: string;
     postal_code: string;
     address: string;
     billing_contact_name: string;
@@ -34,8 +36,10 @@ export default function OrganizationForm({ mode, initialData }: OrganizationForm
   }>({ checked: false, isDuplicate: false, similarOrganizations: [], confirmed: false });
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
+    representative_name: initialData?.representative_name || '',
     phone: initialData?.phone || '',
     fax: initialData?.fax || '',
+    email: initialData?.email || '',
     postal_code: initialData?.postal_code || '',
     address: initialData?.address || '',
     billing_contact_name: initialData?.billing_contact_name || '',
@@ -222,7 +226,7 @@ export default function OrganizationForm({ mode, initialData }: OrganizationForm
         <div>
           <h2 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">基本情報</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+            <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 組織名 <span className="text-red-500">*</span>
               </label>
@@ -241,6 +245,32 @@ export default function OrganizationForm({ mode, initialData }: OrganizationForm
                 </span>
                 <span className="ml-2">サブドメインは自動生成されます（セキュリティ向上のため）</span>
               </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                代表者名
+              </label>
+              <input
+                type="text"
+                name="representative_name"
+                value={formData.representative_name}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="山田太郎"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                メールアドレス
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="info@example.com"
+              />
             </div>
           </div>
         </div>
