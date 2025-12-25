@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import OrganizationsFilter, { FilterState } from './OrganizationsFilter';
 import { includesKana } from '@/lib/utils/kana';
 
@@ -20,6 +20,7 @@ interface OrganizationsTableProps {
 }
 
 export default function OrganizationsTable({ initialOrganizations }: OrganizationsTableProps) {
+  const router = useRouter();
   const [filters, setFilters] = useState<FilterState>({
     searchWord: '',
     status: 'all',
@@ -151,46 +152,38 @@ export default function OrganizationsTable({ initialOrganizations }: Organizatio
                 </tr>
               ) : (
                 filteredAndSortedOrganizations.map((org) => (
-                  <tr key={org.id} className="hover:bg-gray-50 cursor-pointer transition-colors">
+                  <tr
+                    key={org.id}
+                    onClick={() => router.push(`/admin/organizations/${org.id}`)}
+                    className="hover:bg-gray-50 cursor-pointer transition-colors"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Link href={`/admin/organizations/${org.id}`} className="block">
-                        <div className="text-sm font-medium text-gray-900">{org.name}</div>
-                      </Link>
+                      <div className="text-sm font-medium text-gray-900">{org.name}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Link href={`/admin/organizations/${org.id}`} className="block">
-                        <div className="text-sm text-gray-900 font-mono">{org.subdomain || '-'}</div>
-                      </Link>
+                      <div className="text-sm text-gray-900 font-mono">{org.subdomain || '-'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Link href={`/admin/organizations/${org.id}`} className="block">
-                        <div className="text-sm text-gray-900">{org.user_count}名</div>
-                      </Link>
+                      <div className="text-sm text-gray-900">{org.user_count}名</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Link href={`/admin/organizations/${org.id}`} className="block">
-                        {org.has_active_contract ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            契約中
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                            契約なし
-                          </span>
-                        )}
-                      </Link>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Link href={`/admin/organizations/${org.id}`} className="block">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(org.is_active)}`}>
-                          {org.is_active ? '有効' : '無効'}
+                      {org.has_active_contract ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          契約中
                         </span>
-                      </Link>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                          契約なし
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(org.is_active)}`}>
+                        {org.is_active ? '有効' : '無効'}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <Link href={`/admin/organizations/${org.id}`} className="block">
-                        {new Date(org.created_at).toLocaleDateString('ja-JP')}
-                      </Link>
+                      {new Date(org.created_at).toLocaleDateString('ja-JP')}
                     </td>
                   </tr>
                 ))
