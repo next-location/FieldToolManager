@@ -115,6 +115,14 @@ export default async function SalesPage() {
             <p className="text-sm text-gray-500 mt-1">営業案件の進捗状況と次回アポイントを管理</p>
           </div>
 
+          {/* デバッグ情報 */}
+          <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded">
+            <p className="font-bold">デバッグ情報:</p>
+            <p>組織データ: {orgsData ? JSON.stringify(orgsData) : 'null'}</p>
+            <p>エラー: {orgsError ? JSON.stringify(orgsError) : 'なし'}</p>
+            <p>カウント: {JSON.stringify(counts)}</p>
+          </div>
+
           <SalesDashboard
             statusCounts={statusCounts.data}
             upcomingAppointments={upcomingAppointments || []}
