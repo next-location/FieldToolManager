@@ -18,11 +18,14 @@ export default async function SalesLeadsPage() {
   }
 
   // 全組織の営業情報を取得
-  const { data: organizations } = await supabase
+  const { data: organizations, error: orgsError } = await supabase
     .from('organizations')
     .select('id, name, subdomain, sales_status, priority, expected_contract_amount, next_appointment_date, last_contact_date, lead_source, phone, address')
     .order('priority', { ascending: false })
     .order('next_appointment_date', { ascending: true });
+
+  console.log('[Sales Leads] Organizations:', organizations);
+  console.log('[Sales Leads] Error:', orgsError);
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -35,6 +38,14 @@ export default async function SalesLeadsPage() {
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900">営業案件一覧</h1>
             <p className="text-sm text-gray-500 mt-1">全ての営業案件を一覧で管理</p>
+          </div>
+
+          {/* デバッグ情報 */}
+          <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded">
+            <p className="font-bold">デバッグ情報:</p>
+            <p>組織データ: {organizations ? JSON.stringify(organizations) : 'null'}</p>
+            <p>エラー: {orgsError ? JSON.stringify(orgsError) : 'なし'}</p>
+            <p>組織数: {organizations?.length || 0}</p>
           </div>
 
           <SalesLeadsList organizations={organizations || []} />
