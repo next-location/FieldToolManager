@@ -82,7 +82,16 @@
       "Bash(PGPASSWORD=cF1!hVERlDgjMD psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT id, email, password_hash, name, role, is_active, created_at FROM super_admins WHERE email = ''akashi@next-location.com'';\")",
       "Bash(./scripts/production-rls-policies/extract-rls.sh:*)",
       "Bash(pbcopy)",
-      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql \"postgresql://postgres.ecehilhaxgwphvamvabj:cF1!hVERlDgjMD@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres\" -c \"SELECT id, name, subdomain, created_at FROM organizations ORDER BY created_at DESC;\")"
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql \"postgresql://postgres.ecehilhaxgwphvamvabj:cF1!hVERlDgjMD@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres\" -c \"SELECT id, name, subdomain, created_at FROM organizations ORDER BY created_at DESC;\")",
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql \"postgresql://postgres.ecehilhaxgwphvamvabj:cF1!hVERlDgjMD@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres\" -c \"NOTIFY pgrst, ''reload schema''; NOTIFY pgrst, ''reload config'';\")",
+      "Bash(PGPASSWORD:*)",
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql \"postgresql://postgres:cF1!hVERlDgjMD@db.ecehilhaxgwphvamvabj.supabase.co:5432/postgres\" -c \"SELECT 1;\")",
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT column_name FROM information_schema.columns WHERE table_name = ''organizations'' AND column_name IN (''billing_contact_name'', ''billing_contact_email'', ''billing_contact_phone'', ''billing_address'', ''email'', ''fax'') ORDER BY column_name;\")",
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -f /Users/youichiakashi/FieldToolManager/supabase/migrations/20251225000001_add_billing_contact_to_organizations.sql)",
+      "Bash(git checkout:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(PGPASSWORD=:*)"
     ],
     "deny": [],
     "ask": []

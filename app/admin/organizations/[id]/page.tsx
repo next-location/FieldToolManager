@@ -5,6 +5,7 @@ import Link from 'next/link';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
 import OrganizationDetailTabs from '@/components/admin/OrganizationDetailTabs';
+import DeleteOrganizationButton from '@/components/admin/DeleteOrganizationButton';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -84,12 +85,15 @@ export default async function OrganizationDetailPage({ params }: { params: Promi
             </Link>
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold text-gray-900">組織詳細</h1>
-              <Link
-                href={`/admin/organizations/${id}/edit`}
-                className="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-              >
-                編集
-              </Link>
+              <div className="flex gap-3">
+                <Link
+                  href={`/admin/organizations/${id}/edit`}
+                  className="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                >
+                  編集
+                </Link>
+                <DeleteOrganizationButton organizationId={id} />
+              </div>
             </div>
           </div>
 
