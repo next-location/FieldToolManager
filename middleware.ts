@@ -91,12 +91,13 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // ログイン・公開ページ・API・静的ファイル・スーパーアドミンはスキップ
+  // ログイン・公開ページ・API・静的ファイル・スーパーアドミン・エラーページはスキップ
   if (request.nextUrl.pathname.startsWith('/login') ||
       request.nextUrl.pathname.startsWith('/admin') ||
       request.nextUrl.pathname.startsWith('/api') ||
       request.nextUrl.pathname.startsWith('/_next') ||
       request.nextUrl.pathname.startsWith('/favicon') ||
+      request.nextUrl.pathname.startsWith('/error') ||
       request.nextUrl.pathname.includes('.')) {
     console.log('[Middleware] Skipping auth check for:', request.nextUrl.pathname)
     return response
