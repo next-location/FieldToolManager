@@ -41,14 +41,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       .update({
         name: body.name,
         subdomain: body.subdomain,
-        phone: body.phone || null,
-        fax: body.fax || null,
+        representative_name: body.representative_name || null,
         postal_code: body.postal_code || null,
         address: body.address || null,
-        billing_contact_name: body.billing_contact_name || null,
-        billing_contact_email: body.billing_contact_email || null,
-        billing_contact_phone: body.billing_contact_phone || null,
-        billing_address: body.billing_address || null,
+        phone: body.phone || null,
+        fax: body.fax || null,
+        email: body.email || null,
         is_active: body.is_active ?? true,
       })
       .eq('id', id)

@@ -172,14 +172,14 @@ export default function OrganizationForm({ mode, initialData }: OrganizationForm
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 新規作成時は重複チェックが必須
-    if (mode === 'create' && !duplicateCheckResult.checked) {
+    // 重複チェックが必須（新規作成・編集共通）
+    if (!duplicateCheckResult.checked) {
       alert('重複チェックを実行してください');
       return;
     }
 
-    if (mode === 'create' && duplicateCheckResult.isDuplicate && !duplicateCheckResult.confirmed) {
-      alert('類似する組織が見つかりました。確認してから登録してください');
+    if (duplicateCheckResult.isDuplicate && !duplicateCheckResult.confirmed) {
+      alert('類似する組織が見つかりました。確認してから保存してください');
       return;
     }
 
