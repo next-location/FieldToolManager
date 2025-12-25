@@ -1,14 +1,9 @@
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
 import { redirect } from 'next/navigation';
-import { createClient } from '@supabase/supabase-js';
+import { Pool } from 'pg';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
 import SalesLeadsList from '@/components/admin/SalesLeadsList';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export default async function SalesLeadsPage() {
   const session = await getSuperAdminSession();
@@ -17,12 +12,38 @@ export default async function SalesLeadsPage() {
     redirect('/admin/login');
   }
 
-  // 全組織の営業情報を取得
-  const { data: organizations, error: orgsError } = await supabase
-    .from('organizations')
-    .select('id, name, subdomain, sales_status, priority, expected_contract_amount, next_appointment_date, last_contact_date, lead_source, phone, address')
-    .order('priority', { ascending: false })
-    .order('next_appointment_date', { ascending: true });
+  let organizations = null;
+  let orgsError = null;
+
+  // PostgreSQL直接接続でデータ取得（PostgRESTスキーマキャッシュ問題を回避）
+  if (process.env.DATABASE_URL) {
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    });
+
+    try {
+      const client = await pool.connect();
+      try {
+        await client.query('SET search_path TO public');
+        const result = await client.query(`
+          SELECT
+            id, name, subdomain, sales_status, priority,
+            expected_contract_amount, next_appointment_date,
+            last_contact_date, lead_source, phone, address
+          FROM public.organizations
+          ORDER BY priority DESC NULLS LAST, next_appointment_date ASC NULLS LAST
+        `);
+        organizations = result.rows;
+      } finally {
+        client.release();
+      }
+      await pool.end();
+    } catch (error: any) {
+      orgsError = { message: error.message };
+      console.error('[Sales Leads] PostgreSQL Error:', error);
+    }
+  }
 
   console.log('[Sales Leads] Organizations:', organizations);
   console.log('[Sales Leads] Error:', orgsError);
