@@ -19,31 +19,35 @@ export default async function SalesPage() {
   }
 
   // 営業ステータス別の件数を取得
-  const { data: statusCounts } = await supabase
+  const { data: orgsData, error: orgsError } = await supabase
     .from('organizations')
-    .select('sales_status')
-    .then(({ data }) => {
-      const counts: Record<string, number> = {
-        not_contacted: 0,
-        appointment: 0,
-        prospect: 0,
-        proposal: 0,
-        negotiation: 0,
-        contracting: 0,
-        contracted: 0,
-        cancelled: 0,
-        lost: 0,
-        do_not_contact: 0,
-      };
+    .select('sales_status');
 
-      data?.forEach((org) => {
-        if (org.sales_status && counts[org.sales_status] !== undefined) {
-          counts[org.sales_status]++;
-        }
-      });
+  console.log('[Sales Page] Organizations query result:', orgsData);
+  console.log('[Sales Page] Organizations query error:', orgsError);
 
-      return { data: counts };
-    });
+  const counts: Record<string, number> = {
+    not_contacted: 0,
+    appointment: 0,
+    prospect: 0,
+    proposal: 0,
+    negotiation: 0,
+    contracting: 0,
+    contracted: 0,
+    cancelled: 0,
+    lost: 0,
+    do_not_contact: 0,
+  };
+
+  orgsData?.forEach((org) => {
+    if (org.sales_status && counts[org.sales_status] !== undefined) {
+      counts[org.sales_status]++;
+    }
+  });
+
+  console.log('[Sales Page] Status counts:', counts);
+
+  const statusCounts = { data: counts };
 
   // 次回アポイントがある組織を取得（7日以内）
   const today = new Date();
@@ -97,7 +101,7 @@ export default async function SalesPage() {
           </div>
 
           <SalesDashboard
-            statusCounts={(statusCounts?.data as any) || {
+            statusCounts={statusCounts.data || {
               not_contacted: 0,
               appointment: 0,
               prospect: 0,
