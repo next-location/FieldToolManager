@@ -26,7 +26,7 @@ export default async function SalesPage() {
   console.log('[Sales Page] Organizations query result:', orgsData);
   console.log('[Sales Page] Organizations query error:', orgsError);
 
-  const counts: Record<string, number> = {
+  const counts = {
     not_contacted: 0,
     appointment: 0,
     prospect: 0,
@@ -40,8 +40,9 @@ export default async function SalesPage() {
   };
 
   orgsData?.forEach((org) => {
-    if (org.sales_status && counts[org.sales_status] !== undefined) {
-      counts[org.sales_status]++;
+    const status = org.sales_status as keyof typeof counts;
+    if (status && counts[status] !== undefined) {
+      counts[status]++;
     }
   });
 
@@ -101,18 +102,7 @@ export default async function SalesPage() {
           </div>
 
           <SalesDashboard
-            statusCounts={statusCounts.data || {
-              not_contacted: 0,
-              appointment: 0,
-              prospect: 0,
-              proposal: 0,
-              negotiation: 0,
-              contracting: 0,
-              contracted: 0,
-              cancelled: 0,
-              lost: 0,
-              do_not_contact: 0,
-            }}
+            statusCounts={statusCounts.data}
             upcomingAppointments={upcomingAppointments || []}
             activeDeals={activeDeals || []}
             recentActivities={recentActivities || []}
