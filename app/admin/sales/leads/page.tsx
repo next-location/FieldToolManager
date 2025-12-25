@@ -28,11 +28,11 @@ export default async function SalesLeadsPage() {
         await client.query('SET search_path TO public');
         const result = await client.query(`
           SELECT
-            id, name, subdomain, sales_status, priority,
-            expected_contract_amount, next_appointment_date,
-            last_contact_date, lead_source, phone, address
-          FROM public.organizations
-          ORDER BY priority DESC NULLS LAST, next_appointment_date ASC NULLS LAST
+            id, name, subdomain, "sales_status", "priority",
+            "expected_contract_amount", "next_appointment_date",
+            "last_contact_date", "lead_source", phone, address
+          FROM "organizations"
+          ORDER BY "priority" DESC NULLS LAST, "next_appointment_date" ASC NULLS LAST
         `);
         organizations = result.rows;
       } finally {
