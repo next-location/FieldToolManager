@@ -6,17 +6,22 @@ import AdminHeader from '@/components/admin/AdminHeader';
 import SalesDashboard from '@/components/admin/SalesDashboard';
 import { salesStatusLabels } from '@/lib/constants/sales-status';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 export default async function SalesPage() {
   const session = await getSuperAdminSession();
 
   if (!session) {
     redirect('/admin/login');
   }
+
+  // 環境変数のデバッグ
+  console.log('[Sales Page] SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+  console.log('[Sales Page] SERVICE_ROLE_KEY exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+  console.log('[Sales Page] SERVICE_ROLE_KEY length:', process.env.SUPABASE_SERVICE_ROLE_KEY?.length);
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
   // 営業ステータス別の件数を取得
   const { data: orgsData, error: orgsError } = await supabase
@@ -25,6 +30,15 @@ export default async function SalesPage() {
 
   console.log('[Sales Page] Organizations query result:', orgsData);
   console.log('[Sales Page] Organizations query error:', orgsError);
+
+  if (orgsError) {
+    console.error('[Sales Page] ERROR DETAILS:', {
+      message: orgsError.message,
+      details: orgsError.details,
+      hint: orgsError.hint,
+      code: orgsError.code
+    });
+  }
 
   const counts = {
     not_contacted: 0,
