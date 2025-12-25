@@ -176,17 +176,15 @@ export default function OrganizationForm({ mode, initialData }: OrganizationForm
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 重複チェックが必須（新規作成時のみ）
-    if (mode === 'create') {
-      if (!duplicateCheckResult.checked) {
-        alert('重複チェックを実行してください');
-        return;
-      }
+    // 重複チェックが必須（新規作成・編集共通）
+    if (!duplicateCheckResult.checked) {
+      alert('重複チェックを実行してください');
+      return;
+    }
 
-      if (duplicateCheckResult.isDuplicate && !duplicateCheckResult.confirmed) {
-        alert('類似する組織が見つかりました。確認してから保存してください');
-        return;
-      }
+    if (duplicateCheckResult.isDuplicate && !duplicateCheckResult.confirmed) {
+      alert('類似する組織が見つかりました。確認してから保存してください');
+      return;
     }
 
     setIsSubmitting(true);
@@ -433,13 +431,15 @@ export default function OrganizationForm({ mode, initialData }: OrganizationForm
           <p className="text-xs text-gray-500 mt-1">無効にすると、この組織はシステムにアクセスできなくなります</p>
         </div>
 
-        {/* 重複チェックセクション（新規作成時のみ） */}
-        {mode === 'create' && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h2 className="text-lg font-bold text-gray-900 mb-3">⚠️ 重複チェック（必須）</h2>
-            <p className="text-sm text-gray-700 mb-3">
-              組織名と住所を入力したら、既存組織との重複がないか必ずチェックしてください
-            </p>
+        {/* 重複チェックセクション */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <h2 className="text-lg font-bold text-gray-900 mb-3">⚠️ 重複チェック（必須）</h2>
+          <p className="text-sm text-gray-700 mb-3">
+            {mode === 'create'
+              ? '組織名と住所を入力したら、既存組織との重複がないか必ずチェックしてください'
+              : '組織名、住所、電話番号を変更した場合は、既存組織との重複がないか必ずチェックしてください'
+            }
+          </p>
 
             <button
               type="button"
@@ -488,8 +488,7 @@ export default function OrganizationForm({ mode, initialData }: OrganizationForm
                 )}
               </div>
             )}
-          </div>
-        )}
+        </div>
 
         {/* ボタン */}
         <div className="flex gap-4 justify-end pt-4 border-t border-gray-200">
