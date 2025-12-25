@@ -25,14 +25,22 @@ export default async function SalesLeadsPage() {
     try {
       const client = await pool.connect();
       try {
-        await client.query('SET search_path TO public');
+        // PgBouncer対応：完全修飾名でクエリ
         const result = await client.query(`
           SELECT
-            id, name, subdomain, "sales_status", "priority",
-            "expected_contract_amount", "next_appointment_date",
-            "last_contact_date", "lead_source", phone, address
-          FROM "organizations"
-          ORDER BY "priority" DESC NULLS LAST, "next_appointment_date" ASC NULLS LAST
+            o.id::text as id,
+            o.name::text as name,
+            o.subdomain::text as subdomain,
+            o.sales_status::text as sales_status,
+            o.priority::integer as priority,
+            o.expected_contract_amount::numeric as expected_contract_amount,
+            o.next_appointment_date::timestamptz as next_appointment_date,
+            o.last_contact_date::timestamptz as last_contact_date,
+            o.lead_source::text as lead_source,
+            o.phone::text as phone,
+            o.address::text as address
+          FROM public.organizations o
+          ORDER BY o.priority DESC NULLS LAST, o.next_appointment_date ASC NULLS LAST
         `);
         organizations = result.rows;
       } finally {
