@@ -42,8 +42,8 @@ export async function POST(request: NextRequest) {
         postal_code: body.postal_code || null,
         address: body.address || null,
         phone: body.phone || null,
-        fax: body.fax || null,
-        email: body.email || null,
+        // fax: body.fax || null, // TODO: Supabaseスキーマキャッシュ問題のため一時的にコメントアウト
+        // email: body.email || null, // TODO: Supabaseスキーマキャッシュ問題のため一時的にコメントアウト
       })
       .select()
       .single();
