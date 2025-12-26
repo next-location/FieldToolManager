@@ -91,8 +91,13 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     const { id } = await params;
 
-    // スーパーアドミンの監査コンテキストを設定
-    await setSuperAdminAuditContext(supabase, session.id, session.name);
+    // 組織削除前に操作ログを記録（削除後は組織が存在しないため）
+    await supabase.from('super_admin_logs').insert({
+      super_admin_id: session.id,
+      action: 'delete_organization',
+      ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+      user_agent: request.headers.get('user-agent') || 'unknown',
+    });
 
     // 組織を削除（CASCADE設定により関連データも自動削除）
     const { error } = await supabase
@@ -104,14 +109,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       console.error('Organization delete error:', error);
       return NextResponse.json({ error: '組織の削除に失敗しました', details: error.message }, { status: 500 });
     }
-
-    // 操作ログを記録
-    await supabase.from('super_admin_logs').insert({
-      super_admin_id: session.id,
-      action: 'delete_organization',
-      ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
-      user_agent: request.headers.get('user-agent') || 'unknown',
-    });
 
     return NextResponse.json({ success: true });
   } catch (error) {
