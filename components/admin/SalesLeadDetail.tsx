@@ -132,11 +132,16 @@ export default function SalesLeadDetail({
       });
 
       if (response.ok) {
+        const newActivity = await response.json();
+
         alert('活動を追加しました');
         setIsAddingActivity(false);
         setActivityForm({ activityType: 'other', title: '', description: '' });
 
-        // サーバーから最新データを取得（正しい順序で表示される）
+        // クライアント側で即座に活動一覧を更新
+        setActivities([newActivity.activity, ...activities]);
+
+        // サーバーから最新データも取得（バックグラウンド）
         router.refresh();
       } else {
         const error = await response.json();
