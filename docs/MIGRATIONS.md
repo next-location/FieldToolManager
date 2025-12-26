@@ -2864,3 +2864,139 @@ PostgRESTスキーマキャッシュ問題を根本解決するため、Supabase
 ### 関連ドキュメント
 - [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) - 全テーブル定義
 - [ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.md) - 環境構築手順
+
+---
+
+## 🔧 追加修正・完了作業（2025-12-27）
+
+### 概要
+Supabaseプロジェクト再構築後の追加修正と機能完成作業
+
+### 実施内容
+
+#### 1. organizationsテーブルにカラム追加
+**問題**: 組織作成時に`address`等のカラムが存在せずPostgRESTエラー
+
+**対応**: 不足カラムを追加
+```sql
+ALTER TABLE public.organizations
+  ADD COLUMN IF NOT EXISTS representative_name TEXT,
+  ADD COLUMN IF NOT EXISTS postal_code TEXT,
+  ADD COLUMN IF NOT EXISTS address TEXT,
+  ADD COLUMN IF NOT EXISTS phone TEXT,
+  ADD COLUMN IF NOT EXISTS fax TEXT,
+  ADD COLUMN IF NOT EXISTS email TEXT;
+```
+
+**適用環境**: テスト・本番両方
+
+#### 2. Vercel環境変数の修正
+**問題**: 新Supabaseプロジェクトの`NEXT_PUBLIC_SUPABASE_ANON_KEY`が未設定
+
+**対応**:
+- テスト環境（Preview）: `sb_publishable_Ft2W2rYKjYU425-AmUR0YQ_v0lvU...`
+- 本番環境（Production）: 新しいPublishable key設定
+
+#### 3. 組織削除機能の修正
+**問題**: 組織削除時に外部キー制約エラー
+```
+insert or update on table "audit_logs" violates foreign key constraint
+```
+
+**原因**: `log_organization_changes`トリガーが削除時も`audit_logs`に記録しようとしていた
+
+**対応**: トリガーをINSERT/UPDATEのみに変更
+```sql
+DROP TRIGGER IF EXISTS log_organization_changes_trigger ON public.organizations;
+
+CREATE TRIGGER log_organization_changes_trigger
+AFTER INSERT OR UPDATE ON public.organizations
+FOR EACH ROW
+EXECUTE FUNCTION public.log_organization_changes();
+```
+
+**ファイル**: `/Users/youichiakashi/Desktop/disable_organization_delete_audit.sql`
+
+#### 4. 操作ログページの404エラー修正
+**問題**: `/admin/logs`が404エラー
+
+**原因**: `.gitignore`の`logs/`パターンが`app/admin/logs/`を除外
+
+**対応**:
+```gitignore
+# Logs
+*.log
+# Ignore log directories but not app code
+logs/
+!app/**/logs/
+```
+
+#### 5. ログAPIのカラム名修正
+**問題**: `super_admin_logs`テーブルは`performed_at`カラムだが、APIは`created_at`を参照
+
+**対応**: APIコードを`performed_at`に修正
+
+#### 6. Hydration error修正
+**問題**: 組織一覧の日付表示でHydration mismatch
+
+**対応**: タイムゾーンを明示的に指定
+```typescript
+new Date(org.created_at).toLocaleDateString('ja-JP', {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  timeZone: 'Asia/Tokyo'
+})
+```
+
+#### 7. 営業活動履歴の表示問題修正
+**問題**: 活動追加後に一覧に表示されない
+
+**対応**:
+1. ページに動的レンダリング強制
+```typescript
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+```
+
+2. クライアント側で即座に反映
+```typescript
+setActivities([newActivity.activity, ...activities]);
+```
+
+### 完了した機能
+- ✅ 組織作成・編集・削除
+- ✅ 組織一覧表示
+- ✅ 操作ログ閲覧
+- ✅ 営業案件管理
+- ✅ 営業活動履歴追加・表示
+
+### コミット履歴
+```
+0f29509 Fix: 営業活動追加後、リロードせずに即座に一覧に反映されるように修正
+806566e Fix: 営業詳細ページのキャッシュ問題を修正（活動履歴が表示されない問題）
+d260c7c Fix: ログAPIのカラム名をperformed_atに修正
+c305174 Fix: .gitignoreを修正してログページを追加
+9339ab7 Fix: 組織削除時の外部キー制約エラーを修正、ログAPIのカラム名を修正
+3a994c9 Fix: Hydration errorを修正（日付フォーマットにタイムゾーンを明示的に指定）
+268c2e3 Fix: 組織作成APIをSupabase Clientのみ使用するよう修正
+e16c057 Fix: 本番環境で組織一覧が表示されない問題を修正
+```
+
+### テスト環境への反映タイミング
+**質問への回答**: テスト環境は手動反映が必要
+
+**フロー**:
+1. `dev`ブランチにpush → Vercel Preview自動デプロイ
+2. **データベース**: 手動でテスト用Supabase（qbabwwwsookpavwcneqw）にSQL実行
+3. 動作確認後、`main`ブランチにマージ → Production自動デプロイ
+
+### 保存ファイル
+- `/Users/youichiakashi/Desktop/add_organization_contact_fields.sql` - organizationsカラム追加
+- `/Users/youichiakashi/Desktop/disable_organization_delete_audit.sql` - トリガー修正
+- `/Users/youichiakashi/Desktop/check_sales_activities.sql` - 営業活動確認用
+
+### 次のステップ
+- [ ] デバッグコード削除（営業一覧のconsole.log等）
+- [ ] テスト環境にも同様のSQLを適用
+- [ ] リリース前の最終動作確認
