@@ -9,6 +9,8 @@ interface Organization {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  representative_name: string | null;
+  email: string | null;
   phone: string | null;
   fax: string | null;
   postal_code: string | null;
@@ -162,6 +164,8 @@ export default function OrganizationDetailTabs({
   const getFieldLabel = (fieldName: string): string => {
     const labels: Record<string, string> = {
       name: '組織名',
+      representative_name: '代表者名',
+      email: 'メールアドレス',
       subdomain: 'サブドメイン',
       phone: '電話番号',
       fax: 'FAX',
@@ -300,6 +304,14 @@ export default function OrganizationDetailTabs({
                   <div className="flex">
                     <dt className="text-gray-600 w-32">組織名:</dt>
                     <dd className="text-gray-900 font-medium">{organization.name}</dd>
+                  </div>
+                  <div className="flex">
+                    <dt className="text-gray-600 w-32">代表者名:</dt>
+                    <dd className="text-gray-900">{organization.representative_name || '-'}</dd>
+                  </div>
+                  <div className="flex">
+                    <dt className="text-gray-600 w-32">メールアドレス:</dt>
+                    <dd className="text-gray-900">{organization.email || '-'}</dd>
                   </div>
                   <div className="flex flex-col gap-2">
                     <div className="flex">
