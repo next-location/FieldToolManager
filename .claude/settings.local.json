@@ -95,7 +95,8 @@
       "Bash(git rm:*)",
       "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql \"postgresql://postgres:cF1!hVERlDgjMD@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres\" -c \"\\d organizations\")",
       "Bash(export PGPASSWORD=\"cF1!hVERlDgjMD\")",
-      "Bash(export PGPASSWORD='cF1!hVERlDgjMD')"
+      "Bash(export PGPASSWORD='cF1!hVERlDgjMD')",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []

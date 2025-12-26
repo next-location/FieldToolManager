@@ -183,7 +183,12 @@ export default function OrganizationsTable({ initialOrganizations }: Organizatio
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(org.created_at).toLocaleDateString('ja-JP')}
+                      {new Date(org.created_at).toLocaleDateString('ja-JP', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        timeZone: 'Asia/Tokyo'
+                      })}
                     </td>
                   </tr>
                 ))
