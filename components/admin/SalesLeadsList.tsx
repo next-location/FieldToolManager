@@ -9,12 +9,12 @@ interface Organization {
   id: string;
   name: string;
   subdomain: string | null;
-  sales_status: string;
-  priority: string;
-  expected_contract_amount: number | null;
-  next_appointment_date: string | null;
-  last_contact_date: string | null;
-  lead_source: string | null;
+  sales_status?: string | null;
+  priority?: string | null;
+  expected_contract_amount?: number | null;
+  next_appointment_date?: string | null;
+  last_contact_date?: string | null;
+  lead_source?: string | null;
   phone: string | null;
   address: string | null;
 }
@@ -184,12 +184,16 @@ export default function SalesLeadsList({ organizations }: SalesLeadsListProps) {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
                     <h3 className="text-lg font-bold text-gray-900">{org.name}</h3>
-                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${salesStatusColors[org.sales_status]}`}>
-                      {salesStatusLabels[org.sales_status]}
-                    </span>
-                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${priorityColors[org.priority]}`}>
-                      優先度: {priorityLabels[org.priority]}
-                    </span>
+                    {org.sales_status && (
+                      <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${salesStatusColors[org.sales_status] || 'bg-gray-100 text-gray-600'}`}>
+                        {salesStatusLabels[org.sales_status] || org.sales_status}
+                      </span>
+                    )}
+                    {org.priority && (
+                      <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${priorityColors[org.priority] || 'bg-gray-100 text-gray-600'}`}>
+                        優先度: {priorityLabels[org.priority] || org.priority}
+                      </span>
+                    )}
                   </div>
                   {org.subdomain && (
                     <p className="text-sm text-gray-500 font-mono mb-2">{org.subdomain}</p>
@@ -204,13 +208,13 @@ export default function SalesLeadsList({ organizations }: SalesLeadsListProps) {
                     <div>
                       <p className="text-xs text-gray-500 mb-1">次回アポイント</p>
                       <p className="text-sm font-semibold text-gray-900">
-                        {formatDate(org.next_appointment_date)}
+                        {formatDate(org.next_appointment_date || null)}
                       </p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 mb-1">最終接触日</p>
                       <p className="text-sm font-semibold text-gray-900">
-                        {formatDate(org.last_contact_date)}
+                        {formatDate(org.last_contact_date || null)}
                       </p>
                     </div>
                   </div>

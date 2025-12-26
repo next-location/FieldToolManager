@@ -731,6 +731,83 @@ supabase db pull
 diff .env.local .env.staging
 ```
 
+## 10. 本番環境でのデータベース接続方法
+
+### 10.1 Supabase Client vs PostgreSQL直接接続
+
+**重要：本番環境では必ずSupabase Clientを使用してください。**
+
+#### 理由
+
+PostgreSQL直接接続（`pg`ライブラリ）には以下の問題があります：
+
+1. **PostgRESTスキーマキャッシュ問題**: 新しいカラムを追加してもPostgRESTが認識しない
+2. **PgBouncer互換性問題**: Transaction Mode（ポート6543）ではプリペアドステートメントが使えない
+3. **接続プール管理の複雑さ**: Vercelのサーバーレス環境では接続管理が困難
+
+#### 正しい実装パターン
+
+```typescript
+// ✅ 推奨：Supabase Clientを使用
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+export default async function MyPage() {
+  const { data, error } = await supabase
+    .from('organizations')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  // ...
+}
+```
+
+```typescript
+// ❌ 非推奨：PostgreSQL直接接続（本番環境では使用しない）
+import { Pool } from 'pg';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+// スキーマキャッシュ問題が発生する可能性あり
+```
+
+#### ローカル開発環境の場合
+
+ローカル環境（Dockerなど）では、PostgreSQL直接接続も問題なく動作します。ただし、本番環境との一貫性のため、**ローカルでもSupabase Clientを使用することを推奨**します。
+
+#### スキーマキャッシュのリロード
+
+新しいカラムを追加した後、PostgRESTがそれを認識しない場合は、以下のSQLを実行：
+
+```sql
+NOTIFY pgrst, 'reload schema';
+NOTIFY pgrst, 'reload config';
+```
+
+実行後、1-2分待ってからアプリケーションをリロードしてください。
+
+### 10.2 既存コードの移行チェックリスト
+
+本番環境で動作しない可能性があるページを特定し、Supabase Clientに移行：
+
+```bash
+# PostgreSQL直接接続を使用しているファイルを検索
+grep -r "from 'pg'" app/
+grep -r "new Pool" app/
+```
+
+各ファイルを以下のように修正：
+
+1. `import { Pool } from 'pg'` → `import { createClient } from '@supabase/supabase-js'`
+2. `new Pool()` → `createClient()`
+3. `client.query()` → `supabase.from().select()`
+
 ## まとめ
 
 このガイドに従うことで、ローカル開発環境と本番環境の差異を最小化し、安全で確実なデプロイが可能になります。問題が発生した場合は、このドキュメントのトラブルシューティングセクションを参照してください。

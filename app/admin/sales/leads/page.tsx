@@ -18,23 +18,19 @@ export default async function SalesLeadsPage() {
   }
 
   // Supabase Clientを使用（組織一覧ページと同じ方法）
+  // 注：PostgRESTスキーマキャッシュ問題により、新規カラムは除外
   const { data: organizations, error: orgsError } = await supabase
     .from('organizations')
     .select(`
       id,
       name,
       subdomain,
-      sales_status,
-      priority,
-      expected_contract_amount,
-      next_appointment_date,
-      last_contact_date,
-      lead_source,
       phone,
-      address
+      address,
+      is_active,
+      created_at
     `)
-    .order('priority', { ascending: false, nullsFirst: false })
-    .order('next_appointment_date', { ascending: true, nullsFirst: false });
+    .order('created_at', { ascending: false });
 
   if (orgsError) {
     console.error('[Sales Leads] Supabase Error:', orgsError);
