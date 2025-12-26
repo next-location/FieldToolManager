@@ -318,31 +318,39 @@ export default function OrganizationDetailTabs({
                       <dt className="text-gray-600 w-32">サブドメイン:</dt>
                       <dd className="text-gray-900 font-mono">{organization.subdomain || '-'}</dd>
                     </div>
-                    {organization.subdomain && (
-                      <div className="flex">
-                        <dt className="text-gray-600 w-32">ログインURL:</dt>
-                        <dd className="flex items-center gap-2">
-                          <a
-                            href={`http://${organization.subdomain}.localhost:3000`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-700 underline font-mono text-sm"
-                          >
-                            {`${organization.subdomain}.localhost:3000`}
-                          </a>
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(`http://${organization.subdomain}.localhost:3000`);
-                              alert('ログインURLをコピーしました');
-                            }}
-                            className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded border border-gray-300 transition-colors"
-                            title="URLをコピー"
-                          >
-                            📋 コピー
-                          </button>
-                        </dd>
-                      </div>
-                    )}
+                    {organization.subdomain && (() => {
+                      const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'localhost:3000';
+                      const protocol = baseDomain.includes('localhost') ? 'http' : 'https';
+                      const loginUrl = `${protocol}://${organization.subdomain}.${baseDomain}`;
+
+                      return (
+                        <div className="flex">
+                          <dt className="text-gray-600 w-32">ログインURL:</dt>
+                          <dd className="flex items-center gap-2">
+                            <a
+                              href={loginUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-700 underline font-mono text-sm"
+                            >
+                              {`${organization.subdomain}.${baseDomain}`}
+                            </a>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(loginUrl);
+                                alert('ログインURLをコピーしました');
+                              }}
+                              className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                              title="URLをコピー"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            </button>
+                          </dd>
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div className="flex">
                     <dt className="text-gray-600 w-32">ユーザー数:</dt>
