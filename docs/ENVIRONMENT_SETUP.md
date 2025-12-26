@@ -808,6 +808,107 @@ grep -r "new Pool" app/
 2. `new Pool()` → `createClient()`
 3. `client.query()` → `supabase.from().select()`
 
+## 11. 開発・デプロイフロー（2025-12-27更新）
+
+### 11.1 環境構成
+
+| 環境 | 用途 | Gitブランチ | Vercel環境 | Supabase |
+|------|------|------------|-----------|----------|
+| ローカル | 開発 | 任意 | - | Docker (localhost) |
+| テスト | 動作確認 | `dev` | Preview | `zairoku-test` |
+| 本番 | リリース | `main` | Production | `zairoku-production` |
+
+### 11.2 標準開発フロー
+
+```
+1. ローカルで開発
+   ├─ ブランチ: dev, feature/xxx など
+   ├─ データベース: Docker (localhost:54322)
+   └─ 動作確認: http://localhost:3000
+
+2. テスト環境に反映
+   ├─ git push origin dev
+   ├─ Vercel が自動的に Preview デプロイ
+   ├─ 使用DB: zairoku-test (Supabase)
+   └─ Preview URL: https://xxxxx-dev.vercel.app
+
+3. テスト環境でテスト
+   ├─ Preview URL にアクセス
+   ├─ 動作確認・バグチェック
+   └─ 問題あれば手順1に戻る
+
+4. 本番環境に反映
+   ├─ git checkout main
+   ├─ git merge dev
+   ├─ git push origin main
+   ├─ Vercel が自動的に Production デプロイ
+   ├─ 使用DB: zairoku-production (Supabase)
+   └─ 本番URL: https://zairoku.com
+```
+
+### 11.3 Vercel環境変数の設定
+
+**Preview環境用（テスト）:**
+```
+NEXT_PUBLIC_SUPABASE_URL=https://qbabwwwsookpavwcneqw.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUz... (Preview用のキー)
+Environment: Preview のみチェック
+```
+
+**Production環境用（本番）:**
+```
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co (本番用URL)
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUz... (Production用のキー)
+Environment: Production のみチェック
+```
+
+### 11.4 データベースマイグレーション手順
+
+**ローカル環境でマイグレーション作成:**
+```bash
+# 1. マイグレーションファイル作成
+npx supabase migration new add_new_feature
+
+# 2. SQLを記述
+vim supabase/migrations/20251227000001_add_new_feature.sql
+
+# 3. ローカルで適用・テスト
+docker exec ftm-postgres psql -U postgres -d field_tool_manager -f supabase/migrations/20251227000001_add_new_feature.sql
+```
+
+**テスト環境に適用:**
+```bash
+# Supabase Dashboard → zairoku-test → SQL Editor
+# マイグレーションファイルの内容をコピー&ペーストして実行
+```
+
+**本番環境に適用:**
+```bash
+# テスト環境で問題なければ
+# Supabase Dashboard → zairoku-production → SQL Editor
+# 同じマイグレーションを実行
+```
+
+**重要:** マイグレーション実行後は必ず `docs/MIGRATIONS.md` を更新してください。
+
+### 11.5 緊急時の対応
+
+**本番環境で問題発生時:**
+```bash
+# 1. 直ちに前のコミットに戻す
+git revert HEAD
+git push origin main
+
+# 2. Vercel が自動的に再デプロイ
+# 3. 問題を修正して再度テスト環境から確認
+```
+
+**データベースロールバック:**
+```bash
+# MIGRATIONS.md のロールバック手順を参照
+# 各マイグレーションにロールバック用SQLを記載
+```
+
 ## まとめ
 
 このガイドに従うことで、ローカル開発環境と本番環境の差異を最小化し、安全で確実なデプロイが可能になります。問題が発生した場合は、このドキュメントのトラブルシューティングセクションを参照してください。

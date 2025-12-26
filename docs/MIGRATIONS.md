@@ -2760,3 +2760,107 @@ DROP COLUMN IF EXISTS email;
 - マイグレーションファイル: `supabase/migrations/20251224000001_add_contact_info_to_organizations.sql`
 - ロールバックファイル: `supabase/migrations/20251224000001_add_contact_info_to_organizations_rollback.sql`
 - [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) - Section 2.1: organizationsテーブル
+
+---
+
+## 🚨 緊急対応: Supabaseプロジェクト完全再構築（2025-12-27）
+
+### 概要
+PostgRESTスキーマキャッシュ問題を根本解決するため、Supabaseプロジェクトを完全に再構築しました。
+
+### 問題の背景
+- **症状**: 営業案件一覧ページで `column organizations.sales_status does not exist` エラー
+- **根本原因**: Supabase Free PlanのPostgRESTは、プロジェクト起動後に追加されたカラムを認識しない
+- **試行錯誤**:
+  - `NOTIFY pgrst, 'reload schema'` → 失敗
+  - プロジェクトのPause/Resume → 失敗
+  - データベース完全削除・再作成 → PostgRESTキャッシュは更新されず失敗
+
+### 解決策
+**新しいSupabaseプロジェクトを作成し、最初から全カラムを含むスキーマを適用**
+
+### 実施内容
+
+#### 1. 旧プロジェクト削除
+- `zairoku-production` (旧本番環境) → 削除
+- `zairoku-test` (旧テスト環境) → 削除
+- 理由: Free Planは組織あたり2プロジェクトまで
+
+#### 2. 新テスト環境プロジェクト作成
+- プロジェクト名: `zairoku-test`
+- リージョン: Northeast Asia (Tokyo)
+- Project URL: `https://qbabwwwsookpavwcneqw.supabase.co`
+
+#### 3. スキーマ適用（テスト環境）
+
+**実行順序:**
+1. **Functions（関数）適用** - `/tmp/schema_functions_fixed.sql` (492行)
+   - 全データベース関数を定義
+   - `CREATE SCHEMA public;` 行を除外
+
+2. **Extension有効化**
+   ```sql
+   CREATE EXTENSION IF NOT EXISTS btree_gist;
+   ```
+
+3. **Tables適用（4分割）**
+   - Part 1: `tables_part_aa.sql` (55KB, 1000行)
+   - Part 2: `tables_part_ab.sql` (57KB, 1000行)
+   - Part 3: `tables_part_ac.sql` (89KB, 1000行)
+   - Part 4: `tables_part_ad.sql` (16KB, 残り)
+
+**結果:**
+- ✅ 77テーブル作成完了
+- ✅ organizationsテーブルに営業管理カラム全て存在確認:
+  - `sales_status` (TEXT)
+  - `priority` (INTEGER)
+  - `expected_contract_amount` (INTEGER)
+  - `next_appointment_date` (TIMESTAMP WITH TIME ZONE)
+  - `last_contact_date` (TIMESTAMP WITH TIME ZONE)
+  - `lead_source` (TEXT)
+
+4. **システム管理者アカウント作成**
+   ```sql
+   INSERT INTO super_admins (
+     email,
+     password_hash,
+     name,
+     role,
+     permission_level,
+     is_active
+   ) VALUES (
+     'akashi@next-location.com',
+     '$2b$10$oAk24XPb2FEeBnT5vllYQ.apGUzLRrv8orZ6vUO.YvWy3CF5LWWFa',
+     'Akashi Youichi',
+     'owner',
+     'admin',
+     true
+   );
+   ```
+
+### スキーマファイル保存場所
+- **デスクトップ** (再利用可能):
+  - `/Users/youichiakashi/Desktop/tables_part_aa.sql`
+  - `/Users/youichiakashi/Desktop/tables_part_ab.sql`
+  - `/Users/youichiakashi/Desktop/tables_part_ac.sql`
+  - `/Users/youichiakashi/Desktop/tables_part_ad.sql`
+
+- **tmpフォルダ**:
+  - `/tmp/schema_functions_fixed.sql` (492行 - 全関数)
+  - `/tmp/production_schema.sql` (3713行 - 完全なスキーマ)
+
+### 次のステップ（未実施）
+- [ ] Vercel環境変数を新テスト環境用に更新（Preview）
+- [ ] テスト環境で営業案件一覧のsales_status動作確認
+- [ ] 新本番環境プロジェクト作成
+- [ ] 本番環境にスキーマ適用
+- [ ] Vercel環境変数を新本番環境用に更新（Production）
+
+### 教訓
+1. **Supabase Free Planの制約**: 後からカラムを追加してもPostgRESTが認識しない
+2. **初期スキーマの重要性**: プロジェクト作成時に全カラムを含める必要がある
+3. **テスト・本番環境の分離**: 同じ手順で両環境を再構築し、完全一致させる
+
+### 関連ドキュメント
+- [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) - 全テーブル定義
+- [ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.md) - 環境構築手順
