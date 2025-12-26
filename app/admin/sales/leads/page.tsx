@@ -18,13 +18,19 @@ export default async function SalesLeadsPage() {
   }
 
   // Supabase Clientを使用（組織一覧ページと同じ方法）
-  // 注：PostgRESTスキーマキャッシュ問題により、新規カラムは除外
+  // テスト：sales_statusカラムが認識されるか確認
   const { data: organizations, error: orgsError } = await supabase
     .from('organizations')
     .select(`
       id,
       name,
       subdomain,
+      sales_status,
+      priority,
+      expected_contract_amount,
+      next_appointment_date,
+      last_contact_date,
+      lead_source,
       phone,
       address,
       is_active,
