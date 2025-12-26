@@ -323,6 +323,14 @@ export default function OrganizationDetailTabs({
                       const protocol = baseDomain.includes('localhost') ? 'http' : 'https';
                       const loginUrl = `${protocol}://${organization.subdomain}.${baseDomain}`;
 
+                      // デバッグ用（本番環境で確認後に削除）
+                      console.log('[OrganizationDetailTabs] DEBUG:', {
+                        subdomain: organization.subdomain,
+                        baseDomain,
+                        envValue: process.env.NEXT_PUBLIC_BASE_DOMAIN,
+                        loginUrl
+                      });
+
                       return (
                         <div className="flex">
                           <dt className="text-gray-600 w-32">ログインURL:</dt>
