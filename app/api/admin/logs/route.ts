@@ -49,15 +49,15 @@ export async function GET(request: NextRequest) {
       query = query.eq('target_type', targetType);
     }
     if (startDate) {
-      query = query.gte('created_at', startDate);
+      query = query.gte('performed_at', startDate);
     }
     if (endDate) {
-      query = query.lte('created_at', endDate);
+      query = query.lte('performed_at', endDate);
     }
 
     // ソート・ページネーション
     query = query
-      .order('created_at', { ascending: false })
+      .order('performed_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
     const { data: logs, error, count } = await query;
