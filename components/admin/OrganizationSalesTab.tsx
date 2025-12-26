@@ -52,6 +52,18 @@ const activityTypeLabels: Record<string, string> = {
   other: 'その他',
 };
 
+// ISO形式の日時をdatetime-local形式に変換（yyyy-MM-ddThh:mm）
+const formatDatetimeLocal = (isoString: string | null): string => {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
 export default function OrganizationSalesTab({
   organizationId,
   salesStatus,
@@ -71,8 +83,8 @@ export default function OrganizationSalesTab({
   // フォームの状態
   const [formData, setFormData] = useState({
     salesStatus,
-    lastContactDate: lastContactDate || '',
-    nextAppointmentDate: nextAppointmentDate || '',
+    lastContactDate: formatDatetimeLocal(lastContactDate),
+    nextAppointmentDate: formatDatetimeLocal(nextAppointmentDate),
     expectedContractAmount: expectedContractAmount || '',
     priority,
     leadSource: leadSource || '',

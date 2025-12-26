@@ -56,6 +56,18 @@ const activityTypeLabels: Record<string, string> = {
   other: 'その他',
 };
 
+// ISO形式の日時をdatetime-local形式に変換（yyyy-MM-ddThh:mm）
+const formatDatetimeLocal = (isoString: string | null): string => {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
 export default function SalesLeadDetail({
   organization,
   activities: initialActivities,
@@ -69,8 +81,8 @@ export default function SalesLeadDetail({
 
   const [formData, setFormData] = useState({
     salesStatus: organization.sales_status,
-    lastContactDate: organization.last_contact_date || '',
-    nextAppointmentDate: organization.next_appointment_date || '',
+    lastContactDate: formatDatetimeLocal(organization.last_contact_date),
+    nextAppointmentDate: formatDatetimeLocal(organization.next_appointment_date),
     expectedContractAmount: organization.expected_contract_amount || '',
     priority: organization.priority,
     leadSource: organization.lead_source || '',
@@ -224,8 +236,8 @@ export default function SalesLeadDetail({
                   setIsEditMode(false);
                   setFormData({
                     salesStatus: organization.sales_status,
-                    lastContactDate: organization.last_contact_date || '',
-                    nextAppointmentDate: organization.next_appointment_date || '',
+                    lastContactDate: formatDatetimeLocal(organization.last_contact_date),
+                    nextAppointmentDate: formatDatetimeLocal(organization.next_appointment_date),
                     expectedContractAmount: organization.expected_contract_amount || '',
                     priority: organization.priority,
                     leadSource: organization.lead_source || '',
