@@ -63,8 +63,10 @@ docker-compose.override.yml
 .docker/
 
 # Logs
-logs/
 *.log
+# Ignore log directories but not app code
+logs/
+!app/**/logs/
 
 # OS files
 .DS_Store
