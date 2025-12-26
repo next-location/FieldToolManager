@@ -102,6 +102,13 @@ export default function SalesLeadDetail({
         }
 
         setIsEditMode(false);
+
+        // 作成された活動履歴を即座に一覧に追加
+        if (data.activity) {
+          setActivities([data.activity, ...activities]);
+        }
+
+        // サーバーから最新データも取得（バックグラウンド）
         router.refresh();
       } else {
         const error = await response.json();

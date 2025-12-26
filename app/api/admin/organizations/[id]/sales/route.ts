@@ -67,14 +67,18 @@ export async function PATCH(
   }
 
   // 営業活動ログを追加（ステータス変更の場合）
-  const { error: activityError } = await supabase.from('sales_activities').insert({
-    organization_id: id,
-    activity_type: 'status_change',
-    title: '営業情報更新',
-    description: `営業ステータスを「${salesStatusLabels[salesStatus] || salesStatus}」に更新しました`,
-    created_by: session.id,
-    created_by_name: session.name,
-  });
+  const { data: activityData, error: activityError } = await supabase
+    .from('sales_activities')
+    .insert({
+      organization_id: id,
+      activity_type: 'status_change',
+      title: '営業情報更新',
+      description: `営業ステータスを「${salesStatusLabels[salesStatus] || salesStatus}」に更新しました`,
+      created_by: session.id,
+      created_by_name: session.name,
+    })
+    .select()
+    .single();
 
   if (activityError) {
     console.error('Failed to create sales activity log:', activityError);
@@ -83,6 +87,7 @@ export async function PATCH(
 
   return NextResponse.json({
     organization: data,
-    warning: contractWarning
+    warning: contractWarning,
+    activity: activityData || null,
   });
 }
