@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS email_logs (
 
   -- タイムスタンプ
   sent_at TIMESTAMPTZ DEFAULT NOW(),
-  year_month TEXT GENERATED ALWAYS AS (TO_CHAR(sent_at, 'YYYY-MM')) STORED
+  year_month TEXT  -- トリガーで自動設定
 );
 
 -- インデックス作成
@@ -93,3 +93,18 @@ COMMENT ON COLUMN email_logs.email_type IS 'メールの種類';
 COMMENT ON COLUMN email_logs.provider IS '送信プロバイダー（resend/smtp）';
 COMMENT ON COLUMN email_logs.year_month IS '年月（YYYY-MM形式、月次集計用）';
 COMMENT ON COLUMN email_logs.success IS '送信成功フラグ';
+
+-- year_monthを自動更新するトリガー関数を作成
+CREATE OR REPLACE FUNCTION update_email_logs_year_month()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.year_month := TO_CHAR(NEW.sent_at, 'YYYY-MM');
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- トリガーを作成
+CREATE TRIGGER set_email_logs_year_month
+BEFORE INSERT OR UPDATE ON email_logs
+FOR EACH ROW
+EXECUTE FUNCTION update_email_logs_year_month();
