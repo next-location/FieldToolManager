@@ -40,7 +40,8 @@ export default async function ContractsPage() {
       monthly_fee,
       has_asset_package,
       has_dx_efficiency_package,
-      organizations (
+      organization_id,
+      organizations:organization_id (
         id,
         name,
         subdomain
@@ -54,16 +55,22 @@ export default async function ContractsPage() {
 
   // Supabaseの戻り値を変換（organizationsは配列で返ってくるが、最初の要素のみ使用）
   const contracts = contractsData?.map(contract => {
-    console.log('[Contracts Page] Raw contract organizations:', contract.organizations);
+    console.log('[Contracts Page] Contract ID:', contract.id);
+    console.log('[Contracts Page] Organization ID:', contract.organization_id);
+    console.log('[Contracts Page] Organizations type:', typeof contract.organizations);
+    console.log('[Contracts Page] Organizations isArray:', Array.isArray(contract.organizations));
+    console.log('[Contracts Page] Organizations value:', JSON.stringify(contract.organizations, null, 2));
+
     return {
       ...contract,
       organizations: Array.isArray(contract.organizations) && contract.organizations.length > 0
         ? contract.organizations[0]
-        : null
+        : (contract.organizations || null)
     };
   }) || [];
 
   console.log('[Contracts Page] Transformed contracts:', contracts.length, 'items');
+  console.log('[Contracts Page] First contract organizations:', contracts[0]?.organizations);
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
