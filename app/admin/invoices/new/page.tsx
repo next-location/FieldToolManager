@@ -22,19 +22,30 @@ export default async function NewInvoicePage() {
   }
 
   // 有効な契約を取得
-  const { data: contracts } = await supabase
+  const { data: contractsData } = await supabase
     .from('contracts')
     .select(`
       id,
       contract_number,
       monthly_fee,
-      organizations (
+      organization_id,
+      organizations:organization_id (
         id,
         name
       )
     `)
     .eq('status', 'active')
     .order('created_at', { ascending: false });
+
+  // organizationsを単一オブジェクトに正規化
+  const contracts = (contractsData || []).map(contract => ({
+    ...contract,
+    organizations: Array.isArray(contract.organizations) && contract.organizations.length > 0
+      ? contract.organizations[0]
+      : (contract.organizations && typeof contract.organizations === 'object' && !Array.isArray(contract.organizations)
+          ? contract.organizations
+          : null)
+  }));
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">

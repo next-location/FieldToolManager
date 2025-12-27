@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { NotificationBell } from './NotificationBell'
 
 interface AppHeaderProps {
@@ -36,10 +37,12 @@ export function AppHeader({
           <div className="flex justify-between items-center h-12">
             {/* 左：組織名 */}
             <div className="flex items-center space-x-2">
-              <img
+              <Image
                 src="/zairoku-icon.png"
                 alt="ザイロク"
-                className="w-6 h-6 rounded"
+                width={24}
+                height={24}
+                className="rounded"
               />
               <span className="text-sm font-semibold text-gray-900">
                 {organizationName || '組織名未設定'}
