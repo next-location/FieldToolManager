@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { NotificationBell } from './NotificationBell'
 
 interface AppHeaderProps {
@@ -37,13 +36,21 @@ export function AppHeader({
           <div className="flex justify-between items-center h-12">
             {/* 左：組織名 */}
             <div className="flex items-center space-x-2">
-              <Image
-                src="/zairoku-icon.png"
-                alt="ザイロク"
-                width={24}
-                height={24}
-                className="rounded"
-              />
+              <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-1.5 rounded-md shadow-sm">
+                <svg
+                  className="w-4 h-4 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                  />
+                </svg>
+              </div>
               <span className="text-sm font-semibold text-gray-900">
                 {organizationName || '組織名未設定'}
               </span>

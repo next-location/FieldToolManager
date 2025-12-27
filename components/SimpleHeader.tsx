@@ -69,7 +69,7 @@ export function SimpleHeader({
               alt="ザイロク"
               width={28}
               height={28}
-              className="rounded-md shadow-sm"
+              className="shadow-sm"
             />
             <span className="text-sm font-semibold text-gray-900 hidden sm:inline">
               {organizationName || '組織名未設定'}
