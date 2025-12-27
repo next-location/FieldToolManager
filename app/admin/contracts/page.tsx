@@ -53,12 +53,17 @@ export default async function ContractsPage() {
   }
 
   // Supabaseの戻り値を変換（organizationsは配列で返ってくるが、最初の要素のみ使用）
-  const contracts = contractsData?.map(contract => ({
-    ...contract,
-    organizations: Array.isArray(contract.organizations) && contract.organizations.length > 0
-      ? contract.organizations[0]
-      : null
-  })) || [];
+  const contracts = contractsData?.map(contract => {
+    console.log('[Contracts Page] Raw contract organizations:', contract.organizations);
+    return {
+      ...contract,
+      organizations: Array.isArray(contract.organizations) && contract.organizations.length > 0
+        ? contract.organizations[0]
+        : null
+    };
+  }) || [];
+
+  console.log('[Contracts Page] Transformed contracts:', contracts.length, 'items');
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">

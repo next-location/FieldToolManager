@@ -70,10 +70,10 @@ export async function POST(
       }, { status: 400 });
     }
 
-    // 管理者情報が存在することを確認
-    if (!contract.admin_name || !contract.admin_email || !contract.admin_password) {
+    // 管理者情報が存在することを確認（パスワードは自動生成するため不要）
+    if (!contract.admin_name || !contract.admin_email) {
       return NextResponse.json({
-        error: '初期管理者情報が不足しています。契約を再作成してください。'
+        error: '初期管理者情報（名前・メールアドレス）が不足しています。契約を再作成してください。'
       }, { status: 400 });
     }
 
