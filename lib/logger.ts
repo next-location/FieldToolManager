@@ -35,20 +35,8 @@ export const logger = winston.createLogger({
   ],
 });
 
-// 本番環境ではファイルにも出力（オプション）
-if (!isDevelopment) {
-  logger.add(
-    new winston.transports.File({
-      filename: 'logs/error.log',
-      level: 'error',
-    })
-  );
-  logger.add(
-    new winston.transports.File({
-      filename: 'logs/combined.log',
-    })
-  );
-}
+// 本番環境（Vercel）ではファイル書き込み不可のため、コンソールのみ
+// ログはVercelダッシュボードで確認可能
 
 // 使い方：
 // logger.debug('デバッグ情報');     // 開発環境のみ

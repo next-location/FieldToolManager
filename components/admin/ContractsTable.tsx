@@ -12,7 +12,7 @@ interface Contract {
     id: string;
     name: string;
     subdomain: string;
-  }[] | null;
+  } | null;
   plan: string;
   status: string;
   start_date: string;
@@ -42,8 +42,8 @@ export default function ContractsTable({ initialContracts }: ContractsTableProps
     // ワード検索（ひらがな・カタカナ相互変換対応）
     if (filters.searchWord) {
       result = result.filter((contract) => {
-        const orgName = contract.organizations?.[0]?.name || '';
-        const subdomain = contract.organizations?.[0]?.subdomain || '';
+        const orgName = contract.organizations?.name || '';
+        const subdomain = contract.organizations?.subdomain || '';
         return includesKana(orgName, filters.searchWord) || includesKana(subdomain, filters.searchWord);
       });
     }
@@ -154,7 +154,7 @@ export default function ContractsTable({ initialContracts }: ContractsTableProps
                   {/* 組織名 */}
                   <div className="flex-1 min-w-0 max-w-[280px]">
                     <h3 className="text-sm font-bold text-gray-900 truncate">
-                      {contract.organizations?.[0]?.name || '不明'}
+                      {contract.organizations?.name || '不明'}
                     </h3>
                     <p className="text-xs text-gray-400 font-mono truncate">
                       {contract.contract_number || contract.id.slice(0, 13)}
