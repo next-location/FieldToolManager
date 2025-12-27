@@ -232,7 +232,11 @@ export async function POST(
     // ウェルカムメール送信（orgDataは既に取得済み）
     if (orgData && (process.env.RESEND_API_KEY || process.env.SMTP_HOST)) {
       try {
-        const loginUrl = `http://${orgData.subdomain}.localhost:3000`;
+        // 環境に応じたログインURLを生成
+        const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'localhost:3000';
+        const protocol = baseDomain.includes('localhost') ? 'http' : 'https';
+        const loginUrl = `${protocol}://${orgData.subdomain}.${baseDomain}`;
+
         await sendWelcomeEmail({
           toEmail: contract.admin_email,
           adminName: contract.admin_name,
@@ -241,7 +245,7 @@ export async function POST(
           loginUrl,
           password: newPassword,
         });
-        console.log('[API /api/admin/contracts/complete] Welcome email sent successfully');
+        console.log('[API /api/admin/contracts/complete] Welcome email sent successfully to:', contract.admin_email);
       } catch (emailError) {
         console.error('[API /api/admin/contracts/complete] Failed to send welcome email:', emailError);
         // メール送信失敗はエラーにしない（アカウントは既に作成済み）

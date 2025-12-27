@@ -116,9 +116,22 @@ export async function sendWelcomeEmail(params: SendWelcomeEmailParams) {
   const subject = `【ザイロク】アカウントが作成されました`;
   const html = getEmailHtml(params);
 
+  // 環境に応じた送信元メールアドレスを決定
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'localhost:3000';
+  let fromEmail: string;
+
+  if (baseDomain === 'zairoku.com') {
+    fromEmail = 'ザイロク <noreply@zairoku.com>';
+  } else if (baseDomain === 'test-zairoku.com') {
+    fromEmail = 'ザイロク（テスト環境） <noreply@test-zairoku.com>';
+  } else {
+    fromEmail = 'ザイロク（開発環境） <noreply@localhost>';
+  }
+
   // Resendを使用（本番環境）
   if (process.env.RESEND_API_KEY) {
     console.log('[Welcome Email] Using Resend for email delivery');
+    console.log('[Welcome Email] From:', fromEmail);
     const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
     try {
@@ -127,7 +140,7 @@ export async function sendWelcomeEmail(params: SendWelcomeEmailParams) {
     return { success: false, error: "Email service not configured" };
   }
       const { data, error } = await resend.emails.send({
-        from: 'ザイロク <noreply@zairoku.com>',
+        from: fromEmail,
         to: toEmail,
         subject,
         html,
@@ -149,6 +162,7 @@ export async function sendWelcomeEmail(params: SendWelcomeEmailParams) {
   // Nodemailer/SMTP を使用（開発環境・Mailhog）
   if (process.env.SMTP_HOST) {
     console.log('[Welcome Email] Using Nodemailer/SMTP for email delivery');
+    console.log('[Welcome Email] From:', fromEmail);
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT) || 1025,
@@ -163,7 +177,7 @@ export async function sendWelcomeEmail(params: SendWelcomeEmailParams) {
 
     try {
       const info = await transporter.sendMail({
-        from: process.env.SMTP_FROM || 'ザイロク <noreply@zairoku.com>',
+        from: process.env.SMTP_FROM || fromEmail,
         to: toEmail,
         subject,
         html,
