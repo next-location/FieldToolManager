@@ -29,7 +29,7 @@ export default async function ContractsPage() {
   const isOwner = userRole === 'owner';
 
   // 契約データを取得（機能パック情報を含む）
-  const { data: contracts, error } = await supabase
+  const { data: contractsData, error } = await supabase
     .from('contracts')
     .select(`
       id,
@@ -51,6 +51,14 @@ export default async function ContractsPage() {
   if (error) {
     console.error('Error fetching contracts:', error);
   }
+
+  // Supabaseの戻り値を変換（organizationsは配列で返ってくるが、最初の要素のみ使用）
+  const contracts = contractsData?.map(contract => ({
+    ...contract,
+    organizations: Array.isArray(contract.organizations) && contract.organizations.length > 0
+      ? contract.organizations[0]
+      : null
+  })) || [];
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
