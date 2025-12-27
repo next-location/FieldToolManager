@@ -10,7 +10,7 @@ interface Contract {
   organizations: {
     id: string;
     name: string;
-  }[];
+  } | null;
 }
 
 interface CreateInvoiceFormProps {
@@ -67,7 +67,7 @@ export default function CreateInvoiceForm({ contracts }: CreateInvoiceFormProps)
           amount: parseFloat(formData.amount),
           tax_amount: taxAmount,
           total_amount: totalAmount,
-          organization_id: selectedContract?.organizations[0]?.id,
+          organization_id: selectedContract?.organizations?.id,
         }),
       });
 
@@ -117,7 +117,7 @@ export default function CreateInvoiceForm({ contracts }: CreateInvoiceFormProps)
             <option value="">契約を選択してください</option>
             {contracts.map((contract) => (
               <option key={contract.id} value={contract.id}>
-                {contract.organizations[0]?.name || '組織名不明'} ({contract.contract_number})
+                {contract.organizations?.name || '組織名不明'} ({contract.contract_number})
               </option>
             ))}
           </select>
