@@ -54,20 +54,48 @@ export default async function ContractsPage() {
   }
 
   // Supabaseの戻り値を変換（organizationsは配列で返ってくるが、最初の要素のみ使用）
-  const contracts = contractsData?.map(contract => {
+  type OrgData = { id: string; name: string; subdomain: string };
+  type ContractWithOrg = {
+    id: string;
+    contract_number: string;
+    plan: string;
+    status: string;
+    start_date: string;
+    monthly_fee: number;
+    has_asset_package: boolean;
+    has_dx_efficiency_package: boolean;
+    organization_id: string;
+    organizations: OrgData | null;
+  };
+
+  const contracts: ContractWithOrg[] = (contractsData || []).map(contract => {
     console.log('[Contracts Page] Contract ID:', contract.id);
     console.log('[Contracts Page] Organization ID:', contract.organization_id);
     console.log('[Contracts Page] Organizations type:', typeof contract.organizations);
     console.log('[Contracts Page] Organizations isArray:', Array.isArray(contract.organizations));
     console.log('[Contracts Page] Organizations value:', JSON.stringify(contract.organizations, null, 2));
 
+    // organizationsを単一オブジェクトまたはnullに正規化
+    let normalizedOrg: OrgData | null = null;
+    if (Array.isArray(contract.organizations) && contract.organizations.length > 0) {
+      normalizedOrg = contract.organizations[0] as OrgData;
+    } else if (contract.organizations && typeof contract.organizations === 'object' && !Array.isArray(contract.organizations)) {
+      normalizedOrg = contract.organizations as OrgData;
+    }
+
     return {
-      ...contract,
-      organizations: Array.isArray(contract.organizations) && contract.organizations.length > 0
-        ? contract.organizations[0]
-        : (contract.organizations || null)
+      id: contract.id,
+      contract_number: contract.contract_number,
+      plan: contract.plan,
+      status: contract.status,
+      start_date: contract.start_date,
+      monthly_fee: contract.monthly_fee,
+      has_asset_package: contract.has_asset_package,
+      has_dx_efficiency_package: contract.has_dx_efficiency_package,
+      organization_id: contract.organization_id,
+      organizations: normalizedOrg
     };
-  }) || [];
+  });
 
   console.log('[Contracts Page] Transformed contracts:', contracts.length, 'items');
   console.log('[Contracts Page] First contract organizations:', contracts[0]?.organizations);
