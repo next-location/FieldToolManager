@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import nodemailer from 'nodemailer';
+import { createClient } from '@supabase/supabase-js';
 
 interface SendWelcomeEmailParams {
   toEmail: string;
@@ -8,6 +9,40 @@ interface SendWelcomeEmailParams {
   subdomain: string;
   loginUrl: string;
   password: string;
+}
+
+// Supabaseクライアント（ログ記録用）
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+/**
+ * メール送信ログを記録
+ */
+async function logEmailSent(params: {
+  emailType: string;
+  toEmail: string;
+  fromEmail: string;
+  subject: string;
+  provider: string;
+  success: boolean;
+  errorMessage?: string;
+}) {
+  try {
+    await supabase.from('email_logs').insert({
+      email_type: params.emailType,
+      to_email: params.toEmail,
+      from_email: params.fromEmail,
+      subject: params.subject,
+      provider: params.provider,
+      success: params.success,
+      error_message: params.errorMessage || null,
+    });
+  } catch (error) {
+    console.error('[Email Log] Failed to log email:', error);
+    // ログ記録失敗は無視（メール送信自体は成功している）
+  }
 }
 
 /**
@@ -148,13 +183,44 @@ export async function sendWelcomeEmail(params: SendWelcomeEmailParams) {
 
       if (error) {
         console.error('[Welcome Email] Resend error:', error);
+        // エラーログを記録
+        await logEmailSent({
+          emailType: 'welcome',
+          toEmail,
+          fromEmail,
+          subject,
+          provider: 'resend',
+          success: false,
+          errorMessage: error.message || 'Unknown error',
+        });
         throw error;
       }
 
       console.log('[Welcome Email] Email sent successfully via Resend:', data);
+
+      // 成功ログを記録
+      await logEmailSent({
+        emailType: 'welcome',
+        toEmail,
+        fromEmail,
+        subject,
+        provider: 'resend',
+        success: true,
+      });
+
       return { success: true, provider: 'resend', data };
-    } catch (error) {
+    } catch (error: any) {
       console.error('[Welcome Email] Failed to send via Resend:', error);
+      // エラーログを記録
+      await logEmailSent({
+        emailType: 'welcome',
+        toEmail,
+        fromEmail,
+        subject,
+        provider: 'resend',
+        success: false,
+        errorMessage: error?.message || 'Unknown error',
+      });
       throw error;
     }
   }
@@ -185,9 +251,32 @@ export async function sendWelcomeEmail(params: SendWelcomeEmailParams) {
 
       console.log('[Welcome Email] Email sent successfully via SMTP:', info.messageId);
       console.log('[Welcome Email] Preview URL (Mailhog):', `http://localhost:8025`);
+
+      // 成功ログを記録
+      await logEmailSent({
+        emailType: 'welcome',
+        toEmail,
+        fromEmail: process.env.SMTP_FROM || fromEmail,
+        subject,
+        provider: 'smtp',
+        success: true,
+      });
+
       return { success: true, provider: 'smtp', messageId: info.messageId };
-    } catch (error) {
+    } catch (error: any) {
       console.error('[Welcome Email] Failed to send via SMTP:', error);
+
+      // エラーログを記録
+      await logEmailSent({
+        emailType: 'welcome',
+        toEmail,
+        fromEmail: process.env.SMTP_FROM || fromEmail,
+        subject,
+        provider: 'smtp',
+        success: false,
+        errorMessage: error?.message || 'Unknown error',
+      });
+
       throw error;
     }
   }
