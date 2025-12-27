@@ -235,7 +235,7 @@ export async function POST(
         // 環境に応じたログインURLを生成
         const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'localhost:3000';
         const protocol = baseDomain.includes('localhost') ? 'http' : 'https';
-        const loginUrl = `${protocol}://${orgData.subdomain}.${baseDomain}`;
+        const loginUrl = `${protocol}://${orgData.subdomain}.${baseDomain}/login`;
 
         await sendWelcomeEmail({
           toEmail: contract.admin_email,
