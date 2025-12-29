@@ -113,6 +113,82 @@ npm run health-check
 
 ## 3. マイグレーション履歴
 
+### 📝 プラン変更: 日割り差額カラムの追加（2025-12-29）
+
+#### 20251229000002_add_prorated_charge_to_contracts.sql ✨NEW
+
+**適用予定日**: 2025-12-29
+**適用環境**: 未適用（本番環境、テスト環境）
+**影響範囲**: `contracts`テーブルにカラム追加、インデックス追加
+
+**背景**:
+- 月払いグレードアップ時に、当月の残り日数分の差額を翌月請求に加算する必要がある
+- 年払いグレードアップ時に、残り期間の差額を即時請求する必要がある
+- プラン変更履歴を記録し、グレードアップ/ダウンを区別する
+
+**変更内容**:
+1. **contractsテーブルに新カラム追加**:
+   - `pending_prorated_charge` (DECIMAL(10, 2) DEFAULT 0): 次回請求に加算する日割り差額
+   - `pending_prorated_description` (TEXT): 日割り差額の説明（請求書明細に表示）
+   - `plan_change_date` (TIMESTAMP): プラン変更実行日時
+   - `plan_change_type` (TEXT): プラン変更の種類（'upgrade' | 'downgrade'）
+
+2. **インデックス追加**:
+   - `idx_contracts_pending_prorated`: 日割り差額が設定されている契約の高速検索
+   - `idx_contracts_plan_change_date`: プラン変更履歴の検索用
+
+**SQL**:
+```sql
+ALTER TABLE contracts
+ADD COLUMN IF NOT EXISTS pending_prorated_charge DECIMAL(10, 2) DEFAULT 0,
+ADD COLUMN IF NOT EXISTS pending_prorated_description TEXT,
+ADD COLUMN IF NOT EXISTS plan_change_date TIMESTAMP,
+ADD COLUMN IF NOT EXISTS plan_change_type TEXT CHECK (plan_change_type IN ('upgrade', 'downgrade'));
+
+COMMENT ON COLUMN contracts.pending_prorated_charge IS '次回請求に加算する日割り差額（グレードアップ時のみ、請求書発行後に0にクリア）';
+COMMENT ON COLUMN contracts.pending_prorated_description IS '日割り差額の説明（請求書明細に表示、例: "プラン変更差額（12/16-31、16日分）"）';
+COMMENT ON COLUMN contracts.plan_change_date IS 'プラン変更実行日時（最後にプラン変更した日時）';
+COMMENT ON COLUMN contracts.plan_change_type IS 'プラン変更の種類（upgrade: グレードアップ、downgrade: グレードダウン）';
+
+CREATE INDEX IF NOT EXISTS idx_contracts_pending_prorated
+ON contracts(pending_prorated_charge)
+WHERE pending_prorated_charge > 0;
+
+CREATE INDEX IF NOT EXISTS idx_contracts_plan_change_date
+ON contracts(plan_change_date DESC)
+WHERE plan_change_date IS NOT NULL;
+```
+
+**影響する機能**:
+- プラン変更API: グレードアップ時に日割り差額を計算して保存
+- 月次請求書自動発行cron: `pending_prorated_charge`を請求書に含め、発行後に0にクリア
+- 契約詳細画面: プラン変更履歴を表示
+
+**ロールバック手順**:
+```sql
+-- インデックス削除
+DROP INDEX IF EXISTS idx_contracts_pending_prorated;
+DROP INDEX IF EXISTS idx_contracts_plan_change_date;
+
+-- カラム削除
+ALTER TABLE contracts
+DROP COLUMN IF EXISTS pending_prorated_charge,
+DROP COLUMN IF EXISTS pending_prorated_description,
+DROP COLUMN IF EXISTS plan_change_date,
+DROP COLUMN IF EXISTS plan_change_type;
+```
+
+**適用手順**:
+```bash
+# テスト環境（Supabase Dashboard → SQL Editor）
+# 上記SQLを実行
+
+# 本番環境（Supabase Dashboard → SQL Editor）
+# 上記SQLを実行
+```
+
+---
+
 ### 💳 請求書管理: 初回請求書フラグの追加（2025-12-29）
 
 #### 20251229000001_add_is_initial_invoice_to_invoices.sql ✨NEW

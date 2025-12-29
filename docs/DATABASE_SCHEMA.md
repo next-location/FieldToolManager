@@ -950,6 +950,12 @@ CREATE TABLE contracts (
   initial_setup_fee DECIMAL(10, 2) DEFAULT 0,
   initial_discount DECIMAL(10, 2) DEFAULT 0,
 
+  -- プラン変更関連（2025-12-29追加）
+  pending_prorated_charge DECIMAL(10, 2) DEFAULT 0,
+  pending_prorated_description TEXT,
+  plan_change_date TIMESTAMP,
+  plan_change_type TEXT CHECK (plan_change_type IN ('upgrade', 'downgrade')),
+
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -957,6 +963,13 @@ CREATE TABLE contracts (
 CREATE INDEX idx_contracts_organization_id ON contracts(organization_id);
 CREATE INDEX idx_contracts_status ON contracts(status);
 CREATE INDEX idx_contracts_start_date ON contracts(start_date);
+CREATE INDEX idx_contracts_pending_prorated ON contracts(pending_prorated_charge) WHERE pending_prorated_charge > 0;
+CREATE INDEX idx_contracts_plan_change_date ON contracts(plan_change_date DESC) WHERE plan_change_date IS NOT NULL;
+
+COMMENT ON COLUMN contracts.pending_prorated_charge IS '次回請求に加算する日割り差額（グレードアップ時のみ、請求書発行後に0にクリア）';
+COMMENT ON COLUMN contracts.pending_prorated_description IS '日割り差額の説明（請求書明細に表示、例: "プラン変更差額（12/16-31、16日分）"）';
+COMMENT ON COLUMN contracts.plan_change_date IS 'プラン変更実行日時（最後にプラン変更した日時）';
+COMMENT ON COLUMN contracts.plan_change_type IS 'プラン変更の種類（upgrade: グレードアップ、downgrade: グレードダウン）';
 
 -- RLS有効化
 ALTER TABLE contracts ENABLE ROW LEVEL SECURITY;
@@ -1508,6 +1521,13 @@ export interface Contract {
   billing_contact_phone?: string;
   billing_address?: string;
   notes?: string;
+
+  // プラン変更関連（2025-12-29追加）
+  pending_prorated_charge: number;      // 次回請求に加算する日割り差額
+  pending_prorated_description: string | null; // 日割り差額の説明
+  plan_change_date: Date | null;        // プラン変更実行日時
+  plan_change_type: 'upgrade' | 'downgrade' | null; // プラン変更の種類
+
   created_at: Date;
   updated_at: Date;
 }
