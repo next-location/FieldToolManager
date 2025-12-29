@@ -5,6 +5,7 @@ import { stripe } from '@/lib/stripe/client';
 import { calculateMonthlyFee, Contract } from '@/lib/billing/calculate-fee';
 import { generateStripeInvoicePDF } from '@/lib/pdf/stripe-invoice-generator';
 import { sendStripeInvoiceEmail } from '@/lib/email/stripe-billing';
+import { setupContractBilling } from '@/lib/billing/setup-contract-billing';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -83,11 +84,27 @@ export async function POST(
       }, { status: 400 });
     }
 
-    // Stripe Customerが未作成の場合はエラー
-    if (!contract.stripe_customer_id) {
-      return NextResponse.json({
-        error: 'Stripe Customerが作成されていません。契約を保存し直してください。'
-      }, { status: 400 });
+    // Stripe Customerが未作成の場合は自動作成
+    let stripeCustomerId = contract.stripe_customer_id;
+    if (!stripeCustomerId) {
+      console.log('[GenerateInitialInvoice] Stripe Customer not found, creating...');
+      const billingResult = await setupContractBilling({
+        contractId: contract.id,
+        organizationId: organization.id,
+        organizationName: organization.name,
+        email: contract.admin_email || '',
+        paymentMethod: organization.payment_method || 'invoice',
+      });
+
+      if (!billingResult.success || !billingResult.customerId) {
+        return NextResponse.json({
+          error: 'Stripe Customerの作成に失敗しました',
+          details: billingResult.error,
+        }, { status: 500 });
+      }
+
+      stripeCustomerId = billingResult.customerId;
+      console.log('[GenerateInitialInvoice] Stripe Customer created:', stripeCustomerId);
     }
 
     // 料金計算（初回なので初期費用・割引が含まれる）
@@ -112,7 +129,7 @@ export async function POST(
       : `初回請求`;
 
     const invoice = await stripe.invoices.create({
-      customer: contract.stripe_customer_id,
+      customer: stripeCustomerId,
       description: `初回請求書（契約番号: ${contract.contract_number}）`,
       collection_method: organization.payment_method === 'card' ? 'charge_automatically' : 'send_invoice',
       days_until_due: organization.payment_method === 'card' ? undefined : 30,
@@ -128,7 +145,7 @@ export async function POST(
     // Stripe Invoice Itemsを作成
     for (const item of feeCalculation.items) {
       await stripe.invoiceItems.create({
-        customer: contract.stripe_customer_id,
+        customer: stripeCustomerId,
         invoice: invoice.id,
         amount: item.amount,
         currency: 'jpy',

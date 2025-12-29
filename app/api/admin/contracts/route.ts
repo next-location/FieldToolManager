@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf';
+import { setupContractBilling } from '@/lib/billing/setup-contract-billing';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -198,6 +199,38 @@ export async function POST(request: NextRequest) {
         console.error('Error saving contract package:', packageError);
         // エラーでも契約は作成されているので、警告ログのみ
       }
+    }
+
+    // 組織情報を取得
+    const { data: orgData, error: orgError } = await supabase
+      .from('organizations')
+      .select('name, payment_method')
+      .eq('id', body.organizationId)
+      .single();
+
+    if (orgError || !orgData) {
+      console.error('Organization not found:', orgError);
+      return NextResponse.json({
+        error: '組織情報の取得に失敗しました',
+        details: orgError?.message,
+      }, { status: 500 });
+    }
+
+    // Stripe Customerを作成（初回請求書生成のために必要）
+    console.log('[API /api/admin/contracts] Creating Stripe customer...');
+    const billingResult = await setupContractBilling({
+      contractId: contract.id,
+      organizationId: body.organizationId,
+      organizationName: orgData.name,
+      email: body.adminEmail,
+      paymentMethod: orgData.payment_method || 'invoice',
+    });
+
+    if (!billingResult.success) {
+      console.error('[API /api/admin/contracts] Stripe customer creation failed:', billingResult.error);
+      // Stripe作成失敗はエラーにしない（初回請求書生成時に再作成可能）
+    } else {
+      console.log('[API /api/admin/contracts] Stripe customer created:', billingResult.customerId);
     }
 
     // 組織のプラン情報は更新しない（契約完了時に更新）
