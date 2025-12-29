@@ -6,6 +6,7 @@ import { calculateMonthlyFee, Contract } from '@/lib/billing/calculate-fee';
 import { generateStripeInvoicePDF } from '@/lib/pdf/stripe-invoice-generator';
 import { sendStripeInvoiceEmail } from '@/lib/email/stripe-billing';
 import { setupContractBilling } from '@/lib/billing/setup-contract-billing';
+import { getAdjustedBillingDate } from '@/lib/utils/business-days';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -182,19 +183,13 @@ export async function POST(
       // 請求書番号を生成（Stripe Invoiceがdraftの場合はnumberがnullのため）
       const invoiceNumber = finalizedInvoice.number || `INV-${Date.now()}`;
 
-      // 支払期限を契約のbilling_dayに基づいて計算
+      // 支払期限を契約のbilling_dayに基づいて計算（営業日調整あり）
       const today = new Date();
       const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-      let dueDate: string;
 
-      if (contract.billing_day === 99) {
-        // 月末
-        const lastDay = new Date(nextMonth.getFullYear(), nextMonth.getMonth() + 1, 0).getDate();
-        dueDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), lastDay).toISOString().split('T')[0];
-      } else {
-        // 指定日（1-28）
-        dueDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), contract.billing_day).toISOString().split('T')[0];
-      }
+      // getAdjustedBillingDate で営業日調整を適用
+      const adjustedBillingDate = getAdjustedBillingDate(contract.billing_day, nextMonth);
+      const dueDate = adjustedBillingDate.toISOString().split('T')[0];
 
       const pdfBuffer = await generateStripeInvoicePDF({
         invoiceNumber,
