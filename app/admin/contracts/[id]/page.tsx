@@ -7,6 +7,7 @@ import AdminHeader from '@/components/admin/AdminHeader';
 import ContractDetailView from '@/components/admin/ContractDetailView';
 import CompleteContractButton from '@/components/admin/CompleteContractButton';
 import CreateContractDocumentButton from '@/components/admin/CreateContractDocumentButton';
+import GenerateInitialInvoiceButton from '@/components/admin/GenerateInitialInvoiceButton';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -139,10 +140,18 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
                 {contract.status === 'draft' && (
                   <>
                     <CreateContractDocumentButton contract={contract} />
-                    <CompleteContractButton
-                      contractId={contract.id}
-                      contractNumber={contract.contract_number}
-                    />
+                    {!initialInvoice && (
+                      <GenerateInitialInvoiceButton
+                        contractId={contract.id}
+                        contractNumber={contract.contract_number}
+                      />
+                    )}
+                    {initialInvoice && initialInvoice.status === 'paid' && (
+                      <CompleteContractButton
+                        contractId={contract.id}
+                        contractNumber={contract.contract_number}
+                      />
+                    )}
                   </>
                 )}
                 {contract.status === 'active' && (
