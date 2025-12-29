@@ -322,13 +322,14 @@ export default function NewContractForm({ organizations, packages, superAdminId 
           <input type="number" value={formData.userLimit} onChange={(e) => setFormData({ ...formData, userLimit: parseInt(e.target.value) })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E6FFF]"/>
         </div>
         <div className="space-y-3">
-          <label className="block text-sm font-medium text-gray-700">機能パック（1つ選択）</label>
+          <label className="block text-sm font-medium text-gray-700">機能パック（1つ選択） <span className="text-red-500">*</span></label>
           <div className="space-y-3">
             {packages.map((pkg) => (
               <label key={pkg.id} className="flex items-start cursor-pointer">
                 <input
                   type="radio"
                   name="packageSelect"
+                  required
                   checked={formData.selectedPackageId === pkg.id}
                   onChange={() => {
                     setFormData({
