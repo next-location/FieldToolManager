@@ -165,18 +165,17 @@ export async function generateStripeInvoicePDF(data: StripeInvoiceData): Promise
     // プロジェクトルートのpublic/imagesから読み込む
     const sealImagePath = path.join(process.cwd(), 'public', 'images', 'company-seal.png');
 
-    // ファイルが存在する場合のみ読み込む
-    if (fs.existsSync(sealImagePath)) {
-      const sealImageData = fs.readFileSync(sealImagePath);
-      const sealImageBase64 = sealImageData.toString('base64');
-      doc.addImage(sealImageBase64, 'PNG', rightColumnX + 60, yPos + 15, 20, 20);
-    } else {
-      // 角印画像が無い場合はスキップ（本番デプロイ前に追加する）
-      console.log('[PDF] Company seal image not found, skipping...');
+    if (!fs.existsSync(sealImagePath)) {
+      throw new Error(`角印画像が見つかりません: ${sealImagePath}`);
     }
+
+    const sealImageData = fs.readFileSync(sealImagePath);
+    const sealImageBase64 = sealImageData.toString('base64');
+    doc.addImage(sealImageBase64, 'PNG', rightColumnX + 60, yPos + 15, 20, 20);
+    console.log('[PDF] Company seal image loaded successfully');
   } catch (error) {
-    console.warn('[PDF] Failed to load company seal image:', error);
-    // エラーでも処理を続行（角印なしで生成）
+    console.error('[PDF] Failed to load company seal image:', error);
+    throw error; // 角印は必須なのでエラーを投げる
   }
 
   yPos += 45;
