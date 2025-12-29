@@ -113,6 +113,68 @@ npm run health-check
 
 ## 3. マイグレーション履歴
 
+### 💳 請求書管理: 初回請求書フラグの追加（2025-12-29）
+
+#### 20251229000001_add_is_initial_invoice_to_invoices.sql ✨NEW
+
+**適用予定日**: 2025-12-29
+**適用環境**: 未適用（本番環境、テスト環境）
+**影響範囲**: `invoices`テーブルにカラム追加、インデックス追加
+
+**背景**:
+- 初回請求書（初期費用含む）と2回目以降の請求書（月額のみ）を区別する必要がある
+- 契約完了前に初回入金確認を必須化するため
+- cronジョブで自動発行される請求書は2回目以降のみとする
+
+**変更内容**:
+1. **invoicesテーブルに新カラム追加**:
+   - `is_initial_invoice` (BOOLEAN DEFAULT false): 初回請求書フラグ
+
+2. **既存データの更新**:
+   - 全ての既存請求書の`is_initial_invoice`を`false`に設定
+
+3. **インデックス追加**:
+   - `idx_invoices_contract_initial`: 契約IDと初回請求書フラグの複合インデックス（部分インデックス）
+
+**SQL**:
+```sql
+ALTER TABLE invoices
+ADD COLUMN is_initial_invoice BOOLEAN DEFAULT false;
+
+UPDATE invoices SET is_initial_invoice = false WHERE is_initial_invoice IS NULL;
+
+CREATE INDEX idx_invoices_contract_initial
+ON invoices(contract_id, is_initial_invoice)
+WHERE is_initial_invoice = true;
+
+COMMENT ON COLUMN invoices.is_initial_invoice IS '初回請求書フラグ（true: 初回請求書（初期費用含む）, false: 2回目以降（月額のみ））';
+```
+
+**影響する機能**:
+- 契約完了フロー: 初回請求書の存在と支払い確認が必須化
+- 請求書作成: 契約に紐づく初回請求書が存在しない場合は自動的に`is_initial_invoice=true`
+- 月次請求書自動発行cron: 自動発行される請求書は常に`is_initial_invoice=false`
+
+**ロールバック手順**:
+```sql
+-- インデックス削除
+DROP INDEX IF EXISTS idx_invoices_contract_initial;
+
+-- カラム削除
+ALTER TABLE invoices DROP COLUMN IF EXISTS is_initial_invoice;
+```
+
+**適用手順**:
+```bash
+# テスト環境（Supabase Dashboard → SQL Editor）
+# 上記SQLを実行
+
+# 本番環境（Supabase Dashboard → SQL Editor）
+# 上記SQLを実行
+```
+
+---
+
 ### 🔄 発注書管理: 仕入先マスタを取引先マスタに統合（2025-12-17）
 
 #### 20251217000001_migrate_suppliers_to_clients.sql ✅ APPLIED

@@ -77,6 +77,27 @@ export async function POST(
       }, { status: 400 });
     }
 
+    // 初回請求書の存在と支払い確認をチェック
+    const { data: initialInvoice, error: invoiceError } = await supabase
+      .from('invoices')
+      .select('id, invoice_number, status')
+      .eq('contract_id', contractId)
+      .eq('is_initial_invoice', true)
+      .single();
+
+    if (invoiceError || !initialInvoice) {
+      return NextResponse.json({
+        error: '初回請求書が発行されていません。契約を完了する前に初回請求書を発行してください。'
+      }, { status: 400 });
+    }
+
+    if (initialInvoice.status !== 'paid') {
+      return NextResponse.json({
+        error: `初回入金が確認されていません。請求書 ${initialInvoice.invoice_number} の支払いステータスが「支払済」になってから契約完了を実行してください。`
+      }, { status: 400 });
+    }
+
+    console.log('[API /api/admin/contracts/complete] Initial payment confirmed for invoice:', initialInvoice.invoice_number);
     console.log('[API /api/admin/contracts/complete] Starting contract completion:', contractId);
 
     // 新しいパスワードを自動生成（セキュリティのため、保存されていたパスワードは使わない）

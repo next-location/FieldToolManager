@@ -989,17 +989,22 @@ CREATE TABLE invoices (
   payment_method TEXT CHECK (payment_method IN ('invoice', 'card')),
   stripe_payment_intent_id TEXT,
 
+  -- 初回請求フラグ（2025-12-29追加）
+  is_initial_invoice BOOLEAN DEFAULT false,
+
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
 COMMENT ON COLUMN invoices.stripe_invoice_id IS 'Stripe Invoice ID（in_xxxxx）';
+COMMENT ON COLUMN invoices.is_initial_invoice IS '初回請求書フラグ（true: 初回請求書（初期費用含む）, false: 2回目以降（月額のみ））';
 
 CREATE INDEX idx_invoices_organization_id ON invoices(organization_id);
 CREATE INDEX idx_invoices_contract_id ON invoices(contract_id);
 CREATE INDEX idx_invoices_status ON invoices(status);
 CREATE INDEX idx_invoices_due_date ON invoices(due_date);
 CREATE INDEX idx_invoices_stripe_invoice_id ON invoices(stripe_invoice_id);
+CREATE INDEX idx_invoices_contract_initial ON invoices(contract_id, is_initial_invoice) WHERE is_initial_invoice = true;
 
 -- RLS有効化
 ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
@@ -1526,6 +1531,7 @@ export interface Invoice {
   paid_date?: Date;
   pdf_url?: string;
   notes?: string;
+  is_initial_invoice: boolean; // 初回請求書フラグ（2025-12-29追加）
   created_at: Date;
   updated_at: Date;
 }

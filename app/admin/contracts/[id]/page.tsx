@@ -69,6 +69,16 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
 
   console.log('[Contract Detail] Invoices result:', { invoices, invoicesError });
 
+  // 初回請求書を取得
+  const { data: initialInvoice } = await supabase
+    .from('invoices')
+    .select('id, invoice_number, status, total_amount')
+    .eq('contract_id', id)
+    .eq('is_initial_invoice', true)
+    .single();
+
+  console.log('[Contract Detail] Initial invoice:', initialInvoice);
+
   if (error || !contract) {
     console.log('[Contract Detail] Contract not found or error:', error);
     return (
@@ -152,6 +162,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
             contract={contract}
             invoices={invoices || []}
             contractPackages={contractPackages || []}
+            initialInvoice={initialInvoice || null}
           />
         </main>
       </div>

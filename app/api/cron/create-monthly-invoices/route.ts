@@ -263,7 +263,7 @@ export async function GET(request: NextRequest) {
           }
         }
 
-        // データベースに請求レコード保存
+        // データベースに請求レコード保存（2回目以降の請求書なのでis_initial_invoice = false）
         const { data: savedInvoice, error: insertError } = await supabase
           .from('invoices')
           .insert({
@@ -280,6 +280,7 @@ export async function GET(request: NextRequest) {
               : null,
             invoice_date: new Date().toISOString(),
             issued_at: new Date().toISOString(),
+            is_initial_invoice: false, // 自動発行される請求書は常に2回目以降
           })
           .select()
           .single();

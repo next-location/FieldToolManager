@@ -162,6 +162,18 @@ export async function POST(request: NextRequest) {
 
     const invoiceNumber = `${yearMonth}-${String(sequenceNumber).padStart(4, '0')}`;
 
+    // 初回請求書かどうかを判定（契約に紐づく請求書が存在しない場合は初回）
+    let isInitialInvoice = false;
+    if (body.contract_id) {
+      const { data: existingInvoices } = await supabase
+        .from('invoices')
+        .select('id')
+        .eq('contract_id', body.contract_id)
+        .limit(1);
+
+      isInitialInvoice = !existingInvoices || existingInvoices.length === 0;
+    }
+
     // 請求書データを作成
     const { data, error } = await supabase
       .from('invoices')
@@ -178,6 +190,7 @@ export async function POST(request: NextRequest) {
         total_amount: body.total_amount || (body.amount + (body.tax_amount || body.amount * 0.1)),
         status: body.status || 'draft',
         notes: body.notes,
+        is_initial_invoice: isInitialInvoice, // 初回請求書フラグを自動設定
       })
       .select(`
         *,

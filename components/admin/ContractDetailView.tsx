@@ -81,13 +81,21 @@ interface ContractPackage {
   }[];
 }
 
+interface InitialInvoice {
+  id: string;
+  invoice_number: string;
+  status: string;
+  total_amount: number;
+}
+
 interface ContractDetailViewProps {
   contract: Contract;
   invoices: Invoice[];
   contractPackages: ContractPackage[];
+  initialInvoice: InitialInvoice | null;
 }
 
-export default function ContractDetailView({ contract, invoices, contractPackages }: ContractDetailViewProps) {
+export default function ContractDetailView({ contract, invoices, contractPackages, initialInvoice }: ContractDetailViewProps) {
   // プラン名の日本語変換
   const planLabels: Record<string, string> = {
     start: 'スタート',
@@ -168,10 +176,29 @@ export default function ContractDetailView({ contract, invoices, contractPackage
                 契約番号: <span className="font-mono font-semibold">{contract.contract_number}</span>
               </p>
             </div>
-            <div className="text-right">
+            <div className="text-right space-y-2">
               <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${statusColors[contract.status] || 'bg-gray-100 text-gray-800'}`}>
                 {statusLabels[contract.status] || contract.status}
               </span>
+              {contract.status === 'draft' && (
+                <div className="text-sm">
+                  {initialInvoice ? (
+                    initialInvoice.status === 'paid' ? (
+                      <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                        ✓ 初回入金確認済
+                      </span>
+                    ) : (
+                      <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
+                        ⚠ 初回入金待ち（{initialInvoice.invoice_number}）
+                      </span>
+                    )
+                  ) : (
+                    <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                      ✗ 初回請求書未発行
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -96,7 +96,17 @@
       "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql \"postgresql://postgres:cF1!hVERlDgjMD@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres\" -c \"\\d organizations\")",
       "Bash(export PGPASSWORD=\"cF1!hVERlDgjMD\")",
       "Bash(export PGPASSWORD='cF1!hVERlDgjMD')",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT column_name FROM information_schema.columns WHERE table_name = ''organizations'' AND column_name IN (''representative_name'', ''email'') ORDER BY column_name;\")",
+      "Bash(git restore:*)",
+      "Bash(nslookup:*)",
+      "Bash(dig:*)",
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -f supabase/migrations/20251227000001_create_super_admin_notifications.sql)",
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql \"postgresql://postgres:cF1!hVERlDgjMD@db.ecehilhaxgwphvamvabj.supabase.co:5432/postgres\" -f supabase/migrations/20251227000001_create_super_admin_notifications.sql)",
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql \"postgresql://postgres:cF1!hVERlDgjMD@db.ecehilhaxgwphvamvabj.supabase.co:5432/postgres\" -c \"SELECT id, organization_id, admin_name, admin_email, admin_password, status FROM contracts WHERE id = ''0be3bead-9d34-4308-99fd-795f5fc13eea'';\")",
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT c.id, c.contract_number, json_build_object(''id'', o.id, ''name'', o.name, ''subdomain'', o.subdomain) as organization FROM contracts c LEFT JOIN organizations o ON c.organization_id = o.id ORDER BY c.created_at DESC LIMIT 3;\")",
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql \"postgresql://postgres.ecehilhaxgwphvamvabj:cF1\\!hVERlDgjMD@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres\" -c \"SELECT c.id, c.contract_number, c.organization_id, o.name as org_name FROM contracts c LEFT JOIN organizations o ON c.organization_id = o.id ORDER BY c.created_at DESC LIMIT 3;\")",
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql \"postgresql://postgres.ecehilhaxgwphvamvabj:cF1\\!hVERlDgjMD@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres\" -c \"SELECT table_name FROM information_schema.tables WHERE table_schema = ''public'' AND table_name IN (''packages'', ''package_features'', ''contract_packages'') ORDER BY table_name;\")"
     ],
     "deny": [],
     "ask": []
