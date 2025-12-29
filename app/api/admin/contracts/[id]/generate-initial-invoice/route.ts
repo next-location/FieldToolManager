@@ -176,9 +176,20 @@ export async function POST(
 
       // 請求書番号を生成（Stripe Invoiceがdraftの場合はnumberがnullのため）
       const invoiceNumber = finalizedInvoice.number || `INV-${Date.now()}`;
-      const dueDate = finalizedInvoice.due_date
-        ? new Date(finalizedInvoice.due_date * 1000).toISOString().split('T')[0]
-        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+      // 支払期限を契約のbilling_dayに基づいて計算
+      const today = new Date();
+      const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+      let dueDate: string;
+
+      if (contract.billing_day === 99) {
+        // 月末
+        const lastDay = new Date(nextMonth.getFullYear(), nextMonth.getMonth() + 1, 0).getDate();
+        dueDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), lastDay).toISOString().split('T')[0];
+      } else {
+        // 指定日（1-28）
+        dueDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), contract.billing_day).toISOString().split('T')[0];
+      }
 
       const pdfBuffer = await generateStripeInvoicePDF({
         invoiceNumber,
@@ -238,9 +249,20 @@ export async function POST(
     // データベースに請求レコード保存
     const invoiceNumber = finalizedInvoice.number || `INV-${Date.now()}`;
     const invoiceDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD形式
-    const dueDate = finalizedInvoice.due_date
-      ? new Date(finalizedInvoice.due_date * 1000).toISOString().split('T')[0]
-      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    // 支払期限を契約のbilling_dayに基づいて計算
+    const today = new Date();
+    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+    let dueDate: string;
+
+    if (contract.billing_day === 99) {
+      // 月末
+      const lastDay = new Date(nextMonth.getFullYear(), nextMonth.getMonth() + 1, 0).getDate();
+      dueDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), lastDay).toISOString().split('T')[0];
+    } else {
+      // 指定日（1-28）
+      dueDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), contract.billing_day).toISOString().split('T')[0];
+    }
 
     const { data: savedInvoice, error: insertError } = await supabase
       .from('invoices')
