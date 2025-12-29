@@ -1,5 +1,8 @@
+import { Resend } from 'resend';
 import nodemailer from 'nodemailer';
 import { logger } from '@/lib/logger';
+
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 /**
  * Stripe請求書メール送信
@@ -22,17 +25,6 @@ export async function sendStripeInvoiceEmail(params: {
     pdfBuffer,
     paymentMethod,
   } = params;
-
-  // Nodemailer設定
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'localhost',
-    port: parseInt(process.env.SMTP_PORT || '1025'),
-    secure: false,
-    auth: process.env.SMTP_USER ? {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASSWORD,
-    } : undefined,
-  });
 
   const subject = `【ザイロク】ご請求書（${invoiceNumber}）`;
 
@@ -116,25 +108,58 @@ Web: https://zairoku.com
 `;
 
   try {
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM || 'noreply@fieldtool.local',
-      to,
-      subject,
-      text: bodyText,
-      attachments: [
-        {
-          filename: `invoice-${invoiceNumber}.pdf`,
-          content: pdfBuffer,
-          contentType: 'application/pdf',
-        },
-      ],
-    });
+    if (resend) {
+      // Resend使用（本番環境）
+      await resend.emails.send({
+        from: 'ザイロク <billing@zairoku.com>',
+        to,
+        subject,
+        text: bodyText,
+        attachments: [
+          {
+            filename: `invoice-${invoiceNumber}.pdf`,
+            content: pdfBuffer,
+          },
+        ],
+      });
 
-    logger.info('Stripe invoice email sent successfully', {
-      to,
-      invoiceNumber,
-      paymentMethod,
-    });
+      logger.info('Stripe invoice email sent successfully via Resend', {
+        to,
+        invoiceNumber,
+        paymentMethod,
+      });
+    } else {
+      // Nodemailer使用（開発環境）
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'localhost',
+        port: parseInt(process.env.SMTP_PORT || '1025'),
+        secure: false,
+        auth: process.env.SMTP_USER ? {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASSWORD,
+        } : undefined,
+      });
+
+      await transporter.sendMail({
+        from: process.env.SMTP_FROM || 'noreply@fieldtool.local',
+        to,
+        subject,
+        text: bodyText,
+        attachments: [
+          {
+            filename: `invoice-${invoiceNumber}.pdf`,
+            content: pdfBuffer,
+            contentType: 'application/pdf',
+          },
+        ],
+      });
+
+      logger.info('Stripe invoice email sent successfully via Nodemailer', {
+        to,
+        invoiceNumber,
+        paymentMethod,
+      });
+    }
 
   } catch (error) {
     logger.error('Failed to send Stripe invoice email', {

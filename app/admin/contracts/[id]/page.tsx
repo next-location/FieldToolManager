@@ -70,13 +70,15 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
 
   console.log('[Contract Detail] Invoices result:', { invoices, invoicesError });
 
-  // 初回請求書を取得
-  const { data: initialInvoice } = await supabase
+  // 初回請求書を取得（契約の最初の請求書）
+  const { data: invoicesForCheck } = await supabase
     .from('invoices')
     .select('id, invoice_number, status, total_amount')
     .eq('contract_id', id)
-    .eq('is_initial_invoice', true)
-    .single();
+    .order('created_at', { ascending: true })
+    .limit(1);
+
+  const initialInvoice = invoicesForCheck && invoicesForCheck.length > 0 ? invoicesForCheck[0] : null;
 
   console.log('[Contract Detail] Initial invoice:', initialInvoice);
 
