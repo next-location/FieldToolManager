@@ -378,8 +378,11 @@ export default function NewContractForm({ organizations, packages, superAdminId 
               {Array.from({ length: 28 }, (_, i) => i + 1).map(day => (
                 <option key={day} value={day}>{day}日</option>
               ))}
+              <option value={99}>月末</option>
             </select>
-            <p className="text-xs text-gray-500 mt-1">毎月この日に請求書が自動生成されます</p>
+            <p className="text-xs text-gray-500 mt-1">
+              毎月この日に請求書が自動生成されます（土日祝日の場合は前営業日）
+            </p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">トライアル終了日（任意）</label>

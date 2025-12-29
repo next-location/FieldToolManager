@@ -5,6 +5,7 @@ import { calculateMonthlyFee, generateInvoiceDescription, Contract } from '@/lib
 import { logger } from '@/lib/logger';
 import { generateStripeInvoicePDF } from '@/lib/pdf/stripe-invoice-generator';
 import { sendStripeInvoiceEmail } from '@/lib/email/stripe-billing';
+import { getAdjustedBillingDate, getEndOfMonth } from '@/lib/utils/business-days';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -39,15 +40,15 @@ export async function GET(request: NextRequest) {
     }
 
     const today = new Date();
-    const billingDay = today.getDate();
+    const todayDay = today.getDate();
 
     logger.info('Starting monthly invoice creation process', {
       date: today.toISOString(),
-      billingDay,
+      todayDay,
     });
 
-    // 今日が請求日の有効な契約を取得（月払いのみ）
-    const { data: monthlyContracts, error: monthlyError } = await supabase
+    // すべての有効な月払い契約を取得
+    const { data: allMonthlyContracts, error: monthlyError } = await supabase
       .from('contracts')
       .select(`
         *,
@@ -58,8 +59,15 @@ export async function GET(request: NextRequest) {
         )
       `)
       .eq('status', 'active')
-      .eq('billing_cycle', 'monthly')
-      .eq('billing_day', billingDay);
+      .eq('billing_cycle', 'monthly');
+
+    // 営業日調整後の請求日が今日の契約をフィルタ
+    const monthlyContracts = (allMonthlyContracts || []).filter(contract => {
+      const adjustedDate = getAdjustedBillingDate(contract.billing_day, today);
+      return adjustedDate.getDate() === todayDay &&
+             adjustedDate.getMonth() === today.getMonth() &&
+             adjustedDate.getFullYear() === today.getFullYear();
+    });
 
     // 年払い契約で今日が年次請求日のものを取得
     const oneYearAgo = new Date(today);
@@ -88,17 +96,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 年払い契約のうち、今日が請求日（契約開始日の年次記念日）のものをフィルタ
+    // 年払い契約のうち、今日が請求日（契約開始日の年次記念日、営業日調整済み）のものをフィルタ
     const annualContractsToday = (annualContracts || []).filter(contract => {
       const startDate = new Date(contract.start_date);
-      return startDate.getDate() === billingDay && startDate.getMonth() === today.getMonth();
+      const billingDay = startDate.getDate();
+      const adjustedDate = getAdjustedBillingDate(billingDay, today);
+
+      return adjustedDate.getDate() === todayDay &&
+             adjustedDate.getMonth() === today.getMonth() &&
+             adjustedDate.getFullYear() === today.getFullYear() &&
+             startDate.getMonth() === today.getMonth();
     });
 
     // 月払いと年払いを統合
     const contracts = [...(monthlyContracts || []), ...annualContractsToday];
 
     if (!contracts || contracts.length === 0) {
-      logger.info('No contracts to bill today', { billingDay });
+      logger.info('No contracts to bill today', { todayDay });
       return NextResponse.json({
         success: true,
         message: '本日請求する契約はありません',
