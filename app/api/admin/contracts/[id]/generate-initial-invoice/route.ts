@@ -250,12 +250,13 @@ export async function POST(
         stripe_invoice_id: finalizedInvoice.id,
         invoice_number: invoiceNumber,
         invoice_date: invoiceDate,
-        subtotal: feeCalculation.subtotal || 0,
-        tax: Math.round((feeCalculation.subtotal || 0) * 0.1),
-        total: feeCalculation.total || 0,
-        status: finalizedInvoice.status === 'paid' ? 'paid' : 'pending',
+        billing_period_start: invoiceDate,
+        billing_period_end: invoiceDate,
+        amount: feeCalculation.subtotal || 0,
+        tax_amount: Math.round((feeCalculation.subtotal || 0) * 0.1),
+        total_amount: feeCalculation.total || 0,
+        status: finalizedInvoice.status === 'paid' ? 'paid' : 'draft',
         due_date: dueDate,
-        is_initial_invoice: true, // 初回請求書フラグ
       })
       .select()
       .single();
@@ -295,7 +296,7 @@ export async function POST(
           contract_id: contractId,
           invoice_id: savedInvoice.id,
           invoice_number: savedInvoice.invoice_number,
-          total_amount: savedInvoice.total,
+          total_amount: savedInvoice.total_amount,
         },
         ip_address: request.headers.get('x-forwarded-for') || 'unknown',
         user_agent: request.headers.get('user-agent'),
@@ -305,7 +306,7 @@ export async function POST(
       success: true,
       message: '初回請求書を生成しました',
       invoice_number: savedInvoice.invoice_number,
-      total_amount: savedInvoice.total,
+      total_amount: savedInvoice.total_amount,
       status: savedInvoice.status,
       due_date: savedInvoice.due_date,
     });
