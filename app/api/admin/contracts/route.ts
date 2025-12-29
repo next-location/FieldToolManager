@@ -8,6 +8,40 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+export async function GET(request: NextRequest) {
+  try {
+    // スーパーアドミン認証チェック
+    const session = await getSuperAdminSession();
+    if (!session) {
+      return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const organizationId = searchParams.get('organization_id');
+
+    if (!organizationId) {
+      return NextResponse.json({ error: '組織IDが必要です' }, { status: 400 });
+    }
+
+    // 組織に紐づく契約を取得
+    const { data: contracts, error } = await supabase
+      .from('contracts')
+      .select('id, contract_number, contract_type, start_date, end_date, status, total_monthly_fee')
+      .eq('organization_id', organizationId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Contracts fetch error:', error);
+      return NextResponse.json({ error: '契約の取得に失敗しました' }, { status: 500 });
+    }
+
+    return NextResponse.json({ contracts: contracts || [] });
+  } catch (error: any) {
+    console.error('API error:', error);
+    return NextResponse.json({ error: 'サーバーエラーが発生しました' }, { status: 500 });
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     // CSRF検証（重要な操作のため）
@@ -44,9 +78,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    console.log('[API /api/admin/contracts] Request body:', JSON.stringify(body, null, 2));
 
     // 管理者情報のバリデーション
     if (!body.adminName || !body.adminEmail) {
+      console.error('[API /api/admin/contracts] Missing admin info:', { adminName: body.adminName, adminEmail: body.adminEmail });
       return NextResponse.json({
         error: '初期管理者情報が不足しています。管理者氏名、メールアドレスは必須です。'
       }, { status: 400 });
