@@ -237,6 +237,11 @@ export async function POST(
 
     // データベースに請求レコード保存
     const invoiceNumber = finalizedInvoice.number || `INV-${Date.now()}`;
+    const invoiceDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD形式
+    const dueDate = finalizedInvoice.due_date
+      ? new Date(finalizedInvoice.due_date * 1000).toISOString().split('T')[0]
+      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
     const { data: savedInvoice, error: insertError } = await supabase
       .from('invoices')
       .insert({
@@ -244,15 +249,12 @@ export async function POST(
         contract_id: contract.id,
         stripe_invoice_id: finalizedInvoice.id,
         invoice_number: invoiceNumber,
-        amount: feeCalculation.subtotal || 0,
-        tax_amount: Math.round((feeCalculation.subtotal || 0) * 0.1),
-        total_amount: feeCalculation.total || 0,
+        invoice_date: invoiceDate,
+        subtotal: feeCalculation.subtotal || 0,
+        tax: Math.round((feeCalculation.subtotal || 0) * 0.1),
+        total: feeCalculation.total || 0,
         status: finalizedInvoice.status === 'paid' ? 'paid' : 'pending',
-        due_date: finalizedInvoice.due_date
-          ? new Date(finalizedInvoice.due_date * 1000).toISOString()
-          : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        invoice_date: new Date().toISOString(),
-        issued_at: new Date().toISOString(),
+        due_date: dueDate,
         is_initial_invoice: true, // 初回請求書フラグ
       })
       .select()
@@ -293,7 +295,7 @@ export async function POST(
           contract_id: contractId,
           invoice_id: savedInvoice.id,
           invoice_number: savedInvoice.invoice_number,
-          total_amount: savedInvoice.total_amount,
+          total_amount: savedInvoice.total,
         },
         ip_address: request.headers.get('x-forwarded-for') || 'unknown',
         user_agent: request.headers.get('user-agent'),
@@ -303,7 +305,7 @@ export async function POST(
       success: true,
       message: '初回請求書を生成しました',
       invoice_number: savedInvoice.invoice_number,
-      total_amount: savedInvoice.total_amount,
+      total_amount: savedInvoice.total,
       status: savedInvoice.status,
       due_date: savedInvoice.due_date,
     });
