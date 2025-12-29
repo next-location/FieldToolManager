@@ -70,7 +70,7 @@ export default function NewContractForm({ organizations, packages, superAdminId 
     endDate: '',
     autoRenew: true,
     trialEndDate: '',
-    billingDay: new Date().getDate(), // 請求日（今日の日付をデフォルト）
+    billingDay: Math.min(new Date().getDate(), 28), // 請求日（今日の日付をデフォルト、最大28日）
     initialSetupFee: 10000,
     initialDataRegistrationFee: '',
     initialOnsiteFee: '',
