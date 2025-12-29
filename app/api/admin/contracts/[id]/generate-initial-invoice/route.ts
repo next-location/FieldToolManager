@@ -158,20 +158,32 @@ export async function POST(
       amount: invoice.amount_due,
     });
 
-    // Invoiceを確定
-    const finalizedInvoice = await stripe.invoices.finalizeInvoice(invoice.id);
+    // Invoiceを確定（請求書払いの場合は確定しない）
+    let finalizedInvoice = invoice;
+    if (organization.payment_method === 'card') {
+      // カード決済の場合のみ確定
+      finalizedInvoice = await stripe.invoices.finalizeInvoice(invoice.id);
+    } else {
+      // 請求書払いの場合はdraftのまま（手動で確定する）
+      console.log('[GenerateInitialInvoice] Keeping invoice as draft for manual payment');
+    }
 
     // 請求書払いの場合: PDFを生成してメール送信
     if (organization.payment_method === 'invoice') {
       console.log('[GenerateInitialInvoice] Generating invoice PDF...');
 
       const taxAmount = Math.round((feeCalculation.subtotal || 0) * 0.1);
+
+      // 請求書番号を生成（Stripe Invoiceがdraftの場合はnumberがnullのため）
+      const invoiceNumber = finalizedInvoice.number || `INV-${Date.now()}`;
+      const dueDate = finalizedInvoice.due_date
+        ? new Date(finalizedInvoice.due_date * 1000).toISOString().split('T')[0]
+        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
       const pdfBuffer = await generateStripeInvoicePDF({
-        invoiceNumber: finalizedInvoice.number || `INV-${Date.now()}`,
+        invoiceNumber,
         invoiceDate: new Date(finalizedInvoice.created * 1000).toISOString().split('T')[0],
-        dueDate: finalizedInvoice.due_date
-          ? new Date(finalizedInvoice.due_date * 1000).toISOString().split('T')[0]
-          : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        dueDate,
         paymentMethod: 'invoice',
         organization: {
           name: organization.name,
@@ -196,11 +208,9 @@ export async function POST(
         await sendStripeInvoiceEmail({
           to: recipientEmail,
           organizationName: organization.name,
-          invoiceNumber: finalizedInvoice.number || `INV-${Date.now()}`,
+          invoiceNumber,
           amount: feeCalculation.total,
-          dueDate: finalizedInvoice.due_date
-            ? new Date(finalizedInvoice.due_date * 1000).toISOString().split('T')[0]
-            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          dueDate,
           pdfBuffer,
           paymentMethod: 'invoice',
         });
@@ -221,20 +231,21 @@ export async function POST(
     }
 
     // データベースに請求レコード保存
+    const invoiceNumber = finalizedInvoice.number || `INV-${Date.now()}`;
     const { data: savedInvoice, error: insertError } = await supabase
       .from('invoices')
       .insert({
         organization_id: organization.id,
         contract_id: contract.id,
         stripe_invoice_id: finalizedInvoice.id,
-        invoice_number: finalizedInvoice.number || `INV-${Date.now()}`,
+        invoice_number: invoiceNumber,
         amount: feeCalculation.subtotal || 0,
         tax_amount: Math.round((feeCalculation.subtotal || 0) * 0.1),
         total_amount: feeCalculation.total || 0,
         status: finalizedInvoice.status === 'paid' ? 'paid' : 'pending',
         due_date: finalizedInvoice.due_date
           ? new Date(finalizedInvoice.due_date * 1000).toISOString()
-          : null,
+          : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         invoice_date: new Date().toISOString(),
         issued_at: new Date().toISOString(),
         is_initial_invoice: true, // 初回請求書フラグ
