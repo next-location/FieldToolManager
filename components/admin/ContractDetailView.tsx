@@ -185,16 +185,16 @@ export default function ContractDetailView({ contract, invoices, contractPackage
                   {initialInvoice ? (
                     initialInvoice.status === 'paid' ? (
                       <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                        ✓ 初回入金確認済
+                        初回入金確認済
                       </span>
                     ) : (
                       <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
-                        ⚠ 初回入金待ち（{initialInvoice.invoice_number}）
+                        初回入金待ち（{initialInvoice.invoice_number}）
                       </span>
                     )
                   ) : (
                     <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
-                      ✗ 初回請求書未発行
+                      初回請求書未発行
                     </span>
                   )}
                 </div>
