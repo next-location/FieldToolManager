@@ -37,6 +37,9 @@ export interface Contract {
   // 基本プラン料金（契約で個別設定）
   monthly_base_fee?: number; // 人数ベース基本料金
 
+  // 請求サイクル（2025-12-29追加）
+  billing_cycle: 'monthly' | 'annual'; // 月払い/年払い
+
   // Stripe情報
   stripe_customer_id: string | null;
 
@@ -97,6 +100,9 @@ export function calculateMonthlyFee(contract: Contract): MonthlyFeeCalculation {
   let subtotal = 0;
   const firstInvoice = isFirstInvoice(contract);
 
+  // 年払いの場合は12倍する
+  const multiplier = contract.billing_cycle === 'annual' ? 12 : 1;
+
   // 1. 基本プラン料金（人数ベース）
   if (contract.monthly_base_fee && contract.monthly_base_fee > 0) {
     const planNames: Record<string, string> = {
@@ -109,40 +115,49 @@ export function calculateMonthlyFee(contract: Contract): MonthlyFeeCalculation {
       premium: 'プレミアム（旧）',
     };
     const planName = planNames[contract.plan] || contract.plan;
+    const amount = contract.monthly_base_fee * multiplier;
 
     items.push({
-      description: `基本プラン（${planName}・${contract.user_count}名）`,
-      amount: contract.monthly_base_fee,
+      description: contract.billing_cycle === 'annual'
+        ? `基本プラン（${planName}・${contract.user_count}名）年払い`
+        : `基本プラン（${planName}・${contract.user_count}名）`,
+      amount,
       type: 'base_fee',
     });
-    subtotal += contract.monthly_base_fee;
+    subtotal += amount;
   }
 
   // 2. 機能パッケージ料金（いずれか1つのみ）
   if (contract.has_both_packages) {
-    // フル機能統合パック
+    const amount = PACKAGE_PRICING.both * multiplier;
     items.push({
-      description: 'フル機能統合パック',
-      amount: PACKAGE_PRICING.both,
+      description: contract.billing_cycle === 'annual'
+        ? 'フル機能統合パック（年払い）'
+        : 'フル機能統合パック',
+      amount,
       type: 'package',
     });
-    subtotal += PACKAGE_PRICING.both;
+    subtotal += amount;
   } else if (contract.has_asset_package) {
-    // 現場資産パックのみ
+    const amount = PACKAGE_PRICING.asset * multiplier;
     items.push({
-      description: '現場資産パック',
-      amount: PACKAGE_PRICING.asset,
+      description: contract.billing_cycle === 'annual'
+        ? '現場資産パック（年払い）'
+        : '現場資産パック',
+      amount,
       type: 'package',
     });
-    subtotal += PACKAGE_PRICING.asset;
+    subtotal += amount;
   } else if (contract.has_dx_efficiency_package) {
-    // 現場DXパックのみ
+    const amount = PACKAGE_PRICING.dx * multiplier;
     items.push({
-      description: '現場DX業務効率化パック',
-      amount: PACKAGE_PRICING.dx,
+      description: contract.billing_cycle === 'annual'
+        ? '現場DX業務効率化パック（年払い）'
+        : '現場DX業務効率化パック',
+      amount,
       type: 'package',
     });
-    subtotal += PACKAGE_PRICING.dx;
+    subtotal += amount;
   }
 
   // 3. プラン変更時の日割り差額（グレードアップ時のみ）

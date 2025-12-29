@@ -3138,3 +3138,74 @@ e16c057 Fix: 本番環境で組織一覧が表示されない問題を修正
 - [ ] デバッグコード削除（営業一覧のconsole.log等）
 - [ ] テスト環境にも同様のSQLを適用
 - [ ] リリース前の最終動作確認
+
+
+---
+
+## 2025-12-29: プラン変更機能実装（Phase 4-5完了）
+
+### 実装内容
+
+#### Phase 4: 契約変更画面作成
+1. **プラン変更ページ**: `/admin/contracts/[id]/change-plan/page.tsx`
+   - active状態の契約のみプラン変更可能
+   - 現在のプラン表示
+   - 新しいプラン選択（チェックボックス）
+   - 変更日選択
+
+2. **プラン変更フォームコンポーネント**: `PlanChangeForm.tsx`
+   - プレビュー機能（日割り計算を事前確認）
+   - 変更実行機能
+   - エラーハンドリング
+
+3. **プレビューAPI**: `/api/admin/contracts/change-plan/preview/route.ts`
+   - 日割り計算プレビュー
+   - 月払い/年払い対応
+   - 次回請求額計算
+
+4. **契約詳細画面修正**: `[id]/page.tsx`
+   - activeステータスの契約に「プラン変更」ボタン追加
+
+#### Phase 5: cronジョブ修正（年払い対応）
+1. **請求書自動生成cron修正**: `/api/cron/create-monthly-invoices/route.ts`
+   - 月払い契約：毎月の請求日に請求書生成
+   - 年払い契約：契約開始日の年次記念日に請求書生成（12倍の料金）
+
+2. **料金計算ロジック修正**: `lib/billing/calculate-fee.ts`
+   - `Contract`インターフェースに`billing_cycle`追加
+   - 年払いの場合、料金を12倍にして計算
+   - 請求書の説明文に「年払い」を明記
+
+### マイグレーション履歴
+前回実装済み（Phase 1-3）:
+- `20251229000001_add_billing_cycle_to_contracts.sql` - billing_cycle追加
+- `20251229000002_add_prorated_charge_to_contracts.sql` - 日割り差額カラム追加
+- Phase 3で料金計算ロジックとAPI修正済み
+
+### 型エラー修正
+`currentPackages`の型変換を追加:
+```typescript
+const currentPackages = currentPackagesRaw?.map(cp => ({
+  package_id: cp.package_id,
+  packages: Array.isArray(cp.packages) ? cp.packages[0] : cp.packages
+})) || [];
+```
+
+### テスト結果
+- ✅ ビルド成功（TypeScriptエラーなし）
+- ✅ 型チェック通過
+
+### 残作業
+- [ ] 開発サーバーでのUI動作確認
+- [ ] プレビューAPI動作確認
+- [ ] プラン変更実行テスト
+- [ ] 年払い請求書生成テスト（cron）
+
+### ファイル
+- `app/admin/contracts/[id]/change-plan/page.tsx` - プラン変更画面
+- `components/admin/PlanChangeForm.tsx` - プラン変更フォーム
+- `app/api/admin/contracts/change-plan/preview/route.ts` - プレビューAPI
+- `app/api/cron/create-monthly-invoices/route.ts` - 年払い対応cron
+- `lib/billing/calculate-fee.ts` - 年払い料金計算
+
+

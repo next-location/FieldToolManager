@@ -146,12 +146,20 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
                   </>
                 )}
                 {contract.status === 'active' && (
-                  <div className="text-sm text-gray-600 flex items-center">
-                    <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    契約完了済み
-                  </div>
+                  <>
+                    <Link
+                      href={`/admin/contracts/${contract.id}/change-plan`}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                    >
+                      プラン変更
+                    </Link>
+                    <div className="text-sm text-gray-600 flex items-center">
+                      <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      契約完了済み
+                    </div>
+                  </>
                 )}
               </div>
             </div>

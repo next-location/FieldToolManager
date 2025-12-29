@@ -46,8 +46,8 @@ export async function GET(request: NextRequest) {
       billingDay,
     });
 
-    // 今日が請求日の有効な契約を取得
-    const { data: contracts, error: contractsError } = await supabase
+    // 今日が請求日の有効な契約を取得（月払いのみ）
+    const { data: monthlyContracts, error: monthlyError } = await supabase
       .from('contracts')
       .select(`
         *,
@@ -58,8 +58,28 @@ export async function GET(request: NextRequest) {
         )
       `)
       .eq('status', 'active')
+      .eq('billing_cycle', 'monthly')
       .eq('billing_day', billingDay);
 
+    // 年払い契約で今日が年次請求日のものを取得
+    const oneYearAgo = new Date(today);
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+    const { data: annualContracts, error: annualError } = await supabase
+      .from('contracts')
+      .select(`
+        *,
+        organizations!inner (
+          id,
+          name,
+          payment_method
+        )
+      `)
+      .eq('status', 'active')
+      .eq('billing_cycle', 'annual');
+
+    // エラーハンドリング
+    const contractsError = monthlyError || annualError;
     if (contractsError) {
       logger.error('Failed to fetch contracts', { error: contractsError });
       return NextResponse.json(
@@ -67,6 +87,15 @@ export async function GET(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // 年払い契約のうち、今日が請求日（契約開始日の年次記念日）のものをフィルタ
+    const annualContractsToday = (annualContracts || []).filter(contract => {
+      const startDate = new Date(contract.start_date);
+      return startDate.getDate() === billingDay && startDate.getMonth() === today.getMonth();
+    });
+
+    // 月払いと年払いを統合
+    const contracts = [...(monthlyContracts || []), ...annualContractsToday];
 
     if (!contracts || contracts.length === 0) {
       logger.info('No contracts to bill today', { billingDay });
