@@ -162,21 +162,21 @@ export async function generateStripeInvoicePDF(data: StripeInvoiceData): Promise
 
   // 角印（画像を読み込んで配置）
   try {
-    const sealImagePath = path.join(process.env.HOME || '/Users/youichiakashi', 'Desktop', '角印.png');
-    const sealImageData = fs.readFileSync(sealImagePath);
-    const sealImageBase64 = sealImageData.toString('base64');
-    doc.addImage(sealImageBase64, 'PNG', rightColumnX + 60, yPos + 15, 20, 20);
+    // プロジェクトルートのpublic/imagesから読み込む
+    const sealImagePath = path.join(process.cwd(), 'public', 'images', 'company-seal.png');
+
+    // ファイルが存在する場合のみ読み込む
+    if (fs.existsSync(sealImagePath)) {
+      const sealImageData = fs.readFileSync(sealImagePath);
+      const sealImageBase64 = sealImageData.toString('base64');
+      doc.addImage(sealImageBase64, 'PNG', rightColumnX + 60, yPos + 15, 20, 20);
+    } else {
+      // 角印画像が無い場合はスキップ（本番デプロイ前に追加する）
+      console.log('[PDF] Company seal image not found, skipping...');
+    }
   } catch (error) {
-    console.error('角印画像の読み込みに失敗しました:', error);
-    // フォールバック: 赤い四角を表示
-    doc.setDrawColor(200, 50, 50);
-    doc.setFillColor(255, 255, 255);
-    doc.setLineWidth(1.5);
-    doc.rect(rightColumnX + 60, yPos + 15, 20, 20, 'FD');
-    doc.setFontSize(7);
-    doc.setFont('NotoSansJP', 'normal');
-    doc.setTextColor(200, 50, 50);
-    doc.text('角印', rightColumnX + 65, yPos + 25);
+    console.warn('[PDF] Failed to load company seal image:', error);
+    // エラーでも処理を続行（角印なしで生成）
   }
 
   yPos += 45;

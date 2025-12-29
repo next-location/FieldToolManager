@@ -205,17 +205,22 @@ export async function POST(
       // メール送信
       const recipientEmail = contract.billing_contact_email || contract.admin_email;
       if (recipientEmail) {
-        await sendStripeInvoiceEmail({
-          to: recipientEmail,
-          organizationName: organization.name,
-          invoiceNumber,
-          amount: feeCalculation.total,
-          dueDate,
-          pdfBuffer,
-          paymentMethod: 'invoice',
-        });
+        try {
+          await sendStripeInvoiceEmail({
+            to: recipientEmail,
+            organizationName: organization.name,
+            invoiceNumber,
+            amount: feeCalculation.total,
+            dueDate,
+            pdfBuffer,
+            paymentMethod: 'invoice',
+          });
 
-        console.log('[GenerateInitialInvoice] Invoice email sent to:', recipientEmail);
+          console.log('[GenerateInitialInvoice] Invoice email sent to:', recipientEmail);
+        } catch (emailError: any) {
+          console.error('[GenerateInitialInvoice] Failed to send invoice email:', emailError);
+          // メール送信失敗でもエラーにしない（請求書は生成されている）
+        }
       } else {
         console.warn('[GenerateInitialInvoice] No email address found');
       }
