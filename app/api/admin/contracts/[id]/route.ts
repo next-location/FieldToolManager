@@ -51,7 +51,7 @@ export async function PATCH(
     // 契約情報を取得
     const { data: contract, error: contractError } = await supabase
       .from('contracts')
-      .select('organization_id, plan, user_limit, status')
+      .select('organization_id, plan, user_limit, status, contract_type, total_monthly_fee, base_monthly_fee, package_monthly_fee')
       .eq('id', contractId)
       .single()
 
@@ -122,6 +122,76 @@ export async function PATCH(
         updateData[field] = body[field]
       }
     })
+
+    // プラン変更時の日割り差額計算
+    if (body.total_monthly_fee !== undefined && contract.total_monthly_fee !== undefined) {
+      const oldMonthlyFee = contract.total_monthly_fee
+      const newMonthlyFee = body.total_monthly_fee
+      const isUpgrade = newMonthlyFee > oldMonthlyFee
+      const isDowngrade = newMonthlyFee < oldMonthlyFee
+
+      if (contract.contract_type === 'monthly') {
+        if (isUpgrade) {
+          // 月払いグレードアップ: 日割り差額を計算して翌月請求に加算
+          const today = new Date()
+          const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+          const remainingDays = lastDay.getDate() - today.getDate() + 1
+          const daysInMonth = lastDay.getDate()
+
+          const proratedCharge = Math.round((newMonthlyFee - oldMonthlyFee) * remainingDays / daysInMonth)
+
+          updateData.pending_prorated_charge = proratedCharge
+          updateData.pending_prorated_description = `プラン変更差額（${today.getMonth() + 1}月${today.getDate() + 1}日〜末日、${remainingDays}日分）`
+          updateData.plan_change_date = new Date().toISOString()
+          updateData.plan_change_type = 'upgrade'
+
+          console.log('[Contract Update] Monthly upgrade - prorated charge calculated:', {
+            contractId,
+            oldMonthlyFee,
+            newMonthlyFee,
+            remainingDays,
+            proratedCharge,
+          })
+
+        } else if (isDowngrade) {
+          // 月払いグレードダウン: 次回請求から適用（日割り差額なし）
+          updateData.plan_change_date = new Date().toISOString()
+          updateData.plan_change_type = 'downgrade'
+
+          console.log('[Contract Update] Monthly downgrade - no prorated charge:', {
+            contractId,
+            oldMonthlyFee,
+            newMonthlyFee,
+          })
+        }
+
+      } else if (contract.contract_type === 'annual') {
+        if (isUpgrade) {
+          // 年払いグレードアップ: 残り期間の差額を即時請求
+          // TODO: 年払いグレードアップ時の即時請求書発行処理
+          // 現在は手動で請求書発行する想定
+          updateData.plan_change_date = new Date().toISOString()
+          updateData.plan_change_type = 'upgrade'
+
+          console.log('[Contract Update] Annual upgrade - manual invoice required:', {
+            contractId,
+            oldMonthlyFee,
+            newMonthlyFee,
+          })
+
+        } else if (isDowngrade) {
+          // 年払いグレードダウン: 次回請求から適用
+          updateData.plan_change_date = new Date().toISOString()
+          updateData.plan_change_type = 'downgrade'
+
+          console.log('[Contract Update] Annual downgrade:', {
+            contractId,
+            oldMonthlyFee,
+            newMonthlyFee,
+          })
+        }
+      }
+    }
 
     // 契約を更新
     const { data: updatedContract, error: updateError } = await supabase
