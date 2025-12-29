@@ -315,6 +315,29 @@ export async function GET(request: NextRequest) {
               itemCount: itemsToInsert.length,
             });
           }
+
+          // 日割り差額をクリア（次回請求に含めないため）
+          if (contract.pending_prorated_charge && contract.pending_prorated_charge > 0) {
+            const { error: clearError } = await supabase
+              .from('contracts')
+              .update({
+                pending_prorated_charge: 0,
+                pending_prorated_description: null,
+              })
+              .eq('id', contract.id);
+
+            if (clearError) {
+              logger.error('Failed to clear prorated charge', {
+                contractId: contract.id,
+                error: clearError,
+              });
+            } else {
+              logger.info('Cleared prorated charge after invoice creation', {
+                contractId: contract.id,
+                proratedCharge: contract.pending_prorated_charge,
+              });
+            }
+          }
         }
 
         successCount++;

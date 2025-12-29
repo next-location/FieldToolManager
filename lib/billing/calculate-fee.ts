@@ -40,6 +40,10 @@ export interface Contract {
   // Stripe情報
   stripe_customer_id: string | null;
 
+  // プラン変更関連（2025-12-29追加）
+  pending_prorated_charge?: number;      // 次回請求に加算する日割り差額
+  pending_prorated_description?: string | null; // 日割り差額の説明
+
   // その他
   start_date: string;
   created_at: string;
@@ -50,7 +54,7 @@ export interface MonthlyFeeCalculation {
   items: Array<{
     description: string;
     amount: number;
-    type: 'package' | 'base_fee' | 'initial_fee' | 'discount';
+    type: 'package' | 'base_fee' | 'initial_fee' | 'discount' | 'prorated_charge';
   }>;
 
   // 合計
@@ -141,7 +145,17 @@ export function calculateMonthlyFee(contract: Contract): MonthlyFeeCalculation {
     subtotal += PACKAGE_PRICING.dx;
   }
 
-  // 3. 初期費用（初回のみ）
+  // 3. プラン変更時の日割り差額（グレードアップ時のみ）
+  if (contract.pending_prorated_charge && contract.pending_prorated_charge > 0) {
+    items.push({
+      description: contract.pending_prorated_description || 'プラン変更差額',
+      amount: contract.pending_prorated_charge,
+      type: 'prorated_charge',
+    });
+    subtotal += contract.pending_prorated_charge;
+  }
+
+  // 4. 初期費用（初回のみ）
   if (firstInvoice && contract.initial_setup_fee > 0) {
     items.push({
       description: '初期導入費用（一回限り）',
@@ -151,7 +165,7 @@ export function calculateMonthlyFee(contract: Contract): MonthlyFeeCalculation {
     subtotal += contract.initial_setup_fee;
   }
 
-  // 4. 割引計算（初回のみ）
+  // 5. 割引計算（初回のみ）
   let discount = 0;
   if (firstInvoice && contract.initial_discount > 0) {
     discount = contract.initial_discount; // 金額をそのまま使用
