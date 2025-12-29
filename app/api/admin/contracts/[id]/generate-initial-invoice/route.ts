@@ -172,7 +172,12 @@ export async function POST(
     if (organization.payment_method === 'invoice') {
       console.log('[GenerateInitialInvoice] Generating invoice PDF...');
 
-      const taxAmount = Math.round((feeCalculation.subtotal || 0) * 0.1);
+      // 税抜小計（割引後）= feeCalculation.total
+      // 消費税 = 税抜小計 × 0.1
+      // 税込合計 = 税抜小計 + 消費税
+      const subtotalAfterDiscount = feeCalculation.total || 0;
+      const taxAmount = Math.round(subtotalAfterDiscount * 0.1);
+      const totalWithTax = subtotalAfterDiscount + taxAmount;
 
       // 請求書番号を生成（Stripe Invoiceがdraftの場合はnumberがnullのため）
       const invoiceNumber = finalizedInvoice.number || `INV-${Date.now()}`;
@@ -208,9 +213,9 @@ export async function POST(
           unitPrice: item.amount,
           amount: item.amount,
         })),
-        subtotal: feeCalculation.subtotal || 0,
+        subtotal: subtotalAfterDiscount,
         tax: taxAmount,
-        total: feeCalculation.total || 0,
+        total: totalWithTax,
       });
 
       // メール送信
@@ -221,7 +226,7 @@ export async function POST(
             to: recipientEmail,
             organizationName: organization.name,
             invoiceNumber,
-            amount: feeCalculation.total,
+            amount: totalWithTax,
             dueDate,
             pdfBuffer,
             paymentMethod: 'invoice',
@@ -264,6 +269,11 @@ export async function POST(
       dueDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), contract.billing_day).toISOString().split('T')[0];
     }
 
+    // 税込金額を計算
+    const subtotalAfterDiscount = feeCalculation.total || 0;
+    const taxAmount = Math.round(subtotalAfterDiscount * 0.1);
+    const totalWithTax = subtotalAfterDiscount + taxAmount;
+
     const { data: savedInvoice, error: insertError } = await supabase
       .from('invoices')
       .insert({
@@ -274,10 +284,11 @@ export async function POST(
         invoice_date: invoiceDate,
         billing_period_start: invoiceDate,
         billing_period_end: invoiceDate,
-        amount: feeCalculation.subtotal || 0,
-        tax_amount: Math.round((feeCalculation.subtotal || 0) * 0.1),
-        total_amount: feeCalculation.total || 0,
-        status: finalizedInvoice.status === 'paid' ? 'paid' : 'draft',
+        amount: subtotalAfterDiscount,
+        tax_amount: taxAmount,
+        total_amount: totalWithTax,
+        status: finalizedInvoice.status === 'paid' ? 'paid' : 'sent',
+        sent_date: new Date().toISOString(),
         due_date: dueDate,
       })
       .select()
