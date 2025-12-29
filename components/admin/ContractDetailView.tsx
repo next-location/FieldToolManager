@@ -109,7 +109,7 @@ export default function ContractDetailView({ contract, invoices, contractPackage
 
   // ステータスの日本語変換
   const statusLabels: Record<string, string> = {
-    draft: '下書き',
+    draft: '契約準備中',
     active: '有効',
     pending: '保留中',
     suspended: '停止中',
