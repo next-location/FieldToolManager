@@ -77,19 +77,21 @@ export async function POST(
       }, { status: 400 });
     }
 
-    // 初回請求書の存在と支払い確認をチェック
-    const { data: initialInvoice, error: invoiceError } = await supabase
+    // 初回請求書の存在と支払い確認をチェック（最初に作成された請求書を初回請求書とする）
+    const { data: invoices, error: invoiceError } = await supabase
       .from('invoices')
       .select('id, invoice_number, status')
       .eq('contract_id', contractId)
-      .eq('is_initial_invoice', true)
-      .single();
+      .order('created_at', { ascending: true })
+      .limit(1);
 
-    if (invoiceError || !initialInvoice) {
+    if (invoiceError || !invoices || invoices.length === 0) {
       return NextResponse.json({
         error: '初回請求書が発行されていません。契約を完了する前に初回請求書を発行してください。'
       }, { status: 400 });
     }
+
+    const initialInvoice = invoices[0];
 
     if (initialInvoice.status !== 'paid') {
       return NextResponse.json({
