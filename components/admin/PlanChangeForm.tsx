@@ -318,7 +318,7 @@ export default function PlanChangeForm({
         <button
           onClick={handlePreview}
           className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-          disabled={isLoading || selectedPackageIds.length === 0}
+          disabled={isLoading || !selectedPackageId}
         >
           {isLoading ? '計算中...' : 'プレビュー'}
         </button>
