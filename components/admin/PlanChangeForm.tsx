@@ -34,11 +34,11 @@ interface PlanChangeFormProps {
 
 // 基本プラン定義
 const basePlans = [
-  { key: 'start', name: 'スタート', baseFee: 10000, userLimit: 10 },
-  { key: 'standard', name: 'スタンダード', baseFee: 20000, userLimit: 30 },
-  { key: 'business', name: 'ビジネス', baseFee: 40000, userLimit: 100 },
-  { key: 'pro', name: 'プロ', baseFee: 80000, userLimit: 300 },
-  { key: 'enterprise', name: 'エンタープライズ', baseFee: 150000, userLimit: 1000 },
+  { key: 'start', name: 'スタート', baseFee: 18000, userLimit: 10 },
+  { key: 'standard', name: 'スタンダード', baseFee: 45000, userLimit: 30 },
+  { key: 'business', name: 'ビジネス', baseFee: 70000, userLimit: 50 },
+  { key: 'pro', name: 'プロ', baseFee: 120000, userLimit: 100 },
+  { key: 'enterprise', name: 'エンタープライズ', baseFee: 0, userLimit: 101 },
 ];
 
 export default function PlanChangeForm({
