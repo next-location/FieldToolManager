@@ -19,6 +19,7 @@ interface Contract {
   id: string;
   contract_number: string;
   billing_cycle: 'monthly' | 'annual';
+  billing_day: number;
   start_date: string;
   end_date: string;
 }
@@ -348,16 +349,26 @@ export default function PlanChangeForm({
         <label className="block text-sm font-medium text-gray-700 mb-2">
           変更日
         </label>
-        <input
-          type="date"
-          value={changeDate}
-          onChange={(e) => {
-            setChangeDate(e.target.value);
-            setPreview(null);
-          }}
-          min={new Date().toISOString().split('T')[0]}
-          className="border rounded-lg px-3 py-2"
-        />
+        <div className="flex items-center gap-4">
+          <input
+            type="date"
+            value={changeDate}
+            onChange={(e) => {
+              setChangeDate(e.target.value);
+              setPreview(null);
+            }}
+            min={new Date().toISOString().split('T')[0]}
+            className="border rounded-lg px-3 py-2"
+          />
+          <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
+            <p className="text-sm text-blue-800">
+              <span className="font-semibold">請求日:</span>
+              {contract.billing_cycle === 'monthly'
+                ? ` 毎月${contract.billing_day === 99 ? '月末' : `${contract.billing_day}日`}`
+                : ' 年払い'}
+            </p>
+          </div>
+        </div>
         <p className="text-sm text-gray-500 mt-1">
           ※変更日以降の請求に反映されます
         </p>
