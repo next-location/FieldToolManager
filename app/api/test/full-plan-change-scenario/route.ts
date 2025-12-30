@@ -54,7 +54,6 @@ export async function GET(request: NextRequest) {
             name: 'プラン変更テスト会社（自動テスト用）',
             subdomain: `plan-test-${Date.now()}`,
             plan: 'standard',
-            max_users: 30,
           })
           .select()
           .single();
@@ -389,7 +388,6 @@ export async function GET(request: NextRequest) {
           .from('organizations')
           .update({
             plan: pending.new_plan,
-            max_users: pending.new_user_limit,
             has_asset_package: false,
             has_dx_efficiency_package: true,
           })
