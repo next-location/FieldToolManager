@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     // 組織情報を取得
     const { data: organization, error: orgError } = await supabase
       .from('organizations')
-      .select('id, name, max_users, plan')
+      .select('id, name, plan')
       .eq('id', testContract.organization_id)
       .single();
 
@@ -187,29 +187,29 @@ export async function GET(request: NextRequest) {
       try {
         const { data: currentOrg } = await supabase
           .from('organizations')
-          .select('plan, max_users')
+          .select('plan')
           .eq('id', organization.id)
           .single();
 
-        const { data: contract } = await supabase
+        const { data: currentContract } = await supabase
           .from('contracts')
-          .select('pending_plan_change')
+          .select('pending_plan_change, plan, user_limit')
           .eq('id', testContract.id)
           .single();
 
-        const pending = contract?.pending_plan_change as any;
+        const pending = currentContract?.pending_plan_change as any;
 
-        if (currentOrg && pending) {
+        if (currentOrg && currentContract && pending) {
           // 旧プランのままであることを確認
-          if (currentOrg.plan !== pending.new_plan || currentOrg.max_users !== pending.new_user_limit) {
+          if (currentOrg.plan !== pending.new_plan || currentContract.user_limit !== pending.new_user_limit) {
             results.push({
               test: testName,
               status: 'PASS',
-              message: 'organizationsテーブルは即座に更新されていない（正しい動作）',
+              message: 'organizationsテーブルとcontractsテーブルは即座に更新されていない（正しい動作）',
               data: {
-                current_plan: currentOrg.plan,
+                current_org_plan: currentOrg.plan,
                 pending_new_plan: pending.new_plan,
-                current_max_users: currentOrg.max_users,
+                current_contract_user_limit: currentContract.user_limit,
                 pending_new_user_limit: pending.new_user_limit
               }
             });

@@ -56,7 +56,7 @@ export async function POST(
     // 組織データを取得
     const { data: organization, error: orgError } = await supabase
       .from('organizations')
-      .select('id, name, max_users')
+      .select('id, name')
       .eq('id', contract.organization_id)
       .single();
 
@@ -105,7 +105,7 @@ export async function POST(
     const actualUserCount = currentUserCount || 0;
 
     // プラン変更タイプを判定
-    const isDowngrade = new_user_limit < (contract.user_limit || organization.max_users);
+    const isDowngrade = new_user_limit < contract.user_limit;
     const userExceeded = isDowngrade && actualUserCount > new_user_limit;
 
     // 現在のパッケージを取得
