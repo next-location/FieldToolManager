@@ -31,6 +31,7 @@ interface Contract {
   auto_renew: boolean;
   trial_end_date: string | null;
   billing_cycle: string;
+  billing_day: number;
   status: string;
   initial_setup_fee: number;
   initial_data_registration_fee: number;
@@ -226,6 +227,17 @@ export default function ContractDetailView({ contract, invoices, contractPackage
               <div className="flex">
                 <dt className="text-gray-600 w-32">契約タイプ:</dt>
                 <dd className="text-gray-900 font-medium">{contractTypeLabels[contract.contract_type] || contract.contract_type}</dd>
+              </div>
+              <div className="flex">
+                <dt className="text-gray-600 w-32">請求サイクル:</dt>
+                <dd className="text-gray-900 font-medium">
+                  {contract.billing_cycle === 'monthly' ? '毎月' : '毎年'}
+                  {contract.billing_cycle === 'monthly' && (
+                    <span className="ml-1">
+                      {contract.billing_day === 99 ? '月末' : `${contract.billing_day}日`}
+                    </span>
+                  )}
+                </dd>
               </div>
               <div className="flex">
                 <dt className="text-gray-600 w-32">契約開始日:</dt>

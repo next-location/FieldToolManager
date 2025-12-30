@@ -240,12 +240,20 @@ export default function PlanChangeForm({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-600">変更前月額料金</p>
+                <p className="text-xs text-gray-500">
+                  基本料金: ¥{preview.base_monthly_fee?.toLocaleString() || '0'}<br/>
+                  機能パック: ¥{preview.old_package_fee?.toLocaleString() || '0'}
+                </p>
                 <p className="text-lg font-semibold text-gray-900">
                   ¥{preview.old_monthly_fee.toLocaleString()}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">変更後月額料金</p>
+                <p className="text-xs text-gray-500">
+                  基本料金: ¥{preview.base_monthly_fee?.toLocaleString() || '0'}<br/>
+                  機能パック: ¥{preview.new_package_fee?.toLocaleString() || '0'}
+                </p>
                 <p className="text-lg font-semibold text-gray-900">
                   ¥{preview.new_monthly_fee.toLocaleString()}
                 </p>
@@ -292,14 +300,24 @@ export default function PlanChangeForm({
               </div>
             )}
 
-            <div className="bg-white rounded p-4">
-              <p className="text-sm text-gray-600 mb-1">次回請求額（予定）</p>
-              <p className="text-2xl font-bold text-gray-900">
-                ¥{preview.next_invoice_amount.toLocaleString()}
-              </p>
+            <div className="bg-white rounded p-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">小計</span>
+                <span className="font-medium">¥{preview.subtotal?.toLocaleString() || '0'}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">消費税（10%）</span>
+                <span className="font-medium">¥{preview.tax_amount?.toLocaleString() || '0'}</span>
+              </div>
+              <div className="flex justify-between pt-2 border-t">
+                <span className="text-sm text-gray-600">次回請求額（税込）</span>
+                <span className="text-2xl font-bold text-gray-900">
+                  ¥{preview.total_with_tax?.toLocaleString() || '0'}
+                </span>
+              </div>
               <p className="text-xs text-gray-500 mt-1">
                 = 新プラン月額料金 {preview.prorated_difference >= 0 ? '+' : ''} 日割り差額
-                {preview.initial_fee > 0 ? ' + 初期費用' : ''}
+                {preview.initial_fee > 0 ? ' + 初期費用' : ''} + 消費税
               </p>
             </div>
           </div>

@@ -85,17 +85,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 現在の月額料金を計算
-    const oldMonthlyFee = currentPackages?.reduce(
+    // 現在の月額料金を計算（基本プラン + 機能パック）
+    const currentPackageFee = currentPackages?.reduce(
       (sum, cp: any) => sum + (cp.packages?.monthly_fee || 0),
       0
     ) || 0;
+    const oldMonthlyFee = contract.base_monthly_fee + currentPackageFee;
 
-    // 新しい月額料金を計算
-    const newMonthlyFee = newPackages.reduce(
+    // 新しい月額料金を計算（基本プラン + 機能パック）
+    const newPackageFee = newPackages.reduce(
       (sum, pkg) => sum + pkg.monthly_fee,
       0
     );
+    const newMonthlyFee = contract.base_monthly_fee + newPackageFee;
 
     // 変更日を決定（指定がない場合は今日）
     const effectiveChangeDate = change_date || new Date().toISOString().split('T')[0];
@@ -144,10 +146,15 @@ export async function POST(request: NextRequest) {
     const proratedDifference = oldPlanProrated + newPlanProrated;
 
     // 次回請求額（新プラン月額 + 日割り差額 + 初期費用）
-    const nextInvoiceAmount = newMonthlyFee + proratedDifference + initial_fee;
+    const subtotal = newMonthlyFee + proratedDifference + initial_fee;
+    const taxAmount = Math.floor(subtotal * 0.1); // 消費税10%
+    const totalWithTax = subtotal + taxAmount;
 
     return NextResponse.json({
       contract_id,
+      base_monthly_fee: contract.base_monthly_fee,
+      old_package_fee: currentPackageFee,
+      new_package_fee: newPackageFee,
       old_monthly_fee: oldMonthlyFee,
       new_monthly_fee: newMonthlyFee,
       change_date: effectiveChangeDate,
@@ -158,8 +165,10 @@ export async function POST(request: NextRequest) {
       old_plan_prorated: oldPlanProrated,
       new_plan_prorated: newPlanProrated,
       prorated_difference: proratedDifference,
-      initial_fee: initial_fee, // 初期費用
-      next_invoice_amount: nextInvoiceAmount
+      initial_fee: initial_fee,
+      subtotal: subtotal,
+      tax_amount: taxAmount,
+      total_with_tax: totalWithTax
     });
 
   } catch (error) {
