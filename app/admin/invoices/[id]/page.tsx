@@ -19,6 +19,15 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 
   const { id } = await params;
 
+  // Super Adminの権限を取得
+  const { data: adminData } = await supabase
+    .from('super_admins')
+    .select('role')
+    .eq('id', session.id)
+    .single();
+
+  const isSalesRole = adminData?.role === 'sales';
+
   // 請求書データを取得
   const { data: invoice, error } = await supabase
     .from('invoices')
@@ -138,7 +147,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold text-gray-900">請求書詳細</h1>
               <div className="flex gap-2">
-                {invoice.status === 'sent' && (
+                {invoice.status === 'sent' && !isSalesRole && (
                   <MarkInvoiceAsPaidButton
                     invoiceId={invoice.id}
                     invoiceNumber={invoice.invoice_number}

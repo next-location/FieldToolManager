@@ -23,6 +23,15 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
 
   const { id } = await params;
 
+  // Super Adminの権限を取得
+  const { data: adminData } = await supabase
+    .from('super_admins')
+    .select('role')
+    .eq('id', session.id)
+    .single();
+
+  const isSalesRole = adminData?.role === 'sales';
+
   console.log('[Contract Detail] Fetching contract with ID:', id);
 
   // 契約データを取得（組織情報も含む）
@@ -139,7 +148,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold text-gray-900">契約詳細</h1>
               <div className="flex gap-3">
-                {contract.status === 'draft' && (
+                {contract.status === 'draft' && !isSalesRole && (
                   <>
                     <CreateContractDocumentButton contract={contract} />
                     {!initialInvoice && (
@@ -158,12 +167,14 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
                 )}
                 {contract.status === 'active' && (
                   <>
-                    <Link
-                      href={`/admin/contracts/${contract.id}/change-plan`}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                    >
-                      プラン変更
-                    </Link>
+                    {!isSalesRole && (
+                      <Link
+                        href={`/admin/contracts/${contract.id}/change-plan`}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                      >
+                        プラン変更
+                      </Link>
+                    )}
                     <div className="text-sm text-gray-600 flex items-center">
                       <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

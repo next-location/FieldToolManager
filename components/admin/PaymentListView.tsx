@@ -30,11 +30,13 @@ interface Payment {
 interface PaymentListViewProps {
   initialPage: number;
   initialOrganizationId?: string;
+  isSalesRole?: boolean;
 }
 
 export default function PaymentListView({
   initialPage,
   initialOrganizationId,
+  isSalesRole = false,
 }: PaymentListViewProps) {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -122,12 +124,14 @@ export default function PaymentListView({
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">入金管理</h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          + 入金記録
-        </button>
+        {!isSalesRole && (
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            + 入金記録
+          </button>
+        )}
       </div>
 
       {/* 入金記録一覧 */}
@@ -197,23 +201,27 @@ export default function PaymentListView({
                       {payment.users?.name || 'システム'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => {
-                            setEditingPayment(payment);
-                            setShowModal(true);
-                          }}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          編集
-                        </button>
-                        <button
-                          onClick={() => handleDelete(payment.id)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          削除
-                        </button>
-                      </div>
+                      {!isSalesRole ? (
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => {
+                              setEditingPayment(payment);
+                              setShowModal(true);
+                            }}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            編集
+                          </button>
+                          <button
+                            onClick={() => handleDelete(payment.id)}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            削除
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
                     </td>
                   </tr>
                 ))}

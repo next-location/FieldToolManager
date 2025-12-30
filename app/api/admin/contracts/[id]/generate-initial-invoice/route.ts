@@ -35,6 +35,20 @@ export async function POST(
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
     }
 
+    // 営業権限チェック
+    const { data: adminData } = await supabase
+      .from('super_admins')
+      .select('role')
+      .eq('id', session.id)
+      .single();
+
+    if (adminData?.role === 'sales') {
+      return NextResponse.json(
+        { error: '営業権限では請求書を生成できません' },
+        { status: 403 }
+      );
+    }
+
     const { id: contractId } = await params;
 
     // 契約情報を取得
