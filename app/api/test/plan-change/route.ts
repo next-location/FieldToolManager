@@ -27,10 +27,7 @@ export async function GET(request: NextRequest) {
     // テスト用の契約を取得
     const { data: contracts, error: contractError } = await supabase
       .from('contracts')
-      .select(`
-        *,
-        organizations!contracts_organization_id_fkey (id, name, max_users, plan)
-      `)
+      .select('*')
       .eq('status', 'active')
       .limit(1);
 
@@ -42,9 +39,20 @@ export async function GET(request: NextRequest) {
     }
 
     const testContract = contracts[0];
-    const organization = Array.isArray(testContract.organizations)
-      ? testContract.organizations[0]
-      : testContract.organizations;
+
+    // 組織情報を取得
+    const { data: organization, error: orgError } = await supabase
+      .from('organizations')
+      .select('id, name, max_users, plan')
+      .eq('id', testContract.organization_id)
+      .single();
+
+    if (orgError || !organization) {
+      return NextResponse.json({
+        error: '組織情報が見つかりません',
+        details: orgError
+      }, { status: 404 });
+    }
 
     // テスト用パッケージを取得
     const { data: packages } = await supabase
