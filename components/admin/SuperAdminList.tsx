@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface SuperAdmin {
   id: string;
@@ -31,6 +32,7 @@ const ROLE_LABELS: Record<string, { label: string; description: string; color: s
 
 export default function SuperAdminList({ admins, currentUserId }: SuperAdminListProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -58,6 +60,7 @@ export default function SuperAdminList({ admins, currentUserId }: SuperAdminList
         alert('Super Adminを作成しました');
         setIsModalOpen(false);
         setFormData({ name: '', email: '', password: '', role: 'sales' });
+        setShowPassword(false);
         window.location.reload();
       } else {
         setError(data.error || 'エラーが発生しました');
@@ -74,7 +77,13 @@ export default function SuperAdminList({ admins, currentUserId }: SuperAdminList
       {/* 追加ボタン */}
       <div className="flex justify-end">
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            // フォームを初期化してモーダルを開く
+            setFormData({ name: '', email: '', password: '', role: 'sales' });
+            setShowPassword(false);
+            setError('');
+            setIsModalOpen(true);
+          }}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold"
         >
           + 新規アカウント追加
@@ -181,6 +190,7 @@ export default function SuperAdminList({ admins, currentUserId }: SuperAdminList
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  autoComplete="off"
                   required
                 />
               </div>
@@ -194,6 +204,7 @@ export default function SuperAdminList({ admins, currentUserId }: SuperAdminList
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  autoComplete="new-password"
                   required
                 />
               </div>
@@ -202,14 +213,28 @@ export default function SuperAdminList({ admins, currentUserId }: SuperAdminList
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   パスワード *
                 </label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  minLength={8}
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-10"
+                    autoComplete="new-password"
+                    minLength={8}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-700"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
                 <p className="text-xs text-gray-500 mt-1">8文字以上</p>
               </div>
 
@@ -235,7 +260,9 @@ export default function SuperAdminList({ admins, currentUserId }: SuperAdminList
                   type="button"
                   onClick={() => {
                     setIsModalOpen(false);
+                    setShowPassword(false);
                     setError('');
+                    setFormData({ name: '', email: '', password: '', role: 'sales' });
                   }}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50"
                 >
