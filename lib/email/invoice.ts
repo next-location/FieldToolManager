@@ -104,9 +104,9 @@ function getEmailHtml(params: SendInvoiceEmailParams): string {
 
     <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280;">
       <p style="margin: 0;">
-        株式会社ネクストロケーション<br>
-        〒107-0062 東京都港区南青山2丁目2番15号 WinAoyamaビル917<br>
-        TEL: 03-XXXX-XXXX
+        ザイロク<br>
+        Email: info@zairoku.com<br>
+        Web: https://zairoku.com
       </p>
     </div>
   </div>
@@ -303,10 +303,9 @@ function getReminderEmailHtml(params: SendInvoiceReminderEmailParams): string {
 
     <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280;">
       <p style="margin: 0;">
-        株式会社ネクストロケーション<br>
-        〒107-0062 東京都港区南青山2丁目2番15号 WinAoyamaビル917<br>
-        TEL: 03-XXXX-XXXX<br>
-        Email: support@zairoku.com
+        ザイロク<br>
+        Email: info@zairoku.com<br>
+        Web: https://zairoku.com
       </p>
     </div>
   </div>

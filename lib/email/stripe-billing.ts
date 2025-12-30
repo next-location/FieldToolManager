@@ -64,10 +64,8 @@ ${organizationName} 御中
 今後ともザイロクをよろしくお願いいたします。
 
 ────────────────────────────
-株式会社ネクストロケーション
-〒100-0001 東京都千代田区○○1-2-3
-TEL: 03-1234-5678
-Email: billing@zairoku.com
+ザイロク
+Email: info@zairoku.com
 Web: https://zairoku.com
 ────────────────────────────
 
@@ -97,10 +95,8 @@ ${organizationName} 御中
 今後ともザイロクをよろしくお願いいたします。
 
 ────────────────────────────
-株式会社ネクストロケーション
-〒100-0001 東京都千代田区○○1-2-3
-TEL: 03-1234-5678
-Email: billing@zairoku.com
+ザイロク
+Email: info@zairoku.com
 Web: https://zairoku.com
 ────────────────────────────
 
@@ -111,7 +107,7 @@ Web: https://zairoku.com
     if (resend) {
       // Resend使用（本番環境）
       await resend.emails.send({
-        from: 'ザイロク <billing@zairoku.com>',
+        from: 'ザイロク <info@zairoku.com>',
         to,
         subject,
         text: bodyText,
@@ -234,10 +230,8 @@ ${organizationName} 御中
 今後ともザイロクをよろしくお願いいたします。
 
 ────────────────────────────
-株式会社ネクストロケーション
-〒100-0001 東京都千代田区○○1-2-3
-TEL: 03-1234-5678
-Email: billing@zairoku.com
+ザイロク
+Email: info@zairoku.com
 Web: https://zairoku.com
 ────────────────────────────
 
