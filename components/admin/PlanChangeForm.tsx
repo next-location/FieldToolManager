@@ -55,6 +55,8 @@ export default function PlanChangeForm({
   const [selectedPlan, setSelectedPlan] = useState(currentPlan);
   const [newBaseFee, setNewBaseFee] = useState(currentBaseFee);
   const [newUserLimit, setNewUserLimit] = useState(currentUserLimit);
+  const [customBaseFee, setCustomBaseFee] = useState<string>(''); // エンタープライズ用カスタム料金
+  const [customUserLimit, setCustomUserLimit] = useState<string>(''); // エンタープライズ用カスタム人数
 
   // 機能パックは1つのみ選択（ラジオボタン）
   const [selectedPackageId, setSelectedPackageId] = useState<string>(
@@ -71,8 +73,16 @@ export default function PlanChangeForm({
     const plan = basePlans.find(p => p.key === planKey);
     if (plan) {
       setSelectedPlan(planKey);
-      setNewBaseFee(plan.baseFee);
-      setNewUserLimit(plan.userLimit);
+      if (planKey === 'enterprise') {
+        // エンタープライズの場合は手動入力が必要
+        setNewBaseFee(0);
+        setNewUserLimit(101);
+        setCustomBaseFee('');
+        setCustomUserLimit('');
+      } else {
+        setNewBaseFee(plan.baseFee);
+        setNewUserLimit(plan.userLimit);
+      }
       setPreview(null); // プレビューをリセット
     }
   };
@@ -83,6 +93,23 @@ export default function PlanChangeForm({
     setError('');
     setPreview(null);
 
+    // エンタープライズの場合はカスタム値をチェック
+    if (selectedPlan === 'enterprise') {
+      if (!customBaseFee || parseFloat(customBaseFee) <= 0) {
+        setError('エンタープライズプランの基本料金を入力してください');
+        setIsLoading(false);
+        return;
+      }
+      if (!customUserLimit || parseInt(customUserLimit) < 101) {
+        setError('エンタープライズプランのユーザー上限を101名以上で入力してください');
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    const finalBaseFee = selectedPlan === 'enterprise' ? parseFloat(customBaseFee) : newBaseFee;
+    const finalUserLimit = selectedPlan === 'enterprise' ? parseInt(customUserLimit) : newUserLimit;
+
     try {
       const response = await fetch('/api/admin/contracts/change-plan/preview', {
         method: 'POST',
@@ -90,8 +117,8 @@ export default function PlanChangeForm({
         body: JSON.stringify({
           contract_id: contract.id,
           new_plan: selectedPlan,
-          new_base_fee: newBaseFee,
-          new_user_limit: newUserLimit,
+          new_base_fee: finalBaseFee,
+          new_user_limit: finalUserLimit,
           new_package_ids: [selectedPackageId],
           change_date: changeDate,
           initial_fee: parseFloat(initialFee) || 0
@@ -126,14 +153,17 @@ export default function PlanChangeForm({
     setIsLoading(true);
     setError('');
 
+    const finalBaseFee = selectedPlan === 'enterprise' ? parseFloat(customBaseFee) : newBaseFee;
+    const finalUserLimit = selectedPlan === 'enterprise' ? parseInt(customUserLimit) : newUserLimit;
+
     try {
       const response = await fetch(`/api/admin/contracts/${contract.id}/change-plan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           new_plan: selectedPlan,
-          new_base_fee: newBaseFee,
-          new_user_limit: newUserLimit,
+          new_base_fee: finalBaseFee,
+          new_user_limit: finalUserLimit,
           new_package_ids: [selectedPackageId],
           change_date: changeDate,
           initial_fee: parseFloat(initialFee) || 0
@@ -219,14 +249,69 @@ export default function PlanChangeForm({
                 <div className="flex justify-between items-center">
                   <div>
                     <span className="font-medium text-gray-900">{plan.name}</span>
-                    <span className="text-sm text-gray-500 ml-2">({plan.userLimit}名まで)</span>
+                    <span className="text-sm text-gray-500 ml-2">
+                      {plan.key === 'enterprise' ? '(101名以上)' : `(${plan.userLimit}名まで)`}
+                    </span>
                   </div>
-                  <span className="text-gray-900 font-semibold">¥{plan.baseFee.toLocaleString()}/月</span>
+                  <span className="text-gray-900 font-semibold">
+                    {plan.key === 'enterprise' ? '要相談' : `¥${plan.baseFee.toLocaleString()}/月`}
+                  </span>
                 </div>
               </div>
             </label>
           ))}
         </div>
+
+        {/* エンタープライズ選択時の入力フィールド */}
+        {selectedPlan === 'enterprise' && (
+          <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <h3 className="font-semibold text-gray-900 mb-3">エンタープライズプラン詳細</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  基本料金（月額）<span className="text-red-600">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2 text-gray-500">¥</span>
+                  <input
+                    type="number"
+                    value={customBaseFee}
+                    onChange={(e) => {
+                      setCustomBaseFee(e.target.value);
+                      setPreview(null);
+                    }}
+                    min="0"
+                    step="1000"
+                    className="border rounded-lg pl-8 pr-3 py-2 w-full"
+                    placeholder="例: 200000"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  ユーザー上限<span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={customUserLimit}
+                  onChange={(e) => {
+                    setCustomUserLimit(e.target.value);
+                    setPreview(null);
+                  }}
+                  min="101"
+                  step="1"
+                  className="border rounded-lg px-3 py-2 w-full"
+                  placeholder="例: 200"
+                  required
+                />
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mt-2">
+              ※エンタープライズプランは個別見積もりです。顧客の規模に応じて金額とユーザー上限を設定してください。
+            </p>
+          </div>
+        )}
       </div>
 
       {/* 機能パック選択 */}
