@@ -41,7 +41,7 @@ export async function POST(
     // 契約データを取得
     const { data: contract, error: contractError } = await supabase
       .from('contracts')
-      .select('*, organizations!inner(id, name, max_users)')
+      .select('*')
       .eq('id', contractId)
       .single();
 
@@ -53,9 +53,16 @@ export async function POST(
       return NextResponse.json({ error: '有効な契約のみプラン変更可能です' }, { status: 400 });
     }
 
-    const organization = Array.isArray(contract.organizations)
-      ? contract.organizations[0]
-      : contract.organizations;
+    // 組織データを取得
+    const { data: organization, error: orgError } = await supabase
+      .from('organizations')
+      .select('id, name, max_users')
+      .eq('id', contract.organization_id)
+      .single();
+
+    if (orgError || !organization) {
+      return NextResponse.json({ error: '組織が見つかりません' }, { status: 404 });
+    }
 
     // 次回請求日を計算
     const today = new Date();
