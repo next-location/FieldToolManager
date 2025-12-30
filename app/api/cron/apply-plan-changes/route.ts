@@ -145,14 +145,12 @@ export async function GET(request: NextRequest) {
           })
           .eq('id', contract.id);
 
-        // 4. organizations テーブルを更新（実際の機能反映）
+        // 4. organizations テーブルを更新（planのみ）
+        // 注意: max_users, has_asset_package, has_dx_efficiency_packageは本番環境に存在しない
         await supabase
           .from('organizations')
           .update({
             plan: pendingChange.new_plan,
-            max_users: pendingChange.new_user_limit,
-            has_asset_package: packageKeys.includes('asset') || packageKeys.includes('full'),
-            has_dx_efficiency_package: packageKeys.includes('dx') || packageKeys.includes('full')
           })
           .eq('id', organization.id);
 
