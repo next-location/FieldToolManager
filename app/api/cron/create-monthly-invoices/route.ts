@@ -61,12 +61,33 @@ export async function GET(request: NextRequest) {
       .eq('status', 'active')
       .eq('billing_cycle', 'monthly');
 
-    // 営業日調整後の請求日が今日の契約をフィルタ
+    // 請求日の20日前が今日の契約をフィルタ（初回請求を除く）
     const monthlyContracts = (allMonthlyContracts || []).filter(contract => {
-      const adjustedDate = getAdjustedBillingDate(contract.billing_day, today);
-      return adjustedDate.getDate() === todayDay &&
-             adjustedDate.getMonth() === today.getMonth() &&
-             adjustedDate.getFullYear() === today.getFullYear();
+      // 今月の請求日を取得（営業日調整済み）
+      const currentMonthBillingDate = getAdjustedBillingDate(contract.billing_day, today);
+
+      // 次月の請求日を取得（来月の同じ日）
+      const nextMonth = new Date(today);
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      const nextMonthBillingDate = getAdjustedBillingDate(contract.billing_day, nextMonth);
+
+      // 請求書送信日 = 請求日の20日前
+      const invoiceSendDate = new Date(nextMonthBillingDate);
+      invoiceSendDate.setDate(invoiceSendDate.getDate() - 20);
+
+      // 今日が請求書送信日かチェック
+      const isInvoiceSendDay = invoiceSendDate.getDate() === todayDay &&
+                               invoiceSendDate.getMonth() === today.getMonth() &&
+                               invoiceSendDate.getFullYear() === today.getFullYear();
+
+      // 初回請求かどうかをチェック（契約開始日から1ヶ月以内は初回とみなす）
+      const contractStartDate = new Date(contract.start_date);
+      const oneMonthAfterStart = new Date(contractStartDate);
+      oneMonthAfterStart.setMonth(oneMonthAfterStart.getMonth() + 1);
+      const isInitialInvoice = today < oneMonthAfterStart;
+
+      // 初回請求は除外（初回は契約完了時に即時発行）
+      return isInvoiceSendDay && !isInitialInvoice;
     });
 
     // 年払い契約で今日が年次請求日のものを取得
@@ -96,16 +117,34 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 年払い契約のうち、今日が請求日（契約開始日の年次記念日、営業日調整済み）のものをフィルタ
+    // 年払い契約のうち、請求日の20日前が今日のものをフィルタ（初回請求を除く）
     const annualContractsToday = (annualContracts || []).filter(contract => {
       const startDate = new Date(contract.start_date);
       const billingDay = startDate.getDate();
-      const adjustedDate = getAdjustedBillingDate(billingDay, today);
 
-      return adjustedDate.getDate() === todayDay &&
-             adjustedDate.getMonth() === today.getMonth() &&
-             adjustedDate.getFullYear() === today.getFullYear() &&
-             startDate.getMonth() === today.getMonth();
+      // 次回の年次請求日を取得
+      const nextAnniversary = new Date(today);
+      nextAnniversary.setFullYear(today.getFullYear() + 1);
+      nextAnniversary.setMonth(startDate.getMonth());
+      nextAnniversary.setDate(billingDay);
+      const adjustedAnniversary = getAdjustedBillingDate(billingDay, nextAnniversary);
+
+      // 請求書送信日 = 請求日の20日前
+      const invoiceSendDate = new Date(adjustedAnniversary);
+      invoiceSendDate.setDate(invoiceSendDate.getDate() - 20);
+
+      // 今日が請求書送信日かチェック
+      const isInvoiceSendDay = invoiceSendDate.getDate() === todayDay &&
+                               invoiceSendDate.getMonth() === today.getMonth() &&
+                               invoiceSendDate.getFullYear() === today.getFullYear();
+
+      // 初回請求かどうかをチェック（契約開始日から1年以内は初回とみなす）
+      const oneYearAfterStart = new Date(startDate);
+      oneYearAfterStart.setFullYear(oneYearAfterStart.getFullYear() + 1);
+      const isInitialInvoice = today < oneYearAfterStart;
+
+      // 初回請求は除外（初回は契約完了時に即時発行）
+      return isInvoiceSendDay && !isInitialInvoice;
     });
 
     // 月払いと年払いを統合
@@ -141,6 +180,56 @@ export async function GET(request: NextRequest) {
       const organization = Array.isArray(contract.organizations)
         ? contract.organizations[0]
         : contract.organizations;
+
+      // ✨ プラン変更予約のチェック（ダウングレード時のユーザー数警告）
+      if (contract.pending_plan_change) {
+        const pendingChange = contract.pending_plan_change as any;
+
+        logger.info('Pending plan change detected', {
+          contractId: contract.id,
+          isDowngrade: pendingChange.is_downgrade,
+          userExceeded: pendingChange.user_exceeded
+        });
+
+        // ダウングレードでユーザー数超過の場合、警告メール送信
+        if (pendingChange.is_downgrade && pendingChange.user_exceeded) {
+          // 現在のユーザー数を再確認
+          const { count: currentUserCount } = await supabase
+            .from('users')
+            .select('*', { count: 'exact', head: true })
+            .eq('organization_id', organization.id)
+            .is('deleted_at', null);
+
+          const actualUserCount = currentUserCount || 0;
+
+          if (actualUserCount > pendingChange.new_user_limit) {
+            // まだユーザー数超過 → 警告メール送信
+            const { sendInitialPlanChangeWarning } = await import('@/lib/email/plan-change-notifications');
+
+            const graceDeadline = new Date(pendingChange.effective_date);
+            graceDeadline.setDate(graceDeadline.getDate() + 3);
+
+            await sendInitialPlanChangeWarning({
+              to: contract.billing_contact_email || contract.admin_email || '',
+              organizationName: organization.name,
+              effectiveDate: pendingChange.effective_date,
+              currentPlan: pendingChange.old_plan,
+              newPlan: pendingChange.new_plan,
+              currentUserLimit: pendingChange.old_user_limit,
+              newUserLimit: pendingChange.new_user_limit,
+              currentUserCount: actualUserCount,
+              excessCount: actualUserCount - pendingChange.new_user_limit,
+              graceDeadline: graceDeadline.toISOString().split('T')[0]
+            });
+
+            logger.info('Initial plan change warning sent', {
+              contractId: contract.id,
+              to: contract.billing_contact_email || contract.admin_email,
+              excessCount: actualUserCount - pendingChange.new_user_limit
+            });
+          }
+        }
+      }
 
       logger.info('DEBUG: Organization after extraction', {
         hasOrganization: !!organization,
