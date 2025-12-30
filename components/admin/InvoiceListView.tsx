@@ -33,12 +33,14 @@ interface InvoiceListViewProps {
   initialPage: number;
   initialStatus?: string;
   initialOrganizationId?: string;
+  isSalesRole?: boolean;
 }
 
 export default function InvoiceListView({
   initialPage,
   initialStatus,
   initialOrganizationId,
+  isSalesRole = false,
 }: InvoiceListViewProps) {
   const router = useRouter();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -186,12 +188,14 @@ export default function InvoiceListView({
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">請求書管理</h1>
-        <Link
-          href="/admin/invoices/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          + 請求書作成
-        </Link>
+        {!isSalesRole && (
+          <Link
+            href="/admin/invoices/new"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            + 請求書作成
+          </Link>
+        )}
       </div>
 
       {/* フィルター */}

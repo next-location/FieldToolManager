@@ -139,6 +139,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
     }
 
+    // 営業権限チェック
+    const { data: adminData } = await supabase
+      .from('super_admins')
+      .select('role')
+      .eq('id', session.id)
+      .single();
+
+    if (adminData?.role === 'sales') {
+      return NextResponse.json(
+        { error: '営業権限では請求書を作成できません' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
 
     // 請求書番号の自動生成（年月-連番）

@@ -1,9 +1,15 @@
 import { Metadata } from 'next';
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
 import { redirect } from 'next/navigation';
+import { createClient } from '@supabase/supabase-js';
 import InvoiceListView from '@/components/admin/InvoiceListView';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export const metadata: Metadata = {
   title: '請求書管理 | システム管理',
@@ -18,6 +24,15 @@ export default async function InvoicesPage({
   if (!session) {
     redirect('/admin/login');
   }
+
+  // Super Adminの権限を取得
+  const { data: adminData } = await supabase
+    .from('super_admins')
+    .select('role')
+    .eq('id', session.id)
+    .single();
+
+  const isSalesRole = adminData?.role === 'sales';
 
   const params = await searchParams;
   const page = typeof params.page === 'string' ? parseInt(params.page) : 1;
@@ -42,6 +57,7 @@ export default async function InvoicesPage({
             initialPage={page}
             initialStatus={status}
             initialOrganizationId={organizationId}
+            isSalesRole={isSalesRole}
           />
         </main>
       </div>
