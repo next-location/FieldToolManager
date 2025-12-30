@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { contract_id, new_package_ids, change_date, initial_fee = 0 } = body;
+    const { contract_id, new_plan, new_base_fee, new_user_limit, new_package_ids, change_date, initial_fee = 0 } = body;
 
     // バリデーション
     if (!contract_id || !new_package_ids || !Array.isArray(new_package_ids)) {
@@ -90,14 +90,16 @@ export async function POST(request: NextRequest) {
       (sum, cp: any) => sum + (cp.packages?.monthly_fee || 0),
       0
     ) || 0;
-    const oldMonthlyFee = contract.base_monthly_fee + currentPackageFee;
+    const oldBaseFee = contract.base_monthly_fee;
+    const oldMonthlyFee = oldBaseFee + currentPackageFee;
 
     // 新しい月額料金を計算（基本プラン + 機能パック）
     const newPackageFee = newPackages.reduce(
       (sum, pkg) => sum + pkg.monthly_fee,
       0
     );
-    const newMonthlyFee = contract.base_monthly_fee + newPackageFee;
+    const newBaseFee = new_base_fee || contract.base_monthly_fee;
+    const newMonthlyFee = newBaseFee + newPackageFee;
 
     // 変更日を決定（指定がない場合は今日）
     const effectiveChangeDate = change_date || new Date().toISOString().split('T')[0];
@@ -152,7 +154,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       contract_id,
-      base_monthly_fee: contract.base_monthly_fee,
+      old_base_fee: oldBaseFee,
+      new_base_fee: newBaseFee,
       old_package_fee: currentPackageFee,
       new_package_fee: newPackageFee,
       old_monthly_fee: oldMonthlyFee,

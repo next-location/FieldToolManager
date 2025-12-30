@@ -27,14 +27,35 @@ interface PlanChangeFormProps {
   contract: Contract;
   currentPackages: ContractPackage[];
   availablePackages: Package[];
+  currentPlan: string;
+  currentBaseFee: number;
+  currentUserLimit: number;
 }
+
+// 基本プラン定義
+const basePlans = [
+  { key: 'start', name: 'スタート', baseFee: 10000, userLimit: 10 },
+  { key: 'standard', name: 'スタンダード', baseFee: 20000, userLimit: 30 },
+  { key: 'business', name: 'ビジネス', baseFee: 40000, userLimit: 100 },
+  { key: 'pro', name: 'プロ', baseFee: 80000, userLimit: 300 },
+  { key: 'enterprise', name: 'エンタープライズ', baseFee: 150000, userLimit: 1000 },
+];
 
 export default function PlanChangeForm({
   contract,
   currentPackages,
-  availablePackages
+  availablePackages,
+  currentPlan,
+  currentBaseFee,
+  currentUserLimit
 }: PlanChangeFormProps) {
   const router = useRouter();
+
+  // 基本プラン選択
+  const [selectedPlan, setSelectedPlan] = useState(currentPlan);
+  const [newBaseFee, setNewBaseFee] = useState(currentBaseFee);
+  const [newUserLimit, setNewUserLimit] = useState(currentUserLimit);
+
   // 機能パックは1つのみ選択（ラジオボタン）
   const [selectedPackageId, setSelectedPackageId] = useState<string>(
     currentPackages.length > 0 ? currentPackages[0].package_id : ''
@@ -44,6 +65,17 @@ export default function PlanChangeForm({
   const [isLoading, setIsLoading] = useState(false);
   const [preview, setPreview] = useState<any>(null);
   const [error, setError] = useState('');
+
+  // 基本プラン変更時の処理
+  const handlePlanChange = (planKey: string) => {
+    const plan = basePlans.find(p => p.key === planKey);
+    if (plan) {
+      setSelectedPlan(planKey);
+      setNewBaseFee(plan.baseFee);
+      setNewUserLimit(plan.userLimit);
+      setPreview(null); // プレビューをリセット
+    }
+  };
 
   // プレビュー計算
   const handlePreview = async () => {
@@ -57,9 +89,12 @@ export default function PlanChangeForm({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contract_id: contract.id,
-          new_package_ids: [selectedPackageId], // 配列形式で送信
+          new_plan: selectedPlan,
+          new_base_fee: newBaseFee,
+          new_user_limit: newUserLimit,
+          new_package_ids: [selectedPackageId],
           change_date: changeDate,
-          initial_fee: parseFloat(initialFee) || 0 // 初期費用
+          initial_fee: parseFloat(initialFee) || 0
         })
       });
 
@@ -96,9 +131,12 @@ export default function PlanChangeForm({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          new_package_ids: [selectedPackageId], // 配列形式で送信
+          new_plan: selectedPlan,
+          new_base_fee: newBaseFee,
+          new_user_limit: newUserLimit,
+          new_package_ids: [selectedPackageId],
           change_date: changeDate,
-          initial_fee: parseFloat(initialFee) || 0 // 初期費用
+          initial_fee: parseFloat(initialFee) || 0
         })
       });
 
@@ -129,13 +167,22 @@ export default function PlanChangeForm({
       <div className="mb-8">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">現在のプラン</h2>
         <div className="bg-gray-50 rounded-lg p-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <p className="text-sm text-gray-600">基本プラン</p>
+              <p className="text-sm font-medium text-gray-900 mt-2">
+                {basePlans.find(p => p.key === currentPlan)?.name || currentPlan}
+              </p>
+              <p className="text-xs text-gray-500">
+                ¥{currentBaseFee.toLocaleString()}/月・{currentUserLimit}名まで
+              </p>
+            </div>
             <div>
               <p className="text-sm text-gray-600">機能パック</p>
-              <div className="mt-2 space-y-2">
+              <div className="mt-2 space-y-1">
                 {currentPackages.map(cp => (
                   <div key={cp.package_id} className="text-sm font-medium text-gray-900">
-                    {cp.packages.name} - ¥{cp.packages.monthly_fee.toLocaleString()}/月
+                    {cp.packages.name}
                   </div>
                 ))}
               </div>
@@ -150,9 +197,41 @@ export default function PlanChangeForm({
         </div>
       </div>
 
-      {/* 変更後のプラン選択 */}
+      {/* 基本プラン選択 */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">変更後のプラン</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">変更後の基本プラン</h2>
+        <div className="space-y-3">
+          {basePlans.map(plan => (
+            <label
+              key={plan.key}
+              className={`flex items-center p-4 border-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors ${
+                selectedPlan === plan.key ? 'border-blue-600 bg-blue-50' : 'border-gray-200'
+              }`}
+            >
+              <input
+                type="radio"
+                name="base_plan"
+                checked={selectedPlan === plan.key}
+                onChange={() => handlePlanChange(plan.key)}
+                className="h-4 w-4 text-blue-600"
+              />
+              <div className="ml-3 flex-1">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="font-medium text-gray-900">{plan.name}</span>
+                    <span className="text-sm text-gray-500 ml-2">({plan.userLimit}名まで)</span>
+                  </div>
+                  <span className="text-gray-900 font-semibold">¥{plan.baseFee.toLocaleString()}/月</span>
+                </div>
+              </div>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* 機能パック選択 */}
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">変更後の機能パック</h2>
         <div className="space-y-3">
           {availablePackages.map(pkg => (
             <label
@@ -241,7 +320,7 @@ export default function PlanChangeForm({
               <div>
                 <p className="text-sm text-gray-600">変更前月額料金</p>
                 <p className="text-xs text-gray-500">
-                  基本料金: ¥{preview.base_monthly_fee?.toLocaleString() || '0'}<br/>
+                  基本料金: ¥{preview.old_base_fee?.toLocaleString() || '0'}<br/>
                   機能パック: ¥{preview.old_package_fee?.toLocaleString() || '0'}
                 </p>
                 <p className="text-lg font-semibold text-gray-900">
@@ -251,7 +330,7 @@ export default function PlanChangeForm({
               <div>
                 <p className="text-sm text-gray-600">変更後月額料金</p>
                 <p className="text-xs text-gray-500">
-                  基本料金: ¥{preview.base_monthly_fee?.toLocaleString() || '0'}<br/>
+                  基本料金: ¥{preview.new_base_fee?.toLocaleString() || '0'}<br/>
                   機能パック: ¥{preview.new_package_fee?.toLocaleString() || '0'}
                 </p>
                 <p className="text-lg font-semibold text-gray-900">

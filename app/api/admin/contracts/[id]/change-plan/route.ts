@@ -24,7 +24,7 @@ export async function POST(
 
     const { id: contractId } = await params;
     const body = await request.json();
-    const { new_package_ids, change_date, initial_fee = 0 } = body;
+    const { new_plan, new_base_fee, new_user_limit, new_package_ids, change_date, initial_fee = 0 } = body;
 
     // バリデーション
     if (!new_package_ids || !Array.isArray(new_package_ids) || new_package_ids.length === 0) {
@@ -115,14 +115,33 @@ export async function POST(
       .insert(packageInserts);
 
     // 契約情報を更新
+    const updateData: any = {
+      pending_prorated_charge: proratedDifference + initial_fee, // 日割り差額 + 初期費用
+      pending_prorated_description: `プラン変更（${planChangeType}）による日割り差額${initial_fee > 0 ? ' + 初期費用' : ''}`,
+      plan_change_date: effectiveChangeDate.toISOString(),
+      plan_change_type: planChangeType
+    };
+
+    // 基本プラン変更がある場合
+    if (new_plan) {
+      updateData.plan = new_plan;
+    }
+    if (new_base_fee !== undefined) {
+      updateData.base_monthly_fee = new_base_fee;
+    }
+    if (new_user_limit !== undefined) {
+      updateData.user_limit = new_user_limit;
+    }
+
+    // total_monthly_feeも再計算
+    const finalBaseFee = new_base_fee !== undefined ? new_base_fee : contract.base_monthly_fee;
+    const finalPackageFee = newPackages?.reduce((sum, pkg) => sum + pkg.monthly_fee, 0) || 0;
+    updateData.total_monthly_fee = finalBaseFee + finalPackageFee;
+    updateData.package_monthly_fee = finalPackageFee;
+
     await supabase
       .from('contracts')
-      .update({
-        pending_prorated_charge: proratedDifference + initial_fee, // 日割り差額 + 初期費用
-        pending_prorated_description: `プラン変更（${planChangeType}）による日割り差額${initial_fee > 0 ? ' + 初期費用' : ''}`,
-        plan_change_date: effectiveChangeDate.toISOString(),
-        plan_change_type: planChangeType
-      })
+      .update(updateData)
       .eq('id', contractId);
 
     console.log('[Change Plan] Plan changed successfully:', {

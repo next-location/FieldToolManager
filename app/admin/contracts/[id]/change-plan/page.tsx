@@ -135,6 +135,9 @@ export default async function PlanChangePage({ params }: { params: Promise<{ id:
             contract={contract}
             currentPackages={currentPackages}
             availablePackages={availablePackages || []}
+            currentPlan={contract.plan}
+            currentBaseFee={contract.base_monthly_fee}
+            currentUserLimit={contract.user_limit}
           />
         </main>
       </div>
