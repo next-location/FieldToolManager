@@ -35,8 +35,9 @@ export default function PlanChangeForm({
   availablePackages
 }: PlanChangeFormProps) {
   const router = useRouter();
-  const [selectedPackageIds, setSelectedPackageIds] = useState<string[]>(
-    currentPackages.map(cp => cp.package_id)
+  // 機能パックは1つのみ選択（ラジオボタン）
+  const [selectedPackageId, setSelectedPackageId] = useState<string>(
+    currentPackages.length > 0 ? currentPackages[0].package_id : ''
   );
   const [changeDate, setChangeDate] = useState(new Date().toISOString().split('T')[0]);
   const [isLoading, setIsLoading] = useState(false);
@@ -55,7 +56,7 @@ export default function PlanChangeForm({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contract_id: contract.id,
-          new_package_ids: selectedPackageIds,
+          new_package_ids: [selectedPackageId], // 配列形式で送信
           change_date: changeDate
         })
       });
@@ -93,7 +94,7 @@ export default function PlanChangeForm({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          new_package_ids: selectedPackageIds,
+          new_package_ids: [selectedPackageId], // 配列形式で送信
           change_date: changeDate
         })
       });
@@ -113,14 +114,9 @@ export default function PlanChangeForm({
     }
   };
 
-  const handlePackageToggle = (packageId: string) => {
-    setSelectedPackageIds(prev => {
-      if (prev.includes(packageId)) {
-        return prev.filter(id => id !== packageId);
-      } else {
-        return [...prev, packageId];
-      }
-    });
+  // パッケージ選択（ラジオボタン）
+  const handlePackageSelect = (packageId: string) => {
+    setSelectedPackageId(packageId);
     setPreview(null); // プレビューをリセット
   };
 
@@ -158,18 +154,21 @@ export default function PlanChangeForm({
           {availablePackages.map(pkg => (
             <label
               key={pkg.id}
-              className="flex items-center p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
+              className={`flex items-center p-4 border-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors ${
+                selectedPackageId === pkg.id ? 'border-blue-600 bg-blue-50' : 'border-gray-200'
+              }`}
             >
               <input
-                type="checkbox"
-                checked={selectedPackageIds.includes(pkg.id)}
-                onChange={() => handlePackageToggle(pkg.id)}
-                className="h-4 w-4 text-blue-600 rounded"
+                type="radio"
+                name="package"
+                checked={selectedPackageId === pkg.id}
+                onChange={() => handlePackageSelect(pkg.id)}
+                className="h-4 w-4 text-blue-600"
               />
               <div className="ml-3 flex-1">
                 <div className="flex justify-between items-center">
                   <span className="font-medium text-gray-900">{pkg.name}</span>
-                  <span className="text-gray-900">¥{pkg.monthly_fee.toLocaleString()}/月</span>
+                  <span className="text-gray-900 font-semibold">¥{pkg.monthly_fee.toLocaleString()}/月</span>
                 </div>
               </div>
             </label>
