@@ -288,16 +288,33 @@ export async function GET(request: NextRequest) {
 
         // 請求書送信対象かチェック
         const today = getCurrentDate();
-        const nextMonth = new Date(today);
-        nextMonth.setMonth(nextMonth.getMonth() + 1);
 
-        const billingDay = 28;
-        const nextMonthBillingDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), billingDay);
-        const invoiceSendDate = new Date(nextMonthBillingDate);
+        // 契約のbilling_dayを取得
+        const { data: contractData } = await supabase
+          .from('contracts')
+          .select('billing_day')
+          .eq('id', testContractId)
+          .single();
+
+        const billingDay = contractData?.billing_day || 28;
+
+        // 次回請求日を計算（今日が1/8なら、次回請求日は2/28）
+        // 今日より後の最初のbilling_day
+        let nextBillingDate = new Date(today);
+        nextBillingDate.setDate(billingDay);
+
+        // もし今日がすでにbilling_dayを過ぎていたら、翌月
+        if (nextBillingDate <= today) {
+          nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+        }
+
+        // 請求書送信日 = 請求日の20日前
+        const invoiceSendDate = new Date(nextBillingDate);
         invoiceSendDate.setDate(invoiceSendDate.getDate() - 20);
 
         const isCorrectDate = invoiceSendDate.getDate() === today.getDate() &&
-                              invoiceSendDate.getMonth() === today.getMonth();
+                              invoiceSendDate.getMonth() === today.getMonth() &&
+                              invoiceSendDate.getFullYear() === today.getFullYear();
 
         if (!isCorrectDate) {
           throw new Error(`請求書送信日が不一致: 期待=${invoiceSendDate.toISOString().split('T')[0]}, 実際=${today.toISOString().split('T')[0]}`);
@@ -448,13 +465,12 @@ export async function GET(request: NextRequest) {
           throw new Error(`契約更新失敗: ${contractUpdateError.message}`);
         }
 
-        // organizationsテーブルを更新
+        // organizationsテーブルを更新（planのみ）
+        // 注意: has_asset_package, has_dx_efficiency_packageは本番環境に存在しないため削除
         const { error: orgUpdateError } = await supabase
           .from('organizations')
           .update({
             plan: pending.new_plan,
-            has_asset_package: false,
-            has_dx_efficiency_package: true,
           })
           .eq('id', testOrganizationId);
 
