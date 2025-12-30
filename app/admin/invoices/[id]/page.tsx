@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
+import MarkInvoiceAsPaidButton from '@/components/admin/MarkInvoiceAsPaidButton';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -137,6 +138,13 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold text-gray-900">請求書詳細</h1>
               <div className="flex gap-2">
+                {invoice.status === 'sent' && (
+                  <MarkInvoiceAsPaidButton
+                    invoiceId={invoice.id}
+                    invoiceNumber={invoice.invoice_number}
+                    totalAmount={invoice.total_amount}
+                  />
+                )}
                 <a
                   href={`/api/admin/invoices/${id}/pdf`}
                   target="_blank"
