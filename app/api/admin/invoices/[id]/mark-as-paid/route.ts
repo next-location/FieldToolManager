@@ -30,7 +30,7 @@ export async function POST(
     // 請求書情報を取得
     const { data: invoice, error: invoiceError } = await supabase
       .from('invoices')
-      .select('id, invoice_number, status, total_amount, contract_id')
+      .select('id, invoice_number, status, total_amount, contract_id, organization_id')
       .eq('id', invoiceId)
       .single();
 
@@ -46,12 +46,36 @@ export async function POST(
       }, { status: 400 });
     }
 
+    const paymentDate = new Date().toISOString();
+
+    // 入金記録を作成
+    const { error: paymentError } = await supabase
+      .from('payment_records')
+      .insert({
+        organization_id: invoice.organization_id,
+        invoice_id: invoiceId,
+        payment_date: paymentDate.split('T')[0],
+        amount: invoice.total_amount,
+        payment_method: 'bank_transfer',
+        reference_number: null,
+        notes: 'スーパーアドミンによる入金確認',
+        created_by: null,
+      });
+
+    if (paymentError) {
+      console.error('[MarkAsPaid] Failed to create payment record:', paymentError);
+      return NextResponse.json({
+        error: '入金記録の作成に失敗しました',
+        details: paymentError.message,
+      }, { status: 500 });
+    }
+
     // 請求書ステータスを更新
     const { error: updateError } = await supabase
       .from('invoices')
       .update({
         status: 'paid',
-        paid_date: new Date().toISOString(),
+        paid_date: paymentDate,
       })
       .eq('id', invoiceId);
 
