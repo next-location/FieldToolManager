@@ -272,14 +272,18 @@ export default function ContractDetailView({ contract, invoices, contractPackage
             <dt className="text-gray-600 text-sm mb-2">機能パック:</dt>
             <dd className="space-y-2">
               {contractPackages && contractPackages.length > 0 ? (
-                contractPackages.map((cp) => (
-                  <span
-                    key={cp.package_id}
-                    className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold mr-2 mb-2"
-                  >
-                    {cp.packages[0]?.name || 'パッケージ情報なし'}
-                  </span>
-                ))
+                contractPackages.map((cp) => {
+                  // packagesは配列またはオブジェクトの可能性があるため、両方に対応
+                  const packageData = Array.isArray(cp.packages) ? cp.packages[0] : cp.packages;
+                  return (
+                    <span
+                      key={cp.package_id}
+                      className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold mr-2 mb-2"
+                    >
+                      {packageData?.name || 'パッケージ情報なし'}
+                    </span>
+                  );
+                })
               ) : (
                 <span className="text-gray-500 text-sm">なし</span>
               )}

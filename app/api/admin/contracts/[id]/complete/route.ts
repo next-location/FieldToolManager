@@ -199,6 +199,8 @@ export async function POST(
         admin_user_id: authUser.user.id,
         contract_completed_at: new Date().toISOString(),
         admin_password: null, // セキュリティのためパスワードをクリア
+        initial_fee_paid: true, // 初回入金確認済み
+        initial_fee_paid_at: new Date().toISOString(),
       })
       .eq('id', contractId);
 
