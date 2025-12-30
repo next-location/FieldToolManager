@@ -340,7 +340,7 @@ export async function GET(request: NextRequest) {
           data: {
             current_date: today.toISOString().split('T')[0],
             invoice_send_date: invoiceSendDate.toISOString().split('T')[0],
-            billing_date: nextMonthBillingDate.toISOString().split('T')[0],
+            billing_date: nextBillingDate.toISOString().split('T')[0],
           },
         });
         passedTests++;
