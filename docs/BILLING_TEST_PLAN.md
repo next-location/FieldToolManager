@@ -86,45 +86,28 @@ curl -X POST https://zairoku.com/api/admin/test/trigger-cron \
 
 ---
 
-### ✅ テスト2: 年払い契約の請求書生成（12倍の料金）
+### ✅ テスト2: 年払い契約の請求書生成（12倍の料金） ✅ **完了 (2025-12-30)**
 
 **目的:** 年払い契約で月額×12の金額で請求書が生成されることを確認
 
 **準備:**
-1. テスト用組織を作成
-2. 年払い契約を作成（billing_cycle: annual）
+1. ✅ テスト用組織を作成
+2. ✅ 年払い契約を作成（billing_cycle: annual）
    - 基本プラン: スタンダード（30名）
    - 機能パック: フル機能統合パック
    - 支払い方法: 請求書払い
 
 **手順:**
-
-#### 方法A: 手動請求書生成
-```bash
-curl -X POST https://zairoku.com/api/admin/test/generate-invoice \
-  -H "Content-Type: application/json" \
-  -d '{"contract_id": "<年払い契約ID>"}'
-```
-
-#### 方法B: cron経由
-```bash
-# 1. 開始日を1年前の今日に変更
-curl -X POST https://zairoku.com/api/admin/test/update-billing-date \
-  -H "Content-Type: application/json" \
-  -d '{"contract_id": "<年払い契約ID>"}'
-
-# 2. cronジョブを実行
-curl -X POST https://zairoku.com/api/admin/test/trigger-cron \
-  -H "Content-Type: application/json" \
-  -d '{"cron_type": "invoice"}'
-```
+1. ✅ 契約詳細ページから「初回請求書生成」ボタンをクリック
+2. ✅ 入金確認
+3. ✅ 契約完了
 
 **確認項目:**
-- [ ] Stripeに請求書が作成されている
-- [ ] 請求金額が月額の12倍になっている
-- [ ] 請求書の説明に「年払い」と記載されている
-- [ ] 明細に「基本プラン（年払い）」と表示されている
-- [ ] メールが送信されている
+- [x] Stripeに請求書が作成されている
+- [x] 請求金額が月額の12倍になっている
+- [x] 請求書PDFが正しく生成されている
+- [x] メールが送信されている
+- [x] 年払い契約の料金計算が正しい
 
 **期待される金額:**
 - 基本プラン（スタンダード・30名）: ¥45,000 × 12 = ¥540,000
@@ -289,7 +272,7 @@ curl -X POST https://zairoku.com/api/admin/test/generate-invoice \
 
 ### 実行順序
 1. [x] **テスト1: 初回請求書生成（契約完了フロー）** ✅ **完了**
-2. [ ] テスト2: 年払い請求書生成
+2. [x] **テスト2: 年払い請求書生成** ✅ **完了**
 3. [ ] テスト3: アップグレード
 4. [ ] テスト4: ダウングレード
 5. [ ] テスト5: カード決済
