@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       .from('contracts')
       .select(`
         *,
-        organizations!inner (id, name, max_users, plan)
+        organizations!contracts_organization_id_fkey (id, name, max_users, plan)
       `)
       .eq('status', 'active')
       .limit(1);
