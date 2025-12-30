@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
+import { matchesAnyField } from '@/lib/utils/kana-converter';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,6 +19,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const organizationId = searchParams.get('organization_id');
     const invoiceId = searchParams.get('invoice_id');
+    const search = searchParams.get('search');
+    const paymentMethod = searchParams.get('payment_method');
+    const startDate = searchParams.get('start_date');
+    const endDate = searchParams.get('end_date');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = (page - 1) * limit;
@@ -51,14 +56,42 @@ export async function GET(request: NextRequest) {
       query = query.eq('invoice_id', invoiceId);
     }
 
-    query = query.range(offset, offset + limit - 1);
-
-    const { data, error, count } = await query;
-
-    if (error) {
-      console.error('[Payments API] Error:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (paymentMethod && paymentMethod !== 'all') {
+      query = query.eq('payment_method', paymentMethod);
     }
+
+    if (startDate) {
+      query = query.gte('payment_date', startDate);
+    }
+
+    if (endDate) {
+      query = query.lte('payment_date', endDate);
+    }
+
+    // 全データを取得してから、クライアント側でフィルタリング（検索用）
+    const { data: allData, error: queryError } = await query;
+
+    if (queryError) {
+      console.error('[Payments API] Error:', queryError);
+      return NextResponse.json({ error: queryError.message }, { status: 500 });
+    }
+
+    // 検索フィルタリング（ひらがな・カタカナ変換対応）
+    let filteredData = allData || [];
+    if (search) {
+      filteredData = filteredData.filter(payment => {
+        const organizationName = payment.invoices?.organizations?.name || '';
+        const invoiceNumber = payment.invoices?.invoice_number || '';
+        return matchesAnyField([organizationName, invoiceNumber], search);
+      });
+    }
+
+    // ページネーション
+    const totalCount = filteredData.length;
+    const paginatedData = filteredData.slice(offset, offset + limit);
+
+    const data = paginatedData;
+    const count = totalCount;
 
     return NextResponse.json({
       payments: data,
