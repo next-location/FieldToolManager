@@ -33,7 +33,8 @@ export async function GET(request: NextRequest) {
     // Step 0: 初期設定
     // ========================================
     resetMockDate();
-    setMockDate('2025-12-28T00:00:00Z');
+    // テスト開始日を1/15に変更（billing_day=28の場合、次回請求日が2/28となり、その20日前=2/8となる）
+    setMockDate('2025-01-15T00:00:00Z');
 
     results.push({
       step: 'Step 0: 初期設定',
