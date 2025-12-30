@@ -40,6 +40,7 @@ export default function PlanChangeForm({
     currentPackages.length > 0 ? currentPackages[0].package_id : ''
   );
   const [changeDate, setChangeDate] = useState(new Date().toISOString().split('T')[0]);
+  const [initialFee, setInitialFee] = useState<string>('0'); // 初期費用（手動入力）
   const [isLoading, setIsLoading] = useState(false);
   const [preview, setPreview] = useState<any>(null);
   const [error, setError] = useState('');
@@ -57,7 +58,8 @@ export default function PlanChangeForm({
         body: JSON.stringify({
           contract_id: contract.id,
           new_package_ids: [selectedPackageId], // 配列形式で送信
-          change_date: changeDate
+          change_date: changeDate,
+          initial_fee: parseFloat(initialFee) || 0 // 初期費用
         })
       });
 
@@ -95,7 +97,8 @@ export default function PlanChangeForm({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           new_package_ids: [selectedPackageId], // 配列形式で送信
-          change_date: changeDate
+          change_date: changeDate,
+          initial_fee: parseFloat(initialFee) || 0 // 初期費用
         })
       });
 
@@ -177,7 +180,7 @@ export default function PlanChangeForm({
       </div>
 
       {/* 変更日 */}
-      <div className="mb-8">
+      <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           変更日
         </label>
@@ -193,6 +196,31 @@ export default function PlanChangeForm({
         />
         <p className="text-sm text-gray-500 mt-1">
           ※変更日以降の請求に反映されます
+        </p>
+      </div>
+
+      {/* 初期費用（アップグレード時のみ） */}
+      <div className="mb-8">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          初期費用（任意）
+        </label>
+        <div className="relative">
+          <span className="absolute left-3 top-2 text-gray-500">¥</span>
+          <input
+            type="number"
+            value={initialFee}
+            onChange={(e) => {
+              setInitialFee(e.target.value);
+              setPreview(null);
+            }}
+            min="0"
+            step="1000"
+            className="border rounded-lg pl-8 pr-3 py-2 w-64"
+            placeholder="0"
+          />
+        </div>
+        <p className="text-sm text-gray-500 mt-1">
+          ※アップグレードに伴い初期費用が発生する場合のみ入力してください
         </p>
       </div>
 
@@ -255,6 +283,15 @@ export default function PlanChangeForm({
               </div>
             </div>
 
+            {preview.initial_fee > 0 && (
+              <div className="flex justify-between py-2 border-t">
+                <span className="text-sm text-gray-600">初期費用</span>
+                <span className="font-medium text-orange-600">
+                  +¥{preview.initial_fee.toLocaleString()}
+                </span>
+              </div>
+            )}
+
             <div className="bg-white rounded p-4">
               <p className="text-sm text-gray-600 mb-1">次回請求額（予定）</p>
               <p className="text-2xl font-bold text-gray-900">
@@ -262,6 +299,7 @@ export default function PlanChangeForm({
               </p>
               <p className="text-xs text-gray-500 mt-1">
                 = 新プラン月額料金 {preview.prorated_difference >= 0 ? '+' : ''} 日割り差額
+                {preview.initial_fee > 0 ? ' + 初期費用' : ''}
               </p>
             </div>
           </div>

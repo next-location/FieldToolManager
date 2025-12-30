@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { contract_id, new_package_ids, change_date } = body;
+    const { contract_id, new_package_ids, change_date, initial_fee = 0 } = body;
 
     // バリデーション
     if (!contract_id || !new_package_ids || !Array.isArray(new_package_ids)) {
@@ -153,8 +153,8 @@ export async function POST(request: NextRequest) {
     // 日割り差額
     const proratedDifference = oldPlanProrated + newPlanProrated;
 
-    // 次回請求額（新プラン月額 + 日割り差額）
-    const nextInvoiceAmount = newMonthlyFee + proratedDifference;
+    // 次回請求額（新プラン月額 + 日割り差額 + 初期費用）
+    const nextInvoiceAmount = newMonthlyFee + proratedDifference + initial_fee;
 
     return NextResponse.json({
       contract_id,
@@ -168,6 +168,7 @@ export async function POST(request: NextRequest) {
       old_plan_prorated: oldPlanProrated,
       new_plan_prorated: newPlanProrated,
       prorated_difference: proratedDifference,
+      initial_fee: initial_fee, // 初期費用
       next_invoice_amount: nextInvoiceAmount
     });
 
