@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
           .insert({
             organization_id: org.id,
             contract_number: `TEST-${Date.now()}`,
-            contract_type: 'subscription',
+            contract_type: 'monthly',
             plan: 'premium',
             user_limit: 30,
             base_monthly_fee: 15000,
