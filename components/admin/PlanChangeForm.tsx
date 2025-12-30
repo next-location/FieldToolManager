@@ -63,8 +63,6 @@ export default function PlanChangeForm({
   const [selectedPackageId, setSelectedPackageId] = useState<string>(
     currentPackages.length > 0 ? currentPackages[0].package_id : ''
   );
-  const [changeDate, setChangeDate] = useState(new Date().toISOString().split('T')[0]);
-  const [initialFee, setInitialFee] = useState<string>('0'); // 初期費用（手動入力）
   const [isLoading, setIsLoading] = useState(false);
   const [preview, setPreview] = useState<any>(null);
   const [error, setError] = useState('');
@@ -120,9 +118,7 @@ export default function PlanChangeForm({
           new_plan: selectedPlan,
           new_base_fee: finalBaseFee,
           new_user_limit: finalUserLimit,
-          new_package_ids: [selectedPackageId],
-          change_date: changeDate,
-          initial_fee: parseFloat(initialFee) || 0
+          new_package_ids: [selectedPackageId]
         })
       });
 
@@ -165,9 +161,7 @@ export default function PlanChangeForm({
           new_plan: selectedPlan,
           new_base_fee: finalBaseFee,
           new_user_limit: finalUserLimit,
-          new_package_ids: [selectedPackageId],
-          change_date: changeDate,
-          initial_fee: parseFloat(initialFee) || 0
+          new_package_ids: [selectedPackageId]
         })
       });
 
@@ -344,58 +338,18 @@ export default function PlanChangeForm({
         </div>
       </div>
 
-      {/* 変更日 */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          変更日
-        </label>
-        <div className="flex items-center gap-4">
-          <input
-            type="date"
-            value={changeDate}
-            onChange={(e) => {
-              setChangeDate(e.target.value);
-              setPreview(null);
-            }}
-            min={new Date().toISOString().split('T')[0]}
-            className="border rounded-lg px-3 py-2"
-          />
-          <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
-            <p className="text-sm text-blue-800">
-              <span className="font-semibold">請求日:</span>
-              {contract.billing_cycle === 'monthly'
-                ? ` 毎月${contract.billing_day === 99 ? '月末' : `${contract.billing_day}日`}`
-                : ' 年払い'}
-            </p>
-          </div>
-        </div>
-        <p className="text-sm text-gray-500 mt-1">
-          ※変更日以降の請求に反映されます
+      {/* 適用日の表示（自動計算） */}
+      <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h3 className="text-sm font-semibold text-blue-900 mb-2">📅 プラン変更の適用日</h3>
+        <p className="text-blue-800">
+          <span className="font-semibold">次回請求日:</span>
+          {contract.billing_cycle === 'monthly'
+            ? ` 毎月${contract.billing_day === 99 ? '月末' : `${contract.billing_day}日`}`
+            : ' 年払い'}
         </p>
-      </div>
-
-      {/* 初期費用（アップグレード時のみ） */}
-      <div className="mb-8">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          初期費用（任意）
-        </label>
-        <div className="relative">
-          <span className="absolute left-3 top-2 text-gray-500">¥</span>
-          <input
-            type="number"
-            value={initialFee}
-            onChange={(e) => {
-              setInitialFee(e.target.value);
-              setPreview(null);
-            }}
-            min="0"
-            step="1000"
-            className="border rounded-lg pl-8 pr-3 py-2 w-64"
-            placeholder="0"
-          />
-        </div>
-        <p className="text-sm text-gray-500 mt-1">
-          ※アップグレードに伴い初期費用が発生する場合のみ入力してください
+        <p className="text-sm text-blue-700 mt-2">
+          ⚠️ プラン変更は請求日の30日前までに申請してください。<br/>
+          次回請求日から新しいプランが適用されます。日割り計算はありません。
         </p>
       </div>
 
