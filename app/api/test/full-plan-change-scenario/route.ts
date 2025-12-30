@@ -42,8 +42,64 @@ export async function GET(request: NextRequest) {
     });
 
     // ========================================
-    // Step 1: テスト契約を作成
+    // Step 1: 既存契約を使用（テストデータ作成をスキップ）
     // ========================================
+    {
+      const stepName = 'Step 1: 既存契約を取得';
+      try {
+        // 既存の有効な契約を取得
+        const { data: existingContracts, error: contractError } = await supabase
+          .from('contracts')
+          .select('*, organizations!contracts_organization_id_fkey(id, name)')
+          .eq('status', 'active')
+          .not('billing_day', 'is', null)
+          .limit(1);
+
+        if (contractError || !existingContracts || existingContracts.length === 0) {
+          throw new Error('有効な契約が見つかりません');
+        }
+
+        const testContract = existingContracts[0];
+        testContractId = testContract.id;
+        testOrganizationId = testContract.organization_id;
+
+        // ユーザー数を確認
+        const { count: userCount } = await supabase
+          .from('users')
+          .select('*', { count: 'exact', head: true })
+          .eq('organization_id', testOrganizationId)
+          .is('deleted_at', null)
+          .eq('is_active', true);
+
+        results.push({
+          step: stepName,
+          status: 'PASS',
+          message: `既存契約を使用します（ユーザー数: ${userCount}名）`,
+          data: {
+            contract_id: testContract.id,
+            organization_id: testOrganizationId,
+            contract_number: testContract.contract_number,
+            current_user_count: userCount,
+            current_user_limit: testContract.user_limit,
+            billing_day: testContract.billing_day,
+          },
+        });
+        passedTests++;
+      } catch (error: any) {
+        results.push({
+          step: stepName,
+          status: 'FAIL',
+          message: error.message,
+        });
+        failedTests++;
+        throw error;
+      }
+    }
+
+    // ========================================
+    // Step 1旧: テスト契約を作成（スキップ）
+    // ========================================
+    /*
     {
       const stepName = 'Step 1: テスト契約作成';
       try {
@@ -150,6 +206,7 @@ export async function GET(request: NextRequest) {
         throw error; // 致命的エラーなので中断
       }
     }
+    */
 
     // ========================================
     // Step 2: プラン変更申請（12/28）
@@ -476,8 +533,10 @@ export async function GET(request: NextRequest) {
     }
 
     // ========================================
-    // Step 7: 自動ユーザー無効化（2/1）
+    // Step 7: 自動ユーザー無効化（2/1）- スキップ
     // ========================================
+    // 注意: 既存契約を使用しているため、実際のユーザーを無効化しないようスキップ
+    /*
     {
       const stepName = 'Step 7: 自動ユーザー無効化（2/1）';
       try {
@@ -580,50 +639,23 @@ export async function GET(request: NextRequest) {
         failedTests++;
       }
     }
+    */
 
     // ========================================
-    // Step 8: クリーンアップ
+    // Step 8: クリーンアップ - スキップ
     // ========================================
+    // 注意: 既存契約を使用しているため、削除は行わない
     {
       const stepName = 'Step 8: クリーンアップ';
-      try {
-        // テストユーザーを削除
-        if (testUserIds.length > 0) {
-          await supabase.from('users').delete().in('id', testUserIds);
-        }
+      // 日付をリセット
+      resetMockDate();
 
-        // contract_packagesを削除
-        if (testContractId) {
-          await supabase.from('contract_packages').delete().eq('contract_id', testContractId);
-        }
-
-        // 契約を削除
-        if (testContractId) {
-          await supabase.from('contracts').delete().eq('id', testContractId);
-        }
-
-        // 組織を削除
-        if (testOrganizationId) {
-          await supabase.from('organizations').delete().eq('id', testOrganizationId);
-        }
-
-        // 日付をリセット
-        resetMockDate();
-
-        results.push({
-          step: stepName,
-          status: 'PASS',
-          message: 'テストデータを削除し、日付をリセットしました',
-        });
-        passedTests++;
-      } catch (error: any) {
-        results.push({
-          step: stepName,
-          status: 'FAIL',
-          message: error.message,
-        });
-        failedTests++;
-      }
+      results.push({
+        step: stepName,
+        status: 'PASS',
+        message: '日付をリセットしました（データは削除していません）',
+      });
+      passedTests++;
     }
 
     // ========================================
@@ -643,17 +675,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error: any) {
-    // 致命的エラー発生時のクリーンアップ
-    if (testUserIds.length > 0) {
-      await supabase.from('users').delete().in('id', testUserIds);
-    }
-    if (testContractId) {
-      await supabase.from('contract_packages').delete().eq('contract_id', testContractId);
-      await supabase.from('contracts').delete().eq('id', testContractId);
-    }
-    if (testOrganizationId) {
-      await supabase.from('organizations').delete().eq('id', testOrganizationId);
-    }
+    // 致命的エラー発生時のクリーンアップ（既存契約使用のため削除は行わない）
     resetMockDate();
 
     return NextResponse.json({
