@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
-import { verifyCsrfToken } from '@/lib/security/csrf';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,15 +19,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: '認証が必要です' },
         { status: 401 }
-      );
-    }
-
-    // CSRFトークン検証
-    const csrfValid = await verifyCsrfToken(request);
-    if (!csrfValid) {
-      return NextResponse.json(
-        { error: 'CSRF検証に失敗しました' },
-        { status: 403 }
       );
     }
 
