@@ -117,7 +117,8 @@
       "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -f /Users/youichiakashi/FieldToolManager/supabase/migrations/20251230000001_simplify_plan_change.sql)",
       "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql \"postgresql://postgres.ecehilhaxgwphvamvabj:cF1\\!hVERlDgjMD@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres\" -f /Users/youichiakashi/FieldToolManager/supabase/migrations/20251230000001_simplify_plan_change.sql)",
       "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"\\d organizations\")",
-      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT DISTINCT plan, count(*) as count FROM contracts GROUP BY plan ORDER BY plan;\")"
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT DISTINCT plan, count(*) as count FROM contracts GROUP BY plan ORDER BY plan;\")",
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT id, contract_number, billing_day, status FROM contracts WHERE id = ''d95cf3b9-1829-4a18-8c23-9715d1715075'';\")"
     ],
     "deny": [],
     "ask": []

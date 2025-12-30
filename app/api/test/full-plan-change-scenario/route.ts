@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { setMockDate, advanceDays, resetMockDate, getCurrentDate } from '@/lib/test/time-machine';
+import { getAdjustedBillingDate } from '@/lib/utils/business-days';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -299,15 +300,10 @@ export async function GET(request: NextRequest) {
 
         const billingDay = contractData?.billing_day || 28;
 
-        // 次回請求日を計算（今日が1/8なら、次回請求日は2/28）
-        // 今日より後の最初のbilling_day
-        let nextBillingDate = new Date(today);
-        nextBillingDate.setDate(billingDay);
-
-        // もし今日がすでにbilling_dayを過ぎていたら、翌月
-        if (nextBillingDate <= today) {
-          nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
-        }
+        // 次月の請求日を取得（営業日調整済み、99=月末対応）
+        const nextMonth = new Date(today);
+        nextMonth.setMonth(nextMonth.getMonth() + 1);
+        const nextBillingDate = getAdjustedBillingDate(billingDay, nextMonth);
 
         // 請求書送信日 = 請求日の20日前
         const invoiceSendDate = new Date(nextBillingDate);
