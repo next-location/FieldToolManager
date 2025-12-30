@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
           .insert({
             name: 'プラン変更テスト会社（自動テスト用）',
             subdomain: `plan-test-${Date.now()}`,
-            plan: 'standard',
+            plan: 'premium',
           })
           .select()
           .single();
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
           .insert({
             organization_id: org.id,
             contract_number: `TEST-${Date.now()}`,
-            plan: 'standard',
+            plan: 'premium',
             user_limit: 30,
             base_monthly_fee: 15000,
             billing_day: 31,
@@ -149,7 +149,7 @@ export async function GET(request: NextRequest) {
     {
       const stepName = 'Step 2: プラン変更申請（12/31 → 1/31切り替え）';
       try {
-        // ライトプラン（10名）のパッケージIDを取得
+        // DXパッケージIDを取得
         const { data: dxPackage } = await supabase
           .from('packages')
           .select('id')
@@ -165,7 +165,7 @@ export async function GET(request: NextRequest) {
         const effectiveDate = nextBillingDate.toISOString().split('T')[0];
 
         const pendingPlanChange = {
-          new_plan: 'light',
+          new_plan: 'basic',
           new_base_fee: 9800,
           new_user_limit: 10,
           new_package_ids: [dxPackage.id],
@@ -192,7 +192,7 @@ export async function GET(request: NextRequest) {
         results.push({
           step: stepName,
           status: 'PASS',
-          message: 'プラン変更申請を保存しました（スタンダード30名 → ライト10名）',
+          message: 'プラン変更申請を保存しました（プレミアム30名 → ベーシック10名）',
           data: {
             effective_date: effectiveDate,
             is_downgrade: true,
