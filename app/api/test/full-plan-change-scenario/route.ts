@@ -7,7 +7,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 /**
- * 完全自動プラン変更シナリオテスト
+ * 完全自動プラン変更シナリオテスト (v2)
  *
  * 実行フロー:
  * 1. テスト契約を作成（請求日: 毎月28日、スタンダードプラン30名、25名登録済み）
