@@ -397,7 +397,7 @@ export default function ContractDetailView({ contract, invoices, contractPackage
           <div className="flex md:col-span-2">
             <dt className="text-gray-600 w-32">ログインURL:</dt>
             <dd className="text-blue-600 font-mono">
-              https://{contract.organizations?.subdomain || '[subdomain]'}.field-tool-manager.com
+              https://{contract.organizations?.subdomain || '[subdomain]'}.zairoku.com
             </dd>
           </div>
         </dl>

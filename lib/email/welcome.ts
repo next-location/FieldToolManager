@@ -62,7 +62,7 @@ function getEmailHtml(params: SendWelcomeEmailParams): string {
 
     <!-- Header -->
     <div style="background: linear-gradient(135deg, #1E6FFF 0%, #1557D0 100%); padding: 40px 30px; text-align: center;">
-      <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">Field Tool Manager</h1>
+      <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">ザイロク</h1>
       <p style="margin: 10px 0 0; color: #E3F2FD; font-size: 14px;">現場管理をもっとスマートに</p>
     </div>
 
@@ -75,7 +75,7 @@ function getEmailHtml(params: SendWelcomeEmailParams): string {
       </p>
 
       <p style="margin: 0 0 30px; color: #666666; font-size: 16px; line-height: 1.6;">
-        <strong>${organizationName}</strong> のField Tool Manager アカウントが正常に作成されました。<br>
+        <strong>${organizationName}</strong> のザイロクアカウントが正常に作成されました。<br>
         以下の情報でログインしてください。
       </p>
 
@@ -117,7 +117,7 @@ function getEmailHtml(params: SendWelcomeEmailParams): string {
       <div style="border-top: 1px solid #e0e0e0; padding-top: 20px; margin-top: 30px;">
         <p style="margin: 0 0 10px; color: #666666; font-size: 14px;">ご不明な点がございましたら、お気軽にお問い合わせください。</p>
         <p style="margin: 0; color: #999999; font-size: 13px;">
-          サポート: <a href="mailto:support@fieldtoolmanager.com" style="color: #1E6FFF; text-decoration: none;">support@fieldtoolmanager.com</a>
+          サポート: <a href="mailto:support@zairoku.com" style="color: #1E6FFF; text-decoration: none;">support@zairoku.com</a>
         </p>
       </div>
     </div>
@@ -125,7 +125,7 @@ function getEmailHtml(params: SendWelcomeEmailParams): string {
     <!-- Footer -->
     <div style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e0e0e0;">
       <p style="margin: 0 0 5px; color: #999999; font-size: 12px;">
-        © 2025 Field Tool Manager. All rights reserved.
+        © 2025 ザイロク. All rights reserved.
       </p>
       <p style="margin: 0; color: #999999; font-size: 12px;">
         このメールに心当たりがない場合は、お手数ですが削除してください。

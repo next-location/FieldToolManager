@@ -185,7 +185,7 @@ export async function generateStripeReceiptPDF(data: StripeReceiptData): Promise
   doc.rect(120, footerY, 70, 40);
 
   // 発行元情報
-  doc.text('株式会社Field Tool Manager', 125, footerY + 5);
+  doc.text('株式会社ネクストロケーション', 125, footerY + 5);
   doc.setFontSize(9);
   doc.text('〒100-0001', 125, footerY + 10);
   doc.text('東京都千代田区○○1-2-3', 125, footerY + 15);

@@ -161,7 +161,7 @@ export async function sendLowStockAlertEmail(
     </div>
 
     <div class="footer">
-      <p>このメールは Field Tool Manager から自動送信されています。</p>
+      <p>このメールはザイロクから自動送信されています。</p>
       <p>通知設定を変更する場合は、ダッシュボードの組織設定から行ってください。</p>
     </div>
   </div>
@@ -189,7 +189,7 @@ ${modelNumber ? `型番: ${modelNumber}\n` : ''}現在の在庫数: ${currentSto
 ダッシュボードを確認: ${dashboardUrl}
 
 ---
-このメールは Field Tool Manager から自動送信されています。
+このメールはザイロクから自動送信されています。
 通知設定を変更する場合は、ダッシュボードの組織設定から行ってください。
 `
 
@@ -363,7 +363,7 @@ export async function sendWarrantyExpirationEmail(
     </div>
 
     <div class="footer">
-      <p>このメールは Field Tool Manager から自動送信されています。</p>
+      <p>このメールはザイロクから自動送信されています。</p>
       <p>通知設定を変更する場合は、ダッシュボードの組織設定から行ってください。</p>
     </div>
   </div>
@@ -395,7 +395,7 @@ ${isExpired
 ダッシュボードを確認: ${dashboardUrl}
 
 ---
-このメールは Field Tool Manager から自動送信されています。
+このメールはザイロクから自動送信されています。
 通知設定を変更する場合は、ダッシュボードの組織設定から行ってください。
 `
 
