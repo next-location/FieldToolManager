@@ -46,6 +46,7 @@ const PLAN_PRICING = {
   standard: { userLimit: 30, monthlyFee: 45000, annualFee: 486000, setupFee: 28000 },
   business: { userLimit: 50, monthlyFee: 70000, annualFee: 756000, setupFee: 45000 },
   pro: { userLimit: 100, monthlyFee: 120000, annualFee: 1296000, setupFee: 80000 },
+  enterprise: { userLimit: 101, monthlyFee: 0, annualFee: 0, setupFee: 0 }, // カスタム料金
 };
 
 export default function NewContractForm({ organizations, packages, superAdminId }: NewContractFormProps) {
@@ -66,6 +67,8 @@ export default function NewContractForm({ organizations, packages, superAdminId 
     plan: 'start' as keyof typeof PLAN_PRICING,
     selectedPackageId: '' as string,
     userLimit: 10,
+    customBaseFee: '', // エンタープライズ用カスタム基本料金
+    customUserLimit: '', // エンタープライズ用カスタムユーザー上限
     startDate: new Date().toISOString().split('T')[0],
     endDate: '',
     autoRenew: true,
@@ -139,7 +142,10 @@ export default function NewContractForm({ organizations, packages, superAdminId 
 
   const calculateFees = () => {
     const planConfig = PLAN_PRICING[formData.plan];
-    const baseFee = planConfig.monthlyFee;
+    // エンタープライズの場合はカスタム料金を使用
+    const baseFee = formData.plan === 'enterprise'
+      ? (parseFloat(formData.customBaseFee) || 0)
+      : planConfig.monthlyFee;
 
     // 選択されたパッケージの料金を計算
     let packageFee = 0;
@@ -164,7 +170,12 @@ export default function NewContractForm({ organizations, packages, superAdminId 
 
   const handlePlanChange = (plan: keyof typeof PLAN_PRICING) => {
     const planConfig = PLAN_PRICING[plan];
-    setFormData({ ...formData, plan, userLimit: planConfig.userLimit, initialSetupFee: planConfig.setupFee });
+    if (plan === 'enterprise') {
+      // エンタープライズの場合はカスタム値をクリア
+      setFormData({ ...formData, plan, customBaseFee: '', customUserLimit: '', userLimit: 101, initialSetupFee: 0 });
+    } else {
+      setFormData({ ...formData, plan, userLimit: planConfig.userLimit, initialSetupFee: planConfig.setupFee });
+    }
   };
 
   const openPricingTable = (e: React.MouseEvent) => {
@@ -175,11 +186,29 @@ export default function NewContractForm({ organizations, packages, superAdminId 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // エンタープライズの場合のバリデーション
+    if (formData.plan === 'enterprise') {
+      if (!formData.customBaseFee || parseFloat(formData.customBaseFee) <= 0) {
+        setError('エンタープライズプランの基本料金を入力してください');
+        return;
+      }
+      if (!formData.customUserLimit || parseInt(formData.customUserLimit) < 101) {
+        setError('エンタープライズプランのユーザー上限を101名以上で入力してください');
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       // CSRFトークンを取得
       const csrfResponse = await fetch('/api/admin/csrf');
       const { token: csrfToken } = await csrfResponse.json();
+
+      // エンタープライズの場合はカスタム値を使用
+      const finalUserLimit = formData.plan === 'enterprise'
+        ? parseInt(formData.customUserLimit)
+        : formData.userLimit;
 
       const response = await fetch('/api/admin/contracts', {
         method: 'POST',
@@ -190,6 +219,7 @@ export default function NewContractForm({ organizations, packages, superAdminId 
         credentials: 'include',
         body: JSON.stringify({
           ...formData,
+          userLimit: finalUserLimit,
           initialDataRegistrationFee: parseFloat(formData.initialDataRegistrationFee as string) || 0,
           initialOnsiteFee: parseFloat(formData.initialOnsiteFee as string) || 0,
           initialTrainingFee: parseFloat(formData.initialTrainingFee as string) || 0,
@@ -314,13 +344,63 @@ export default function NewContractForm({ organizations, packages, superAdminId 
               <option value="standard">スタンダード（~30名）</option>
               <option value="business">ビジネス（~50名）</option>
               <option value="pro">プロ（~100名）</option>
+              <option value="enterprise">エンタープライズ（101名以上・要相談）</option>
             </select>
           </div>
         </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">ユーザー上限数</label>
-          <input type="number" value={formData.userLimit} onChange={(e) => setFormData({ ...formData, userLimit: parseInt(e.target.value) })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E6FFF]"/>
-        </div>
+
+        {/* エンタープライズプラン選択時のカスタム入力 */}
+        {formData.plan === 'enterprise' && (
+          <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <h3 className="font-semibold text-gray-900 mb-3">エンタープライズプラン詳細</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  基本料金（月額）<span className="text-red-600">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2 text-gray-500">¥</span>
+                  <input
+                    type="number"
+                    value={formData.customBaseFee}
+                    onChange={(e) => setFormData({ ...formData, customBaseFee: e.target.value })}
+                    min="0"
+                    step="1000"
+                    className="w-full pl-8 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E6FFF]"
+                    placeholder="例: 200000"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  ユーザー上限<span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={formData.customUserLimit}
+                  onChange={(e) => setFormData({ ...formData, customUserLimit: e.target.value })}
+                  min="101"
+                  step="1"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E6FFF]"
+                  placeholder="例: 200"
+                  required
+                />
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mt-2">
+              ※エンタープライズプランは個別見積もりです。顧客の規模に応じて金額とユーザー上限を設定してください。
+            </p>
+          </div>
+        )}
+
+        {/* 通常プランの場合のみユーザー上限数を表示 */}
+        {formData.plan !== 'enterprise' && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">ユーザー上限数</label>
+            <input type="number" value={formData.userLimit} onChange={(e) => setFormData({ ...formData, userLimit: parseInt(e.target.value) })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E6FFF]"/>
+          </div>
+        )}
         <div className="space-y-3">
           <label className="block text-sm font-medium text-gray-700">機能パック（1つ選択） <span className="text-red-500">*</span></label>
           <div className="space-y-3">

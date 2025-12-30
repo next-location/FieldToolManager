@@ -144,13 +144,44 @@ export async function POST(
       .update(updateData)
       .eq('id', contractId);
 
+    // 組織テーブルも更新（実際のユーザー上限と機能を反映）
+    const organizationUpdateData: any = {};
+
+    if (new_user_limit !== undefined) {
+      organizationUpdateData.max_users = new_user_limit;
+    }
+    if (new_plan) {
+      organizationUpdateData.plan = new_plan;
+    }
+
+    // 機能パックに応じた機能フラグを設定
+    const { data: selectedPackages } = await supabase
+      .from('packages')
+      .select('package_key')
+      .in('id', new_package_ids);
+
+    const packageKeys = selectedPackages?.map(p => p.package_key) || [];
+
+    // 機能パックフラグを更新
+    organizationUpdateData.has_asset_package = packageKeys.includes('asset') || packageKeys.includes('full');
+    organizationUpdateData.has_dx_efficiency_package = packageKeys.includes('dx') || packageKeys.includes('full');
+
+    if (Object.keys(organizationUpdateData).length > 0) {
+      await supabase
+        .from('organizations')
+        .update(organizationUpdateData)
+        .eq('id', contract.organization_id);
+    }
+
     console.log('[Change Plan] Plan changed successfully:', {
       contractId,
+      organizationId: contract.organization_id,
       oldMonthlyFee,
       newMonthlyFee,
       proratedDifference,
       initial_fee,
-      planChangeType
+      planChangeType,
+      organizationUpdates: organizationUpdateData
     });
 
     return NextResponse.json({
