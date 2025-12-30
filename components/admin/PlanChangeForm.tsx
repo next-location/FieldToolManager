@@ -63,6 +63,7 @@ export default function PlanChangeForm({
   const [selectedPackageId, setSelectedPackageId] = useState<string>(
     currentPackages.length > 0 ? currentPackages[0].package_id : ''
   );
+  const [initialFee, setInitialFee] = useState<string>('0'); // 初期設定費用（工数による）
   const [isLoading, setIsLoading] = useState(false);
   const [preview, setPreview] = useState<any>(null);
   const [error, setError] = useState('');
@@ -118,7 +119,8 @@ export default function PlanChangeForm({
           new_plan: selectedPlan,
           new_base_fee: finalBaseFee,
           new_user_limit: finalUserLimit,
-          new_package_ids: [selectedPackageId]
+          new_package_ids: [selectedPackageId],
+          initial_fee: parseFloat(initialFee) || 0
         })
       });
 
@@ -161,7 +163,8 @@ export default function PlanChangeForm({
           new_plan: selectedPlan,
           new_base_fee: finalBaseFee,
           new_user_limit: finalUserLimit,
-          new_package_ids: [selectedPackageId]
+          new_package_ids: [selectedPackageId],
+          initial_fee: parseFloat(initialFee) || 0
         })
       });
 
@@ -350,6 +353,31 @@ export default function PlanChangeForm({
         <p className="text-sm text-blue-700 mt-2">
           ⚠️ プラン変更は請求日の30日前までに申請してください。<br/>
           次回請求日から新しいプランが適用されます。日割り計算はありません。
+        </p>
+      </div>
+
+      {/* 初期設定費用 */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          初期設定費用（任意）
+        </label>
+        <div className="relative">
+          <span className="absolute left-3 top-2 text-gray-500">¥</span>
+          <input
+            type="number"
+            value={initialFee}
+            onChange={(e) => {
+              setInitialFee(e.target.value);
+              setPreview(null);
+            }}
+            min="0"
+            step="1000"
+            className="border rounded-lg pl-8 pr-3 py-2 w-64"
+            placeholder="0"
+          />
+        </div>
+        <p className="text-sm text-gray-500 mt-1">
+          ※プラン変更に伴う初期設定作業の工数費用を入力してください
         </p>
       </div>
 

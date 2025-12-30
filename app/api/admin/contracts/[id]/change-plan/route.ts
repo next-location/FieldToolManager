@@ -31,7 +31,7 @@ export async function POST(
 
     const { id: contractId } = await params;
     const body = await request.json();
-    const { new_plan, new_base_fee, new_user_limit, new_package_ids } = body;
+    const { new_plan, new_base_fee, new_user_limit, new_package_ids, initial_fee = 0 } = body;
 
     // バリデーション
     if (!new_package_ids || !Array.isArray(new_package_ids) || new_package_ids.length === 0) {
@@ -123,6 +123,7 @@ export async function POST(
       is_downgrade: isDowngrade,
       current_user_count: actualUserCount,
       user_exceeded: userExceeded,
+      initial_fee: initial_fee || 0, // 初期設定費用（工数）
       requested_by: session.id,
       requested_at: new Date().toISOString()
     };

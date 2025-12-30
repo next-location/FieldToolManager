@@ -43,9 +43,12 @@ export interface Contract {
   // Stripe情報
   stripe_customer_id: string | null;
 
-  // プラン変更関連（2025-12-29追加）
-  pending_prorated_charge?: number;      // 次回請求に加算する日割り差額
-  pending_prorated_description?: string | null; // 日割り差額の説明
+  // プラン変更関連（2025-12-30追加）
+  pending_plan_change?: {
+    initial_fee?: number; // 初期設定費用（工数）
+    effective_date?: string;
+    new_plan?: string;
+  } | null;
 
   // その他
   start_date: string;
@@ -160,14 +163,14 @@ export function calculateMonthlyFee(contract: Contract): MonthlyFeeCalculation {
     subtotal += amount;
   }
 
-  // 3. プラン変更時の日割り差額（グレードアップ時のみ）
-  if (contract.pending_prorated_charge && contract.pending_prorated_charge > 0) {
+  // 3. プラン変更時の初期設定費用
+  if (contract.pending_plan_change?.initial_fee && contract.pending_plan_change.initial_fee > 0) {
     items.push({
-      description: contract.pending_prorated_description || 'プラン変更差額',
-      amount: contract.pending_prorated_charge,
-      type: 'prorated_charge',
+      description: 'プラン変更初期設定費用',
+      amount: contract.pending_plan_change.initial_fee,
+      type: 'initial_fee',
     });
-    subtotal += contract.pending_prorated_charge;
+    subtotal += contract.pending_plan_change.initial_fee;
   }
 
   // 4. 初期費用（初回のみ）

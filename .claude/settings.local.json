@@ -113,7 +113,9 @@
       "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql \"postgresql://postgres:cF1!hVERlDgjMD@db.ecehilhaxgwphvamvabj.supabase.co:5432/postgres\" -f /Users/youichiakashi/FieldToolManager/supabase/migrations/20251229000003_update_billing_day_constraint.sql)",
       "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"\\d invoices\")",
       "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT plan_key, plan_name, base_monthly_fee, user_limit FROM plans ORDER BY display_order;\")",
-      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"\\d contracts\")"
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"\\d contracts\")",
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -f /Users/youichiakashi/FieldToolManager/supabase/migrations/20251230000001_simplify_plan_change.sql)",
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql \"postgresql://postgres.ecehilhaxgwphvamvabj:cF1\\!hVERlDgjMD@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres\" -f /Users/youichiakashi/FieldToolManager/supabase/migrations/20251230000001_simplify_plan_change.sql)"
     ],
     "deny": [],
     "ask": []
