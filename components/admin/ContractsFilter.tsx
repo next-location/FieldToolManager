@@ -85,8 +85,10 @@ export default function ContractsFilter({ onFilterChange, currentSort }: Contrac
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E6FFF] focus:border-transparent"
           >
             <option value="all">すべて</option>
-            <option value="basic">ベーシック</option>
-            <option value="premium">プレミアム</option>
+            <option value="start">スタート</option>
+            <option value="standard">スタンダード</option>
+            <option value="business">ビジネス</option>
+            <option value="pro">プロ</option>
             <option value="enterprise">エンタープライズ</option>
           </select>
         </div>
