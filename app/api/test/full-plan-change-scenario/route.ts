@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
         const { data: assetPackage } = await supabase
           .from('packages')
           .select('id')
-          .eq('package_key', 'asset')
+          .eq('package_key', 'has_asset_package')
           .single();
 
         if (assetPackage) {
@@ -161,7 +161,7 @@ export async function GET(request: NextRequest) {
         const { data: dxPackage } = await supabase
           .from('packages')
           .select('id')
-          .eq('package_key', 'dx')
+          .eq('package_key', 'has_dx_efficiency_package')
           .single();
 
         if (!dxPackage) {
@@ -364,7 +364,7 @@ export async function GET(request: NextRequest) {
         const { data: dxPackage } = await supabase
           .from('packages')
           .select('id')
-          .eq('package_key', 'dx')
+          .eq('package_key', 'has_dx_efficiency_package')
           .single();
 
         if (dxPackage) {
