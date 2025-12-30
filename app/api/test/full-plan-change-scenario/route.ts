@@ -73,12 +73,18 @@ export async function GET(request: NextRequest) {
             contract_type: 'monthly',
             plan: 'premium',
             user_limit: 30,
+            user_count: 30,
             base_monthly_fee: 15000,
             monthly_fee: 15000,
+            total_monthly_fee: 15000,
+            monthly_base_fee: 15000,
             billing_day: 28,
             billing_cycle: 'monthly',
             status: 'active',
             start_date: '2024-12-28',
+            super_admin_created_by: '00000000-0000-0000-0000-000000000000', // テスト用UUID
+            admin_name: 'テスト管理者',
+            admin_email: `test-admin-${Date.now()}@example.com`,
           })
           .select()
           .single();
