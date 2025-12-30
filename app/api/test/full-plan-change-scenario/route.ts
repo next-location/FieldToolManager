@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
 
         testOrganizationId = org.id;
 
-        // テスト契約を作成
+        // テスト契約を作成（スタンダードプラン30名で15,000円）
         const { data: contract, error: contractError } = await supabase
           .from('contracts')
           .insert({
@@ -74,6 +74,7 @@ export async function GET(request: NextRequest) {
             plan: 'premium',
             user_limit: 30,
             base_monthly_fee: 15000,
+            monthly_fee: 15000,
             billing_day: 31,
             billing_cycle: 'monthly',
             status: 'active',
@@ -161,7 +162,7 @@ export async function GET(request: NextRequest) {
           throw new Error('DXパッケージが見つかりません');
         }
 
-        // プラン変更をDBに直接保存（APIを使わずにロジックを再現）
+        // プラン変更をDBに直接保存（スタンダード30名 → スタート10名）
         const nextBillingDate = new Date('2025-01-31');
         const effectiveDate = nextBillingDate.toISOString().split('T')[0];
 
@@ -193,7 +194,7 @@ export async function GET(request: NextRequest) {
         results.push({
           step: stepName,
           status: 'PASS',
-          message: 'プラン変更申請を保存しました（プレミアム30名 → ベーシック10名）',
+          message: 'プラン変更申請を保存しました（スタンダード30名 → スタート10名）',
           data: {
             effective_date: effectiveDate,
             is_downgrade: true,
