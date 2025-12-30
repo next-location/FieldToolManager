@@ -10,13 +10,13 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
  * 完全自動プラン変更シナリオテスト
  *
  * 実行フロー:
- * 1. テスト契約を作成（請求日: 毎月31日、スタンダードプラン30名、25名登録済み）
- * 2. 12/31: プラン変更申請（ライトプラン10名へダウングレード）
- * 3. 1/11: 請求書送信cron実行（請求日の20日前） + 初回警告メール
- * 4. 1/28: 3日前警告メール送信
- * 5. 1/31: プラン切り替え実行（猶予期限: 2/3まで）
- * 6. 2/1, 2/2, 2/3: 猶予期間メール送信
- * 7. 2/4: 自動ユーザー無効化実行（25名中15名を無効化）
+ * 1. テスト契約を作成（請求日: 毎月28日、スタンダードプラン30名、25名登録済み）
+ * 2. 12/28: プラン変更申請（スタートプラン10名へダウングレード）
+ * 3. 1/8: 請求書送信cron実行（請求日の20日前） + 初回警告メール
+ * 4. 1/25: 3日前警告メール送信
+ * 5. 1/28: プラン切り替え実行（猶予期限: 1/31まで）
+ * 6. 1/29, 1/30, 1/31: 猶予期間メール送信
+ * 7. 2/1: 自動ユーザー無効化実行（25名中15名を無効化）
  * 8. クリーンアップ + 日付リセット
  */
 export async function GET(request: NextRequest) {
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     // Step 0: 初期設定
     // ========================================
     resetMockDate();
-    setMockDate('2025-12-31T00:00:00Z');
+    setMockDate('2025-12-28T00:00:00Z');
 
     results.push({
       step: 'Step 0: 初期設定',
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
 
         testOrganizationId = org.id;
 
-        // テスト契約を作成（スタンダードプラン30名で15,000円）
+        // テスト契約を作成（スタンダードプラン30名で15,000円、請求日: 28日）
         const { data: contract, error: contractError } = await supabase
           .from('contracts')
           .insert({
@@ -75,10 +75,10 @@ export async function GET(request: NextRequest) {
             user_limit: 30,
             base_monthly_fee: 15000,
             monthly_fee: 15000,
-            billing_day: 31,
+            billing_day: 28,
             billing_cycle: 'monthly',
             status: 'active',
-            start_date: '2024-12-31',
+            start_date: '2024-12-28',
           })
           .select()
           .single();
@@ -146,10 +146,10 @@ export async function GET(request: NextRequest) {
     }
 
     // ========================================
-    // Step 2: プラン変更申請（12/31）
+    // Step 2: プラン変更申請（12/28）
     // ========================================
     {
-      const stepName = 'Step 2: プラン変更申請（12/31 → 1/31切り替え）';
+      const stepName = 'Step 2: プラン変更申請（12/28 → 1/28切り替え）';
       try {
         // DXパッケージIDを取得
         const { data: dxPackage } = await supabase
@@ -162,8 +162,8 @@ export async function GET(request: NextRequest) {
           throw new Error('DXパッケージが見つかりません');
         }
 
-        // プラン変更をDBに直接保存（スタンダード30名 → スタート10名）
-        const nextBillingDate = new Date('2025-01-31');
+        // プラン変更をDBに直接保存（スタンダード30名 → スタート10名、切り替え日: 1/28）
+        const nextBillingDate = new Date('2025-01-28');
         const effectiveDate = nextBillingDate.toISOString().split('T')[0];
 
         const pendingPlanChange = {
@@ -213,12 +213,12 @@ export async function GET(request: NextRequest) {
     }
 
     // ========================================
-    // Step 3: 請求書送信 + 初回警告（1/11: 請求日の20日前）
+    // Step 3: 請求書送信 + 初回警告（1/8: 請求日の20日前）
     // ========================================
     {
-      const stepName = 'Step 3: 請求書送信 + 初回警告メール（1/11）';
+      const stepName = 'Step 3: 請求書送信 + 初回警告メール（1/8）';
       try {
-        setMockDate('2025-01-11T00:00:00Z');
+        setMockDate('2025-01-08T00:00:00Z');
 
         // create-monthly-invoices cronロジックを実行
         // ※実際のcronエンドポイントは呼ばずに、ロジックのみ検証
@@ -228,7 +228,7 @@ export async function GET(request: NextRequest) {
         const nextMonth = new Date(today);
         nextMonth.setMonth(nextMonth.getMonth() + 1);
 
-        const billingDay = 31;
+        const billingDay = 28;
         const nextMonthBillingDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), billingDay);
         const invoiceSendDate = new Date(nextMonthBillingDate);
         invoiceSendDate.setDate(invoiceSendDate.getDate() - 20);
@@ -274,12 +274,12 @@ export async function GET(request: NextRequest) {
     }
 
     // ========================================
-    // Step 4: 3日前警告メール（1/28）
+    // Step 4: 3日前警告メール（1/25）
     // ========================================
     {
-      const stepName = 'Step 4: 3日前警告メール（1/28）';
+      const stepName = 'Step 4: 3日前警告メール（1/25）';
       try {
-        setMockDate('2025-01-28T00:00:00Z');
+        setMockDate('2025-01-25T00:00:00Z');
 
         const today = getCurrentDate();
         const threeDaysLater = new Date(today);
@@ -294,11 +294,11 @@ export async function GET(request: NextRequest) {
           .single();
 
         const pending = contract?.pending_plan_change as any;
-        if (pending?.effective_date !== '2025-01-31') {
+        if (pending?.effective_date !== '2025-01-28') {
           throw new Error(`有効日が不一致: ${pending?.effective_date}`);
         }
 
-        if (threeDaysLaterStr !== '2025-01-31') {
+        if (threeDaysLaterStr !== '2025-01-28') {
           throw new Error(`3日後の日付が不一致: ${threeDaysLaterStr}`);
         }
 
@@ -323,12 +323,12 @@ export async function GET(request: NextRequest) {
     }
 
     // ========================================
-    // Step 5: プラン切り替え実行（1/31）
+    // Step 5: プラン切り替え実行（1/28）
     // ========================================
     {
-      const stepName = 'Step 5: プラン切り替え実行（1/31）';
+      const stepName = 'Step 5: プラン切り替え実行（1/28）';
       try {
-        setMockDate('2025-01-31T00:00:00Z');
+        setMockDate('2025-01-28T00:00:00Z');
 
         const today = getCurrentDate();
         const todayStr = today.toISOString().split('T')[0];
@@ -402,7 +402,7 @@ export async function GET(request: NextRequest) {
         results.push({
           step: stepName,
           status: 'PASS',
-          message: 'プラン切り替え成功（猶予期限: 2/3まで）',
+          message: 'プラン切り替え成功（猶予期限: 1/31まで）',
           data: {
             new_plan: pending.new_plan,
             new_user_limit: pending.new_user_limit,
@@ -421,12 +421,12 @@ export async function GET(request: NextRequest) {
     }
 
     // ========================================
-    // Step 6: 猶予期間メール（2/1, 2/2, 2/3）
+    // Step 6: 猶予期間メール（1/29, 1/30, 1/31）
     // ========================================
     {
-      const stepName = 'Step 6: 猶予期間メール（2/1, 2/2, 2/3）';
+      const stepName = 'Step 6: 猶予期間メール（1/29, 1/30, 1/31）';
       try {
-        const graceDates = ['2025-02-01', '2025-02-02', '2025-02-03'];
+        const graceDates = ['2025-01-29', '2025-01-30', '2025-01-31'];
         const expectedDaysRemaining = [2, 1, 0];
 
         for (let i = 0; i < graceDates.length; i++) {
@@ -470,12 +470,12 @@ export async function GET(request: NextRequest) {
     }
 
     // ========================================
-    // Step 7: 自動ユーザー無効化（2/4）
+    // Step 7: 自動ユーザー無効化（2/1）
     // ========================================
     {
-      const stepName = 'Step 7: 自動ユーザー無効化（2/4）';
+      const stepName = 'Step 7: 自動ユーザー無効化（2/1）';
       try {
-        setMockDate('2025-02-04T00:00:00Z');
+        setMockDate('2025-02-01T00:00:00Z');
 
         const today = getCurrentDate();
         const todayStr = today.toISOString().split('T')[0];
@@ -490,7 +490,7 @@ export async function GET(request: NextRequest) {
         const graceDeadline = new Date(contract?.plan_change_grace_deadline!);
         const graceDeadlineStr = graceDeadline.toISOString().split('T')[0];
 
-        if (graceDeadlineStr !== '2025-02-03') {
+        if (graceDeadlineStr !== '2025-01-31') {
           throw new Error(`猶予期限不一致: ${graceDeadlineStr}`);
         }
 
