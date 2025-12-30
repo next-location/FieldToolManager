@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
 import bcrypt from 'bcryptjs';
+import { sendSuperAdminWelcomeEmail } from '@/lib/email/super-admin-welcome';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -91,6 +92,31 @@ export async function POST(request: NextRequest) {
       target_id: newAdmin.id,
       details: { name, email, role },
     });
+
+    // ウェルカムメールを送信
+    try {
+      await sendSuperAdminWelcomeEmail({
+        toEmail: email,
+        adminName: name,
+        password: password,
+      });
+      console.log(`[Super Admin] Welcome email sent to ${email}`);
+    } catch (emailError: any) {
+      // メール送信エラーはログに記録するが、アカウント作成自体は成功とする
+      console.error('[Super Admin] Failed to send welcome email:', emailError);
+
+      // メール送信失敗をログに記録
+      await supabase.from('super_admin_logs').insert({
+        super_admin_id: session.id,
+        action: 'email_send_failed',
+        target_type: 'super_admin',
+        target_id: newAdmin.id,
+        details: {
+          email,
+          error: emailError?.message || 'Unknown email error'
+        },
+      });
+    }
 
     return NextResponse.json(
       { message: 'Super Adminを作成しました', admin: newAdmin },
