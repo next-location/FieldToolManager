@@ -25,9 +25,8 @@ Organization (組織・企業)
 ├── subdomain_security_mode "standard" | "secure" ← サブドメインセキュリティモード ✨Phase 3
 ├── plan "basic" | "premium" | "enterprise"
 ├── payment_method "invoice" | "bank_transfer"
-├── max_users 20
-├── max_tools 500
 ├── is_active true
+-- ※注意: max_users, max_toolsカラムは本番環境に存在しません
 ├── representative_name TEXT ← 代表者名 ✨2025-12-24
 ├── postal_code TEXT ← 郵便番号 ✨2025-12-24
 ├── address TEXT ← 住所 ✨2025-12-24
@@ -451,9 +450,8 @@ CREATE TABLE organizations (
   subdomain_security_mode TEXT DEFAULT 'standard' CHECK (subdomain_security_mode IN ('standard', 'secure')),
   plan TEXT NOT NULL CHECK (plan IN ('basic', 'premium', 'enterprise')),
   payment_method TEXT DEFAULT 'invoice' CHECK (payment_method IN ('invoice', 'bank_transfer')),
-  max_users INTEGER DEFAULT 20,
-  max_tools INTEGER DEFAULT 500,
   is_active BOOLEAN DEFAULT true,
+  -- 注意: max_users, max_toolsは削除されました。ユーザー数上限はcontracts.user_limitで管理します。
 
   -- 組織連絡先情報（2025-12-24追加）
   representative_name TEXT,
