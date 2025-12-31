@@ -179,8 +179,12 @@ export default async function Home() {
   // プラン名の表示
   const getPlanName = (plan: string) => {
     switch (plan) {
-      case 'basic': return 'ベーシック'
-      case 'premium': return 'プレミアム'
+      case 'basic': return 'スタート' // 旧データをスタートとして表示
+      case 'premium': return 'スタンダード' // 旧データをスタンダードとして表示
+      case 'start': return 'スタート'
+      case 'standard': return 'スタンダード'
+      case 'business': return 'ビジネス'
+      case 'pro': return 'プロ'
       case 'enterprise': return 'エンタープライズ'
       default: return plan
     }

@@ -308,12 +308,12 @@ export default function SecuritySettingsPage() {
 
                 <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <h3 className="text-sm font-medium text-yellow-800 mb-2">
-                    ⚠️ 2FA必須化時の既存ユーザー対応
+                    ⚠️ 2FA推奨設定について
                   </h3>
                   <div className="text-xs text-yellow-700 space-y-1">
-                    <p>• 2FA未設定のユーザーは、次回ログイン時に設定を求められます</p>
-                    <p>• 30日間の猶予期間があり、その間は警告のみ表示されます</p>
-                    <p>• 猶予期間後は2FA設定が完了するまでログインできません</p>
+                    <p>• 2FA未設定のユーザーは、次回ログイン時に設定を推奨するポップアップが表示されます</p>
+                    <p>• ユーザーは「後で設定する」を選択してログインを続行できます</p>
+                    <p>• ログインをブロックする機能は現在実装されていません</p>
                   </div>
                 </div>
               </div>

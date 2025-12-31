@@ -104,8 +104,8 @@ export default function ContractDetailView({ contract, invoices, contractPackage
     business: 'ビジネス',
     pro: 'プロ',
     enterprise: 'エンタープライズ',
-    basic: 'ベーシック',
-    premium: 'プレミアム',
+    basic: 'スタート', // 旧データをスタートとして表示
+    premium: 'スタンダード', // 旧データをスタンダードとして表示
   };
 
   // ステータスの日本語変換

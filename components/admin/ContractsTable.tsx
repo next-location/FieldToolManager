@@ -111,8 +111,8 @@ export default function ContractsTable({ initialContracts }: ContractsTableProps
     business: 'ビジネス',
     pro: 'プロ',
     enterprise: 'エンタープライズ',
-    basic: 'ベーシック', // 旧データ用
-    premium: 'プレミアム', // 旧データ用
+    basic: 'スタート', // 旧データをスタートとして表示
+    premium: 'スタンダード', // 旧データをスタンダードとして表示
   };
 
   return (

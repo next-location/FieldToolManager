@@ -31,8 +31,15 @@ export default function TwoFactorSetup({ isEnabled, onComplete }: TwoFactorSetup
     setError('');
 
     try {
+      // CSRFトークンを取得
+      const csrfResponse = await fetch('/api/admin/csrf');
+      const { token: csrfToken } = await csrfResponse.json();
+
       const response = await fetch('/api/admin/2fa/enable', {
         method: 'POST',
+        headers: {
+          'X-CSRF-Token': csrfToken,
+        },
       });
 
       const data = await response.json();
@@ -63,9 +70,16 @@ export default function TwoFactorSetup({ isEnabled, onComplete }: TwoFactorSetup
     setError('');
 
     try {
+      // CSRFトークンを取得
+      const csrfResponse = await fetch('/api/admin/csrf');
+      const { token: csrfToken } = await csrfResponse.json();
+
       const response = await fetch('/api/admin/2fa/verify', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
         body: JSON.stringify({ token }),
       });
 
@@ -100,13 +114,20 @@ export default function TwoFactorSetup({ isEnabled, onComplete }: TwoFactorSetup
     setError('');
 
     try {
+      // CSRFトークンを取得
+      const csrfResponse = await fetch('/api/admin/csrf');
+      const { token: csrfToken } = await csrfResponse.json();
+
       const body = useBackupCode
         ? { backupCode: disableBackupCode }
         : { token: disableToken };
 
       const response = await fetch('/api/admin/2fa/disable', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
         body: JSON.stringify(body),
       });
 
