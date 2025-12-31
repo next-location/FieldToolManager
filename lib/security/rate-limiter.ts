@@ -152,8 +152,7 @@ export function rateLimitResponse(resetTime?: number | null): Response {
 
   return new Response(
     JSON.stringify({
-      error: 'Too many requests',
-      message: 'リクエスト制限に達しました。しばらく待ってから再試行してください。',
+      error: 'リクエスト制限に達しました。しばらく待ってから再試行してください。',
     }),
     {
       status: 429,
