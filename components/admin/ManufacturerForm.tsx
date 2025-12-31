@@ -52,7 +52,8 @@ export default function ManufacturerForm({ manufacturer, onClose, onSuccess }: M
       if (response.ok) {
         alert(manufacturer ? 'メーカーを更新しました' : 'メーカーを登録しました');
         onSuccess();
-        router.refresh();
+        // 本番環境でキャッシュをクリアして即座に反映
+        window.location.reload();
       } else {
         const error = await response.json();
         alert(`${manufacturer ? '更新' : '登録'}に失敗しました: ${error.error}`);
