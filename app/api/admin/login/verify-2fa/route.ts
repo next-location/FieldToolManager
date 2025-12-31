@@ -211,15 +211,18 @@ export async function POST(request: NextRequest) {
     }
 
     // ログイン通知を送信 - エラーが出てもログインには影響させない
+    console.log('[2FA Verify] Attempting to send login notification to system@zairoku.com');
     try {
-      await sendLoginNotification({
+      const notificationResult = await sendLoginNotification({
         email: superAdmin.email,
         name: superAdmin.name,
         ipAddress,
         userAgent,
       });
+      console.log('[2FA Verify] Login notification result:', notificationResult);
     } catch (notificationError) {
       console.error('[2FA Verify] Failed to send login notification:', notificationError);
+      console.error('[2FA Verify] Error stack:', notificationError instanceof Error ? notificationError.stack : 'No stack trace');
       // エラーを無視してログイン処理を続行
     }
 
