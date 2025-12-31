@@ -17,19 +17,47 @@ export default function SuperAdminSessionTimeoutMonitor({
   const router = useRouter()
   const [showWarning, setShowWarning] = useState(false)
   const [remainingTime, setRemainingTime] = useState(0)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const lastActivityRef = useRef(Date.now())
   const warningShownRef = useRef(false)
   const timeoutIdRef = useRef<NodeJS.Timeout | null>(null)
   const warningTimeoutIdRef = useRef<NodeJS.Timeout | null>(null)
 
-  // セキュリティ設定を取得
+  // ログイン状態確認 + セキュリティ設定を取得
   useEffect(() => {
     console.log('[SuperAdminSessionTimeoutMonitor] Initializing')
-    fetch('/api/admin/settings/timeout', {
+
+    // まずログイン状態を確認
+    fetch('/api/admin/me', {
       credentials: 'include',
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          // ログインしていない場合は何もしない
+          console.log('[SuperAdminSessionTimeoutMonitor] Not logged in, skipping')
+          setIsLoggedIn(false)
+          return
+        }
+        return res.json()
+      })
       .then((data) => {
+        if (!data) return
+
+        // ログインしている場合のみタイムアウト設定を取得
+        console.log('[SuperAdminSessionTimeoutMonitor] Logged in, fetching timeout settings')
+        setIsLoggedIn(true)
+
+        return fetch('/api/admin/settings/timeout', {
+          credentials: 'include',
+        })
+      })
+      .then((res) => {
+        if (!res) return
+        return res.json()
+      })
+      .then((data) => {
+        if (!data) return
+
         console.log('[SuperAdminSessionTimeoutMonitor] Fetched timeout settings:', data)
         if (data.sessionTimeoutMinutes) {
           console.log('[SuperAdminSessionTimeoutMonitor] Setting timeout to:', data.sessionTimeoutMinutes, 'minutes')
@@ -40,8 +68,8 @@ export default function SuperAdminSessionTimeoutMonitor({
         }
       })
       .catch((err) => {
-        console.error('[SuperAdminSessionTimeoutMonitor] Failed to fetch timeout settings:', err)
-        resetTimer(timeoutMinutes, warningMinutes)
+        console.error('[SuperAdminSessionTimeoutMonitor] Error:', err)
+        setIsLoggedIn(false)
       })
   }, [])
 
@@ -156,6 +184,9 @@ export default function SuperAdminSessionTimeoutMonitor({
 
     return () => clearInterval(interval)
   }, [showWarning])
+
+  // ログインしていない場合は何も表示しない
+  if (!isLoggedIn) return null
 
   if (!showWarning) return null
 
