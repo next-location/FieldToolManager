@@ -193,6 +193,9 @@ export async function POST(request: NextRequest) {
                       'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
+    console.log('[2FA Verify] Starting post-login tasks (login tracking, IP check, email notification)');
+    console.log('[2FA Verify] IP:', ipAddress, 'User:', superAdmin.email);
+
     // ログイン試行を記録（成功）+ 日本国外IP警告チェック - エラーが出てもログインには影響させない
     try {
       await recordLoginAttempt({
