@@ -2,7 +2,7 @@
  * 営業アカウントのパスワードリセットAPI
  * POST /api/admin/super-admins/[id]/reset-password
  *
- * マスターアカウント（role=master）のみが営業アカウント（role=sales）のパスワードをリセット可能
+ * オーナーアカウント（role=owner）のみが営業アカウント（role=sales）のパスワードをリセット可能
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -34,16 +34,16 @@ export async function POST(
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
     }
 
-    // マスターアカウントかチェック
+    // オーナーアカウントかチェック
     const { data: executor } = await supabase
       .from('super_admins')
       .select('role')
       .eq('id', session.id)
       .single();
 
-    if (!executor || executor.role !== 'master') {
+    if (!executor || executor.role !== 'owner') {
       return NextResponse.json(
-        { error: 'この操作はマスターアカウントのみ実行できます' },
+        { error: 'この操作はオーナーアカウントのみ実行できます' },
         { status: 403 }
       );
     }
