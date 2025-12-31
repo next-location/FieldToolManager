@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
-import { Lock, ArrowLeft, Mail, Key } from 'lucide-react';
+import { Lock, ArrowLeft, Mail, Key, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 
 export default function PasswordChangePage() {
@@ -21,6 +21,11 @@ export default function PasswordChangePage() {
   const [verificationCode, setVerificationCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  // パスワード表示切り替え
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Step 1: 確認コード送信リクエスト
   const handleRequestChange = async (e: React.FormEvent) => {
@@ -144,14 +149,24 @@ export default function PasswordChangePage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       現在のパスワード
                     </label>
-                    <input
-                      type="password"
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      required
-                      className="w-full border rounded px-3 py-2"
-                      placeholder="現在のパスワードを入力"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showCurrentPassword ? 'text' : 'password'}
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        required
+                        autoComplete="current-password"
+                        className="w-full border rounded px-3 py-2 pr-10"
+                        placeholder="現在のパスワードを入力"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      >
+                        {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
                   </div>
 
                   {error && (
@@ -219,14 +234,24 @@ export default function PasswordChangePage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       新しいパスワード
                     </label>
-                    <input
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      required
-                      className="w-full border rounded px-3 py-2"
-                      placeholder="8文字以上、大小英数字記号を含む"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showNewPassword ? 'text' : 'password'}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        required
+                        autoComplete="new-password"
+                        className="w-full border rounded px-3 py-2 pr-10"
+                        placeholder="8文字以上、大小英数字記号を含む"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      >
+                        {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
                     <p className="text-xs text-gray-500 mt-1">
                       8文字以上、大文字・小文字・数字・記号を含めてください
                     </p>
@@ -236,14 +261,24 @@ export default function PasswordChangePage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       新しいパスワード（確認）
                     </label>
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      required
-                      className="w-full border rounded px-3 py-2"
-                      placeholder="もう一度入力してください"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        autoComplete="new-password"
+                        className="w-full border rounded px-3 py-2 pr-10"
+                        placeholder="もう一度入力してください"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      >
+                        {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
                   </div>
 
                   {error && (
