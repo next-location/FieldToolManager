@@ -8,6 +8,9 @@ import { createClient } from '@supabase/supabase-js';
 import { setSuperAdminCookie } from '@/lib/auth/super-admin';
 import { verifyToken, decryptSecret, verifyBackupCode } from '@/lib/security/2fa';
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf';
+import { sendLoginNotification } from '@/lib/notifications/login-notification';
+import { recordLoginAttempt, checkForeignIPAccess } from '@/lib/security/login-tracker';
+import { getCountryFromIP } from '@/lib/security/geoip';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -136,7 +139,6 @@ export async function POST(request: NextRequest) {
 
       // ログイン試行を記録（2FA失敗）- エラーが出てもログインには影響させない
       try {
-        const { recordLoginAttempt } = await import('@/lib/security/login-tracker');
         await recordLoginAttempt({
           email: superAdmin.email,
           ipAddress,
@@ -193,9 +195,6 @@ export async function POST(request: NextRequest) {
 
     // ログイン試行を記録（成功）+ 日本国外IP警告チェック - エラーが出てもログインには影響させない
     try {
-      const { recordLoginAttempt, checkForeignIPAccess } = await import('@/lib/security/login-tracker');
-      const { getCountryFromIP } = await import('@/lib/security/geoip');
-
       await recordLoginAttempt({
         email: superAdmin.email,
         ipAddress,
@@ -213,7 +212,6 @@ export async function POST(request: NextRequest) {
 
     // ログイン通知を送信 - エラーが出てもログインには影響させない
     try {
-      const { sendLoginNotification } = await import('@/lib/notifications/login-notification');
       await sendLoginNotification({
         email: superAdmin.email,
         name: superAdmin.name,

@@ -3,6 +3,9 @@ import { createClient } from '@supabase/supabase-js';
 import { verifySuperAdminPassword, setSuperAdminCookie } from '@/lib/auth/super-admin';
 import { rateLimiters, getClientIp, rateLimitResponse } from '@/lib/security/rate-limiter';
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf';
+import { sendLoginNotification } from '@/lib/notifications/login-notification';
+import { recordLoginAttempt, checkForeignIPAccess } from '@/lib/security/login-tracker';
+import { getCountryFromIP } from '@/lib/security/geoip';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -70,7 +73,6 @@ export async function POST(request: NextRequest) {
 
       // ログイン試行を記録（失敗）- エラーが出てもログインには影響させない
       try {
-        const { recordLoginAttempt } = await import('@/lib/security/login-tracker');
         const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
                           request.headers.get('x-real-ip') ||
                           'unknown';
@@ -129,9 +131,6 @@ export async function POST(request: NextRequest) {
 
     // ログイン試行を記録（成功）+ 日本国外IP警告チェック - エラーが出てもログインには影響させない
     try {
-      const { recordLoginAttempt, checkForeignIPAccess } = await import('@/lib/security/login-tracker');
-      const { getCountryFromIP } = await import('@/lib/security/geoip');
-
       await recordLoginAttempt({
         email: superAdmin.email,
         ipAddress,
@@ -149,7 +148,6 @@ export async function POST(request: NextRequest) {
 
     // ログイン通知を送信 - エラーが出てもログインには影響させない
     try {
-      const { sendLoginNotification } = await import('@/lib/notifications/login-notification');
       await sendLoginNotification({
         email: superAdmin.email,
         name: superAdmin.name,
