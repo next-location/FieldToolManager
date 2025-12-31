@@ -129,19 +129,24 @@ export async function POST(request: NextRequest) {
     }
 
     if (!isValid) {
-      // ログイン試行を記録（2FA失敗）
-      const { recordLoginAttempt } = await import('@/lib/security/login-tracker');
       const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
                         request.headers.get('x-real-ip') ||
                         'unknown';
       const userAgent = request.headers.get('user-agent') || 'unknown';
 
-      await recordLoginAttempt({
-        email: superAdmin.email,
-        ipAddress,
-        userAgent,
-        attemptType: '2fa_failure',
-      });
+      // ログイン試行を記録（2FA失敗）- エラーが出てもログインには影響させない
+      try {
+        const { recordLoginAttempt } = await import('@/lib/security/login-tracker');
+        await recordLoginAttempt({
+          email: superAdmin.email,
+          ipAddress,
+          userAgent,
+          attemptType: '2fa_failure',
+        });
+      } catch (trackerError) {
+        console.error('[2FA Verify] Failed to record login attempt:', trackerError);
+        // エラーを無視して処理を続行
+      }
 
       // ログを記録（失敗）
       await supabase.from('super_admin_logs').insert({
@@ -181,33 +186,44 @@ export async function POST(request: NextRequest) {
       })
       .eq('id', superAdmin.id);
 
-    // ログイン試行を記録（成功）+ 日本国外IP警告チェック
-    const { recordLoginAttempt, checkForeignIPAccess } = await import('@/lib/security/login-tracker');
-    const { getCountryFromIP } = await import('@/lib/security/geoip');
     const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
                       request.headers.get('x-real-ip') ||
                       'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
-    await recordLoginAttempt({
-      email: superAdmin.email,
-      ipAddress,
-      userAgent,
-      attemptType: 'success',
-    });
+    // ログイン試行を記録（成功）+ 日本国外IP警告チェック - エラーが出てもログインには影響させない
+    try {
+      const { recordLoginAttempt, checkForeignIPAccess } = await import('@/lib/security/login-tracker');
+      const { getCountryFromIP } = await import('@/lib/security/geoip');
 
-    // 日本国外からのアクセスを警告
-    const countryCode = await getCountryFromIP(ipAddress);
-    await checkForeignIPAccess(superAdmin.email, ipAddress, userAgent, countryCode);
+      await recordLoginAttempt({
+        email: superAdmin.email,
+        ipAddress,
+        userAgent,
+        attemptType: 'success',
+      });
 
-    // ログイン通知を送信
-    const { sendLoginNotification } = await import('@/lib/notifications/login-notification');
-    await sendLoginNotification({
-      email: superAdmin.email,
-      name: superAdmin.name,
-      ipAddress,
-      userAgent,
-    });
+      // 日本国外からのアクセスを警告
+      const countryCode = await getCountryFromIP(ipAddress);
+      await checkForeignIPAccess(superAdmin.email, ipAddress, userAgent, countryCode);
+    } catch (trackerError) {
+      console.error('[2FA Verify] Failed to record login attempt or check foreign IP:', trackerError);
+      // エラーを無視してログイン処理を続行
+    }
+
+    // ログイン通知を送信 - エラーが出てもログインには影響させない
+    try {
+      const { sendLoginNotification } = await import('@/lib/notifications/login-notification');
+      await sendLoginNotification({
+        email: superAdmin.email,
+        name: superAdmin.name,
+        ipAddress,
+        userAgent,
+      });
+    } catch (notificationError) {
+      console.error('[2FA Verify] Failed to send login notification:', notificationError);
+      // エラーを無視してログイン処理を続行
+    }
 
     // ログを記録（成功）
     await supabase.from('super_admin_logs').insert({
