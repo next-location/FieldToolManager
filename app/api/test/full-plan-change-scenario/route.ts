@@ -278,19 +278,11 @@ export async function GET(request: NextRequest) {
     }
 
     // ========================================
-    // Step 3: 請求書送信 + 初回警告（1/8: 請求日の20日前）
+    // Step 3: 請求書送信 + 初回警告（請求日の20日前）
     // ========================================
     {
-      const stepName = 'Step 3: 請求書送信 + 初回警告メール（1/8）';
+      const stepName = 'Step 3: 請求書送信 + 初回警告メール';
       try {
-        setMockDate('2025-01-08T00:00:00Z');
-
-        // create-monthly-invoices cronロジックを実行
-        // ※実際のcronエンドポイントは呼ばずに、ロジックのみ検証
-
-        // 請求書送信対象かチェック
-        const today = getCurrentDate();
-
         // 契約のbilling_dayを取得
         const { data: contractData } = await supabase
           .from('contracts')
@@ -301,7 +293,9 @@ export async function GET(request: NextRequest) {
         const billingDay = contractData?.billing_day || 28;
 
         // 次月の請求日を取得（営業日調整済み、99=月末対応）
-        const nextMonth = new Date(today);
+        // Step 0の日付（1/8）を基準に計算
+        const baseDate = new Date('2025-01-08T00:00:00Z');
+        const nextMonth = new Date(baseDate);
         nextMonth.setMonth(nextMonth.getMonth() + 1);
         const nextBillingDate = getAdjustedBillingDate(billingDay, nextMonth);
 
@@ -309,12 +303,17 @@ export async function GET(request: NextRequest) {
         const invoiceSendDate = new Date(nextBillingDate);
         invoiceSendDate.setDate(invoiceSendDate.getDate() - 20);
 
+        // 請求書送信日にモック日付を設定
+        setMockDate(invoiceSendDate.toISOString());
+        const today = getCurrentDate();
+
+        // 日付が一致することを確認（計算ロジックの検証）
         const isCorrectDate = invoiceSendDate.getDate() === today.getDate() &&
                               invoiceSendDate.getMonth() === today.getMonth() &&
                               invoiceSendDate.getFullYear() === today.getFullYear();
 
         if (!isCorrectDate) {
-          throw new Error(`請求書送信日が不一致: 期待=${invoiceSendDate.toISOString().split('T')[0]}, 実際=${today.toISOString().split('T')[0]}`);
+          throw new Error(`請求書送信日の計算エラー: 期待=${invoiceSendDate.toISOString().split('T')[0]}, 実際=${today.toISOString().split('T')[0]}`);
         }
 
         // pending_plan_changeを確認
