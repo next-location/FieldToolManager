@@ -27,6 +27,38 @@ export default function PasswordChangePage() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // パスワード自動生成
+  const generateSecurePassword = () => {
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const numbers = '0123456789';
+    const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+    // 各カテゴリから最低1文字ずつ
+    let password = '';
+    password += uppercase[Math.floor(Math.random() * uppercase.length)];
+    password += lowercase[Math.floor(Math.random() * lowercase.length)];
+    password += numbers[Math.floor(Math.random() * numbers.length)];
+    password += symbols[Math.floor(Math.random() * symbols.length)];
+
+    // 残りの文字をランダムに追加（合計16文字）
+    const allChars = uppercase + lowercase + numbers + symbols;
+    for (let i = 0; i < 12; i++) {
+      password += allChars[Math.floor(Math.random() * allChars.length)];
+    }
+
+    // シャッフル
+    return password.split('').sort(() => Math.random() - 0.5).join('');
+  };
+
+  const handleGeneratePassword = () => {
+    const generated = generateSecurePassword();
+    setNewPassword(generated);
+    setConfirmPassword(generated);
+    setShowNewPassword(true);
+    setShowConfirmPassword(true);
+  };
+
   // Step 1: 確認コード送信リクエスト
   const handleRequestChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -231,9 +263,18 @@ export default function PasswordChangePage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      新しいパスワード
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-sm font-medium text-gray-700">
+                        新しいパスワード
+                      </label>
+                      <button
+                        type="button"
+                        onClick={handleGeneratePassword}
+                        className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        安全なパスワードを自動生成
+                      </button>
+                    </div>
                     <div className="relative">
                       <input
                         type={showNewPassword ? 'text' : 'password'}
@@ -252,9 +293,16 @@ export default function PasswordChangePage() {
                         {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      8文字以上、大文字・小文字・数字・記号を含めてください
-                    </p>
+                    <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-xs font-semibold text-blue-900 mb-1">パスワード要件:</p>
+                      <ul className="text-xs text-blue-800 space-y-0.5">
+                        <li>• 8文字以上</li>
+                        <li>• 大文字 (A-Z) を含む</li>
+                        <li>• 小文字 (a-z) を含む</li>
+                        <li>• 数字 (0-9) を含む</li>
+                        <li>• 記号 (!@#$%^&*など) を含む</li>
+                      </ul>
+                    </div>
                   </div>
 
                   <div>
