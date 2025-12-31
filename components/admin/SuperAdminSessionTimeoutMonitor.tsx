@@ -98,25 +98,33 @@ export default function SuperAdminSessionTimeoutMonitor({
     const effectiveWarningMinutes = timeout > warning ? warning : timeout / 2
     const warningTime = (timeout - effectiveWarningMinutes) * 60 * 1000
     console.log('[SuperAdminSessionTimeoutMonitor] Warning will show in:', warningTime / 1000, 'seconds')
+    console.log('[SuperAdminSessionTimeoutMonitor] Setting warning timeout ID...')
 
     if (warningTime > 0) {
       warningTimeoutIdRef.current = setTimeout(() => {
+        console.log('[SuperAdminSessionTimeoutMonitor] *** WARNING TIMEOUT FIRED ***')
         if (!warningShownRef.current) {
           console.log('[SuperAdminSessionTimeoutMonitor] Showing warning modal')
           setShowWarning(true)
           setRemainingTime(effectiveWarningMinutes * 60)
           warningShownRef.current = true
+        } else {
+          console.log('[SuperAdminSessionTimeoutMonitor] Warning already shown, skipping')
         }
       }, warningTime)
+      console.log('[SuperAdminSessionTimeoutMonitor] Warning timeout registered with ID:', warningTimeoutIdRef.current)
     }
 
     // セッションタイムアウトタイマーを設定
     const timeoutTime = timeout * 60 * 1000
     console.log('[SuperAdminSessionTimeoutMonitor] Auto logout will occur in:', timeoutTime / 1000, 'seconds')
+    console.log('[SuperAdminSessionTimeoutMonitor] Setting logout timeout...')
     timeoutIdRef.current = setTimeout(() => {
+      console.log('[SuperAdminSessionTimeoutMonitor] *** LOGOUT TIMEOUT FIRED ***')
       console.log('[SuperAdminSessionTimeoutMonitor] Timeout reached, logging out')
       handleTimeout()
     }, timeoutTime)
+    console.log('[SuperAdminSessionTimeoutMonitor] Logout timeout registered with ID:', timeoutIdRef.current)
   }
 
   const handleTimeout = async () => {
