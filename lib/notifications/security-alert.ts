@@ -2,6 +2,7 @@
  * セキュリティ警告通知ユーティリティ
  */
 
+import { Resend } from 'resend';
 import { getGeoIPInfo } from '@/lib/security/geoip';
 
 interface SecurityAlertParams {
@@ -20,7 +21,6 @@ export async function sendSecurityAlert(params: SecurityAlertParams) {
   const { type, email, ipAddress, userAgent, details, timestamp = new Date() } = params;
 
   try {
-    const { Resend } = await import('resend');
     const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
     if (!resend) {
