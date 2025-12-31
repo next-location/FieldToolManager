@@ -53,12 +53,16 @@ export async function POST(request: NextRequest) {
     }
 
     // 現在のパスワード検証
+    console.log('[Password Change Request] Verifying password for:', adminData.email);
+    console.log('[Password Change Request] Password length:', currentPassword.length);
     const isValidPassword = await verifySuperAdminPassword(
       currentPassword,
       adminData.password_hash
     );
+    console.log('[Password Change Request] Password verification result:', isValidPassword);
 
     if (!isValidPassword) {
+      console.error('[Password Change Request] Invalid password for:', adminData.email);
       return NextResponse.json(
         { error: '現在のパスワードが正しくありません' },
         { status: 401 }
