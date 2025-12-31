@@ -200,7 +200,7 @@ export default function SuperAdminList({ admins, currentUserId, currentUserRole 
                     {new Date(admin.created_at).toLocaleDateString('ja-JP')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {!isCurrentUser && admin.role === 'sales' && currentUserRole === 'master' && (
+                    {!isCurrentUser && admin.role === 'sales' && currentUserRole === 'owner' && (
                       <button
                         onClick={() => handleResetPassword(admin.id, admin.name)}
                         disabled={resettingId === admin.id}
