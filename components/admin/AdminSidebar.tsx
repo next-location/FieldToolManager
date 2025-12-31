@@ -155,6 +155,10 @@ const menuItems = [
         href: '/admin/settings/2fa',
       },
       {
+        name: 'パスワード変更',
+        href: '/admin/settings/password',
+      },
+      {
         name: 'セキュリティ設定',
         href: '/admin/settings/security',
       },

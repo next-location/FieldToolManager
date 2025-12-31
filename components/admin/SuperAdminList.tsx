@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Key } from 'lucide-react';
 
 interface SuperAdmin {
   id: string;
@@ -15,6 +15,7 @@ interface SuperAdmin {
 interface SuperAdminListProps {
   admins: SuperAdmin[];
   currentUserId: string;
+  currentUserRole?: string;
 }
 
 const ROLE_LABELS: Record<string, { label: string; description: string; color: string }> = {
@@ -30,7 +31,7 @@ const ROLE_LABELS: Record<string, { label: string; description: string; color: s
   },
 };
 
-export default function SuperAdminList({ admins, currentUserId }: SuperAdminListProps) {
+export default function SuperAdminList({ admins, currentUserId, currentUserRole }: SuperAdminListProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -41,6 +42,7 @@ export default function SuperAdminList({ admins, currentUserId }: SuperAdminList
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [resettingId, setResettingId] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +71,40 @@ export default function SuperAdminList({ admins, currentUserId }: SuperAdminList
       setError(err.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleResetPassword = async (adminId: string, adminName: string) => {
+    if (!confirm(`${adminName} のパスワードをリセットしますか？\n仮パスワードがメールで送信されます。`)) {
+      return;
+    }
+
+    setResettingId(adminId);
+
+    try {
+      // CSRFトークンを取得
+      const csrfResponse = await fetch('/api/admin/csrf');
+      const { token: csrfToken } = await csrfResponse.json();
+
+      const response = await fetch(`/api/admin/super-admins/${adminId}/reset-password`, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-Token': csrfToken,
+        },
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message || 'パスワードをリセットしました');
+      } else {
+        alert(data.error || 'エラーが発生しました');
+      }
+    } catch (err: any) {
+      alert(err.message || 'エラーが発生しました');
+    } finally {
+      setResettingId(null);
     }
   };
 
@@ -124,6 +160,9 @@ export default function SuperAdminList({ admins, currentUserId }: SuperAdminList
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                 作成日
               </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                操作
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -159,6 +198,18 @@ export default function SuperAdminList({ admins, currentUserId }: SuperAdminList
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(admin.created_at).toLocaleDateString('ja-JP')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    {!isCurrentUser && admin.role === 'sales' && currentUserRole === 'master' && (
+                      <button
+                        onClick={() => handleResetPassword(admin.id, admin.name)}
+                        disabled={resettingId === admin.id}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded text-xs font-medium disabled:opacity-50"
+                      >
+                        <Key className="w-3 h-3" />
+                        {resettingId === admin.id ? 'リセット中...' : 'パスワードリセット'}
+                      </button>
+                    )}
                   </td>
                 </tr>
               );

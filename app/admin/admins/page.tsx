@@ -17,15 +17,15 @@ export default async function SuperAdminsPage() {
     redirect('/admin/login');
   }
 
-  // Owner権限チェック
+  // Owner/Master権限チェック
   const { data: adminData } = await supabase
     .from('super_admins')
     .select('role')
     .eq('id', session.id)
     .single();
 
-  if (adminData?.role !== 'owner') {
-    // Ownerのみアクセス可能
+  if (adminData?.role !== 'owner' && adminData?.role !== 'master') {
+    // OwnerまたはMasterのみアクセス可能
     redirect('/admin');
   }
 
@@ -61,7 +61,7 @@ export default async function SuperAdminsPage() {
               </p>
             </div>
 
-            <SuperAdminList admins={admins || []} currentUserId={session.id} />
+            <SuperAdminList admins={admins || []} currentUserId={session.id} currentUserRole={adminData?.role} />
           </div>
         </main>
       </div>

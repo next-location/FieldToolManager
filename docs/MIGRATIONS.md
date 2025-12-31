@@ -3209,3 +3209,53 @@ const currentPackages = currentPackagesRaw?.map(cp => ({
 - `lib/billing/calculate-fee.ts` - 年払い料金計算
 
 
+
+---
+
+### 20251231000001_add_password_change_tokens.sql
+
+**実行日時**: 2025-12-31
+**環境**: ローカル開発環境、本番環境（未実行）
+
+#### 変更内容
+- `password_change_tokens`テーブル作成
+- パスワード変更時のメール確認コード管理用
+
+#### テーブル構造
+```sql
+CREATE TABLE password_change_tokens (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  super_admin_id UUID REFERENCES super_admins(id) ON DELETE CASCADE NOT NULL,
+  token VARCHAR(6) NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  used BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+#### インデックス
+- `idx_password_change_tokens_admin` - super_admin_id
+- `idx_password_change_tokens_expires` - expires_at
+- `idx_password_change_tokens_used` - used
+
+#### RLSポリシー
+- サービスロールのみアクセス可能
+
+#### 影響範囲
+- 新機能追加（既存機能への影響なし）
+- スーパー管理者のパスワード変更機能で使用
+
+#### 実行コマンド
+```bash
+# ローカル
+psql -h localhost -p 54322 -U postgres -d postgres -f supabase/migrations/20251231000001_add_password_change_tokens.sql
+
+# 本番（リモート接続時）
+PGPASSWORD="cF1!hVERlDgjMD" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -f supabase/migrations/20251231000001_add_password_change_tokens.sql
+```
+
+#### ロールバック
+```sql
+DROP TABLE IF EXISTS password_change_tokens CASCADE;
+```
+

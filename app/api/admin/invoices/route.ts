@@ -41,11 +41,13 @@ export async function GET(request: NextRequest) {
     const organizationId = searchParams.get('organization_id');
     const status = searchParams.get('status');
     const search = searchParams.get('search');
+    const dueDateStart = searchParams.get('due_date_start');
+    const dueDateEnd = searchParams.get('due_date_end');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = (page - 1) * limit;
 
-    console.log('[Invoices API] Params:', { organizationId, status, search, page, limit });
+    console.log('[Invoices API] Params:', { organizationId, status, search, dueDateStart, dueDateEnd, page, limit });
 
     let query = supabase
       .from('invoices')
@@ -69,6 +71,14 @@ export async function GET(request: NextRequest) {
 
     if (status) {
       query = query.eq('status', status);
+    }
+
+    if (dueDateStart) {
+      query = query.gte('due_date', dueDateStart);
+    }
+
+    if (dueDateEnd) {
+      query = query.lte('due_date', dueDateEnd);
     }
 
     query = query.range(offset, offset + limit - 1);
