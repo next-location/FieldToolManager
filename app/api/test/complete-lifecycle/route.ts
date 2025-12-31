@@ -35,28 +35,28 @@ export async function GET(request: NextRequest) {
       name: 'パターンA: 月初請求（billing_day=1）',
       billing_day: 1,
       initial_plan: 'basic',
-      upgrade_plan: 'standard',
+      upgrade_plan: 'premium',
       downgrade_plan: 'basic',
     },
     {
       name: 'パターンB: 月中請求（billing_day=15）',
       billing_day: 15,
-      initial_plan: 'standard',
-      upgrade_plan: 'premium',
+      initial_plan: 'premium',
+      upgrade_plan: 'enterprise',
       downgrade_plan: 'basic',
     },
     {
       name: 'パターンC: 月末付近請求（billing_day=28）',
       billing_day: 28,
       initial_plan: 'basic',
-      upgrade_plan: 'standard',
+      upgrade_plan: 'premium',
       downgrade_plan: 'basic',
     },
     {
       name: 'パターンD: 月末請求（billing_day=99）★重要',
       billing_day: 99,
-      initial_plan: 'standard',
-      upgrade_plan: 'premium',
+      initial_plan: 'premium',
+      upgrade_plan: 'enterprise',
       downgrade_plan: 'basic',
     },
   ];
@@ -159,11 +159,12 @@ async function runLifecycleTest(pattern: any): Promise<{ success: boolean; steps
       try {
         const startDate = new Date('2025-01-15T00:00:00Z');
 
-        const { data: contract, error } = await supabase
+        const { data: contract, error} = await supabase
           .from('contracts')
           .insert({
             organization_id: organizationId,
             contract_number: `TEST-${pattern.billing_day}-${Date.now()}`,
+            contract_type: 'monthly',
             plan: pattern.initial_plan,
             billing_day: pattern.billing_day,
             billing_cycle: 'monthly',
