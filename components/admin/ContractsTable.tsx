@@ -182,18 +182,20 @@ export default function ContractsTable({ initialContracts }: ContractsTableProps
 
                   {/* 機能パック */}
                   <div className="flex items-center gap-1.5 min-w-[180px]">
-                    {contract.has_asset_package && (
+                    {contract.has_asset_package && contract.has_dx_efficiency_package ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        🎯 フル機能統合パック
+                      </span>
+                    ) : contract.has_asset_package ? (
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                        📦 資産
+                        📦 現場資産パック
                       </span>
-                    )}
-                    {contract.has_dx_efficiency_package && (
+                    ) : contract.has_dx_efficiency_package ? (
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
-                        ⚡ DX
+                        ⚡ 現場DX業務効率化パック
                       </span>
-                    )}
-                    {!contract.has_asset_package && !contract.has_dx_efficiency_package && (
-                      <span className="text-xs text-gray-400">-</span>
+                    ) : (
+                      <span className="text-xs text-red-600 font-semibold">⚠️ 未設定</span>
                     )}
                   </div>
 

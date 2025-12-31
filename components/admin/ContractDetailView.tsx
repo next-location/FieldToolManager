@@ -283,21 +283,20 @@ export default function ContractDetailView({ contract, invoices, contractPackage
           <div>
             <dt className="text-gray-600 text-sm mb-2">機能パック:</dt>
             <dd className="space-y-2">
-              {contractPackages && contractPackages.length > 0 ? (
-                contractPackages.map((cp) => {
-                  // packagesは配列またはオブジェクトの可能性があるため、両方に対応
-                  const packageData = Array.isArray(cp.packages) ? cp.packages[0] : cp.packages;
-                  return (
-                    <span
-                      key={cp.package_id}
-                      className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold mr-2 mb-2"
-                    >
-                      {packageData?.name || 'パッケージ情報なし'}
-                    </span>
-                  );
-                })
+              {contract.has_asset_package && contract.has_dx_efficiency_package ? (
+                <span className="inline-block bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-semibold">
+                  🎯 フル機能統合パック
+                </span>
+              ) : contract.has_asset_package ? (
+                <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
+                  📦 現場資産パック
+                </span>
+              ) : contract.has_dx_efficiency_package ? (
+                <span className="inline-block bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
+                  ⚡ 現場DX業務効率化パック
+                </span>
               ) : (
-                <span className="text-gray-500 text-sm">なし</span>
+                <span className="text-red-600 text-sm font-semibold">⚠️ 未設定</span>
               )}
             </dd>
           </div>
