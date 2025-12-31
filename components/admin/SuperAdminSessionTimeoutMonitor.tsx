@@ -18,6 +18,7 @@ export default function SuperAdminSessionTimeoutMonitor({
   const [showWarning, setShowWarning] = useState(false)
   const [remainingTime, setRemainingTime] = useState(0)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false)
   const lastActivityRef = useRef(Date.now())
   const warningShownRef = useRef(false)
   const timeoutIdRef = useRef<NodeJS.Timeout | null>(null)
@@ -27,25 +28,27 @@ export default function SuperAdminSessionTimeoutMonitor({
   useEffect(() => {
     console.log('[SuperAdminSessionTimeoutMonitor] Initializing')
 
-    // まずログイン状態を確認
-    fetch('/api/admin/me', {
-      credentials: 'include',
-    })
-      .then((res) => {
-        if (!res.ok) {
-          // ログインしていない場合は何もしない
-          console.log('[SuperAdminSessionTimeoutMonitor] Not logged in, skipping')
-          setIsLoggedIn(false)
-          return
-        }
-        return res.json()
+    const checkLoginAndInitialize = () => {
+      // まずログイン状態を確認
+      fetch('/api/admin/me', {
+        credentials: 'include',
       })
-      .then((data) => {
-        if (!data) return
+        .then((res) => {
+          if (!res.ok) {
+            // ログインしていない場合は何もしない
+            console.log('[SuperAdminSessionTimeoutMonitor] Not logged in, skipping')
+            setIsLoggedIn(false)
+            setIsInitialized(false)
+            return
+          }
+          return res.json()
+        })
+        .then((data) => {
+          if (!data) return
 
-        // ログインしている場合のみタイムアウト設定を取得
-        console.log('[SuperAdminSessionTimeoutMonitor] Logged in, fetching timeout settings')
-        setIsLoggedIn(true)
+          // ログインしている場合のみタイムアウト設定を取得
+          console.log('[SuperAdminSessionTimeoutMonitor] Logged in, fetching timeout settings')
+          setIsLoggedIn(true)
 
         return fetch('/api/admin/settings/timeout', {
           credentials: 'include',
@@ -69,16 +72,32 @@ export default function SuperAdminSessionTimeoutMonitor({
         if (data.sessionTimeoutMinutes) {
           console.log('[SuperAdminSessionTimeoutMonitor] Setting timeout to:', data.sessionTimeoutMinutes, 'minutes')
           resetTimer(data.sessionTimeoutMinutes, data.warningMinutes || warningMinutes)
+          setIsInitialized(true)
         } else {
           console.log('[SuperAdminSessionTimeoutMonitor] Using default timeout:', timeoutMinutes)
           resetTimer(timeoutMinutes, warningMinutes)
+          setIsInitialized(true)
         }
-      })
-      .catch((err) => {
-        console.error('[SuperAdminSessionTimeoutMonitor] Error:', err)
-        setIsLoggedIn(false)
-      })
-  }, [])
+        })
+        .catch((err) => {
+          console.error('[SuperAdminSessionTimeoutMonitor] Error:', err)
+          setIsLoggedIn(false)
+          setIsInitialized(false)
+        })
+    }
+
+    checkLoginAndInitialize()
+
+    // 定期的にログイン状態をチェック（1分ごと）
+    const interval = setInterval(() => {
+      if (!isInitialized) {
+        console.log('[SuperAdminSessionTimeoutMonitor] Periodic check - not initialized, checking login status')
+        checkLoginAndInitialize()
+      }
+    }, 60000) // 60秒ごと
+
+    return () => clearInterval(interval)
+  }, [isInitialized])
 
   const resetTimer = (timeout: number = timeoutMinutes, warning: number = warningMinutes) => {
     console.log('[SuperAdminSessionTimeoutMonitor] resetTimer called with timeout:', timeout, 'minutes, warning:', warning, 'minutes')
