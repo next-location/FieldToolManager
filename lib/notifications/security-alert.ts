@@ -32,7 +32,7 @@ export async function sendSecurityAlert(params: SecurityAlertParams) {
     const location = await getLocationFromIP(ipAddress);
 
     await resend.emails.send({
-      from: 'ザイロク <noreply@fieldtool.com>',
+      from: 'ザイロク <noreply@zairoku.com>',
       to: 'system@zairoku.com',
       subject: '【重要】ザイロク管理者アカウントへの不正アクセスの可能性',
       html: `

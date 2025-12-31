@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
     }
 
     await resend.emails.send({
-      from: 'ザイロク <noreply@fieldtool.com>',
+      from: 'ザイロク <noreply@zairoku.com>',
       to: adminData.email,
       subject: '【ザイロク】パスワード変更の確認コード',
       html: `

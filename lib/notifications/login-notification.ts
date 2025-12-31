@@ -36,7 +36,7 @@ export async function sendLoginNotification(params: LoginNotificationParams) {
     }
 
     const result = await resend.emails.send({
-      from: 'ザイロク <noreply@fieldtool.com>',
+      from: 'ザイロク <noreply@zairoku.com>',
       to: 'system@zairoku.com',
       subject: '【ザイロク】管理者アカウントへのログインがありました',
       html: `

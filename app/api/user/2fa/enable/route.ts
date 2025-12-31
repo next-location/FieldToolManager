@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       const resend = new Resend(process.env.RESEND_API_KEY!);
 
       await resend.emails.send({
-        from: 'ザイロク <noreply@fieldtool.com>',
+        from: 'ザイロク <noreply@zairoku.com>',
         to: twoFactorEmail,
         subject: '【ザイロク】二要素認証の設定',
         html: `

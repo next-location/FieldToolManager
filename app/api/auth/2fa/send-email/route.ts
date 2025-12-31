@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
       }
 
       const { error: emailError } = await resend.emails.send({
-        from: 'FieldTool Manager <noreply@fieldtool.com>',
+        from: 'FieldTool Manager <noreply@zairoku.com>',
         to: targetEmail,
         subject: emailSubject,
         html: emailBody,

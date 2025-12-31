@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
       const userAgent = request.headers.get('user-agent') || 'unknown';
 
       await resend.emails.send({
-        from: 'ザイロク <noreply@fieldtool.com>',
+        from: 'ザイロク <noreply@zairoku.com>',
         to: adminData.email,
         subject: '【ザイロク】パスワードが変更されました',
         html: `
@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
 
       // system@zairoku.comにも通知
       await resend.emails.send({
-        from: 'ザイロク <noreply@fieldtool.com>',
+        from: 'ザイロク <noreply@zairoku.com>',
         to: 'system@zairoku.com',
         subject: '【ザイロク】管理者アカウントのパスワードが変更されました',
         html: `

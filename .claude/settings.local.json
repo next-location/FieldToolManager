@@ -119,7 +119,8 @@
       "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"\\d organizations\")",
       "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT DISTINCT plan, count(*) as count FROM contracts GROUP BY plan ORDER BY plan;\")",
       "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT id, contract_number, billing_day, status FROM contracts WHERE id = ''d95cf3b9-1829-4a18-8c23-9715d1715075'';\")",
-      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT key, value FROM system_settings WHERE key = ''security_settings'';\")"
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT key, value FROM system_settings WHERE key = ''security_settings'';\")",
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT action, details, created_at FROM super_admin_logs WHERE super_admin_id = ''e8207168-0543-4a3f-aa00-d1dfb50e3bbc'' ORDER BY created_at DESC LIMIT 5;\")"
     ],
     "deny": [],
     "ask": []

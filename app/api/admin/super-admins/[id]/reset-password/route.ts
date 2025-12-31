@@ -102,7 +102,7 @@ export async function POST(
 
     if (resend) {
       await resend.emails.send({
-        from: 'ザイロク <noreply@fieldtool.com>',
+        from: 'ザイロク <noreply@zairoku.com>',
         to: targetAdmin.email,
         subject: '【ザイロク】パスワードがリセットされました',
         html: `
@@ -137,7 +137,7 @@ export async function POST(
 
       // system@zairoku.comにも通知
       await resend.emails.send({
-        from: 'ザイロク <noreply@fieldtool.com>',
+        from: 'ザイロク <noreply@zairoku.com>',
         to: 'system@zairoku.com',
         subject: '【ザイロク】営業アカウントのパスワードがリセットされました',
         html: `
