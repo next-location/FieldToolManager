@@ -22,7 +22,7 @@ export async function POST() {
 
     await clearSuperAdminCookie();
 
-    return NextResponse.redirect(new URL('/admin/login', process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'));
+    return NextResponse.redirect(new URL('/admin/login', 'https://zairoku.com'));
   } catch (error) {
     console.error('Logout error:', error);
     return NextResponse.json({ error: 'ログアウトエラーが発生しました' }, { status: 500 });
