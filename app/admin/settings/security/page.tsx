@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
 import { AlertTriangle, Shield, Lock, Globe, Key, Users } from 'lucide-react';
+import Link from 'next/link';
 
 export default function SecuritySettingsPage() {
   const [settings, setSettings] = useState({
@@ -316,6 +317,21 @@ export default function SecuritySettingsPage() {
                     <p>• ログインをブロックする機能は現在実装されていません</p>
                   </div>
                 </div>
+              </div>
+
+              {/* パスワード変更 */}
+              <div className="bg-white p-6 rounded-lg shadow">
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Lock className="w-5 h-5" />
+                  パスワード変更
+                </h2>
+
+                <Link
+                  href="/admin/settings/password"
+                  className="inline-block px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                >
+                  パスワードを変更する
+                </Link>
               </div>
 
               {/* 監査ログ */}

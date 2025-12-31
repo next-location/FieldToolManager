@@ -167,6 +167,15 @@ export async function POST(request: NextRequest) {
       })
       .eq('id', superAdmin.id);
 
+    // ログイン通知を送信
+    const { sendLoginNotification } = await import('@/lib/notifications/login-notification');
+    await sendLoginNotification({
+      email: superAdmin.email,
+      name: superAdmin.name,
+      ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+      userAgent: request.headers.get('user-agent') || 'unknown',
+    });
+
     // ログを記録（成功）
     await supabase.from('super_admin_logs').insert({
       super_admin_id: superAdmin.id,
