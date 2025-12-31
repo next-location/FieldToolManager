@@ -52,11 +52,18 @@ export default function SuperAdminSessionTimeoutMonitor({
         })
       })
       .then((res) => {
-        if (!res) return
+        if (!res) {
+          console.log('[SuperAdminSessionTimeoutMonitor] No response from timeout API')
+          return
+        }
+        console.log('[SuperAdminSessionTimeoutMonitor] Timeout API response status:', res.status)
         return res.json()
       })
       .then((data) => {
-        if (!data) return
+        if (!data) {
+          console.log('[SuperAdminSessionTimeoutMonitor] No data received from timeout API')
+          return
+        }
 
         console.log('[SuperAdminSessionTimeoutMonitor] Fetched timeout settings:', data)
         if (data.sessionTimeoutMinutes) {
