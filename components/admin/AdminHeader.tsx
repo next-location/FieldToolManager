@@ -11,6 +11,23 @@ interface AdminHeaderProps {
 export default function AdminHeader({ userName }: AdminHeaderProps) {
   const [unreadCount, setUnreadCount] = useState(0);
 
+  // ログアウト処理
+  const handleLogout = async () => {
+    try {
+      const res = await fetch('/api/admin/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (res.ok) {
+        window.location.href = '/admin/login';
+      }
+    } catch (error) {
+      console.error('[AdminHeader] Logout failed:', error);
+      alert('ログアウトに失敗しました');
+    }
+  };
+
   // 未読通知数を取得
   useEffect(() => {
     async function fetchUnreadCount() {
@@ -72,14 +89,12 @@ export default function AdminHeader({ userName }: AdminHeaderProps) {
               <p className="text-sm font-medium text-gray-900">{userName}</p>
               <p className="text-xs text-gray-500">システム管理者</p>
             </div>
-            <form action="/api/admin/logout" method="POST">
-              <button
-                type="submit"
-                className="px-3 py-1.5 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
-              >
-                ログアウト
-              </button>
-            </form>
+            <button
+              onClick={handleLogout}
+              className="px-3 py-1.5 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              ログアウト
+            </button>
           </div>
         </div>
       </div>
