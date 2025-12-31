@@ -27,10 +27,15 @@ export async function sendLoginNotification(params: LoginNotificationParams) {
       return false;
     }
 
-    // IPから場所を推定（簡易版）
-    const location = await getLocationFromIP(ipAddress);
+    // IPから場所を推定（エラーが出ても続行）
+    let location = '不明';
+    try {
+      location = await getLocationFromIP(ipAddress);
+    } catch (geoError) {
+      console.error('[Login Notification] GeoIP error:', geoError);
+    }
 
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: 'ザイロク <noreply@fieldtool.com>',
       to: 'system@zairoku.com',
       subject: '【ザイロク】管理者アカウントへのログインがありました',
@@ -75,6 +80,7 @@ export async function sendLoginNotification(params: LoginNotificationParams) {
       `,
     });
 
+    console.log('[Login Notification] Email send result:', result);
     console.log('[Login Notification] Sent successfully to system@zairoku.com');
     return true;
   } catch (error) {
