@@ -78,12 +78,11 @@ export async function POST(
     // パスワードをハッシュ化
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
-    // パスワードを更新 + 次回ログイン時に強制変更
+    // パスワードを更新
     const { error: updateError } = await supabase
       .from('super_admins')
       .update({
         password_hash: hashedPassword,
-        force_password_change: true,
         updated_at: new Date().toISOString(),
       })
       .eq('id', targetId);
