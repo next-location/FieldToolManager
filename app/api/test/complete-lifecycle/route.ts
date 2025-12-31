@@ -159,6 +159,10 @@ async function runLifecycleTest(pattern: any): Promise<{ success: boolean; steps
       try {
         const startDate = new Date('2025-01-15T00:00:00Z');
 
+        // プランごとの料金設定
+        const monthly_fee = pattern.initial_plan === 'basic' ? 10000 :
+                           pattern.initial_plan === 'premium' ? 30000 : 50000;
+
         const { data: contract, error} = await supabase
           .from('contracts')
           .insert({
@@ -168,6 +172,7 @@ async function runLifecycleTest(pattern: any): Promise<{ success: boolean; steps
             plan: pattern.initial_plan,
             billing_day: pattern.billing_day,
             billing_cycle: 'monthly',
+            monthly_fee: monthly_fee,
             user_limit: pattern.initial_plan === 'basic' ? 10 : 30,
             status: 'pending',
             start_date: startDate.toISOString(),
