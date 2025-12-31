@@ -8,40 +8,45 @@
 
 ## 📋 デプロイ内容まとめ
 
-### 実装完了機能
+### 実装完了機能（すべて完成）
 1. ✅ スーパー管理者用セッションタイムアウト（30分）
 2. ✅ メール認証付きパスワード変更機能
 3. ✅ スーパー管理者ログイン通知（system@zairoku.comに送信）
 4. ✅ 営業アカウントのパスワードリセット機能
 5. ✅ 2FA設定CSRFエラー修正
 6. ✅ サイドメニューに「パスワード変更」リンク追加
-
-### 未実装機能（次回実装予定）
-- 日本国内IP制限
-- 不正ログイン警告（ログイン失敗5回で警告メール）
+7. ✅ **日本国内IP制限（NEW）**
+8. ✅ **不正ログイン警告（ログイン失敗5回・2FA失敗3回・日本国外IP）（NEW）**
 
 ---
 
 ## 🚀 デプロイ手順
 
-### STEP 1: データベースマイグレーション実行
+### STEP 1: データベースマイグレーション実行（3つのマイグレーション）
 
 **いつ**: 今すぐ実行してください
 **どこで**: あなたのMacのターミナル
 **誰が**: あなた
-**何をする**: 新しいテーブル`password_change_tokens`を本番データベースに作成
+**何をする**: 3つの新しいテーブル・設定を本番データベースに作成
 
-#### 実行コマンド
+#### 実行コマンド（3つ実行）
 
 ```bash
 cd /Users/youichiakashi/FieldToolManager
 
-# 本番データベースにマイグレーション実行
+# 1. パスワード変更トークンテーブル作成
 PGPASSWORD="cF1!hVERlDgjMD" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -f supabase/migrations/20251231000001_add_password_change_tokens.sql
+
+# 2. ログイン試行履歴テーブル作成
+PGPASSWORD="cF1!hVERlDgjMD" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -f supabase/migrations/20251231000002_add_login_attempts.sql
+
+# 3. IP制限設定を追加
+PGPASSWORD="cF1!hVERlDgjMD" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -f supabase/migrations/20251231000003_add_ip_restriction_settings.sql
 ```
 
 #### 期待される出力
 
+**1つ目のマイグレーション（password_change_tokens）:**
 ```
 CREATE TABLE
 CREATE INDEX
@@ -53,6 +58,29 @@ COMMENT
 COMMENT
 COMMENT
 COMMENT
+COMMENT
+```
+
+**2つ目のマイグレーション（login_attempts）:**
+```
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+CREATE POLICY
+COMMENT
+COMMENT
+COMMENT
+COMMENT
+COMMENT
+COMMENT
+```
+
+**3つ目のマイグレーション（ip_restriction_settings）:**
+```
+INSERT 0 1
 COMMENT
 ```
 
@@ -114,14 +142,16 @@ git status
 git add .
 
 # コミット
-git commit -m "feat: スーパー管理者セキュリティ強化実装
+git commit -m "feat: スーパー管理者セキュリティ強化実装（完全版）
 
 - セッションタイムアウト（30分無操作でログアウト）
 - メール認証付きパスワード変更機能
 - ログイン通知（system@zairoku.com）
 - 営業アカウントパスワードリセット機能
 - 2FA設定CSRFエラー修正
-- サイドメニューにパスワード変更リンク追加"
+- サイドメニューにパスワード変更リンク追加
+- 日本国内IP制限（middleware対応）
+- 不正ログイン警告（パスワード失敗5回・2FA失敗3回・日本国外IP）"
 
 # 本番環境にプッシュ
 git push origin main
@@ -217,6 +247,36 @@ To github.com:youraccount/FieldToolManager.git
 - [ ] **確認**: CSRFエラーが出ず、QRコードが表示される
 - [ ] （実際に設定する場合は、QRコードをスキャンして設定）
 
+##### ✅ 6. 日本国内IP制限（NEW）
+- [ ] VPN等で日本国外のIPアドレスに変更
+- [ ] https://zairoku.com/admin にアクセス
+- [ ] **確認**: 「アクセスが制限されています」ページ（/error/region-blocked）が表示される
+  - 「セキュリティ上の理由により、日本国外からの管理画面へのアクセスは制限されています」
+- [ ] VPNをオフにして日本国内IPに戻す
+- [ ] **確認**: 通常通り管理画面にアクセスできる
+
+**注意**: IP制限はデフォルトで有効化されています。無効化するにはsystem_settingsテーブルで`ipRestrictionEnabled: false`に設定してください。
+
+##### ✅ 7. 不正ログイン警告（NEW）
+- [ ] **テスト1: パスワード失敗5回**
+  - 新しいタブでログアウト
+  - 間違ったパスワードで5回連続ログイン試行
+  - **確認**: system@zairoku.comに警告メールが届く
+    - 件名: 「【重要】ザイロク管理者アカウントへの不正アクセスの可能性」
+    - 内容: 「ログイン失敗5回連続」
+
+- [ ] **テスト2: 2FA失敗3回**（2FA有効化している場合のみ）
+  - 正しいパスワードでログイン
+  - 間違った2FAコードを3回連続入力
+  - **確認**: system@zairoku.comに警告メールが届く
+    - 内容: 「2FA認証失敗」
+
+- [ ] **テスト3: 日本国外IP**
+  - VPNで日本国外IPに変更
+  - 正しいパスワードとメールアドレスでログイン試行（IP制限を一時的に無効化した場合のみ）
+  - **確認**: system@zairoku.comに警告メールが届く
+    - 内容: 「日本国外からのアクセス」
+
 ---
 
 ### STEP 6: トラブルシューティング
@@ -255,7 +315,7 @@ To github.com:youraccount/FieldToolManager.git
 
 デプロイ完了後、以下を確認してください:
 
-- [ ] STEP 1: データベースマイグレーション実行完了
+- [ ] STEP 1: データベースマイグレーション実行完了（3つすべて）
 - [ ] STEP 2: ビルド成功確認完了
 - [ ] STEP 3: Git push完了
 - [ ] STEP 4: Vercelデプロイ成功確認完了
@@ -263,6 +323,8 @@ To github.com:youraccount/FieldToolManager.git
 - [ ] STEP 5-2: セッションタイムアウト動作確認完了
 - [ ] STEP 5-3: パスワード変更機能動作確認完了
 - [ ] STEP 5-5: 2FA設定CSRFエラー修正確認完了
+- [ ] STEP 5-6: 日本国内IP制限動作確認完了（NEW）
+- [ ] STEP 5-7: 不正ログイン警告動作確認完了（NEW）
 
 ---
 
@@ -286,11 +348,12 @@ To github.com:youraccount/FieldToolManager.git
    - https://zairoku.com/admin/settings/security
    - 2FA推奨設定を確認（必要に応じて有効化）
 
-### 優先度：低（次回実装時）
+### 優先度：低（必要に応じて）
 
-4. **未実装機能の実装**
-   - 日本国内IP制限
-   - 不正ログイン警告（ログイン失敗5回で警告メール）
+4. **IP制限の調整**
+   - デフォルトで日本国内IP制限が有効化されています
+   - 海外からのアクセスが必要な場合は、system_settingsテーブルで`ipRestrictionEnabled: false`に設定
+   - または、特定の国を許可リストに追加することも可能
 
 ---
 
@@ -325,6 +388,7 @@ To github.com:youraccount/FieldToolManager.git
 
    # テーブル削除（必要な場合のみ）
    PGPASSWORD="cF1!hVERlDgjMD" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c "DROP TABLE IF EXISTS password_change_tokens CASCADE;"
+   PGPASSWORD="cF1!hVERlDgjMD" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c "DROP TABLE IF EXISTS login_attempts CASCADE;"
    ```
 
 4. **2FA設定後は必ずバックアップコードを保存**

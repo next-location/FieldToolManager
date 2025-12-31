@@ -91,6 +91,27 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // スーパー管理者画面への日本国内IP制限チェック
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    const ipRestrictionEnabled = await isIPRestrictionEnabled()
+
+    if (ipRestrictionEnabled) {
+      const clientIP = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+                       request.headers.get('x-real-ip') ||
+                       'unknown'
+
+      console.log('[Middleware] Admin access from IP:', clientIP)
+
+      const { isJapaneseIP } = await import('@/lib/security/geoip')
+      const isJapan = await isJapaneseIP(clientIP)
+
+      if (!isJapan) {
+        console.warn('[Middleware] Blocked non-Japanese IP from admin access:', clientIP)
+        return NextResponse.redirect(new URL('/error/region-blocked', request.url))
+      }
+    }
+  }
+
   // ログイン・公開ページ・API・静的ファイル・スーパーアドミン・エラーページはスキップ
   if (request.nextUrl.pathname.startsWith('/login') ||
       request.nextUrl.pathname.startsWith('/admin') ||
@@ -193,6 +214,31 @@ function extractSubdomain(hostname: string): string | null {
   }
 
   return null
+}
+
+/**
+ * IP制限が有効かどうかをsystem_settingsから取得
+ */
+async function isIPRestrictionEnabled(): Promise<boolean> {
+  try {
+    const { createClient: createServiceClient } = await import('@supabase/supabase-js')
+    const supabaseService = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const { data: settings } = await supabaseService
+      .from('system_settings')
+      .select('value')
+      .eq('key', 'security_settings')
+      .single()
+
+    return settings?.value?.ipRestrictionEnabled === true
+  } catch (error) {
+    console.error('[Middleware] Failed to check IP restriction settings:', error)
+    // エラー時はデフォルトで有効化（セキュリティ優先）
+    return true
+  }
 }
 
 export const config = {

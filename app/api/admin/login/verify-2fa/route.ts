@@ -129,6 +129,20 @@ export async function POST(request: NextRequest) {
     }
 
     if (!isValid) {
+      // ログイン試行を記録（2FA失敗）
+      const { recordLoginAttempt } = await import('@/lib/security/login-tracker');
+      const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+                        request.headers.get('x-real-ip') ||
+                        'unknown';
+      const userAgent = request.headers.get('user-agent') || 'unknown';
+
+      await recordLoginAttempt({
+        email: superAdmin.email,
+        ipAddress,
+        userAgent,
+        attemptType: '2fa_failure',
+      });
+
       // ログを記録（失敗）
       await supabase.from('super_admin_logs').insert({
         super_admin_id: superAdmin.id,
@@ -137,8 +151,8 @@ export async function POST(request: NextRequest) {
           email: superAdmin.email,
           type: isBackupCode ? 'backup_code' : 'totp',
         },
-        ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
-        user_agent: request.headers.get('user-agent') || 'unknown',
+        ip_address: ipAddress,
+        user_agent: userAgent,
       });
 
       return NextResponse.json(
@@ -167,13 +181,32 @@ export async function POST(request: NextRequest) {
       })
       .eq('id', superAdmin.id);
 
+    // ログイン試行を記録（成功）+ 日本国外IP警告チェック
+    const { recordLoginAttempt, checkForeignIPAccess } = await import('@/lib/security/login-tracker');
+    const { getCountryFromIP } = await import('@/lib/security/geoip');
+    const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+                      request.headers.get('x-real-ip') ||
+                      'unknown';
+    const userAgent = request.headers.get('user-agent') || 'unknown';
+
+    await recordLoginAttempt({
+      email: superAdmin.email,
+      ipAddress,
+      userAgent,
+      attemptType: 'success',
+    });
+
+    // 日本国外からのアクセスを警告
+    const countryCode = await getCountryFromIP(ipAddress);
+    await checkForeignIPAccess(superAdmin.email, ipAddress, userAgent, countryCode);
+
     // ログイン通知を送信
     const { sendLoginNotification } = await import('@/lib/notifications/login-notification');
     await sendLoginNotification({
       email: superAdmin.email,
       name: superAdmin.name,
-      ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
-      userAgent: request.headers.get('user-agent') || 'unknown',
+      ipAddress,
+      userAgent,
     });
 
     // ログを記録（成功）
@@ -184,8 +217,8 @@ export async function POST(request: NextRequest) {
         email: superAdmin.email,
         type: isBackupCode ? 'backup_code' : 'totp',
       },
-      ip_address: request.headers.get('x-forwarded-for') || 'unknown',
-      user_agent: request.headers.get('user-agent'),
+      ip_address: ipAddress,
+      user_agent: userAgent,
     });
 
     return NextResponse.json({

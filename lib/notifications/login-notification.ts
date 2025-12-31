@@ -2,6 +2,8 @@
  * スーパー管理者ログイン通知ユーティリティ
  */
 
+import { getGeoIPInfo } from '@/lib/security/geoip';
+
 interface LoginNotificationParams {
   email: string;
   name: string;
@@ -82,16 +84,23 @@ export async function sendLoginNotification(params: LoginNotificationParams) {
 }
 
 /**
- * IPアドレスから場所を推定
- * TODO: MaxMind GeoIP2実装後に置き換え
+ * IPアドレスから場所を推定（GeoIP使用）
  */
 async function getLocationFromIP(ip: string): Promise<string> {
-  // ローカルIPの場合
-  if (ip === 'unknown' || ip.startsWith('192.168.') || ip.startsWith('10.') || ip === '::1' || ip === '127.0.0.1') {
-    return '不明（ローカルネットワーク）';
+  const geoInfo = await getGeoIPInfo(ip);
+
+  if (geoInfo.country === 'UNKNOWN') {
+    return '不明';
   }
 
-  // TODO: MaxMind GeoIP2実装
-  // 現状は簡易的に「日本」を返す
-  return '日本（詳細不明）';
+  // 国名、地域、都市を表示
+  const parts: string[] = [geoInfo.countryName];
+  if (geoInfo.region) {
+    parts.push(geoInfo.region);
+  }
+  if (geoInfo.city) {
+    parts.push(geoInfo.city);
+  }
+
+  return parts.join(' - ');
 }
