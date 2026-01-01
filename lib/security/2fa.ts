@@ -45,20 +45,20 @@ export async function generateQRCode(otpauth_url: string): Promise<string> {
  * TOTPトークンを検証
  * @param secret - Base32エンコードされたシークレット
  * @param token - ユーザーが入力した6桁のトークン
- * @param window - 許容する時間窓（デフォルト: 1 = ±30秒）
+ * @param window - 許容する時間窓（デフォルト: 2 = ±60秒）
  * @returns 検証結果（true/false）
  */
 export function verifyToken(
   secret: string,
   token: string,
-  window: number = 1
+  window: number = 2
 ): boolean {
   try {
     const verified = speakeasy.totp.verify({
       secret,
       encoding: 'base32',
       token,
-      window, // 時計のズレを考慮（±30秒）
+      window, // 時計のズレを考慮（±60秒）
     });
 
     return verified;
