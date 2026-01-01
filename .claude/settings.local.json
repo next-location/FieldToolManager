@@ -130,7 +130,9 @@
       "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -f /Users/youichiakashi/FieldToolManager/supabase/migrations/20260101000001_create_impersonation_tables.sql)",
       "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT o.name, o.subdomain, c.plan, c.has_asset_package, c.has_dx_efficiency_package FROM organizations o LEFT JOIN contracts c ON o.id = c.organization_id WHERE c.status = ''active'' ORDER BY o.created_at DESC LIMIT 5;\")",
       "Bash(/Users/youichiakashi/FieldToolManager/fix-auth-pages.sh:*)",
-      "Bash(/Users/youichiakashi/FieldToolManager/fix-all-auth-pages.sh:*)"
+      "Bash(/Users/youichiakashi/FieldToolManager/fix-all-auth-pages.sh:*)",
+      "Bash(do if grep -A 2 \"export default async function\" \"$file\")",
+      "Bash(then echo \"$file\" fi done)"
     ],
     "deny": [],
     "ask": []
