@@ -239,6 +239,7 @@ async function ReceivablesList() {
 }
 
 export default async function ReceivablesPage() {
+  const { userRole } = await requireAuth()
 
   // 管理者のみアクセス可能
   if (!['manager', 'admin', 'super_admin'].includes(userRole || '')) {
