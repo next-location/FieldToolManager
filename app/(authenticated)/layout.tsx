@@ -39,7 +39,7 @@ export default async function AuthenticatedLayout({ children }: AuthenticatedLay
     console.log('[AUTH LAYOUT] Rendering impersonation session with admin role')
 
     return (
-      <>
+      <div className="min-h-screen bg-gray-50">
         <ImpersonationBanner
           superAdminName={impersonationPayload.superAdminName}
           organizationName={impersonationPayload.organizationName}
@@ -53,7 +53,7 @@ export default async function AuthenticatedLayout({ children }: AuthenticatedLay
         >
           {children}
         </AppLayout>
-      </>
+      </div>
     )
   }
 

@@ -1,40 +1,62 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { verifySessionToken } from '@/lib/auth/impersonation';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const supabase = await createClient();
+    const cookieStore = await cookies();
+    const impersonationToken = cookieStore.get('impersonation_session')?.value;
+    let organizationId: string | null = null;
 
-    // 現在のユーザーの組織IDを取得
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // なりすましセッションチェック
+    if (impersonationToken) {
+      const impersonationPayload = await verifySessionToken(impersonationToken);
+      if (impersonationPayload) {
+        console.log('[API /organization/features] Using impersonation session');
+        organizationId = impersonationPayload.organizationId;
+      }
     }
 
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('organization_id')
-      .eq('id', user.id)
-      .single();
+    // 通常の認証フロー
+    if (!organizationId) {
+      const supabase = await createClient();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    if (userError || !userData) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      if (authError || !user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('organization_id')
+        .eq('id', user.id)
+        .single();
+
+      if (userError || !userData) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+
+      organizationId = userData.organization_id;
     }
+
+    // なりすましセッションの場合はSERVICE_ROLE_KEYを使用
+    const supabase = impersonationToken ? createAdminClient() : await createClient();
 
     // organization_features ビューから取得
     const { data: features, error: featuresError } = await supabase
       .from('organization_features')
       .select('*')
-      .eq('organization_id', userData?.organization_id)
+      .eq('organization_id', organizationId)
       .single();
 
     if (featuresError) {
       // ビューにデータがない場合は、デフォルト値を返す
       return NextResponse.json({
-        organization_id: userData?.organization_id,
+        organization_id: organizationId,
         contract: {
           plan_type: 'trial',
           user_limit: 10,
@@ -50,7 +72,7 @@ export async function GET() {
     }
 
     return NextResponse.json({
-      organization_id: userData?.organization_id,
+      organization_id: organizationId,
       organization_name: features.organization_name,
       contract: {
         plan_type: features.plan_type || 'trial',

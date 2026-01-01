@@ -32,7 +32,7 @@ export function AppLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
       {/* ヘッダー */}
       <SimpleHeader
         user={user}
@@ -68,6 +68,6 @@ export function AppLayout({
 
       {/* 開発環境用パッケージコントロール */}
       <DevPackageControl />
-    </div>
+    </>
   )
 }

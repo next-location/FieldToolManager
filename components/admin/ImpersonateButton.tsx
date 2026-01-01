@@ -49,10 +49,6 @@ export default function ImpersonateButton({
 
       const data = await response.json();
 
-      // デバッグ: 生成されたログインURLを確認
-      console.log('[ImpersonateButton] Generated loginUrl:', data.loginUrl);
-      alert(`生成されたURL: ${data.loginUrl}`);
-
       // 同じタブでリダイレクト（ポップアップブロック回避）
       window.location.href = data.loginUrl;
     } catch (err) {
