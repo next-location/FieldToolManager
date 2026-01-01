@@ -198,7 +198,14 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
       {/* ヘッダー */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">スタッフ管理</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-gray-900">スタッフ管理</h1>
+            {organization && (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
+                {organization.current_count}/{organization.max_users}名
+              </span>
+            )}
+          </div>
           <p className="mt-2 text-sm text-gray-600">組織内のスタッフを管理します</p>
         </div>
         {isAdmin && (
@@ -465,7 +472,7 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
                             </svg>
                           </button>
                         )}
-                        {canEditUser(user) && (
+                        {canEditUser(user) && user.role !== 'admin' && (
                           <button
                             onClick={() => setDeletingStaff(user)}
                             className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-all hover:shadow-sm"
@@ -594,7 +601,7 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
                       </button>
                     )}
                   </div>
-                  {canEditUser(user) && (
+                  {canEditUser(user) && user.role !== 'admin' && (
                     <button
                       onClick={() => setDeletingStaff(user)}
                       className="w-full mt-2 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
