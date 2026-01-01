@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { getCsrfToken } from '@/lib/security/csrf';
 
 interface ImpersonationBannerProps {
   superAdminName: string;
@@ -22,12 +21,10 @@ export default function ImpersonationBanner({
     setLoading(true);
 
     try {
-      const csrfToken = await getCsrfToken();
       const response = await fetch('/api/admin/impersonate/logout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken,
         },
       });
 

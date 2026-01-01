@@ -1,11 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { getCsrfToken } from '@/lib/security/csrf';
 
 interface ImpersonateButtonProps {
   organizationId: string;
   organizationName: string;
+}
+
+// Client Component用のCSRFトークン取得関数
+async function fetchCsrfToken(): Promise<string> {
+  const response = await fetch('/api/auth/csrf');
+  if (!response.ok) {
+    throw new Error('CSRF token取得に失敗しました');
+  }
+  const data = await response.json();
+  return data.token;
 }
 
 export default function ImpersonateButton({
@@ -24,7 +33,7 @@ export default function ImpersonateButton({
     setError(null);
 
     try {
-      const csrfToken = await getCsrfToken();
+      const csrfToken = await fetchCsrfToken();
       const response = await fetch(`/api/admin/organizations/${organizationId}/impersonate`, {
         method: 'POST',
         headers: {
