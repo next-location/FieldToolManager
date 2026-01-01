@@ -3,12 +3,13 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { verifySessionToken } from '@/lib/auth/impersonation';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export interface PageAuthResult {
   userId: string;
   organizationId: string;
   userRole: 'staff' | 'leader' | 'manager' | 'admin';
-  supabase: ReturnType<typeof createClient> | ReturnType<typeof createAdminClient>;
+  supabase: SupabaseClient<any, 'public', any>;
   isImpersonating: boolean;
 }
 
