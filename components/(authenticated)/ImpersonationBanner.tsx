@@ -45,7 +45,7 @@ export default function ImpersonationBanner({
   };
 
   return (
-    <div className="bg-red-600 text-white py-2 px-4 flex items-center justify-between shadow-md">
+    <div className="fixed top-0 left-0 right-0 bg-red-600 text-white py-2 px-4 flex items-center justify-between shadow-md z-[100]">
       <div className="flex items-center gap-2">
         <span className="font-bold">🔓 なりすましログイン中</span>
         <span className="text-sm">
