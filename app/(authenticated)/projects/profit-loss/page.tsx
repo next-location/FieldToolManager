@@ -3,7 +3,10 @@ import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 
-async function ProfitLossContent() {  // リーダー以上のみアクセス可能
+async function ProfitLossContent() {
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
+
+  // リーダー以上のみアクセス可能
   if (!['leader', 'manager', 'admin', 'super_admin'].includes(userRole || '')) {
     redirect('/')
   }

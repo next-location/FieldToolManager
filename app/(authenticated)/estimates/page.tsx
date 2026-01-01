@@ -9,7 +9,10 @@ import { checkAndUpdateExpiredEstimates } from '@/lib/estimate-expiry'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-async function EstimateList() {  // 期限切れチェックを実行
+async function EstimateList() {
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
+
+  // 期限切れチェックを実行
   if (organizationId) {
     await checkAndUpdateExpiredEstimates(organizationId)
   }

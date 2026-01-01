@@ -26,6 +26,7 @@ async function InvoiceList() {
 }
 
 export default async function InvoicesPage() {
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // リーダー以上のみアクセス可能
   if (!['leader', 'manager', 'admin', 'super_admin'].includes(userRole || '')) {

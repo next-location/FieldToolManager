@@ -132,7 +132,10 @@
       "Bash(/Users/youichiakashi/FieldToolManager/fix-auth-pages.sh:*)",
       "Bash(/Users/youichiakashi/FieldToolManager/fix-all-auth-pages.sh:*)",
       "Bash(do if grep -A 2 \"export default async function\" \"$file\")",
-      "Bash(then echo \"$file\" fi done)"
+      "Bash(then echo \"$file\" fi done)",
+      "Bash(do if ! grep -q \"const { userId, organizationId, userRole, supabase } = await requireAuth()\" \"$file\")",
+      "Bash(then if grep -q \"requireAuth\" \"$file\")",
+      "Bash(then echo \"$file\" fi fi done)"
     ],
     "deny": [],
     "ask": []
