@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { AppLayout } from '@/components/AppLayout'
@@ -24,11 +25,17 @@ export default async function AuthenticatedLayout({ children }: AuthenticatedLay
 
   // なりすましセッションがある場合
   if (impersonationPayload) {
-    const { data: organization } = await supabase
+    console.log('[AUTH LAYOUT] Using impersonation session for organization:', impersonationPayload.organizationId)
+
+    // なりすましセッションの場合はSERVICE_ROLE_KEYでRLSをバイパス
+    const adminSupabase = createAdminClient()
+    const { data: organization } = await adminSupabase
       .from('organizations')
       .select('name, heavy_equipment_enabled')
       .eq('id', impersonationPayload.organizationId)
       .single()
+
+    console.log('[AUTH LAYOUT] Organization data:', organization)
 
     return (
       <>
