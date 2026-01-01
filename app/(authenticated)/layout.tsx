@@ -43,6 +43,7 @@ export default async function AuthenticatedLayout({ children }: AuthenticatedLay
         <ImpersonationBanner
           superAdminName={impersonationPayload.superAdminName}
           organizationName={impersonationPayload.organizationName}
+          organizationId={impersonationPayload.organizationId}
         />
         <AppLayout
           user={{ email: null, id: impersonationPayload.superAdminId, name: impersonationPayload.superAdminName }}

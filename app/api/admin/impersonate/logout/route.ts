@@ -21,15 +21,25 @@ export async function POST(request: Request) {
       .eq('session_token', sessionToken)
       .single();
 
-    if (session) {
-      await supabase.from('impersonation_access_logs').insert({
-        super_admin_id: session.super_admin_id,
-        organization_id: session.organization_id,
-        action: 'logout',
-        ip_address: getClientIp(request),
-        user_agent: request.headers.get('user-agent'),
-      });
+    if (!session) {
+      return NextResponse.json({ error: 'セッションが見つかりません' }, { status: 404 });
     }
+
+    await supabase.from('impersonation_access_logs').insert({
+      super_admin_id: session.super_admin_id,
+      organization_id: session.organization_id,
+      action: 'logout',
+      ip_address: getClientIp(request),
+      user_agent: request.headers.get('user-agent'),
+    });
+
+    // 組織の契約IDを取得
+    const { data: contract } = await supabase
+      .from('contracts')
+      .select('id')
+      .eq('organization_id', session.organization_id)
+      .eq('status', 'active')
+      .single();
 
     // セッション削除
     await endSession(sessionToken);
@@ -37,7 +47,10 @@ export async function POST(request: Request) {
     // Cookie削除
     cookieStore.delete('impersonation_session');
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      contractId: contract?.id || null
+    });
   } catch (error) {
     console.error('Logout error:', error);
     return NextResponse.json(

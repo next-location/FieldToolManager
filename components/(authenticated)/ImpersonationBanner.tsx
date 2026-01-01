@@ -5,11 +5,13 @@ import { useState } from 'react';
 interface ImpersonationBannerProps {
   superAdminName: string;
   organizationName: string;
+  organizationId: string;
 }
 
 export default function ImpersonationBanner({
   superAdminName,
   organizationName,
+  organizationId,
 }: ImpersonationBannerProps) {
   const [loading, setLoading] = useState(false);
 
@@ -32,11 +34,19 @@ export default function ImpersonationBanner({
         throw new Error('ログアウトに失敗しました');
       }
 
-      // スーパー管理画面にリダイレクト
+      const data = await response.json();
+      const contractId = data.contractId;
+
+      // 契約詳細ページにリダイレクト
       const isDevelopment = process.env.NODE_ENV === 'development';
-      window.location.href = isDevelopment
-        ? 'http://localhost:3000/admin/dashboard'
-        : 'https://zairoku.com/admin/dashboard';
+      const baseUrl = isDevelopment ? 'http://localhost:3000' : 'https://zairoku.com';
+
+      if (contractId) {
+        window.location.href = `${baseUrl}/admin/contracts/${contractId}`;
+      } else {
+        // 契約が見つからない場合は契約一覧へ
+        window.location.href = `${baseUrl}/admin/contracts`;
+      }
     } catch (err) {
       console.error('Logout error:', err);
       alert('ログアウトに失敗しました');
