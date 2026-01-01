@@ -119,16 +119,28 @@ export async function POST(request: NextRequest) {
 
       // シークレットを復号化
       const encryptionKey = process.env.TWO_FACTOR_ENCRYPTION_KEY;
+      console.log('[2FA DEBUG] Encryption key exists:', !!encryptionKey);
+      console.log('[2FA DEBUG] Encryption key length:', encryptionKey?.length);
+      console.log('[2FA DEBUG] 2FA secret exists:', !!superAdmin.two_factor_secret);
+
       if (!encryptionKey) {
+        console.error('[2FA DEBUG] TWO_FACTOR_ENCRYPTION_KEY is not set!');
         throw new Error('暗号化キーが設定されていません');
       }
 
-      const decryptedSecret = decryptSecret(
-        superAdmin.two_factor_secret,
-        encryptionKey
-      );
+      try {
+        const decryptedSecret = decryptSecret(
+          superAdmin.two_factor_secret,
+          encryptionKey
+        );
+        console.log('[2FA DEBUG] Decryption successful, secret length:', decryptedSecret?.length);
 
-      isValid = verifyToken(decryptedSecret, token);
+        isValid = verifyToken(decryptedSecret, token);
+        console.log('[2FA DEBUG] Token verification result:', isValid);
+      } catch (decryptError) {
+        console.error('[2FA DEBUG] Decryption error:', decryptError);
+        throw decryptError;
+      }
     }
 
     if (!isValid) {
