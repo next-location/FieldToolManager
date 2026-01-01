@@ -117,7 +117,9 @@ export async function verifySessionToken(
 ): Promise<ImpersonationPayload | null> {
   const supabase = createAdminClient();
 
-  const { data: session } = await supabase
+  console.log('[verifySessionToken] Checking session token:', sessionToken);
+
+  const { data: session, error } = await supabase
     .from('impersonation_sessions')
     .select(`
       super_admin_id,
@@ -129,13 +131,22 @@ export async function verifySessionToken(
     .eq('session_token', sessionToken)
     .single();
 
-  if (!session) return null;
+  console.log('[verifySessionToken] Session data:', session);
+  console.log('[verifySessionToken] Error:', error);
+
+  if (!session) {
+    console.log('[verifySessionToken] No session found');
+    return null;
+  }
 
   // 有効期限チェック
   if (new Date(session.expires_at) < new Date()) {
+    console.log('[verifySessionToken] Session expired');
     await supabase.from('impersonation_sessions').delete().eq('session_token', sessionToken);
     return null;
   }
+
+  console.log('[verifySessionToken] Session valid');
 
   return {
     superAdminId: session.super_admin_id,
