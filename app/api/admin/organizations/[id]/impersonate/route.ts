@@ -7,7 +7,7 @@ import { createAdminClient } from '@/lib/supabase/server';
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // CSRF検証
@@ -35,7 +35,7 @@ export async function POST(
       );
     }
 
-    const organizationId = params.id;
+    const { id: organizationId } = await params;
     const supabase = createAdminClient();
 
     // 組織の存在確認とアクティブ状態確認

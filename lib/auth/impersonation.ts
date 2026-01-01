@@ -15,6 +15,7 @@ export interface ImpersonationPayload {
   organizationId: string;
   organizationName: string;
   subdomain: string;
+  [key: string]: string; // JWTPayload用のindex signature
 }
 
 /**

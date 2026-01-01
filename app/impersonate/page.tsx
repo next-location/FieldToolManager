@@ -7,9 +7,9 @@ import { getClientIp } from '@/lib/security/rate-limiter';
 export default async function ImpersonatePage({
   searchParams,
 }: {
-  searchParams: { token?: string };
+  searchParams: Promise<{ token?: string }>;
 }) {
-  const token = searchParams.token;
+  const { token } = await searchParams;
 
   if (!token) {
     return (
