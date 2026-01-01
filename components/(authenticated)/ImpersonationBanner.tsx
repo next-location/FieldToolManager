@@ -36,7 +36,7 @@ export default function ImpersonationBanner({
       const isDevelopment = process.env.NODE_ENV === 'development';
       window.location.href = isDevelopment
         ? 'http://localhost:3000/admin/dashboard'
-        : `${process.env.NEXT_PUBLIC_APP_URL}/admin/dashboard`;
+        : 'https://zairoku.com/admin/dashboard';
     } catch (err) {
       console.error('Logout error:', err);
       alert('ログアウトに失敗しました');
