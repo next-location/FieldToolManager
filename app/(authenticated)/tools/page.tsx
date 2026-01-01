@@ -1,33 +1,18 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import ToolsList from '@/components/tools/ToolsList'
 import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
 import { PackageRequired } from '@/components/PackageRequired'
+import { requireAuth } from '@/lib/auth/page-auth'
 
 export default async function ToolsPage() {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザーの組織IDと権限を取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('email', user.email)
-    .single()
-
-  const isAdmin = userData?.role === 'admin'
+  const { organizationId, userRole, supabase } = await requireAuth()
+  const isAdmin = userRole === 'admin'
 
   // パッケージチェック
-  if (userData?.organization_id) {
-    const features = await getOrganizationFeatures(userData?.organization_id)
+  if (organizationId) {
+    const features = await getOrganizationFeatures(organizationId)
     if (!hasPackage(features, 'asset')) {
-      return <PackageRequired packageType="asset" featureName="道具管理" userRole={userData.role} />
+      return <PackageRequired packageType="asset" featureName="道具管理" userRole={userRole} />
     }
   }
 

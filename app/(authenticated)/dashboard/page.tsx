@@ -1,60 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { AttendanceWidget } from '../AttendanceWidget'
-import { verifySessionToken } from '@/lib/auth/impersonation'
+import { requireAuth } from '@/lib/auth/page-auth'
 
 export default async function Home() {
-  const cookieStore = await cookies()
-  const impersonationToken = cookieStore.get('impersonation_session')?.value
-  let userData: { role: string; organization_id: string } | null = null
-  let user: { id: string } | null = null
-
-  // なりすましセッションチェック
-  if (impersonationToken) {
-    const impersonationPayload = await verifySessionToken(impersonationToken)
-    if (impersonationPayload) {
-      console.log('[DASHBOARD] Using impersonation session')
-      // なりすましセッションの場合は、ダミーのユーザーデータを設定
-      userData = {
-        role: 'admin',
-        organization_id: impersonationPayload.organizationId,
-      }
-      user = { id: impersonationPayload.superAdminId }
-    }
-  }
-
-  // 通常の認証フロー
-  if (!userData) {
-    const supabase = await createClient()
-    const {
-      data: { user: authUser },
-    } = await supabase.auth.getUser()
-
-    if (!authUser) {
-      redirect('/login')
-    }
-
-    user = authUser
-
-    // ユーザー情報を取得
-    const { data: dbUserData } = await supabase
-      .from('users')
-      .select('role, organization_id')
-      .eq('id', authUser.id)
-      .single()
-
-    if (!dbUserData) {
-      redirect('/login')
-    }
-
-    userData = dbUserData
-  }
-
-  // なりすましセッションの場合はSERVICE_ROLE_KEYを使用
-  const supabase = impersonationToken ? createAdminClient() : await createClient()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // オンボーディングチェックは削除（テストデータで常に完了状態）
 
@@ -62,7 +11,7 @@ export default async function Home() {
   const { data: consumables } = await supabase
     .from('tools')
     .select('id, name, unit, minimum_stock')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('management_type', 'consumable')
     .gt('minimum_stock', 0)
 
@@ -73,7 +22,7 @@ export default async function Home() {
         .from('consumable_inventory')
         .select('quantity')
         .eq('tool_id', consumable.id)
-        .eq('organization_id', userData?.organization_id)
+        .eq('organization_id', organizationId)
 
       const totalQty =
         inventories?.reduce((sum, inv) => sum + inv.quantity, 0) || 0
@@ -92,14 +41,14 @@ export default async function Home() {
   const { data: orgData } = await supabase
     .from('organizations')
     .select('heavy_equipment_enabled, name')
-    .eq('id', userData?.organization_id)
+    .eq('id', organizationId)
     .single()
 
   // 契約情報を取得
   const { data: contractData } = await supabase
     .from('contracts')
     .select('plan, plan_type, monthly_fee, base_monthly_fee, package_monthly_fee, has_asset_package, has_dx_efficiency_package')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('status', 'active')
     .single()
 
@@ -107,14 +56,14 @@ export default async function Home() {
   const { data: attendanceSettings } = await supabase
     .from('organization_attendance_settings')
     .select('office_attendance_enabled, site_attendance_enabled, office_clock_methods, site_clock_methods, site_qr_type')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .maybeSingle()
 
   // アクティブな現場リストを取得（出退勤用）
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('is_active', true)
     .order('name')
 
@@ -124,7 +73,7 @@ export default async function Home() {
     const { data: purchaseOrders } = await supabase
       .from('purchase_orders')
       .select('id, status, total_amount')
-      .eq('organization_id', userData?.organization_id)
+      .eq('organization_id', organizationId)
       .is('deleted_at', null)
 
     purchaseOrderStats = {
@@ -141,7 +90,7 @@ export default async function Home() {
     const { data: equipment } = await supabase
       .from('heavy_equipment')
       .select('id, equipment_code, name, vehicle_inspection_date, insurance_end_date, requires_vehicle_inspection')
-      .eq('organization_id', userData?.organization_id)
+      .eq('organization_id', organizationId)
       .is('deleted_at', null)
 
     const today = new Date()
@@ -540,7 +489,7 @@ export default async function Home() {
           </Link>
 
           {/* 倉庫位置管理（管理者のみ） */}
-          {userData?.role === 'admin' && (
+          {userRole === 'admin' && (
             <Link
               href="/warehouse-locations"
               className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow"
@@ -602,7 +551,7 @@ export default async function Home() {
           )}
 
           {/* 組織設定（管理者のみ） */}
-          {userData?.role === 'admin' && (
+          {userRole === 'admin' && (
             <Link
               href="/settings/organization"
               className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow border-2 border-blue-200"
