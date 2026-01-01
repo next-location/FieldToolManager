@@ -120,7 +120,14 @@
       "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT DISTINCT plan, count(*) as count FROM contracts GROUP BY plan ORDER BY plan;\")",
       "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT id, contract_number, billing_day, status FROM contracts WHERE id = ''d95cf3b9-1829-4a18-8c23-9715d1715075'';\")",
       "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT key, value FROM system_settings WHERE key = ''security_settings'';\")",
-      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT action, details, created_at FROM super_admin_logs WHERE super_admin_id = ''e8207168-0543-4a3f-aa00-d1dfb50e3bbc'' ORDER BY created_at DESC LIMIT 5;\")"
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT action, details, created_at FROM super_admin_logs WHERE super_admin_id = ''e8207168-0543-4a3f-aa00-d1dfb50e3bbc'' ORDER BY created_at DESC LIMIT 5;\")",
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql \"postgresql://postgres:cF1!hVERlDgjMD@db.ecehilhaxgwphvamvabj.supabase.co:5432/postgres\" -c \"SELECT value FROM system_settings WHERE key = ''security_settings'';\")",
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT email, failed_login_attempts, locked_until FROM super_admins WHERE email = ''akashi@next-location.com'';\")",
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"\\d super_admins\")",
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -c \"SELECT id, name, subdomain, max_users, plan FROM organizations LIMIT 3;\")",
+      "Bash(do echo \"実行中: $file\")",
+      "Bash(/dev/null)",
+      "Bash(PGPASSWORD=\"cF1!hVERlDgjMD\" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 -U postgres -d postgres -f /Users/youichiakashi/FieldToolManager/supabase/migrations/20260101000001_create_impersonation_tables.sql)"
     ],
     "deny": [],
     "ask": []

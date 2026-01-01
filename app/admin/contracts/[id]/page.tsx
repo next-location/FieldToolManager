@@ -8,6 +8,7 @@ import ContractDetailView from '@/components/admin/ContractDetailView';
 import CompleteContractButton from '@/components/admin/CompleteContractButton';
 import CreateContractDocumentButton from '@/components/admin/CreateContractDocumentButton';
 import GenerateInitialInvoiceButton from '@/components/admin/GenerateInitialInvoiceButton';
+import ImpersonateButton from '@/components/admin/ImpersonateButton';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -148,18 +149,11 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold text-gray-900">契約詳細</h1>
               <div className="flex gap-3">
-                {contract.status === 'active' && contract.organizations?.subdomain && (
-                  <a
-                    href={`https://${contract.organizations.subdomain}.zairoku.com`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium inline-flex items-center gap-2"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                    組織管理画面を開く
-                  </a>
+                {contract.status === 'active' && contract.organizations?.subdomain && session.role === 'owner' && (
+                  <ImpersonateButton
+                    organizationId={contract.organization_id}
+                    organizationName={contract.organizations.name}
+                  />
                 )}
                 {contract.status === 'draft' && !isSalesRole && (
                   <>

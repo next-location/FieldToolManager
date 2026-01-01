@@ -1,6 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { AppLayout } from '@/components/AppLayout'
+import { verifySessionToken } from '@/lib/auth/impersonation'
+import ImpersonationBanner from '@/components/(authenticated)/ImpersonationBanner'
 
 interface AuthenticatedLayoutProps {
   children: React.ReactNode
@@ -8,7 +11,45 @@ interface AuthenticatedLayoutProps {
 
 export default async function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   const supabase = await createClient()
+  const cookieStore = await cookies()
 
+  // なりすましセッションのチェック
+  const impersonationToken = cookieStore.get('impersonation_session')?.value
+  let impersonationPayload = null
+
+  if (impersonationToken) {
+    impersonationPayload = await verifySessionToken(impersonationToken)
+    console.log('[AUTH LAYOUT] Impersonation session detected:', impersonationPayload)
+  }
+
+  // なりすましセッションがある場合
+  if (impersonationPayload) {
+    const { data: organization } = await supabase
+      .from('organizations')
+      .select('name, heavy_equipment_enabled')
+      .eq('id', impersonationPayload.organizationId)
+      .single()
+
+    return (
+      <>
+        <ImpersonationBanner
+          superAdminName={impersonationPayload.superAdminName}
+          organizationName={impersonationPayload.organizationName}
+        />
+        <AppLayout
+          user={{ email: null, id: impersonationPayload.superAdminId, name: impersonationPayload.superAdminName }}
+          userRole="admin"
+          organizationId={impersonationPayload.organizationId}
+          organizationName={organization?.name || null}
+          heavyEquipmentEnabled={organization?.heavy_equipment_enabled || false}
+        >
+          {children}
+        </AppLayout>
+      </>
+    )
+  }
+
+  // 通常の認証フロー
   console.log('[AUTH LAYOUT] Checking authentication...')
 
   const {

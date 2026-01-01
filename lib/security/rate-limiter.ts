@@ -114,6 +114,9 @@ export const rateLimiters = {
 
   // データエクスポート: 1時間に5回
   export: new RateLimiter(5, 3600000),
+
+  // なりすましログイン: 1分間に3回
+  impersonate: new RateLimiter(3, 60000, 900000), // 15分ブロック
 };
 
 // 定期的なクリーンアップ（1時間ごと）

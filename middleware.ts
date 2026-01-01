@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 import { createClient } from '@/lib/supabase/server'
+import { verifySessionToken, updateSessionActivity } from '@/lib/auth/impersonation'
 
 export async function middleware(request: NextRequest) {
   console.log('[Middleware] Processing path:', request.nextUrl.pathname)
@@ -112,13 +113,15 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // ログイン・公開ページ・API・静的ファイル・スーパーアドミン・エラーページはスキップ
+  // ログイン・公開ページ・API・静的ファイル・スーパーアドミン・エラーページ・なりすましページ・メンテナンスページはスキップ
   if (request.nextUrl.pathname.startsWith('/login') ||
       request.nextUrl.pathname.startsWith('/admin') ||
       request.nextUrl.pathname.startsWith('/api') ||
       request.nextUrl.pathname.startsWith('/_next') ||
       request.nextUrl.pathname.startsWith('/favicon') ||
       request.nextUrl.pathname.startsWith('/error') ||
+      request.nextUrl.pathname.startsWith('/impersonate') ||
+      request.nextUrl.pathname.startsWith('/maintenance') ||
       request.nextUrl.pathname.includes('.')) {
     console.log('[Middleware] Skipping auth check for:', request.nextUrl.pathname)
     return response
@@ -126,6 +129,22 @@ export async function middleware(request: NextRequest) {
 
   console.log('[Middleware] hostname:', hostname)
   console.log('[Middleware] subdomain:', subdomain)
+
+  // なりすましセッションの検証と更新
+  const impersonationToken = request.cookies.get('impersonation_session')?.value
+  if (impersonationToken) {
+    const impersonationPayload = await verifySessionToken(impersonationToken)
+    if (impersonationPayload) {
+      console.log('[Middleware] Valid impersonation session detected')
+      // セッションアクティビティを更新（1分間に1回まで）
+      await updateSessionActivity(impersonationToken)
+    } else {
+      console.log('[Middleware] Invalid impersonation session, deleting cookie')
+      // 無効なセッションの場合、Cookieを削除
+      response = NextResponse.next(request)
+      response.cookies.delete('impersonation_session')
+    }
+  }
 
   // サブドメインが存在する場合、組織の検証
   if (subdomain) {
