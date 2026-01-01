@@ -56,6 +56,18 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
   const canManageStaff = isAdmin || isManager
   const usagePercent = organization ? (organization.current_count / organization.max_users) * 100 : 0
 
+  // プラン名の日本語変換
+  const getPlanLabel = (plan: string) => {
+    const labels: Record<string, string> = {
+      start: 'スタート',
+      standard: 'スタンダード',
+      business: 'ビジネス',
+      pro: 'プロ',
+      enterprise: 'エンタープライズ',
+    }
+    return labels[plan] || plan
+  }
+
   // 権限による操作制限
   // admin: 全員を操作可能
   // manager: admin/super_admin 以外を操作可能
@@ -264,7 +276,7 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
                     : 'text-blue-800'
                 }`}
               >
-                📊 利用状況: {organization.current_count}/{organization.max_users}人 ({organization.plan}プラン)
+                📊 利用状況: {organization.current_count}/{organization.max_users}人 ({getPlanLabel(organization.plan)}プラン)
               </p>
               {usagePercent >= 100 && (
                 <p className="mt-1 text-sm text-red-700">
