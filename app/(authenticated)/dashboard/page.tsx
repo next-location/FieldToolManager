@@ -1,29 +1,60 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { AttendanceWidget } from '../AttendanceWidget'
+import { verifySessionToken } from '@/lib/auth/impersonation'
 
 export default async function Home() {
-  const supabase = await createClient()
+  const cookieStore = await cookies()
+  const impersonationToken = cookieStore.get('impersonation_session')?.value
+  let userData: { role: string; organization_id: string } | null = null
+  let user: { id: string } | null = null
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
+  // なりすましセッションチェック
+  if (impersonationToken) {
+    const impersonationPayload = await verifySessionToken(impersonationToken)
+    if (impersonationPayload) {
+      console.log('[DASHBOARD] Using impersonation session')
+      // なりすましセッションの場合は、ダミーのユーザーデータを設定
+      userData = {
+        role: 'admin',
+        organization_id: impersonationPayload.organizationId,
+      }
+      user = { id: impersonationPayload.superAdminId }
+    }
   }
 
-  // ユーザー情報を取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('role, organization_id')
-    .eq('id', user.id)
-    .single()
-
+  // 通常の認証フロー
   if (!userData) {
-    redirect('/login')
+    const supabase = await createClient()
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser()
+
+    if (!authUser) {
+      redirect('/login')
+    }
+
+    user = authUser
+
+    // ユーザー情報を取得
+    const { data: dbUserData } = await supabase
+      .from('users')
+      .select('role, organization_id')
+      .eq('id', authUser.id)
+      .single()
+
+    if (!dbUserData) {
+      redirect('/login')
+    }
+
+    userData = dbUserData
   }
+
+  // なりすましセッションの場合はSERVICE_ROLE_KEYを使用
+  const supabase = impersonationToken ? createAdminClient() : await createClient()
 
   // オンボーディングチェックは削除（テストデータで常に完了状態）
 
