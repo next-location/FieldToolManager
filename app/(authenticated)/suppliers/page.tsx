@@ -3,8 +3,6 @@ import { requireAuth } from '@/lib/auth/page-auth'
 import { SupplierListClient } from './SupplierListClient'
 
 export default async function SuppliersPage({
-  const { userId, organizationId, userRole, supabase } = await requireAuth()
-
   searchParams,
 }: {
   searchParams: Promise<{
@@ -13,7 +11,11 @@ export default async function SuppliersPage({
   }>
 }) {
   const params = await searchParams
-  const search = params.search || ''  // 管理者・リーダー権限チェック
+  const search = params.search || ''
+
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
+
+  // 管理者・リーダー権限チェック
   if (!['admin', 'leader'].includes(userRole)) {
     redirect('/')
   }

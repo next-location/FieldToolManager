@@ -3,13 +3,14 @@ import { requireAuth } from '@/lib/auth/page-auth'
 import { ProjectForm } from '@/components/projects/ProjectForm'
 
 export default async function EditProjectPage({
-  const { userId, organizationId, userRole, supabase } = await requireAuth()
-
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
-  const { id } = await params  // 管理者またはリーダー権限チェック
+  const { id } = await params
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
+
+  // 管理者またはリーダー権限チェック
   if (!['admin', 'leader'].includes(userRole)) {
     redirect('/projects')
   }

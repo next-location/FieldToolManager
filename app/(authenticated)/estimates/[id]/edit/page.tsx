@@ -7,13 +7,14 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export default async function EditEstimatePage({
-  const { userId, organizationId, userRole, supabase } = await requireAuth()
-
   params
 }: {
   params: Promise<{ id: string }>
 }) {
-  const { id } = await params  // リーダー以上のみアクセス可能
+  const { id } = await params
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
+
+  // リーダー以上のみアクセス可能
   if (!['leader', 'manager', 'admin', 'super_admin'].includes(userRole || '')) {
     redirect('/')
   }
