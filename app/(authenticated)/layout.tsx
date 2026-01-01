@@ -36,6 +36,7 @@ export default async function AuthenticatedLayout({ children }: AuthenticatedLay
       .single()
 
     console.log('[AUTH LAYOUT] Organization data:', organization)
+    console.log('[AUTH LAYOUT] Rendering impersonation session with admin role')
 
     return (
       <>
