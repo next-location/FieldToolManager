@@ -72,8 +72,8 @@ export async function POST(
     // ワンタイムログインURL生成（環境に応じて動的に生成）
     const isDevelopment = process.env.NODE_ENV === 'development';
     const loginUrl = isDevelopment
-      ? `http://localhost:3000/impersonate?token=${token}`
-      : `https://zairoku.com/impersonate?token=${token}`;
+      ? `http://localhost:3000/api/impersonate?token=${token}`
+      : `https://zairoku.com/api/impersonate?token=${token}`;
 
     return NextResponse.json({ loginUrl });
   } catch (error) {

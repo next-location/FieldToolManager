@@ -1,39 +1,31 @@
-import { redirect } from 'next/navigation';
+import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyAndConsumeToken } from '@/lib/auth/impersonation';
 import { createAdminClient } from '@/lib/supabase/server';
-import { getClientIp } from '@/lib/security/rate-limiter';
 
-export default async function ImpersonatePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ token?: string }>;
-}) {
-  const { token } = await searchParams;
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const token = searchParams.get('token');
 
   if (!token) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-lg shadow-md max-w-md">
-          <p className="text-red-600 font-semibold mb-2">❌ 無効なトークン</p>
-          <p className="text-gray-600 text-sm">ログインURLが正しくありません。</p>
-        </div>
-      </div>
+    return new NextResponse(
+      '<html><body><h1>❌ 無効なトークン</h1><p>ログインURLが正しくありません。</p></body></html>',
+      {
+        status: 400,
+        headers: { 'Content-Type': 'text/html' },
+      }
     );
   }
 
   const result = await verifyAndConsumeToken(token);
 
   if (!result) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-lg shadow-md max-w-md">
-          <p className="text-red-600 font-semibold mb-2">❌ トークンが無効</p>
-          <p className="text-gray-600 text-sm">
-            トークンが期限切れ、または既に使用済みです。
-          </p>
-        </div>
-      </div>
+    return new NextResponse(
+      '<html><body><h1>❌ トークンが無効</h1><p>トークンが期限切れ、または既に使用済みです。</p></body></html>',
+      {
+        status: 400,
+        headers: { 'Content-Type': 'text/html' },
+      }
     );
   }
 
@@ -55,7 +47,8 @@ export default async function ImpersonatePage({
     super_admin_id: payload.superAdminId,
     organization_id: payload.organizationId,
     action: 'login',
-    ip_address: 'server-side', // Server Componentのため
+    ip_address: request.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'unknown',
+    user_agent: request.headers.get('user-agent') || 'unknown',
   });
 
   // 組織のダッシュボードにリダイレクト
@@ -64,5 +57,5 @@ export default async function ImpersonatePage({
     ? `http://${payload.subdomain}.localhost:3000/dashboard`
     : `https://${payload.subdomain}.zairoku.com/dashboard`;
 
-  redirect(targetUrl);
+  return NextResponse.redirect(targetUrl);
 }
