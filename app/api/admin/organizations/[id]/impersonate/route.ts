@@ -73,7 +73,7 @@ export async function POST(
     const isDevelopment = process.env.NODE_ENV === 'development';
     const loginUrl = isDevelopment
       ? `http://localhost:3000/impersonate?token=${token}`
-      : `${process.env.NEXT_PUBLIC_APP_URL}/impersonate?token=${token}`;
+      : `https://zairoku.com/impersonate?token=${token}`;
 
     return NextResponse.json({ loginUrl });
   } catch (error) {
