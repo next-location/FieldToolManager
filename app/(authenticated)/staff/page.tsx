@@ -21,11 +21,12 @@ export default async function StaffPage() {
     redirect('/login')
   }
 
-  // 組織情報取得（プラン上限確認用）
-  const { data: organization } = await supabase
-    .from('organizations')
-    .select('max_users, plan')
-    .eq('id', userData?.organization_id)
+  // 契約情報取得（プラン上限確認用）
+  const { data: contract } = await supabase
+    .from('contracts')
+    .select('plan, user_limit')
+    .eq('organization_id', userData?.organization_id)
+    .eq('status', 'active')
     .single()
 
   // 現在のスタッフ数取得
@@ -52,10 +53,10 @@ export default async function StaffPage() {
         <StaffListClient
           userRole={userData.role}
           organization={
-            organization
+            contract
               ? {
-                  max_users: organization.max_users,
-                  plan: organization.plan,
+                  max_users: contract.user_limit,
+                  plan: contract.plan,
                   current_count: currentStaffCount || 0,
                 }
               : null
