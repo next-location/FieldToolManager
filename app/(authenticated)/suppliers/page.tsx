@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { SupplierListClient } from './SupplierListClient'
 
 export default async function SuppliersPage({
@@ -13,7 +13,6 @@ export default async function SuppliersPage({
   const params = await searchParams
   const search = params.search || ''
 
-  const supabase = await createClient()
 
   const {
     data: { user },
@@ -27,7 +26,7 @@ export default async function SuppliersPage({
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -35,7 +34,7 @@ export default async function SuppliersPage({
   }
 
   // 管理者・リーダー権限チェック
-  if (!['admin', 'leader'].includes(userData.role)) {
+  if (!['admin', 'leader'].includes(userRole)) {
     redirect('/')
   }
 
@@ -43,7 +42,7 @@ export default async function SuppliersPage({
   let query = supabase
     .from('suppliers')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('is_active', true)
     .order('created_at', { ascending: false })
 

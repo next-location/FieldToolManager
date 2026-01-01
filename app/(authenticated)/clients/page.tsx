@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { ClientTabs } from './ClientTabs'
 import { Client, ClientType } from '@/types/clients'
+import { requireAuth } from '@/lib/auth/page-auth'
 
 export default async function ClientsPage({
   searchParams,
@@ -16,29 +16,10 @@ export default async function ClientsPage({
   const clientType = (params.client_type || 'all') as 'all' | ClientType
   const search = params.search || ''
 
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('id', user.id)
-    .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
+  const { organizationId, userRole, supabase } = await requireAuth()
 
   // 管理者権限チェック
-  if (userData.role !== 'admin') {
+  if (userRole !== 'admin') {
     redirect('/')
   }
 
@@ -46,7 +27,7 @@ export default async function ClientsPage({
   let query = supabase
     .from('clients')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('is_active', true)
     .is('deleted_at', null)
     .order('created_at', { ascending: false})

@@ -1,24 +1,17 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { ToolBulkQRClient } from './ToolBulkQRClient'
 
 export default async function ToolsBulkQRPage() {
-  const supabase = await createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報を取得
+    // ユーザー情報を取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -29,7 +22,7 @@ export default async function ToolsBulkQRPage() {
   const { data: organization } = await supabase
     .from('organizations')
     .select('qr_print_size')
-    .eq('id', userData?.organization_id)
+    .eq('id', organizationId)
     .single()
 
   const qrSize = organization?.qr_print_size || 25

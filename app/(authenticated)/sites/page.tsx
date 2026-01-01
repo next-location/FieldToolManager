@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { SiteFilter } from './SiteFilter'
 import { extractCity } from '@/lib/prefectures'
@@ -20,7 +20,6 @@ export default async function SitesPage({
   const city = params.city || ''
   const keyword = params.keyword || ''
 
-  const supabase = await createClient()
 
   const {
     data: { user },

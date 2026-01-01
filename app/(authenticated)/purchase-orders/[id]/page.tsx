@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { PurchaseOrderDetailClient } from './PurchaseOrderDetailClient'
 import { getPurchaseOrderHistory } from '@/lib/purchase-order-history'
 
@@ -9,7 +9,6 @@ export default async function PurchaseOrderDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
 
   const {
     data: { user },
@@ -23,7 +22,7 @@ export default async function PurchaseOrderDetailPage({
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -43,7 +42,7 @@ export default async function PurchaseOrderDetailPage({
       rejected_by_user:users!purchase_orders_rejected_by_fkey(id, name)
     `)
     .eq('id', id)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .single()
 
@@ -66,7 +65,7 @@ export default async function PurchaseOrderDetailPage({
       recorded_by_user:users!payments_recorded_by_fkey(id, name)
     `)
     .eq('purchase_order_id', id)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('payment_date', { ascending: false })
 
@@ -76,8 +75,8 @@ export default async function PurchaseOrderDetailPage({
         order={order}
         history={history}
         payments={payments || []}
-        currentUserId={user.id}
-        currentUserRole={userData.role}
+        currentUserId={userId}
+        currentUserRole={userRole}
       />
     </div>
   )

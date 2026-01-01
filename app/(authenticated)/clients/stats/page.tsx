@@ -1,25 +1,12 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import ClientsStats from '../ClientsStats'
+import { requireAuth } from '@/lib/auth/page-auth'
 
 export default async function ClientsStatsPage() {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報を取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('email', user.email)
-    .single()
+  const { userRole } = await requireAuth()
 
   // 管理者のみアクセス可能
-  if (!userData || userData.role !== 'admin') {
+  if (userRole !== 'admin') {
     redirect('/')
   }
 

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { PurchaseOrderListClient } from './PurchaseOrderListClient'
 
 export default async function PurchaseOrdersPage({
@@ -14,7 +14,6 @@ export default async function PurchaseOrdersPage({
   const status = params.status || 'all'
   const search = params.search || ''
 
-  const supabase = await createClient()
 
   const {
     data: { user },
@@ -28,7 +27,7 @@ export default async function PurchaseOrdersPage({
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -46,12 +45,12 @@ export default async function PurchaseOrdersPage({
       created_by_user:users!purchase_orders_created_by_fkey(id, name),
       approved_by_user:users!purchase_orders_approved_by_fkey(id, name)
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
 
   // リーダーは自分が作成した発注書のみ表示
-  if (userData.role === 'leader') {
-    query = query.eq('created_by', user.id)
+  if (userRole === 'leader') {
+    query = query.eq('created_by', userId)
   }
 
   query = query
@@ -71,7 +70,7 @@ export default async function PurchaseOrdersPage({
   const { data: orders, error: ordersError } = await query
 
   console.log('[PURCHASE ORDERS PAGE] ===== デバッグ開始 =====')
-  console.log('[PURCHASE ORDERS PAGE] organization_id:', userData?.organization_id)
+  console.log('[PURCHASE ORDERS PAGE] organization_id:', organizationId)
   console.log('[PURCHASE ORDERS PAGE] status filter:', status)
   console.log('[PURCHASE ORDERS PAGE] search filter:', search)
   console.log('[PURCHASE ORDERS PAGE] orders count:', orders?.length || 0)
@@ -103,7 +102,7 @@ export default async function PurchaseOrdersPage({
   const { data: suppliers } = await supabase
     .from('clients')
     .select('id, name, client_code')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .in('client_type', ['supplier', 'both'])
     .eq('is_active', true)
     .order('name')
@@ -114,7 +113,7 @@ export default async function PurchaseOrdersPage({
   const { data: projects } = await supabase
     .from('projects')
     .select('id, project_name')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .order('project_name')
 
   console.log('[PURCHASE ORDERS PAGE] projects count:', projects?.length || 0)
@@ -123,7 +122,7 @@ export default async function PurchaseOrdersPage({
   const { data: staffList } = await supabase
     .from('users')
     .select('id, name')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .order('name')
 
   console.log('[PURCHASE ORDERS PAGE] staff count:', staffList?.length || 0)
@@ -137,7 +136,7 @@ export default async function PurchaseOrdersPage({
           orders={orders || []}
           suppliers={suppliers || []}
           projects={projects || []}
-          currentUserRole={userData.role}
+          currentUserRole={userRole}
           staffList={staffList || []}
         />
       </div>

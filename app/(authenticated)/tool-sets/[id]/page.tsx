@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { DeleteToolSetButton } from './DeleteToolSetButton'
 
@@ -9,7 +9,6 @@ export default async function ToolSetDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
 
   const {
     data: { user },
@@ -23,7 +22,7 @@ export default async function ToolSetDetailPage({
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -43,7 +42,7 @@ export default async function ToolSetDetailPage({
     `
     )
     .eq('id', id)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .single()
 

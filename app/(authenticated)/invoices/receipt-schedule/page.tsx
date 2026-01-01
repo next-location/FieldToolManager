@@ -1,24 +1,13 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 
 async function ReceiptScheduleContent() {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('role, organization_id')
-    .eq('id', user.id)
-    .single()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // リーダー以上のみアクセス可能
-  if (!['leader', 'manager', 'admin', 'super_admin'].includes(userData?.role || '')) {
+  if (!['leader', 'manager', 'admin', 'super_admin'].includes(userRole || '')) {
     redirect('/')
   }
 
@@ -35,7 +24,7 @@ async function ReceiptScheduleContent() {
       status,
       client:clients(name)
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .neq('status', 'cancelled')
     .order('due_date', { ascending: true })
 

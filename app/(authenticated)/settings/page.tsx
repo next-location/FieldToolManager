@@ -1,23 +1,15 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { SettingsTabs } from './SettingsTabs'
 
 export default async function SettingsPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   const { data: userData } = await supabase
     .from('users')
     .select('*')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   return (
@@ -31,8 +23,8 @@ export default async function SettingsPage() {
         </div>
 
         <SettingsTabs
-          userId={user.id}
-          userEmail={user.email || ''}
+          userId={userId}
+          userEmail={userData?.email || ''}
           userName={userData?.name || ''}
           userDepartment={userData?.department || ''}
           userSealData={userData?.personal_seal_data || ''}

@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { EstimateListClient } from '@/components/estimates/EstimateListClient'
 import { checkAndUpdateExpiredEstimates } from '@/lib/estimate-expiry'
@@ -10,7 +10,6 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 async function EstimateList() {
-  const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
@@ -20,12 +19,12 @@ async function EstimateList() {
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   // 期限切れチェックを実行
-  if (userData?.organization_id) {
-    await checkAndUpdateExpiredEstimates(userData.organization_id)
+  if (organizationId) {
+    await checkAndUpdateExpiredEstimates(organizationId)
   }
 
   // リーダーは自分の見積もりのみ、マネージャー・管理者は全ての見積もりを表示
@@ -38,13 +37,13 @@ async function EstimateList() {
       manager_approved_by_user:users!estimates_manager_approved_by_fkey(name),
       created_by_user:users!estimates_created_by_fkey(id, name)
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
 
   // リーダーの場合は自分が作成した見積もりのみフィルタ
-  if (userData?.role === 'leader') {
-    estimatesQuery = estimatesQuery.eq('created_by', user.id)
-    console.log('[見積もり一覧] リーダーでフィルタ適用:', { userId: user.id, role: userData.role })
+  if (userRole === 'leader') {
+    estimatesQuery = estimatesQuery.eq('created_by', userId)
+    console.log('[見積もり一覧] リーダーでフィルタ適用:', { userId: userId, role: userRole })
   }
 
   const { data: estimates, error } = await estimatesQuery.order('created_at', { ascending: false })
@@ -52,17 +51,17 @@ async function EstimateList() {
   if (error) {
     console.error('[見積もり一覧] クエリエラー:', error)
   }
-  console.log('[見積もり一覧] 取得件数:', estimates?.length, 'role:', userData?.role)
+  console.log('[見積もり一覧] 取得件数:', estimates?.length, 'role:', userRole)
 
   // マネージャー・管理者用にスタッフ一覧を取得
-  const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userData?.role || '')
+  const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userRole || '')
   let staffList: Array<{ id: string; name: string }> = []
 
   if (isManagerOrAdmin) {
     const { data: staff } = await supabase
       .from('users')
       .select('id, name')
-      .eq('organization_id', userData?.organization_id)
+      .eq('organization_id', organizationId)
       .eq('is_active', true)
       .order('name', { ascending: true })
 
@@ -72,21 +71,16 @@ async function EstimateList() {
   return (
     <EstimateListClient
       estimates={estimates || []}
-      userRole={userData?.role || 'staff'}
+      userRole={userRole || 'staff'}
       staffList={staffList}
     />
   )
 }
 
 export default async function EstimatesPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  if (!user) {
-    redirect('/login')
-  }
-
-  // 全ユーザーがアクセス可能（権限チェックなし）
+    // 全ユーザーがアクセス可能（権限チェックなし）
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">

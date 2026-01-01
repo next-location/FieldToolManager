@@ -1,11 +1,10 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { ProjectListClient } from '@/components/projects/ProjectListClient'
 
 async function ProjectList() {
-  const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
@@ -15,7 +14,7 @@ async function ProjectList() {
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   const { data: projects } = await supabase
@@ -24,7 +23,7 @@ async function ProjectList() {
       *,
       client:clients(name)
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
 
@@ -32,21 +31,16 @@ async function ProjectList() {
 }
 
 export default async function ProjectsPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  if (!user) {
-    redirect('/login')
-  }
-
-  const { data: userData } = await supabase
+    const { data: userData } = await supabase
     .from('users')
     .select('role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   // 管理者のみアクセス可能
-  if (!['admin', 'super_admin', 'manager'].includes(userData?.role || '')) {
+  if (!['admin', 'super_admin', 'manager'].includes(userRole || '')) {
     redirect('/')
   }
 

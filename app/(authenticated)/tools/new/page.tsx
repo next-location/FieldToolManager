@@ -1,9 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { ToolRegistrationForm } from './ToolRegistrationForm'
 
 export default async function NewToolPage() {
-  const supabase = await createClient()
 
   // 認証チェック
   const {
@@ -18,7 +17,7 @@ export default async function NewToolPage() {
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -37,7 +36,7 @@ export default async function NewToolPage() {
   const { data: toolMasters } = await supabase
     .from('tools')
     .select('id, name, model_number, manufacturer, minimum_stock, is_from_preset')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('management_type', 'individual')
     .is('deleted_at', null)
     .order('name')
@@ -46,7 +45,7 @@ export default async function NewToolPage() {
   const { data: organizationSettings } = await supabase
     .from('organization_settings')
     .select('enable_low_stock_alert')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .single()
 
   return (
@@ -72,7 +71,7 @@ export default async function NewToolPage() {
               presets={presets || []}
               toolMasters={toolMasters || []}
               enableLowStockAlert={organizationSettings?.enable_low_stock_alert ?? true}
-              organizationId={userData?.organization_id}
+              organizationId={organizationId}
             />
           </div>
         </div>

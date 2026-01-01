@@ -1,32 +1,12 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { AuditLogList } from './AuditLogList'
 
 export default async function AuditLogsPage() {
-  const supabase = await createClient()
-
-  // 認証チェック
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報取得（ロールチェック）
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('id', user.id)
-    .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 管理者権限チェック
-  if (userData.role !== 'admin' && userData.role !== 'super_admin') {
+  if (userRole !== 'admin') {
     redirect('/')
   }
 
@@ -53,7 +33,7 @@ export default async function AuditLogsPage() {
         email
       )
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .order('created_at', { ascending: false })
     .limit(100)
 

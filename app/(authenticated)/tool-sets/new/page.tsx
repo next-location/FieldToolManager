@@ -1,25 +1,18 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { createToolSet } from '../actions'
 import Link from 'next/link'
 import { ToolSetForm } from './ToolSetForm'
 
 export default async function NewToolSetPage() {
-  const supabase = await createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  if (!user) {
-    redirect('/login')
-  }
-
-  // 組織のユーザー情報を取得
+    // 組織のユーザー情報を取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   // 個別アイテム一覧を取得
@@ -39,7 +32,7 @@ export default async function NewToolSetPage() {
       ),
       current_site:sites!tool_items_current_site_id_fkey (name)
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('serial_number')
 

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 
 export default async function PaymentDetailPage({
@@ -11,7 +11,6 @@ export default async function PaymentDetailPage({
   const { id } = await params
   console.log('[PAYMENT DETAIL] Payment ID:', id)
 
-  const supabase = await createClient()
   console.log('[PAYMENT DETAIL] Supabase client created')
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -25,13 +24,13 @@ export default async function PaymentDetailPage({
   const { data: userData } = await supabase
     .from('users')
     .select('role, organization_id')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
-  console.log('[PAYMENT DETAIL] User data:', { role: userData?.role, org_id: userData?.organization_id })
+  console.log('[PAYMENT DETAIL] User data:', { role: userRole, org_id: organizationId })
 
   // マネージャー以上のみアクセス可能
-  if (!['manager', 'admin', 'super_admin'].includes(userData?.role || '')) {
+  if (!['manager', 'admin', 'super_admin'].includes(userRole || '')) {
     console.log('[PAYMENT DETAIL] Insufficient permissions, redirecting')
     redirect('/payments')
   }
@@ -59,7 +58,7 @@ export default async function PaymentDetailPage({
       recorded_by_user:users!payments_recorded_by_fkey(name)
     `)
     .eq('id', id)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .single()
 
   console.log('[PAYMENT DETAIL] Payment query result:', {

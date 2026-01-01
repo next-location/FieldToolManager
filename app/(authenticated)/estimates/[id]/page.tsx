@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { DownloadPdfButton } from './DownloadPdfButton'
 import { ApproveEstimateButton } from '@/components/estimates/ApproveEstimateButton'
@@ -19,7 +19,6 @@ export default async function EstimateDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
@@ -29,7 +28,7 @@ export default async function EstimateDetailPage({
   const { data: userData } = await supabase
     .from('users')
     .select('role, organization_id, name')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   // 全ユーザーがアクセス可能（権限チェックなし）
@@ -47,7 +46,7 @@ export default async function EstimateDetailPage({
       manager_approved_by_user:users!estimates_manager_approved_by_fkey(name)
     `)
     .eq('id', id)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .single()
 
   console.log('[見積書詳細] 見積書ID:', id)
@@ -55,7 +54,7 @@ export default async function EstimateDetailPage({
   console.log('[見積書詳細] 明細件数:', estimate?.estimate_items?.length || 0)
   console.log('[見積書詳細] エラー:', estimateError)
   console.log('[見積書詳細] created_by:', estimate?.created_by)
-  console.log('[見積書詳細] user.id:', user.id)
+  console.log('[見積書詳細] userId:', userId)
 
   if (!estimate) {
     redirect('/estimates')
@@ -65,21 +64,21 @@ export default async function EstimateDetailPage({
   const { data: organization } = await supabase
     .from('organizations')
     .select('name, address, phone, invoice_registration_number')
-    .eq('id', userData?.organization_id)
+    .eq('id', organizationId)
     .single()
 
   // 操作履歴を取得
   const history = await getEstimateHistory(id)
 
   // マネージャー・管理者が提出済み見積もりを閲覧した場合、既読記録を追加
-  const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userData?.role || '')
+  const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userRole || '')
   if (isManagerOrAdmin && estimate.status === 'submitted') {
     await supabase
       .from('estimate_reads')
       .upsert({
         estimate_id: id,
-        user_id: user.id,
-        organization_id: userData?.organization_id,
+        user_id: userId,
+        organization_id: organizationId,
       }, {
         onConflict: 'estimate_id,user_id',
         ignoreDuplicates: true
@@ -155,7 +154,7 @@ export default async function EstimateDetailPage({
             <ApproveEstimateButton
               estimateId={id}
               isApproved={false}
-              userRole={userData?.role || ''}
+              userRole={userRole || ''}
             />
           )}
 
@@ -165,7 +164,7 @@ export default async function EstimateDetailPage({
               <ApproveEstimateButton
                 estimateId={id}
                 isApproved={true}
-                userRole={userData?.role || ''}
+                userRole={userRole || ''}
               />
               {/* PDFボタン: マネージャー以上のみ表示 */}
               {isManagerOrAdmin && <DownloadPdfButton estimateId={id} />}
@@ -173,8 +172,8 @@ export default async function EstimateDetailPage({
                 estimateId={id}
                 status={estimate.status}
                 isApproved={true}
-                userRole={userData?.role || ''}
-                userId={user.id}
+                userRole={userRole || ''}
+                userId={userId}
                 createdById={estimate.created_by}
               />
             </>
@@ -189,7 +188,7 @@ export default async function EstimateDetailPage({
               <CustomerDecisionButtons
                 estimateId={id}
                 status={estimate.status}
-                userRole={userData?.role || ''}
+                userRole={userRole || ''}
               />
             </>
           )}
@@ -399,7 +398,7 @@ export default async function EstimateDetailPage({
         )}
 
         {/* リーダーが作成した見積書で送付済みの場合の注意メッセージ */}
-        {estimate.status === 'sent' && userData?.role === 'leader' && estimate.created_by === user.id && (
+        {estimate.status === 'sent' && userRole === 'leader' && estimate.created_by === userId && (
           <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded print:hidden">
             <h3 className="text-sm font-semibold mb-2 text-blue-800">ℹ️ お知らせ</h3>
             <div className="text-sm text-blue-700">

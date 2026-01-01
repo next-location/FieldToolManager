@@ -1,5 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import AttendanceQRGenerator from './AttendanceQRGenerator'
 
 /**
@@ -7,40 +7,20 @@ import AttendanceQRGenerator from './AttendanceQRGenerator'
  * リーダー・管理者が会社QRと現場QRを発行する
  */
 export default async function AttendanceQRPage() {
-  const supabase = await createClient()
-
-  // 認証確認
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('id, organization_id, role, name')
-    .eq('id', user.id)
-    .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // リーダー・管理者の権限確認
-  if (!['leader', 'manager', 'admin'].includes(userData.role)) {
+  if (!['leader', 'manager', 'admin'].includes(userRole)) {
     redirect('/')
   }
 
-  const isAdminOrManager = ['admin', 'manager'].includes(userData.role)
+  const isAdminOrManager = ['admin', 'manager'].includes(userRole)
 
   // 現場リスト取得
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
 
@@ -59,7 +39,7 @@ export default async function AttendanceQRPage() {
         name
       )
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('is_active', true)
     .gte('expires_at', now)
     .order('generated_at', { ascending: false })
@@ -95,7 +75,7 @@ export default async function AttendanceQRPage() {
         <AttendanceQRGenerator
           sites={sites || []}
           existingQRs={qrLogsWithImages}
-          userRole={userData.role}
+          userRole={userRole}
           isAdminOrManager={isAdminOrManager}
         />
       </div>

@@ -1,10 +1,9 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 
 async function ProfitLossContent() {
-  const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
@@ -14,11 +13,11 @@ async function ProfitLossContent() {
   const { data: userData } = await supabase
     .from('users')
     .select('role, organization_id')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   // リーダー以上のみアクセス可能
-  if (!['leader', 'manager', 'admin', 'super_admin'].includes(userData?.role || '')) {
+  if (!['leader', 'manager', 'admin', 'super_admin'].includes(userRole || '')) {
     redirect('/')
   }
 
@@ -35,7 +34,7 @@ async function ProfitLossContent() {
       end_date,
       client:clients(name)
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .order('start_date', { ascending: false })
 
   if (!projects) {
@@ -50,14 +49,14 @@ async function ProfitLossContent() {
         .from('billing_invoices')
         .select('total_amount, paid_amount')
         .eq('project_id', project.id)
-        .eq('organization_id', userData?.organization_id)
+        .eq('organization_id', organizationId)
 
       // 発注書データ
       const { data: purchaseOrders } = await supabase
         .from('purchase_orders')
         .select('total_amount, paid_amount')
         .eq('project_id', project.id)
-        .eq('organization_id', userData?.organization_id)
+        .eq('organization_id', organizationId)
 
       const revenue = invoices?.reduce((sum, i) => sum + (i.total_amount || 0), 0) || 0
       const receivedAmount = invoices?.reduce((sum, i) => sum + (i.paid_amount || 0), 0) || 0

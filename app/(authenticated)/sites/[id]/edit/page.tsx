@@ -1,4 +1,3 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { updateSite } from '../../actions'
 import Link from 'next/link'
@@ -35,13 +34,13 @@ export default async function EditSitePage({
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   const { data: organizationUsers } = await supabase
     .from('users')
     .select('id, name, email')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('is_active', true)
     .order('name')
 
@@ -49,7 +48,7 @@ export default async function EditSitePage({
   const { data: clients } = await supabase
     .from('clients')
     .select('id, name, code')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('is_active', true)
     .is('deleted_at', null)
     .order('name')
@@ -147,7 +146,7 @@ export default async function EditSitePage({
                 >
                   <option value="">未設定</option>
                   {organizationUsers?.map((user) => (
-                    <option key={user.id} value={user.id}>
+                    <option key={userId} value={userId}>
                       {user.name} ({user.email})
                     </option>
                   ))}

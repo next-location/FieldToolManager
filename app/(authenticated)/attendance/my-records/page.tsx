@@ -1,23 +1,16 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { MyAttendanceRecordsTable } from './MyAttendanceRecordsTable'
 
 export default async function MyAttendanceRecordsPage() {
-  const supabase = await createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報取得
+    // ユーザー情報取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, name')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {

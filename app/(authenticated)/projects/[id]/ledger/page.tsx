@@ -1,10 +1,9 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 
 async function ProjectLedgerContent({ projectId }: { projectId: string }) {
-  const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
@@ -14,11 +13,11 @@ async function ProjectLedgerContent({ projectId }: { projectId: string }) {
   const { data: userData } = await supabase
     .from('users')
     .select('role, organization_id')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   // リーダー以上のみアクセス可能
-  if (!['leader', 'manager', 'admin', 'super_admin'].includes(userData?.role || '')) {
+  if (!['leader', 'manager', 'admin', 'super_admin'].includes(userRole || '')) {
     redirect('/')
   }
 
@@ -30,7 +29,7 @@ async function ProjectLedgerContent({ projectId }: { projectId: string }) {
       client:clients(name)
     `)
     .eq('id', projectId)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .single()
 
   if (!project) {
@@ -42,14 +41,14 @@ async function ProjectLedgerContent({ projectId }: { projectId: string }) {
     .from('estimates')
     .select('id, estimate_number, estimate_date, total_amount, status')
     .eq('project_id', projectId)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .order('estimate_date', { ascending: false })
 
   const { data: invoices } = await supabase
     .from('billing_invoices')
     .select('id, invoice_number, invoice_date, total_amount, paid_amount, status')
     .eq('project_id', projectId)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .order('invoice_date', { ascending: false })
 
   // 原価データ（発注書）
@@ -65,7 +64,7 @@ async function ProjectLedgerContent({ projectId }: { projectId: string }) {
       supplier:clients(name)
     `)
     .eq('project_id', projectId)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .order('order_date', { ascending: false })
 
   // 収支計算

@@ -1,5 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import AlertsList from './AlertsList'
 
 /**
@@ -7,27 +7,7 @@ import AlertsList from './AlertsList'
  * ユーザーは自分のアラート、管理者は全アラートを閲覧可能
  */
 export default async function AlertsPage() {
-  const supabase = await createClient()
-
-  // 認証確認
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('id, organization_id, role, name')
-    .eq('id', user.id)
-    .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -39,7 +19,7 @@ export default async function AlertsPage() {
           </p>
         </div>
 
-        <AlertsList userRole={userData.role} />
+        <AlertsList userRole={userRole} />
       </div>
     </div>
   )

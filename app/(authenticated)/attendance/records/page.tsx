@@ -1,27 +1,12 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { AttendanceRecordsWrapper } from './AttendanceRecordsWrapper'
 
 export default async function AttendanceRecordsPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role, name')
-    .eq('id', user.id)
-    .single()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // admin/manager権限チェック
-  if (!userData || !['admin', 'manager'].includes(userData.role)) {
+  if (!['admin', 'manager'].includes(userRole)) {
     redirect('/')
   }
 
@@ -29,14 +14,14 @@ export default async function AttendanceRecordsPage() {
   const { data: organization } = await supabase
     .from('organizations')
     .select('name')
-    .eq('id', userData?.organization_id)
+    .eq('id', organizationId)
     .single()
 
   // スタッフ一覧取得（フィルター用）
   const { data: staffList } = await supabase
     .from('users')
     .select('id, name, email')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
 
@@ -44,7 +29,7 @@ export default async function AttendanceRecordsPage() {
   const { data: sitesList } = await supabase
     .from('sites')
     .select('id, name')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
 
@@ -61,7 +46,7 @@ export default async function AttendanceRecordsPage() {
         <AttendanceRecordsWrapper
           staffList={staffList || []}
           sitesList={sitesList || []}
-          userRole={userData.role}
+          userRole={userRole}
         />
       </div>
     </div>

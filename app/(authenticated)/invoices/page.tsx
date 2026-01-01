@@ -1,24 +1,13 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
 import { PackageRequired } from '@/components/PackageRequired'
 import { InvoiceListClient } from '@/components/invoices/InvoiceListClient'
 
 async function InvoiceList() {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('id', user.id)
-    .single()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   const { data: invoices } = await supabase
     .from('billing_invoices')
@@ -29,37 +18,26 @@ async function InvoiceList() {
       created_by_user:users!billing_invoices_created_by_fkey(name),
       approved_by_user:users!billing_invoices_manager_approved_by_fkey(name)
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('created_at', { ascending: false})
 
-  return <InvoiceListClient invoices={invoices || []} userRole={userData?.role || ''} />
+  return <InvoiceListClient invoices={invoices || []} userRole={userRole || ''} />
 }
 
 export default async function InvoicesPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('id', user.id)
-    .single()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // リーダー以上のみアクセス可能
-  if (!['leader', 'manager', 'admin', 'super_admin'].includes(userData?.role || '')) {
+  if (!['leader', 'manager', 'admin', 'super_admin'].includes(userRole || '')) {
     redirect('/')
   }
 
   // パッケージチェック
-  if (userData?.organization_id) {
-    const features = await getOrganizationFeatures(userData?.organization_id)
+  if (organizationId) {
+    const features = await getOrganizationFeatures(organizationId)
     if (!hasPackage(features, 'dx')) {
-      return <PackageRequired packageType="dx" featureName="請求書管理" userRole={userData.role} />
+      return <PackageRequired packageType="dx" featureName="請求書管理" userRole={userRole} />
     }
   }
 

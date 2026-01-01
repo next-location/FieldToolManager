@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import ClientForm from '../../ClientForm'
 import { Client } from '@/types/clients'
@@ -10,7 +10,6 @@ export default async function EditClientPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
 
   const {
     data: { user },
@@ -24,7 +23,7 @@ export default async function EditClientPage({
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -32,7 +31,7 @@ export default async function EditClientPage({
   }
 
   // 管理者権限チェック
-  if (userData.role !== 'admin') {
+  if (userRole !== 'admin') {
     redirect('/')
   }
 
@@ -41,7 +40,7 @@ export default async function EditClientPage({
     .from('clients')
     .select('*')
     .eq('id', id)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .single()
 

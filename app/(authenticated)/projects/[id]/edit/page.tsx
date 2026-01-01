@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { ProjectForm } from '@/components/projects/ProjectForm'
 
 export default async function EditProjectPage({
@@ -8,7 +8,6 @@ export default async function EditProjectPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
 
   const {
     data: { user },
@@ -22,7 +21,7 @@ export default async function EditProjectPage({
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -30,7 +29,7 @@ export default async function EditProjectPage({
   }
 
   // 管理者またはリーダー権限チェック
-  if (!['admin', 'leader'].includes(userData.role)) {
+  if (!['admin', 'leader'].includes(userRole)) {
     redirect('/projects')
   }
 
@@ -39,7 +38,7 @@ export default async function EditProjectPage({
     .from('projects')
     .select('*')
     .eq('id', id)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', organizationId)
     .single()
 
   if (!project) {

@@ -1,17 +1,8 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { QRScanTabs } from './QRScanTabs'
 
 export default async function ScanPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  await requireAuth()
 
   return (
     <div className="max-w-6xl mx-auto py-6 sm:px-6 lg:px-8">

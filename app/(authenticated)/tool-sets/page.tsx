@@ -1,27 +1,26 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 
 export default async function ToolSetsPage() {
-  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) redirect('/login')
 
   // 管理者またはマネージャーのみセット作成可能
-  const canCreateSet = userData.role === 'admin' || userData.role === 'manager'
+  const canCreateSet = userRole === 'admin' || userRole === 'manager'
 
   const { data: toolSets, error } = await supabase
     .from('tool_sets')
     .select('id, name, description, created_at, created_by, users:created_by (name)')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
 

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { EstimateEditForm } from '@/components/estimates/EstimateEditForm'
 
 // キャッシュを無効化
@@ -12,7 +12,6 @@ export default async function EditEstimatePage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
@@ -22,11 +21,11 @@ export default async function EditEstimatePage({
   const { data: userData } = await supabase
     .from('users')
     .select('role, organization_id')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   // リーダー以上のみアクセス可能
-  if (!['leader', 'manager', 'admin', 'super_admin'].includes(userData?.role || '')) {
+  if (!['leader', 'manager', 'admin', 'super_admin'].includes(userRole || '')) {
     redirect('/')
   }
 
@@ -38,7 +37,7 @@ export default async function EditEstimatePage({
       estimate_items(*)
     `)
     .eq('id', id)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .single()
 
   if (!estimate) {
@@ -54,7 +53,7 @@ export default async function EditEstimatePage({
   const { data: clients } = await supabase
     .from('clients')
     .select('id, name, client_code')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('is_active', true)
     .order('name')
 
@@ -62,7 +61,7 @@ export default async function EditEstimatePage({
   const { data: projects } = await supabase
     .from('projects')
     .select('id, project_name, project_code')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .in('status', ['planning', 'in_progress'])
     .order('project_name')
 

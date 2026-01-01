@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 
 export default async function ProjectDetailPage({
@@ -8,7 +8,6 @@ export default async function ProjectDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
 
   const {
     data: { user },
@@ -22,7 +21,7 @@ export default async function ProjectDetailPage({
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -38,7 +37,7 @@ export default async function ProjectDetailPage({
       project_manager:users!project_manager_id(id, name, role)
     `)
     .eq('id', id)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', organizationId)
     .single()
 
   if (!project) {
@@ -50,7 +49,7 @@ export default async function ProjectDetailPage({
     .from('purchase_orders')
     .select('id, status, total_amount')
     .eq('project_id', id)
-    .eq('organization_id', userData.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
 
   // 発注書統計計算
@@ -116,7 +115,7 @@ export default async function ProjectDetailPage({
           >
             一覧に戻る
           </Link>
-          {['admin', 'leader'].includes(userData.role) && (
+          {['admin', 'leader'].includes(userRole) && (
             <Link
               href={`/projects/${id}/edit`}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"

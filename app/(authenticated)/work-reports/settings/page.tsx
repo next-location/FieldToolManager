@@ -1,24 +1,17 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { WorkReportSettingsForm } from './WorkReportSettingsForm'
 import { CustomFieldsManager } from './CustomFieldsManager'
 
 export default async function WorkReportSettingsPage() {
-  const supabase = await createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報取得
+    // ユーザー情報取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -26,7 +19,7 @@ export default async function WorkReportSettingsPage() {
   }
 
   // 管理者権限チェック
-  if (userData.role !== 'admin') {
+  if (userRole !== 'admin') {
     redirect('/')
   }
 
@@ -34,7 +27,7 @@ export default async function WorkReportSettingsPage() {
   const { data: customFields } = await supabase
     .from('work_report_custom_fields')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('site_id', null)
     .order('display_order', { ascending: true })
 

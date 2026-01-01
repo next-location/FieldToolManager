@@ -1,5 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import MonthlyReport from './MonthlyReport'
 
 /**
@@ -7,7 +7,6 @@ import MonthlyReport from './MonthlyReport'
  * スタッフ別の勤怠統計を表示
  */
 export default async function MonthlyReportPage() {
-  const supabase = await createClient()
 
   // 認証確認
   const {
@@ -22,7 +21,7 @@ export default async function MonthlyReportPage() {
   const { data: userData } = await supabase
     .from('users')
     .select('id, organization_id, role, name')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -30,7 +29,7 @@ export default async function MonthlyReportPage() {
   }
 
   // 管理者権限確認
-  if (!['admin', 'manager'].includes(userData.role)) {
+  if (!['admin', 'manager'].includes(userRole)) {
     redirect('/')
   }
 

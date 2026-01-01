@@ -1,21 +1,10 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 
 async function ReceivablesList() {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id')
-    .eq('id', user.id)
-    .single()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 未払いの請求書を取得
   const { data: invoices } = await supabase
@@ -25,7 +14,7 @@ async function ReceivablesList() {
       client:clients(name, phone, email),
       project:projects(project_name)
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('due_date', { ascending: true })
 
@@ -250,21 +239,10 @@ async function ReceivablesList() {
 }
 
 export default async function ReceivablesPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 管理者のみアクセス可能
-  if (!['manager', 'admin', 'super_admin'].includes(userData?.role || '')) {
+  if (!['manager', 'admin', 'super_admin'].includes(userRole || '')) {
     redirect('/')
   }
 

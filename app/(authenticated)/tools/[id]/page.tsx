@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import Image from 'next/image'
 import { DeleteToolButton } from './DeleteToolButton'
@@ -16,7 +16,6 @@ export default async function ToolDetailPage({
 }) {
   const { id } = await params
   const { item_id } = await searchParams
-  const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -28,14 +27,14 @@ export default async function ToolDetailPage({
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   // 組織のQR印刷サイズ設定を取得
   const { data: organization } = await supabase
     .from('organizations')
     .select('qr_print_size')
-    .eq('id', userData?.organization_id)
+    .eq('id', organizationId)
     .single()
 
   const qrSize = organization?.qr_print_size || 25

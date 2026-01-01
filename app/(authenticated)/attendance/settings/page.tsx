@@ -1,27 +1,12 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { AttendanceSettingsFormSimple } from './AttendanceSettingsFormSimple'
 
 export default async function AttendanceSettingsPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報と権限を取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role, name')
-    .eq('id', user.id)
-    .single()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // admin/manager権限がない場合はリダイレクト
-  if (!userData || !['admin', 'manager'].includes(userData.role)) {
+  if (!['admin', 'manager'].includes(userRole)) {
     redirect('/')
   }
 
@@ -29,14 +14,14 @@ export default async function AttendanceSettingsPage() {
   const { data: organization } = await supabase
     .from('organizations')
     .select('name')
-    .eq('id', userData?.organization_id)
+    .eq('id', organizationId)
     .single()
 
   // 出退勤設定を取得
   const { data: attendanceSettings } = await supabase
     .from('organization_attendance_settings')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .maybeSingle()
 
   return (
@@ -52,7 +37,7 @@ export default async function AttendanceSettingsPage() {
         <div className="bg-white shadow sm:rounded-lg">
           <AttendanceSettingsFormSimple
             initialSettings={attendanceSettings}
-            organizationId={userData?.organization_id}
+            organizationId={organizationId}
           />
         </div>
       </div>

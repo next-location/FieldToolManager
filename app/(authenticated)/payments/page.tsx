@@ -1,22 +1,11 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { PaymentListClient } from '@/components/payments/PaymentListClient'
+import { requireAuth } from '@/lib/auth/page-auth'
 
 async function PaymentList() {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id')
-    .eq('id', user.id)
-    .single()
+  const { organizationId, supabase } = await requireAuth()
 
   const { data: payments } = await supabase
     .from('payments')
@@ -25,7 +14,7 @@ async function PaymentList() {
       invoice:billing_invoices(invoice_number, client:clients(name)),
       purchase_order:purchase_orders(order_number, supplier:clients!purchase_orders_client_id_fkey(name))
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('payment_date', { ascending: false })
 
@@ -33,21 +22,10 @@ async function PaymentList() {
 }
 
 export default async function PaymentsPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single()
+  const { userRole } = await requireAuth()
 
   // 管理者のみアクセス可能
-  if (!['admin', 'super_admin', 'manager'].includes(userData?.role || '')) {
+  if (!['admin', 'super_admin', 'manager'].includes(userRole)) {
     redirect('/')
   }
 

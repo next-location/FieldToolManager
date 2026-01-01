@@ -1,28 +1,21 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { OrganizationSettingsForm } from './OrganizationSettingsForm'
 
 export default async function OrganizationSettingsPage() {
-  const supabase = await createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報と組織情報を取得
+    // ユーザー情報と組織情報を取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   // admin権限がない場合はリダイレクト
-  if (userData?.role !== 'admin') {
+  if (userRole !== 'admin') {
     redirect('/')
   }
 
@@ -30,7 +23,7 @@ export default async function OrganizationSettingsPage() {
   const { data: organization } = await supabase
     .from('organizations')
     .select('*')
-    .eq('id', userData?.organization_id)
+    .eq('id', organizationId)
     .single()
 
   if (!organization) {
@@ -41,14 +34,14 @@ export default async function OrganizationSettingsPage() {
   const { data: organizationSettings } = await supabase
     .from('organization_settings')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .single()
 
   // 倉庫階層テンプレートを取得
   const { data: warehouseTemplates } = await supabase
     .from('warehouse_location_templates')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .order('level')
 
   return (

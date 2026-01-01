@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { DownloadPdfButton } from './DownloadPdfButton'
 import { SubmitInvoiceButton } from '@/components/invoices/SubmitInvoiceButton'
@@ -19,21 +19,10 @@ export default async function InvoiceDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('role, organization_id')
-    .eq('id', user.id)
-    .single()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // リーダー以上のみアクセス可能
-  if (!['leader', 'manager', 'admin', 'super_admin'].includes(userData?.role || '')) {
+  if (!['leader', 'manager', 'admin', 'super_admin'].includes(userRole || '')) {
     redirect('/')
   }
 
@@ -47,7 +36,7 @@ export default async function InvoiceDetailPage({
       billing_invoice_items(*)
     `)
     .eq('id', id)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .single()
 
   if (!invoice) {
@@ -116,8 +105,8 @@ export default async function InvoiceDetailPage({
           {/* 提出済み状態: 承認・差し戻しボタン（manager/admin のみ） */}
           {invoice.status === 'submitted' && (
             <>
-              <ApproveInvoiceButton invoiceId={id} userRole={userData?.role || ''} />
-              <ReturnInvoiceButton invoiceId={id} userRole={userData?.role || ''} />
+              <ApproveInvoiceButton invoiceId={id} userRole={userRole || ''} />
+              <ReturnInvoiceButton invoiceId={id} userRole={userRole || ''} />
             </>
           )}
 
@@ -128,8 +117,8 @@ export default async function InvoiceDetailPage({
                 invoiceId={id}
                 status={invoice.status}
                 isApproved={true}
-                userRole={userData?.role || ''}
-                userId={user.id}
+                userRole={userRole || ''}
+                userId={userId}
                 createdById={invoice.created_by}
               />
               <DownloadPdfButton invoiceId={id} />
@@ -140,7 +129,7 @@ export default async function InvoiceDetailPage({
           {invoice.status === 'sent' && (
             <>
               {/* 入金登録: 未入金・マネージャー以上のみ */}
-              {!isPaid && ['manager', 'admin', 'super_admin'].includes(userData?.role || '') && (
+              {!isPaid && ['manager', 'admin', 'super_admin'].includes(userRole || '') && (
                 <Link
                   href={`/payments/new?invoice_id=${id}`}
                   className="bg-indigo-500 text-white px-4 py-2 rounded-md hover:bg-indigo-600"
@@ -149,14 +138,14 @@ export default async function InvoiceDetailPage({
                 </Link>
               )}
               {/* PDF出力: マネージャー以上のみ */}
-              {['manager', 'admin', 'super_admin'].includes(userData?.role || '') && (
+              {['manager', 'admin', 'super_admin'].includes(userRole || '') && (
                 <DownloadPdfButton invoiceId={id} />
               )}
             </>
           )}
 
           {/* 入金済み状態: PDF出力のみ（マネージャー以上） */}
-          {invoice.status === 'paid' && ['manager', 'admin', 'super_admin'].includes(userData?.role || '') && (
+          {invoice.status === 'paid' && ['manager', 'admin', 'super_admin'].includes(userRole || '') && (
             <DownloadPdfButton invoiceId={id} />
           )}
 

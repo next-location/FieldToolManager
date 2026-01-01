@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Client, ClientType, PaymentMethod, BankAccountType } from '@/types/clients'
+import { requireAuth } from '@/lib/auth/page-auth'
 
 export default async function ClientDetailPage({
   params,
@@ -9,24 +9,9 @@ export default async function ClientDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
+  const { organizationId, userRole, supabase } = await requireAuth()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('id', user.id)
-    .single()
-
-  if (!userData || userData.role !== 'admin') {
+  if (userRole !== 'admin') {
     redirect('/clients')
   }
 
@@ -35,7 +20,7 @@ export default async function ClientDetailPage({
     .from('clients')
     .select('*')
     .eq('id', id)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .single()
 

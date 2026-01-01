@@ -1,23 +1,16 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { WorkReportForm } from './WorkReportForm'
 
 export default async function NewWorkReportPage() {
-  const supabase = await createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報取得
+    // ユーザー情報取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role, name')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -36,7 +29,7 @@ export default async function NewWorkReportPage() {
   const { data: organizationUsers } = await supabase
     .from('users')
     .select('id, name, email')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
 
@@ -44,7 +37,7 @@ export default async function NewWorkReportPage() {
   const { data: organizationTools } = await supabase
     .from('tools')
     .select('id, name, model_number')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
 
@@ -52,7 +45,7 @@ export default async function NewWorkReportPage() {
   const { data: settings } = await supabase
     .from('organization_report_settings')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .single()
 
   // 設定がない場合はデフォルト値
@@ -69,7 +62,7 @@ export default async function NewWorkReportPage() {
   const { data: customFields } = await supabase
     .from('work_report_custom_fields')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('site_id', null)
     .order('display_order', { ascending: true })
 
@@ -87,7 +80,7 @@ export default async function NewWorkReportPage() {
           sites={sites || []}
           organizationUsers={organizationUsers || []}
           organizationTools={organizationTools || []}
-          currentUserId={user.id}
+          currentUserId={userId}
           currentUserName={userData.name}
           settings={reportSettings}
           customFields={customFields || []}

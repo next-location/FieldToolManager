@@ -1,28 +1,12 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { TerminalsTable } from './TerminalsTable'
 
 export default async function TerminalsPage() {
-  const supabase = await createClient()
-
-  // 認証チェック
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('role, organization_id')
-    .eq('id', user.id)
-    .single()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 権限チェック（admin または manager のみ）
-  if (!userData || !['admin', 'manager'].includes(userData.role)) {
+  if (!['admin', 'manager'].includes(userRole)) {
     redirect('/')
   }
 
@@ -30,7 +14,7 @@ export default async function TerminalsPage() {
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
 
@@ -43,7 +27,7 @@ export default async function TerminalsPage() {
         </p>
       </div>
 
-      <TerminalsTable sitesList={sites || []} userRole={userData.role} />
+      <TerminalsTable sitesList={sites || []} userRole={userRole} />
     </div>
   )
 }
