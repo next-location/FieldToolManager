@@ -18,6 +18,7 @@ interface AppLayoutProps {
   organizationId: string
   organizationName?: string
   heavyEquipmentEnabled?: boolean
+  isImpersonating?: boolean
   children: React.ReactNode
 }
 
@@ -27,6 +28,7 @@ export function AppLayout({
   organizationId,
   organizationName,
   heavyEquipmentEnabled = false,
+  isImpersonating = false,
   children,
 }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -35,6 +37,7 @@ export function AppLayout({
     <>
       {/* ヘッダー */}
       <SimpleHeader
+        isImpersonating={isImpersonating}
         user={user}
         userRole={userRole}
         organizationId={organizationId}
@@ -48,10 +51,11 @@ export function AppLayout({
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         heavyEquipmentEnabled={heavyEquipmentEnabled}
+        isImpersonating={isImpersonating}
       />
 
       {/* メインコンテンツエリア */}
-      <div className="pt-16 lg:pl-64 pb-16 lg:pb-0">
+      <div className={`${isImpersonating ? 'pt-[104px]' : 'pt-16'} lg:pl-64 pb-16 lg:pb-0`}>
         <main className="min-h-[calc(100vh-4rem)]">
           {children}
         </main>

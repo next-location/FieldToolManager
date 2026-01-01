@@ -10,9 +10,10 @@ interface SidebarProps {
   isOpen: boolean
   onClose: () => void
   heavyEquipmentEnabled?: boolean
+  isImpersonating?: boolean
 }
 
-export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = false }: SidebarProps) {
+export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = false, isImpersonating = false }: SidebarProps) {
   const pathname = usePathname()
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null)
   const [submittedEstimatesCount, setSubmittedEstimatesCount] = useState(0)
@@ -88,7 +89,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
       {/* サイドバー */}
       <aside
         className={`
-          fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-white border-r border-gray-200 z-40
+          fixed ${isImpersonating ? 'top-[104px] h-[calc(100vh-104px)]' : 'top-16 h-[calc(100vh-4rem)]'} left-0 w-64 bg-white border-r border-gray-200 z-40
           transition-transform duration-300 ease-in-out overflow-y-auto
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}

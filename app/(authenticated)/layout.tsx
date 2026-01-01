@@ -44,17 +44,16 @@ export default async function AuthenticatedLayout({ children }: AuthenticatedLay
           superAdminName={impersonationPayload.superAdminName}
           organizationName={impersonationPayload.organizationName}
         />
-        <div className="mt-10">
-          <AppLayout
-            user={{ email: null, id: impersonationPayload.superAdminId, name: impersonationPayload.superAdminName }}
-            userRole="admin"
-            organizationId={impersonationPayload.organizationId}
-            organizationName={organization?.name || null}
-            heavyEquipmentEnabled={organization?.heavy_equipment_enabled || false}
-          >
-            {children}
-          </AppLayout>
-        </div>
+        <AppLayout
+          user={{ email: null, id: impersonationPayload.superAdminId, name: impersonationPayload.superAdminName }}
+          userRole="admin"
+          organizationId={impersonationPayload.organizationId}
+          organizationName={organization?.name || null}
+          heavyEquipmentEnabled={organization?.heavy_equipment_enabled || false}
+          isImpersonating={true}
+        >
+          {children}
+        </AppLayout>
       </div>
     )
   }
