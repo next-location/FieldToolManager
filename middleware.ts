@@ -131,10 +131,14 @@ export async function middleware(request: NextRequest) {
 
   // なりすましセッションの検証と更新
   const impersonationToken = request.cookies.get('impersonation_session')?.value
+  let isImpersonating = false
+  let impersonationPayload = null
+
   if (impersonationToken) {
-    const impersonationPayload = await verifySessionToken(impersonationToken)
+    impersonationPayload = await verifySessionToken(impersonationToken)
     if (impersonationPayload) {
       console.log('[Middleware] Valid impersonation session detected')
+      isImpersonating = true
       // セッションアクティビティを更新（1分間に1回まで）
       await updateSessionActivity(impersonationToken)
     } else {
@@ -176,7 +180,19 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/error/invalid-organization', request.url))
     }
 
-    // ログイン済みユーザーの場合、組織の一致を確認
+    // なりすましセッション中は通常の認証チェックをスキップ
+    if (isImpersonating && impersonationPayload) {
+      // なりすましセッションの組織IDとサブドメインの組織IDが一致するか確認
+      if (impersonationPayload.organizationId === organization.id) {
+        console.log('[Middleware] Impersonation session valid for this organization')
+        return response
+      } else {
+        console.log('[Middleware] Impersonation organization mismatch')
+        return NextResponse.redirect(new URL('/error/organization-mismatch', request.url))
+      }
+    }
+
+    // 通常の認証チェック（なりすましセッションでない場合のみ）
     const supabase = await createClient()
     const {
       data: { user },
