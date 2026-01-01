@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { requireAuth } from '@/lib/auth/page-auth'
 import SalesAnalytics from './SalesAnalytics'
 import CashflowAnalytics from './CashflowAnalytics'
 import FinancialTabs from './FinancialTabs'

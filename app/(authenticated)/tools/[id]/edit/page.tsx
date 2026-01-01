@@ -39,7 +39,7 @@ export default function EditToolPage({ params }: { params: Promise<{ id: string 
       const { data: userData } = await supabase
         .from('users')
         .select('organization_id')
-        .eq('id', userId)
+        .eq('id', user.id)
         .single()
 
       if (!userData) {
@@ -51,7 +51,7 @@ export default function EditToolPage({ params }: { params: Promise<{ id: string 
       const { data: organizationSettings } = await supabase
         .from('organization_settings')
         .select('enable_low_stock_alert')
-        .eq('organization_id', organizationId)
+        .eq('organization_id', userData.organization_id)
         .single()
 
       setEnableLowStockAlert(organizationSettings?.enable_low_stock_alert ?? true)

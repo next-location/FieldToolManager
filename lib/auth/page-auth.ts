@@ -8,7 +8,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 export interface PageAuthResult {
   userId: string;
   organizationId: string;
-  userRole: 'staff' | 'leader' | 'manager' | 'admin';
+  userRole: 'staff' | 'leader' | 'manager' | 'admin' | 'super_admin';
   supabase: SupabaseClient<any, 'public', any>;
   isImpersonating: boolean;
 }

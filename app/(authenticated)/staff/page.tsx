@@ -1,9 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { StaffListClient } from './StaffListClient'
 
 export default async function StaffPage() {
-  const supabase = await createClient()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 認証チェック
   const {
@@ -15,7 +15,7 @@ export default async function StaffPage() {
   }
 
   // ユーザー情報取得
-  const { data: userData } = await supabase.from('users').select('organization_id, role').eq('id', user.id).single()
+  const { data: userData } = await supabase.from('users').select('organization_id, role').eq('id', userId).single()
 
   if (!userData) {
     redirect('/login')
@@ -25,7 +25,7 @@ export default async function StaffPage() {
   const { data: contract } = await supabase
     .from('contracts')
     .select('plan, user_limit')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('status', 'active')
     .single()
 
@@ -33,7 +33,7 @@ export default async function StaffPage() {
   const { count: currentStaffCount } = await supabase
     .from('users')
     .select('id', { count: 'exact', head: true })
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .eq('is_active', true)
 
@@ -41,7 +41,7 @@ export default async function StaffPage() {
   const { data: departments } = await supabase
     .from('users')
     .select('department')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .not('department', 'is', null)
     .is('deleted_at', null)
 
@@ -51,7 +51,7 @@ export default async function StaffPage() {
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
         <StaffListClient
-          userRole={userData.role}
+          userRole={userRole}
           organization={
             contract
               ? {

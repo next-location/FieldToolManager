@@ -1,9 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { EquipmentRegistrationForm } from './EquipmentRegistrationForm'
 
 export default async function NewEquipmentPage() {
-  const supabase = await createClient()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 認証チェック
   const {
@@ -18,7 +18,7 @@ export default async function NewEquipmentPage() {
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -26,7 +26,7 @@ export default async function NewEquipmentPage() {
   }
 
   // リーダー・管理者チェック
-  if (!['leader', 'admin', 'super_admin'].includes(userData.role)) {
+  if (!['leader', 'admin', 'super_admin'].includes(userRole)) {
     redirect('/equipment')
   }
 
@@ -34,7 +34,7 @@ export default async function NewEquipmentPage() {
   const { data: orgData } = await supabase
     .from('organizations')
     .select('heavy_equipment_enabled, heavy_equipment_settings')
-    .eq('id', userData?.organization_id)
+    .eq('id', organizationId)
     .single()
 
   // heavy_equipment_enabled が明示的に false の場合のみリダイレクト
@@ -47,7 +47,7 @@ export default async function NewEquipmentPage() {
   const { data: categories } = await supabase
     .from('heavy_equipment_categories')
     .select('id, name, code_prefix, icon')
-    .or(`organization_id.is.null,organization_id.eq.${userData?.organization_id}`)
+    .or(`organization_id.is.null,organization_id.eq.${organizationId}`)
     .eq('is_active', true)
     .order('sort_order')
 
@@ -55,7 +55,7 @@ export default async function NewEquipmentPage() {
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
 
@@ -74,7 +74,7 @@ export default async function NewEquipmentPage() {
         <div className="bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <EquipmentRegistrationForm
-              organizationId={userData?.organization_id}
+              organizationId={organizationId}
               categories={categories || []}
               sites={sites || []}
               organizationSettings={orgData?.heavy_equipment_settings}

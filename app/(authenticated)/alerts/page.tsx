@@ -1,24 +1,19 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 
 async function AlertsContent() {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   const { data: userData } = await supabase
     .from('users')
     .select('role, organization_id')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   // リーダー以上のみアクセス可能
-  if (!['leader', 'manager', 'admin', 'super_admin'].includes(userData?.role || '')) {
+  if (!['leader', 'manager', 'admin', 'super_admin'].includes(userRole || '')) {
     redirect('/')
   }
 
@@ -39,7 +34,7 @@ async function AlertsContent() {
       paid_amount,
       supplier:clients(name)
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .lte('payment_due_date', sevenDaysLater.toISOString())
     .gte('payment_due_date', today.toISOString())
     .order('payment_due_date', { ascending: true })
@@ -55,7 +50,7 @@ async function AlertsContent() {
       paid_amount,
       supplier:clients(name)
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .lt('payment_due_date', today.toISOString())
     .order('payment_due_date', { ascending: true })
 
@@ -70,7 +65,7 @@ async function AlertsContent() {
       paid_amount,
       client:clients(name)
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .lte('due_date', sevenDaysLater.toISOString())
     .gte('due_date', today.toISOString())
     .order('due_date', { ascending: true })
@@ -86,7 +81,7 @@ async function AlertsContent() {
       paid_amount,
       client:clients(name)
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .lt('due_date', today.toISOString())
     .order('due_date', { ascending: true })
 

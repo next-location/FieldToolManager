@@ -1,29 +1,16 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import EquipmentList from '@/components/equipment/EquipmentList'
 
 export default async function EquipmentPage() {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報と組織設定を取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('email', user.email)
-    .single()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 組織の重機管理機能が有効かチェック
   const { data: orgData } = await supabase
     .from('organizations')
     .select('heavy_equipment_enabled, heavy_equipment_settings')
-    .eq('id', userData?.organization_id)
+    .eq('id', organizationId)
     .single()
 
   // 重機一覧を取得（機能が無効でも空配列として表示）
@@ -45,7 +32,7 @@ export default async function EquipmentPage() {
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
 
-  const isAdmin = userData?.role === 'admin'
+  const isAdmin = userRole === 'admin'
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">

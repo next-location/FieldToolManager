@@ -1,5 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { MovementForm } from './MovementForm'
 
@@ -9,21 +9,13 @@ export default async function NewMovementPage({
   searchParams: Promise<{ tool_id?: string; tool_item_id?: string; tool_set_id?: string }>
 }) {
   const params = await searchParams
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 組織のユーザー情報を取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   // 道具セットが指定されている場合、セットに含まれるアイテムを取得
@@ -78,7 +70,7 @@ export default async function NewMovementPage({
       )
     `
     )
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('serial_number')
 
@@ -86,7 +78,7 @@ export default async function NewMovementPage({
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('is_active', true)
     .is('deleted_at', null)
     .order('name')
@@ -95,7 +87,7 @@ export default async function NewMovementPage({
   const { data: warehouseLocations } = await supabase
     .from('warehouse_locations')
     .select('id, code, display_name')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('code')
 

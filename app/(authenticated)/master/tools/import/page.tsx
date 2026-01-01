@@ -1,23 +1,15 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { CSVImportClient } from './CSVImportClient'
 
 export default async function CSVImportPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // ユーザー情報を取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -25,7 +17,7 @@ export default async function CSVImportPage() {
   }
 
   // 管理者権限チェック
-  if (!['admin', 'super_admin'].includes(userData.role)) {
+  if (!['admin', 'super_admin'].includes(userRole)) {
     redirect('/')
   }
 
@@ -33,7 +25,7 @@ export default async function CSVImportPage() {
   const { data: categories } = await supabase
     .from('tool_categories')
     .select('id, name')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
 
@@ -42,7 +34,7 @@ export default async function CSVImportPage() {
       <div className="px-4 py-6 sm:px-0">
         <CSVImportClient
           categories={categories || []}
-          organizationId={userData?.organization_id}
+          organizationId={organizationId}
         />
       </div>
     </div>

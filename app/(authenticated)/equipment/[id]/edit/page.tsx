@@ -1,5 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { EquipmentEditForm } from './EquipmentEditForm'
 
 export default async function EditEquipmentPage({
@@ -8,30 +8,10 @@ export default async function EditEquipmentPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
-
-  // 認証チェック
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('id', user.id)
-    .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // リーダー・管理者チェック
-  if (!['leader', 'admin', 'super_admin'].includes(userData.role)) {
+  if (!['leader', 'admin', 'super_admin'].includes(userRole)) {
     redirect('/equipment')
   }
 
@@ -51,7 +31,7 @@ export default async function EditEquipmentPage({
   const { data: orgData } = await supabase
     .from('organizations')
     .select('heavy_equipment_enabled, heavy_equipment_settings')
-    .eq('id', userData?.organization_id)
+    .eq('id', organizationId)
     .single()
 
   if (!orgData?.heavy_equipment_enabled) {
@@ -62,7 +42,7 @@ export default async function EditEquipmentPage({
   const { data: categories } = await supabase
     .from('heavy_equipment_categories')
     .select('id, name, code_prefix, icon')
-    .or(`organization_id.is.null,organization_id.eq.${userData?.organization_id}`)
+    .or(`organization_id.is.null,organization_id.eq.${organizationId}`)
     .eq('is_active', true)
     .order('sort_order')
 
@@ -70,7 +50,7 @@ export default async function EditEquipmentPage({
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
 

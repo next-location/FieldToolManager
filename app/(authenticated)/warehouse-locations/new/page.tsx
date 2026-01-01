@@ -1,24 +1,16 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { LocationForm } from './LocationForm'
 import { createWarehouseLocation } from '../actions'
 
 export default async function NewWarehouseLocationPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // ユーザー情報を取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -26,7 +18,7 @@ export default async function NewWarehouseLocationPage() {
   }
 
   // 管理者権限チェック
-  if (!['admin', 'super_admin'].includes(userData.role)) {
+  if (!['admin', 'super_admin'].includes(userRole)) {
     redirect('/')
   }
 
@@ -34,7 +26,7 @@ export default async function NewWarehouseLocationPage() {
   const { data: templates } = await supabase
     .from('warehouse_location_templates')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('is_active', true)
     .order('level')
 

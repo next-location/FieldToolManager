@@ -1,25 +1,17 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 
 export default async function AnalyticsIndexPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   const { data: userData } = await supabase
     .from('users')
     .select('role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
-  if (!userData || userData.role === 'staff') {
+  if (!userData || userRole === 'staff') {
     redirect('/')
   }
 

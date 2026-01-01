@@ -18,7 +18,7 @@ export default async function EditWorkReportPage({
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role, name')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -50,7 +50,7 @@ export default async function EditWorkReportPage({
   // 編集権限チェック（下書き または 却下された報告書 かつ 作成者のみ）
   if (
     (report.status !== 'draft' && report.status !== 'rejected') ||
-    report.created_by !== user.id
+    report.created_by !== userId
   ) {
     redirect(`/work-reports/${id}`)
   }
@@ -67,7 +67,7 @@ export default async function EditWorkReportPage({
   const { data: organizationUsers } = await supabase
     .from('users')
     .select('id, name, email')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
 
@@ -75,7 +75,7 @@ export default async function EditWorkReportPage({
   const { data: organizationTools } = await supabase
     .from('tools')
     .select('id, name, model_number')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
 
@@ -83,7 +83,7 @@ export default async function EditWorkReportPage({
   const { data: settings } = await supabase
     .from('organization_report_settings')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .single()
 
   // 設定がない場合はデフォルト値
@@ -100,7 +100,7 @@ export default async function EditWorkReportPage({
   const { data: customFields } = await supabase
     .from('work_report_custom_fields')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('site_id', null)
     .order('display_order', { ascending: true })
 
@@ -119,7 +119,7 @@ export default async function EditWorkReportPage({
           sites={sites || []}
           organizationUsers={organizationUsers || []}
           organizationTools={organizationTools || []}
-          currentUserId={user.id}
+          currentUserId={userId}
           currentUserName={userData.name}
           settings={reportSettings}
           customFields={customFields || []}

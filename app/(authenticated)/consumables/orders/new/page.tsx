@@ -1,23 +1,15 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import ConsumableOrderForm from './ConsumableOrderForm'
 
 export default async function NewConsumableOrderPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // ユーザー情報と組織IDを取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -28,7 +20,7 @@ export default async function NewConsumableOrderPage() {
   const { data: consumables } = await supabase
     .from('tools')
     .select('id, name, model_number, manufacturer')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('is_consumable', true)
     .is('deleted_at', null)
     .order('name')
@@ -37,7 +29,7 @@ export default async function NewConsumableOrderPage() {
   const { data: lastOrder } = await supabase
     .from('consumable_orders')
     .select('order_number')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .order('created_at', { ascending: false })
     .limit(1)
     .single()

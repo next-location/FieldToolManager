@@ -1,35 +1,27 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { analyzeInventoryOptimization } from '@/lib/analytics/inventory-optimization'
 import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
 import { PackageRequired } from '@/components/PackageRequired'
 
 export default async function InventoryOptimizationPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
-  if (!userData || userData.role === 'staff') {
+  if (!userData || userRole === 'staff') {
     redirect('/')
   }
 
   // パッケージチェック（現場資産パック必須）
-  if (userData?.organization_id) {
-    const features = await getOrganizationFeatures(userData?.organization_id)
+  if (organizationId) {
+    const features = await getOrganizationFeatures(organizationId)
     if (!hasPackage(features, 'asset')) {
-      return <PackageRequired packageType="asset" featureName="在庫最適化" userRole={userData.role} />
+      return <PackageRequired packageType="asset" featureName="在庫最適化" userRole={userRole} />
     }
   }
 
@@ -37,14 +29,14 @@ export default async function InventoryOptimizationPage() {
   const { data: consumables } = await supabase
     .from('tools')
     .select(`*, categories:category_id(name)`)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('is_consumable', true)
     .is('deleted_at', null)
 
   const { data: inventory } = await supabase
     .from('consumable_inventory')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
 
   const sixMonthsAgo = new Date()
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
@@ -52,7 +44,7 @@ export default async function InventoryOptimizationPage() {
   const { data: movements } = await supabase
     .from('consumable_movements')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .gte('created_at', sixMonthsAgo.toISOString())
 
   const consumablesWithCategory = (consumables || []).map((c: any) => ({

@@ -1,24 +1,19 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 
 async function ReportsContent() {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   const { data: userData } = await supabase
     .from('users')
     .select('role, organization_id')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   // 管理者以上のみアクセス可能
-  if (!['admin', 'super_admin'].includes(userData?.role || '')) {
+  if (!['admin', 'super_admin'].includes(userRole || '')) {
     redirect('/')
   }
 
@@ -26,32 +21,32 @@ async function ReportsContent() {
   const { count: estimateCount } = await supabase
     .from('estimates')
     .select('*', { count: 'exact', head: true })
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
 
   const { count: invoiceCount } = await supabase
     .from('billing_invoices')
     .select('*', { count: 'exact', head: true })
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
 
   const { count: poCount } = await supabase
     .from('purchase_orders')
     .select('*', { count: 'exact', head: true })
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
 
   const { count: paymentCount } = await supabase
     .from('payments')
     .select('*', { count: 'exact', head: true })
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
 
   const { count: clientCount } = await supabase
     .from('clients')
     .select('*', { count: 'exact', head: true })
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
 
   const { count: projectCount } = await supabase
     .from('projects')
     .select('*', { count: 'exact', head: true })
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
 
   const reports = [
     {

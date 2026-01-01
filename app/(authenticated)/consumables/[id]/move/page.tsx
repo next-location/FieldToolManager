@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { MovementForm } from './MovementForm'
 
@@ -9,20 +9,12 @@ export default async function ConsumableMovePage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -34,7 +26,7 @@ export default async function ConsumableMovePage({
     .from('tools')
     .select('id, name, unit, minimum_stock')
     .eq('id', id)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('management_type', 'consumable')
     .single()
 
@@ -46,7 +38,7 @@ export default async function ConsumableMovePage({
   const { data: organization } = await supabase
     .from('organizations')
     .select('consumable_movement_tracking')
-    .eq('id', userData?.organization_id)
+    .eq('id', organizationId)
     .single()
 
   // 現在の在庫状況を取得
@@ -54,13 +46,13 @@ export default async function ConsumableMovePage({
     .from('consumable_inventory')
     .select('*, sites(id, name)')
     .eq('tool_id', id)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
 
   // 現場一覧を取得
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name, is_active')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('is_active', true)
     .is('deleted_at', null)
     .order('name')

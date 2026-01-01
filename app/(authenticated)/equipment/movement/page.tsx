@@ -1,32 +1,22 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import EquipmentMovementForm from './EquipmentMovementForm'
 
 export default async function EquipmentMovementPage() {
-  const supabase = await createClient()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報と組織設定を取得
+  // ユーザー情報取得
   const { data: userData } = await supabase
     .from('users')
-    .select('organization_id, role, name')
-    .eq('email', user.email)
+    .select('name')
+    .eq('id', userId)
     .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
 
   // 組織の重機管理機能が有効かチェック
   const { data: orgData } = await supabase
     .from('organizations')
     .select('heavy_equipment_enabled, heavy_equipment_settings')
-    .eq('id', userData?.organization_id)
+    .eq('id', organizationId)
     .single()
 
   if (!orgData?.heavy_equipment_enabled) {
@@ -52,7 +42,7 @@ export default async function EquipmentMovementPage() {
         name
       )
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
 
@@ -60,7 +50,7 @@ export default async function EquipmentMovementPage() {
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name, site_type')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
 
@@ -78,8 +68,8 @@ export default async function EquipmentMovementPage() {
           <EquipmentMovementForm
             equipment={(equipment as any) || []}
             sites={sites || []}
-            currentUserId={user.id}
-            currentUserName={userData.name}
+            currentUserId={userId}
+            currentUserName={userData?.name || ''}
             organizationSettings={orgData?.heavy_equipment_settings}
           />
         </div>

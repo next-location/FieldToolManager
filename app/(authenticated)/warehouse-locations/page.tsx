@@ -1,23 +1,15 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 
 export default async function WarehouseLocationsPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // ユーザー情報を取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -25,7 +17,7 @@ export default async function WarehouseLocationsPage() {
   }
 
   // 管理者権限チェック
-  if (!['admin', 'super_admin'].includes(userData.role)) {
+  if (!['admin', 'super_admin'].includes(userRole)) {
     redirect('/')
   }
 
@@ -33,7 +25,7 @@ export default async function WarehouseLocationsPage() {
   const { data: locations } = await supabase
     .from('warehouse_locations')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('code')
 

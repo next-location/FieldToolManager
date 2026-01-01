@@ -1,9 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { NotificationList } from './NotificationList'
 
 export default async function NotificationsPage() {
-  const supabase = await createClient()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 認証チェック
   const {
@@ -18,7 +18,7 @@ export default async function NotificationsPage() {
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -30,9 +30,9 @@ export default async function NotificationsPage() {
   const { data: notifications } = await supabase
     .from('notifications')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
-    .or(`target_user_id.eq.${user.id},target_user_id.is.null`)
+    .or(`target_user_id.eq.${userId},target_user_id.is.null`)
     .order('created_at', { ascending: false })
     .limit(30)
 

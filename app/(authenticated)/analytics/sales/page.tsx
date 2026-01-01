@@ -1,34 +1,29 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
 import { PackageRequired } from '@/components/PackageRequired'
 
 async function SalesAnalyticsContent() {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   const { data: userData } = await supabase
     .from('users')
     .select('role, organization_id')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   // リーダー以上のみアクセス可能
-  if (!['leader', 'manager', 'admin', 'super_admin'].includes(userData?.role || '')) {
+  if (!['leader', 'manager', 'admin', 'super_admin'].includes(userRole || '')) {
     redirect('/')
   }
 
   // パッケージチェック（現場DX業務効率化パック必須）
-  if (userData?.organization_id) {
-    const features = await getOrganizationFeatures(userData?.organization_id)
+  if (organizationId) {
+    const features = await getOrganizationFeatures(organizationId)
     if (!hasPackage(features, 'dx')) {
-      return <PackageRequired packageType="dx" featureName="売上分析" userRole={userData.role} />
+      return <PackageRequired packageType="dx" featureName="売上分析" userRole={userRole} />
     }
   }
 
@@ -48,7 +43,7 @@ async function SalesAnalyticsContent() {
       client:clients(id, name),
       project:projects(id, project_name)
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .gte('invoice_date', twelveMonthsAgo.toISOString())
     .order('invoice_date', { ascending: false })
 

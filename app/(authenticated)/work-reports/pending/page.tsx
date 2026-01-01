@@ -1,23 +1,15 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { PendingReportsList } from './PendingReportsList'
 
 export default async function PendingWorkReportsPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // ユーザー情報取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role, name')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -25,7 +17,7 @@ export default async function PendingWorkReportsPage() {
   }
 
   // leader または admin のみアクセス可能
-  if (userData.role !== 'leader' && userData.role !== 'admin') {
+  if (userRole !== 'leader' && userRole !== 'admin') {
     redirect('/work-reports')
   }
 
@@ -43,7 +35,7 @@ export default async function PendingWorkReportsPage() {
       workers
     `
     )
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('status', 'submitted')
     .is('deleted_at', null)
     .order('report_date', { ascending: false })

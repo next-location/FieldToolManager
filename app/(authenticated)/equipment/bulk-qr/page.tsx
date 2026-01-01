@@ -1,24 +1,16 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { EquipmentBulkQRClient } from './EquipmentBulkQRClient'
 
 export default async function EquipmentBulkQRPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // ユーザー情報を取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -29,7 +21,7 @@ export default async function EquipmentBulkQRPage() {
   const { data: orgData } = await supabase
     .from('organizations')
     .select('heavy_equipment_enabled, qr_print_size')
-    .eq('id', userData?.organization_id)
+    .eq('id', organizationId)
     .single()
 
   if (!orgData?.heavy_equipment_enabled) {
@@ -48,7 +40,7 @@ export default async function EquipmentBulkQRPage() {
       qr_code,
       heavy_equipment_categories (name)
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
 

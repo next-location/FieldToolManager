@@ -26,7 +26,7 @@ export default async function WorkReportDetailPage({
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -77,7 +77,7 @@ export default async function WorkReportDetailPage({
   const { data: orgSettings } = await supabase
     .from('organization_report_settings')
     .select('custom_fields')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .single()
 
   // カスタムフィールドのキーと表示名のマップを作成
@@ -102,7 +102,7 @@ export default async function WorkReportDetailPage({
       .from('work_report_approvals')
       .select('id, approver_name, action, comment, approved_at')
       .eq('work_report_id', id)
-      .eq('organization_id', userData?.organization_id)
+      .eq('organization_id', organizationId)
       .order('approved_at', { ascending: false })
 
     if (approvals) {
@@ -113,13 +113,13 @@ export default async function WorkReportDetailPage({
   // 編集・削除権限チェック
   // 下書き または 却下された報告書は作成者が編集可能
   const canEdit =
-    (report.status === 'draft' || report.status === 'rejected') && report.created_by === user.id
-  const canDelete = report.created_by === user.id || userData.role === 'admin'
-  const canResubmit = report.status === 'rejected' && report.created_by === user.id
+    (report.status === 'draft' || report.status === 'rejected') && report.created_by === userId
+  const canDelete = report.created_by === userId || userRole === 'admin'
+  const canResubmit = report.status === 'rejected' && report.created_by === userId
 
   // 承認権限チェック（manager/admin かつ 提出済みステータス）
   const canApprove =
-    (userData.role === 'manager' || userData.role === 'admin') && report.status === 'submitted'
+    (userRole === 'manager' || userRole === 'admin') && report.status === 'submitted'
 
   // 天気アイコン
   const weatherIcons: Record<string, string> = {

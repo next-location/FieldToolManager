@@ -1,29 +1,16 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import CostReportView from './CostReportView'
 import type { HeavyEquipment, HeavyEquipmentMaintenance } from '@/types/heavy-equipment'
 
 export default async function CostReportPage() {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報と組織設定を取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('email', user.email)
-    .single()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 組織の重機管理機能が有効かチェック
   const { data: orgData } = await supabase
     .from('organizations')
     .select('heavy_equipment_enabled')
-    .eq('id', userData?.organization_id)
+    .eq('id', organizationId)
     .single()
 
   // 重機管理機能が無効の場合はダッシュボードへリダイレクト
@@ -40,7 +27,7 @@ export default async function CostReportPage() {
         code_prefix
       )
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('equipment_code', { ascending: true })
 
@@ -48,7 +35,7 @@ export default async function CostReportPage() {
   const { data: maintenanceRecords } = await supabase
     .from('heavy_equipment_maintenance')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .order('maintenance_date', { ascending: false })
 
   // 点検記録を重機IDでマッピング
@@ -73,7 +60,7 @@ export default async function CostReportPage() {
       maintenanceMap={maintenanceMap}
       periodStart={periodStart}
       periodEnd={periodEnd}
-      userRole={userData?.role || 'staff'}
+      userRole={userRole || 'staff'}
     />
   )
 }

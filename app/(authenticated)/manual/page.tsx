@@ -1,26 +1,18 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 
 export default async function ManualPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // ユーザー情報を取得
   const { data: userData } = await supabase
     .from('users')
     .select('role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
-  const isAdmin = userData?.role === 'admin' || userData?.role === 'super_admin'
+  const isAdmin = userRole === 'admin' || userRole === 'super_admin'
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">

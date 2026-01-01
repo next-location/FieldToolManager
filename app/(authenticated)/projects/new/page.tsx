@@ -1,3 +1,4 @@
+import { requireAuth } from '@/lib/auth/page-auth'
 import { ProjectForm } from '@/components/projects/ProjectForm'
 
 export default function NewProjectPage() {

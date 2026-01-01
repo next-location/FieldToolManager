@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import EquipmentDetailTabs from './EquipmentDetailTabs'
 
@@ -9,19 +9,13 @@ export default async function EquipmentDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // ユーザー情報取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   // 重機詳細を取得
@@ -74,10 +68,10 @@ export default async function EquipmentDetailPage({
   const { data: orgData } = await supabase
     .from('organizations')
     .select('heavy_equipment_settings')
-    .eq('id', userData?.organization_id)
+    .eq('id', organizationId)
     .single()
 
-  const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userData?.role || '')
+  const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userRole || '')
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">

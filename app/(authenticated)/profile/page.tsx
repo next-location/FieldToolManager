@@ -1,22 +1,14 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 
 export default async function ProfilePage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   const { data: userData } = await supabase
     .from('users')
     .select('id, email, name, role, department, organization_id, created_at')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
 
@@ -57,17 +49,17 @@ export default async function ProfilePage() {
               <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                 <dt className="text-sm font-medium text-gray-500">メールアドレス</dt>
                 <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  {user.email}
+                  {userData?.email || '未設定'}
                 </dd>
               </div>
 
               <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                 <dt className="text-sm font-medium text-gray-500">権限</dt>
                 <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  {userData?.role === 'admin' ? '管理者' :
-                   userData?.role === 'staff' ? 'スタッフ' :
-                   userData?.role === 'leader' ? 'リーダー' :
-                   userData?.role === 'super_admin' ? 'スーパー管理者' : '未設定'}
+                  {userRole === 'admin' ? '管理者' :
+                   userRole === 'staff' ? 'スタッフ' :
+                   userRole === 'leader' ? 'リーダー' :
+                   userRole === 'super_admin' ? 'スーパー管理者' : '未設定'}
                 </dd>
               </div>
 

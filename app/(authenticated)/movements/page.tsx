@@ -1,23 +1,15 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { MovementTabs } from './MovementTabs'
 
 export default async function MovementsPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // ユーザー情報取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -40,7 +32,7 @@ export default async function MovementsPage() {
       users!inner (name)
     `
     )
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .order('created_at', { ascending: false })
     .limit(100)
 
@@ -71,7 +63,7 @@ export default async function MovementsPage() {
       )
     `
     )
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .order('created_at', { ascending: false })
     .limit(100)
 
@@ -79,7 +71,7 @@ export default async function MovementsPage() {
   const { data: orgData } = await supabase
     .from('organizations')
     .select('heavy_equipment_enabled')
-    .eq('id', userData?.organization_id)
+    .eq('id', organizationId)
     .single()
 
   // 重機移動履歴を取得（重機管理が有効な場合のみ）
@@ -96,7 +88,7 @@ export default async function MovementsPage() {
         users!inner (name)
       `
       )
-      .eq('organization_id', userData?.organization_id)
+      .eq('organization_id', organizationId)
       .order('action_at', { ascending: false })
       .limit(100)
 

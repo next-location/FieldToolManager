@@ -1,25 +1,17 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import CostAnalyticsView from './CostAnalyticsView'
 import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
 import { PackageRequired } from '@/components/PackageRequired'
 
 export default async function CostAnalyticsPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // ユーザー情報取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -27,15 +19,15 @@ export default async function CostAnalyticsPage() {
   }
 
   // 権限チェック（リーダー以上のみ）
-  if (userData.role === 'staff') {
+  if (userRole === 'staff') {
     redirect('/')
   }
 
   // パッケージチェック（現場資産パック必須）
-  if (userData?.organization_id) {
-    const features = await getOrganizationFeatures(userData?.organization_id)
+  if (organizationId) {
+    const features = await getOrganizationFeatures(organizationId)
     if (!hasPackage(features, 'asset')) {
-      return <PackageRequired packageType="asset" featureName="コスト分析" userRole={userData.role} />
+      return <PackageRequired packageType="asset" featureName="コスト分析" userRole={userRole} />
     }
   }
 
@@ -49,7 +41,7 @@ export default async function CostAnalyticsPage() {
         name
       )
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
 
@@ -57,7 +49,7 @@ export default async function CostAnalyticsPage() {
   const { data: toolItems } = await supabase
     .from('tool_items')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
 
   // 移動履歴取得（過去1年）
@@ -67,34 +59,34 @@ export default async function CostAnalyticsPage() {
   const { data: movements } = await supabase
     .from('tool_movements')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .gte('created_at', oneYearAgo.toISOString())
 
   // 消耗品移動履歴
   const { data: consumableMovements } = await supabase
     .from('consumable_movements')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .gte('created_at', oneYearAgo.toISOString())
 
   // 発注履歴取得
   const { data: orders } = await supabase
     .from('consumable_orders')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
 
   // 点検記録取得（コスト情報付き）
   const { data: maintenanceRecords } = await supabase
     .from('tool_item_maintenance_records')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
 
   // 消耗品在庫取得
   const { data: consumableInventory } = await supabase
     .from('consumable_inventory')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
 
   // ツールにカテゴリ名を追加
   const toolsWithCategory = (tools || []).map((tool: any) => ({

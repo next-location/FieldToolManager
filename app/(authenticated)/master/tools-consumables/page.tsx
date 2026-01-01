@@ -1,23 +1,15 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { ToolsConsumablesMasterClient } from './ToolsConsumablesMasterClient'
 
 export default async function ToolsConsumablesMasterPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // ユーザー情報を取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -25,11 +17,11 @@ export default async function ToolsConsumablesMasterPage() {
   }
 
   // 管理者権限チェック（Manager/Admin のみ）
-  if (!['manager', 'admin', 'super_admin'].includes(userData.role)) {
+  if (!['manager', 'admin', 'super_admin'].includes(userRole)) {
     redirect('/')
   }
 
-  const isAdmin = ['admin', 'super_admin'].includes(userData.role)
+  const isAdmin = ['admin', 'super_admin'].includes(userRole)
 
   // 道具マスタ用：共通マスタ（プリセット）を取得
   const { data: toolPresets } = await supabase
@@ -54,7 +46,7 @@ export default async function ToolsConsumablesMasterPage() {
         country
       )
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('management_type', 'individual')
     .is('deleted_at', null)
     .order('name')
@@ -82,7 +74,7 @@ export default async function ToolsConsumablesMasterPage() {
           categories={categories || []}
           manufacturers={manufacturers || []}
           isAdmin={isAdmin}
-          organizationId={userData?.organization_id}
+          organizationId={organizationId}
         />
       </div>
     </div>

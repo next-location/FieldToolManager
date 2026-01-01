@@ -1,23 +1,18 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 
 async function RecurringInvoicesContent() {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   const { data: userData } = await supabase
     .from('users')
     .select('role, organization_id')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   // 管理者以上のみアクセス可能
-  if (!['admin', 'super_admin'].includes(userData?.role || '')) {
+  if (!['admin', 'super_admin'].includes(userRole || '')) {
     redirect('/')
   }
 

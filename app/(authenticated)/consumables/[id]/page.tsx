@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import Image from 'next/image'
 import { DeleteConsumableButton } from './DeleteConsumableButton'
@@ -11,15 +11,7 @@ export default async function ConsumableDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 消耗品マスター情報を取得
   const { data: consumable, error } = await supabase
@@ -38,7 +30,7 @@ export default async function ConsumableDetailPage({
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -49,7 +41,7 @@ export default async function ConsumableDetailPage({
   const { data: organization } = await supabase
     .from('organizations')
     .select('qr_print_size')
-    .eq('id', userData?.organization_id)
+    .eq('id', organizationId)
     .single()
 
   const qrSize = organization?.qr_print_size || 25
@@ -63,7 +55,7 @@ export default async function ConsumableDetailPage({
       warehouse_location:warehouse_locations(code, display_name)
     `)
     .eq('tool_id', id)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .order('location_type')
 
   // 移動履歴を取得（最新10件、在庫調整を除外）
@@ -76,7 +68,7 @@ export default async function ConsumableDetailPage({
       to_site:sites!consumable_movements_to_site_id_fkey(name)
     `)
     .eq('tool_id', id)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .neq('movement_type', '調整')
     .order('created_at', { ascending: false })
     .limit(10)
@@ -89,7 +81,7 @@ export default async function ConsumableDetailPage({
       performed_by_user:users!consumable_movements_performed_by_fkey(name)
     `)
     .eq('tool_id', id)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('movement_type', '調整')
     .order('created_at', { ascending: false })
     .limit(10)

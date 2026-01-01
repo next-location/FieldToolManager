@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { AdjustmentForm } from './AdjustmentForm'
 
@@ -9,20 +9,12 @@ export default async function ConsumableAdjustPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -34,7 +26,7 @@ export default async function ConsumableAdjustPage({
     .from('tools')
     .select('id, name, unit, minimum_stock')
     .eq('id', id)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('management_type', 'consumable')
     .is('deleted_at', null)
     .single()
@@ -74,7 +66,7 @@ export default async function ConsumableAdjustPage({
               consumableName={consumable.name}
               unit={consumable.unit}
               currentQuantity={warehouseInventory?.quantity || 0}
-              userRole={userData.role}
+              userRole={userRole}
             />
           </div>
         </div>

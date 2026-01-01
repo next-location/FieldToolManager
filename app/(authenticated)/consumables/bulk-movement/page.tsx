@@ -1,9 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { ConsumableBulkMovementForm } from './ConsumableBulkMovementForm'
 
 export default async function ConsumableBulkMovementPage() {
-  const supabase = await createClient()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 認証チェック
   const {
@@ -18,7 +18,7 @@ export default async function ConsumableBulkMovementPage() {
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -29,7 +29,7 @@ export default async function ConsumableBulkMovementPage() {
   const { data: consumables } = await supabase
     .from('tools')
     .select('id, name, model_number, unit')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('management_type', 'consumable')
     .order('name')
 
@@ -37,7 +37,7 @@ export default async function ConsumableBulkMovementPage() {
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name, is_active')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('is_active', true)
     .is('deleted_at', null)
     .order('name')

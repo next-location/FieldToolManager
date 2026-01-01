@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { WorkReportFilter } from './WorkReportFilter'
 import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
@@ -25,21 +25,13 @@ export default async function WorkReportsPage({
   const keyword = params.keyword || ''
   const createdBy = params.created_by || ''
 
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // ユーザー情報取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -47,10 +39,10 @@ export default async function WorkReportsPage({
   }
 
   // パッケージチェック
-  if (userData?.organization_id) {
-    const features = await getOrganizationFeatures(userData?.organization_id)
+  if (organizationId) {
+    const features = await getOrganizationFeatures(organizationId)
     if (!hasPackage(features, 'dx')) {
-      return <PackageRequired packageType="dx" featureName="作業報告書" userRole={userData.role} />
+      return <PackageRequired packageType="dx" featureName="作業報告書" userRole={userRole} />
     }
   }
 
@@ -123,7 +115,7 @@ export default async function WorkReportsPage({
   const { data: users } = await supabase
     .from('users')
     .select('id, name')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('is_active', true)
     .is('deleted_at', null)
     .order('name')

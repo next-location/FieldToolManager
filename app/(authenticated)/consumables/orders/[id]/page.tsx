@@ -1,5 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import type { ConsumableOrderWithRelations } from '@/types/consumable-orders'
 import OrderDetailActions from './OrderDetailActions'
@@ -10,21 +10,13 @@ interface Props {
 
 export default async function ConsumableOrderDetailPage({ params }: Props) {
   const { id } = await params
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // ユーザー情報取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -54,7 +46,7 @@ export default async function ConsumableOrderDetailPage({ params }: Props) {
       )
     `)
     .eq('id', id)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .single()
 
@@ -64,7 +56,7 @@ export default async function ConsumableOrderDetailPage({ params }: Props) {
 
   const orderWithRelations = order as unknown as ConsumableOrderWithRelations
 
-  const isLeaderOrAdmin = userData.role === 'admin' || userData.role === 'leader'
+  const isLeaderOrAdmin = userRole === 'admin' || userRole === 'leader'
 
   return (
     <div className="space-y-6 p-6">
@@ -237,7 +229,7 @@ export default async function ConsumableOrderDetailPage({ params }: Props) {
       {isLeaderOrAdmin && (
         <OrderDetailActions
           order={orderWithRelations}
-          userId={user.id}
+          userId={userId}
         />
       )}
     </div>

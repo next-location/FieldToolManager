@@ -1,9 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { ConsumableRegistrationForm } from './ConsumableRegistrationForm'
 
 export default async function NewConsumablePage() {
-  const supabase = await createClient()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 認証チェック
   const {
@@ -18,7 +18,7 @@ export default async function NewConsumablePage() {
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -29,7 +29,7 @@ export default async function NewConsumablePage() {
   const { data: consumableCategory } = await supabase
     .from('tool_categories')
     .select('id')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('name', '消耗品')
     .single()
 
@@ -53,7 +53,7 @@ export default async function NewConsumablePage() {
         <div className="bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <ConsumableRegistrationForm
-              organizationId={userData?.organization_id}
+              organizationId={organizationId}
               consumableCategoryId={consumableCategory?.id || null}
             />
           </div>

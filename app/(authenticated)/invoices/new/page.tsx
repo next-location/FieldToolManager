@@ -118,11 +118,11 @@ export default function NewInvoicePage() {
       .eq('id', user?.id)
       .single()
 
-    if (userData) {
+    if (userData?.organization_id) {
       const { data: orgData } = await supabase
         .from('organizations')
         .select('tax_registration_number, is_qualified_invoice_issuer')
-        .eq('id', userData?.organization_id)
+        .eq('id', userData.organization_id)
         .single()
 
       if (orgData) {

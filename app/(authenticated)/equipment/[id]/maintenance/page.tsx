@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import MaintenanceRecordForm from './MaintenanceRecordForm'
 
 export default async function EquipmentMaintenancePage({
@@ -8,19 +8,13 @@ export default async function EquipmentMaintenancePage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // ユーザー情報取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role, name')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {

@@ -1,25 +1,17 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
 import UsageAnalyticsView from './UsageAnalyticsView'
 import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
 import { PackageRequired } from '@/components/PackageRequired'
 
 export default async function UsageAnalyticsPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // ユーザー情報取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -27,15 +19,15 @@ export default async function UsageAnalyticsPage() {
   }
 
   // 権限チェック（リーダー以上のみ）
-  if (userData.role === 'staff') {
+  if (userRole === 'staff') {
     redirect('/')
   }
 
   // パッケージチェック（現場資産パック必須）
-  if (userData?.organization_id) {
-    const features = await getOrganizationFeatures(userData?.organization_id)
+  if (organizationId) {
+    const features = await getOrganizationFeatures(organizationId)
     if (!hasPackage(features, 'asset')) {
-      return <PackageRequired packageType="asset" featureName="使用頻度分析" userRole={userData.role} />
+      return <PackageRequired packageType="asset" featureName="使用頻度分析" userRole={userRole} />
     }
   }
 
@@ -49,7 +41,7 @@ export default async function UsageAnalyticsPage() {
         name
       )
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
 
@@ -60,28 +52,28 @@ export default async function UsageAnalyticsPage() {
   const { data: movements } = await supabase
     .from('tool_movements')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .gte('created_at', oneYearAgo.toISOString())
 
   // 消耗品移動履歴
   const { data: consumableMovements } = await supabase
     .from('consumable_movements')
     .select('*')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .gte('created_at', oneYearAgo.toISOString())
 
   // 現場一覧取得
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
 
   // ユーザー一覧取得
   const { data: users } = await supabase
     .from('users')
     .select('id, name')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
 
   // ツールにカテゴリ名を追加

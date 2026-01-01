@@ -1,31 +1,23 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import ConsumablesList from '@/components/consumables/ConsumablesList'
 
 export default async function ConsumablesPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // ユーザー情報取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
     redirect('/login')
   }
 
-  const isAdmin = userData.role === 'admin'
+  const isAdmin = userRole === 'admin'
 
   // 消耗品マスタを取得
   const { data: consumables, error } = await supabase
@@ -36,7 +28,7 @@ export default async function ConsumablesPage() {
         name
       )
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('management_type', 'consumable')
     .is('deleted_at', null)
     .order('name')

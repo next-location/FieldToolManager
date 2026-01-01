@@ -1,24 +1,16 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { EquipmentCategoriesClient } from './EquipmentCategoriesClient'
 
 export default async function EquipmentCategoriesPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // ユーザー情報を取得
   const { data: userData } = await supabase
     .from('users')
     .select('organization_id, role')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   if (!userData) {
@@ -26,7 +18,7 @@ export default async function EquipmentCategoriesPage() {
   }
 
   // 管理者権限チェック
-  if (!['admin', 'super_admin'].includes(userData.role)) {
+  if (!['admin', 'super_admin'].includes(userRole)) {
     redirect('/')
   }
 
@@ -34,7 +26,7 @@ export default async function EquipmentCategoriesPage() {
   const { data: orgData } = await supabase
     .from('organizations')
     .select('heavy_equipment_enabled')
-    .eq('id', userData?.organization_id)
+    .eq('id', organizationId)
     .single()
 
   if (!orgData?.heavy_equipment_enabled) {
@@ -45,7 +37,7 @@ export default async function EquipmentCategoriesPage() {
   const { data: categories } = await supabase
     .from('heavy_equipment_categories')
     .select('*')
-    .or(`organization_id.eq.${userData?.organization_id},organization_id.is.null`)
+    .or(`organization_id.eq.${organizationId},organization_id.is.null`)
     .order('sort_order')
 
   return (
@@ -53,7 +45,7 @@ export default async function EquipmentCategoriesPage() {
       <div className="px-4 py-6 sm:px-0">
         <EquipmentCategoriesClient
           initialCategories={categories || []}
-          organizationId={userData?.organization_id}
+          organizationId={organizationId}
         />
       </div>
     </div>

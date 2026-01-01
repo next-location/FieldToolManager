@@ -1,3 +1,4 @@
+import { requireAuth } from '@/lib/auth/page-auth'
 'use client'
 
 import { use, useState, useEffect } from 'react'
