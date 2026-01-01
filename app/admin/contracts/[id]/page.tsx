@@ -53,6 +53,12 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
     .eq('id', id)
     .single();
 
+  console.log('[Contract Detail] Contract data:', {
+    id: contract?.id,
+    organization_id: contract?.organization_id,
+    organizations: contract?.organizations,
+  });
+
   console.log('[Contract Detail] Query result:', { contract, error });
 
   // 契約パッケージ情報を取得
