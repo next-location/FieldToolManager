@@ -5,17 +5,6 @@ import { MovementTabs } from './MovementTabs'
 export default async function MovementsPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  // ユーザー情報取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id')
-    .eq('id', userId)
-    .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
-
   // 道具移動履歴を取得
   const { data: toolMovements } = await supabase
     .from('tool_movements')

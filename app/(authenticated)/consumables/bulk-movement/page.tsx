@@ -5,26 +5,6 @@ import { ConsumableBulkMovementForm } from './ConsumableBulkMovementForm'
 export default async function ConsumableBulkMovementPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  // 認証チェック
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id')
-    .eq('id', userId)
-    .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
-
   // 消耗品マスターを取得
   const { data: consumables } = await supabase
     .from('tools')

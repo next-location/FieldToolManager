@@ -7,13 +7,7 @@ import { PackageRequired } from '@/components/PackageRequired'
 export default async function InventoryOptimizationPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('id', userId)
-    .single()
-
-  if (!userData || userRole === 'staff') {
+  if (userRole === 'staff') {
     redirect('/')
   }
 
