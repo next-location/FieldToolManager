@@ -57,6 +57,13 @@ export default async function EstimateDetailPage({
     .eq('id', organizationId)
     .single()
 
+  // ユーザー情報を取得
+  const { data: userData } = await supabase
+    .from('users')
+    .select('name, email')
+    .eq('id', userId)
+    .single()
+
   // 操作履歴を取得
   const history = await getEstimateHistory(id)
 
