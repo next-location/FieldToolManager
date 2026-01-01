@@ -4,20 +4,7 @@ import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { ProjectListClient } from '@/components/projects/ProjectListClient'
 
-async function ProjectList() {
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id')
-    .eq('id', userId)
-    .single()
-
-  const { data: projects } = await supabase
+async function ProjectList() {  const { data: projects } = await supabase
     .from('projects')
     .select(`
       *,
@@ -31,15 +18,7 @@ async function ProjectList() {
 }
 
 export default async function ProjectsPage() {
-  const { userId, organizationId, userRole, supabase } = await requireAuth()
-
-    const { data: userData } = await supabase
-    .from('users')
-    .select('role')
-    .eq('id', userId)
-    .single()
-
-  // 管理者のみアクセス可能
+  const { userId, organizationId, userRole, supabase } = await requireAuth()  // 管理者のみアクセス可能
   if (!['admin', 'super_admin', 'manager'].includes(userRole || '')) {
     redirect('/')
   }

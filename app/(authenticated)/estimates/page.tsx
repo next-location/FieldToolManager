@@ -9,20 +9,7 @@ import { checkAndUpdateExpiredEstimates } from '@/lib/estimate-expiry'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-async function EstimateList() {
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('id', userId)
-    .single()
-
-  // 期限切れチェックを実行
+async function EstimateList() {  // 期限切れチェックを実行
   if (organizationId) {
     await checkAndUpdateExpiredEstimates(organizationId)
   }

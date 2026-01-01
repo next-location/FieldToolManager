@@ -14,24 +14,13 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export default async function EstimateDetailPage({
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
+
   params
 }: {
   params: Promise<{ id: string }>
 }) {
-  const { id } = await params
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('role, organization_id, name')
-    .eq('id', userId)
-    .single()
-
-  // 全ユーザーがアクセス可能（権限チェックなし）
+  const { id } = await params  // 全ユーザーがアクセス可能（権限チェックなし）
 
   // 見積書データを取得
   const { data: estimate, error: estimateError } = await supabase

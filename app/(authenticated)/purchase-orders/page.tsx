@@ -3,6 +3,8 @@ import { requireAuth } from '@/lib/auth/page-auth'
 import { PurchaseOrderListClient } from './PurchaseOrderListClient'
 
 export default async function PurchaseOrdersPage({
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
+
   searchParams,
 }: {
   searchParams: Promise<{
@@ -12,29 +14,7 @@ export default async function PurchaseOrdersPage({
 }) {
   const params = await searchParams
   const status = params.status || 'all'
-  const search = params.search || ''
-
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('id', userId)
-    .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
-
-  // 発注書一覧を取得（新しい順）
+  const search = params.search || ''  // 発注書一覧を取得（新しい順）
   // リーダーは自分が作成した発注書のみ、マネージャー・管理者は全て表示
   let query = supabase
     .from('purchase_orders')

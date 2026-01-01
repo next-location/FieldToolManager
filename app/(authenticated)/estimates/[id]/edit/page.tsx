@@ -7,24 +7,13 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export default async function EditEstimatePage({
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
+
   params
 }: {
   params: Promise<{ id: string }>
 }) {
-  const { id } = await params
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('role, organization_id')
-    .eq('id', userId)
-    .single()
-
-  // リーダー以上のみアクセス可能
+  const { id } = await params  // リーダー以上のみアクセス可能
   if (!['leader', 'manager', 'admin', 'super_admin'].includes(userRole || '')) {
     redirect('/')
   }

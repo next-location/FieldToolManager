@@ -15,22 +15,9 @@ export default async function ToolDetailPage({
   searchParams: Promise<{ item_id?: string }>
 }) {
   const { id } = await params
-  const { item_id } = await searchParams
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報を取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id')
-    .eq('id', userId)
-    .single()
-
-  // 組織のQR印刷サイズ設定を取得
+  const { item_id } = await searchParams  // 組織のQR印刷サイズ設定を取得
   const { data: organization } = await supabase
     .from('organizations')
     .select('qr_print_size')

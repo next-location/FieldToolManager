@@ -9,25 +9,7 @@ export default async function PurchaseOrderDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('id', userId)
-    .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 発注書詳細を取得
   const { data: order, error: orderError } = await supabase

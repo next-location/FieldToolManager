@@ -20,14 +20,7 @@ export default async function SitesPage({
   const city = params.city || ''
   const keyword = params.keyword || ''
 
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // すべての現場を取得（フィルタリングはクライアント側でも可能だが、ここではサーバー側で処理）
   let query = supabase

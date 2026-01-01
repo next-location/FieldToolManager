@@ -3,20 +3,7 @@ import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 
-async function ProfitLossContent() {
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('role, organization_id')
-    .eq('id', userId)
-    .single()
-
-  // リーダー以上のみアクセス可能
+async function ProfitLossContent() {  // リーダー以上のみアクセス可能
   if (!['leader', 'manager', 'admin', 'super_admin'].includes(userRole || '')) {
     redirect('/')
   }
@@ -219,6 +206,8 @@ async function ProfitLossContent() {
 }
 
 export default async function ProfitLossPage() {
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
+
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <Suspense

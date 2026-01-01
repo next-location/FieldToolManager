@@ -4,32 +4,13 @@ import Link from 'next/link'
 import { DeleteToolSetButton } from './DeleteToolSetButton'
 
 export default async function ToolSetDetailPage({
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
+
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
-  const { id } = await params
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id')
-    .eq('id', userId)
-    .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
-
-  // 道具セットの詳細を取得
+  const { id } = await params  // 道具セットの詳細を取得
   const { data: toolSet, error } = await supabase
     .from('tool_sets')
     .select(

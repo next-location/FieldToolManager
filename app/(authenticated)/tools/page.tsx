@@ -5,7 +5,8 @@ import { PackageRequired } from '@/components/PackageRequired'
 import { requireAuth } from '@/lib/auth/page-auth'
 
 export default async function ToolsPage() {
-  const { organizationId, userRole, supabase } = await requireAuth()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
+
   const isAdmin = userRole === 'admin'
 
   // パッケージチェック

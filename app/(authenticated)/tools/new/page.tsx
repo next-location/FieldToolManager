@@ -3,27 +3,7 @@ import { requireAuth } from '@/lib/auth/page-auth'
 import { ToolRegistrationForm } from './ToolRegistrationForm'
 
 export default async function NewToolPage() {
-
-  // 認証チェック
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id')
-    .eq('id', userId)
-    .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
-
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
   // プリセット（共通マスタ）を取得
   const { data: presets } = await supabase
     .from('tool_master_presets')

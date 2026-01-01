@@ -9,7 +9,8 @@ export default async function ClientDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const { organizationId, userRole, supabase } = await requireAuth()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
+
 
   if (userRole !== 'admin') {
     redirect('/clients')

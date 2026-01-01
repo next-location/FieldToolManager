@@ -3,16 +3,7 @@ import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 
 export default async function ToolSetsPage() {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('id', userId)
-    .single()
-
-  if (!userData) redirect('/login')
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 管理者またはマネージャーのみセット作成可能
   const canCreateSet = userRole === 'admin' || userRole === 'manager'

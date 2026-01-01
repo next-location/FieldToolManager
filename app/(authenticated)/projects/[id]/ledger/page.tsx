@@ -3,20 +3,7 @@ import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 
-async function ProjectLedgerContent({ projectId }: { projectId: string }) {
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('role, organization_id')
-    .eq('id', userId)
-    .single()
-
-  // リーダー以上のみアクセス可能
+async function ProjectLedgerContent({ projectId }: { projectId: string }) {  // リーダー以上のみアクセス可能
   if (!['leader', 'manager', 'admin', 'super_admin'].includes(userRole || '')) {
     redirect('/')
   }
@@ -391,6 +378,8 @@ export default async function ProjectLedgerPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
+
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <Suspense

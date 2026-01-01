@@ -7,26 +7,7 @@ import MonthlyReport from './MonthlyReport'
  * スタッフ別の勤怠統計を表示
  */
 export default async function MonthlyReportPage() {
-
-  // 認証確認
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('id, organization_id, role, name')
-    .eq('id', userId)
-    .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 管理者権限確認
   if (!['admin', 'manager'].includes(userRole)) {

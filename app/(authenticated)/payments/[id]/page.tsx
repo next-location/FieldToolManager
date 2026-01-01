@@ -9,6 +9,8 @@ export default async function PaymentDetailPage({
 }) {
   console.log('[PAYMENT DETAIL] Page component called')
   const { id } = await params
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
+
   console.log('[PAYMENT DETAIL] Payment ID:', id)
 
   console.log('[PAYMENT DETAIL] Supabase client created')
@@ -19,15 +21,7 @@ export default async function PaymentDetailPage({
   if (!user) {
     console.log('[PAYMENT DETAIL] No user, redirecting to login')
     redirect('/login')
-  }
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('role, organization_id')
-    .eq('id', userId)
-    .single()
-
-  console.log('[PAYMENT DETAIL] User data:', { role: userRole, org_id: organizationId })
+  }  console.log('[PAYMENT DETAIL] User data:', { role: userRole, org_id: organizationId })
 
   // マネージャー以上のみアクセス可能
   if (!['manager', 'admin', 'super_admin'].includes(userRole || '')) {

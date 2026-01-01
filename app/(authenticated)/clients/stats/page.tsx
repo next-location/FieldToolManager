@@ -3,7 +3,8 @@ import ClientsStats from '../ClientsStats'
 import { requireAuth } from '@/lib/auth/page-auth'
 
 export default async function ClientsStatsPage() {
-  const { userRole } = await requireAuth()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
+
 
   // 管理者のみアクセス可能
   if (userRole !== 'admin') {
