@@ -10,16 +10,12 @@ export default async function EquipmentMaintenancePage({
   const { id } = await params
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  // ユーザー情報取得
+  // ユーザー名取得
   const { data: userData } = await supabase
     .from('users')
-    .select('organization_id, role, name')
+    .select('name')
     .eq('id', userId)
     .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
 
   // 重機詳細を取得
   const { data: equipment, error } = await supabase
@@ -66,7 +62,7 @@ export default async function EquipmentMaintenancePage({
             <MaintenanceRecordForm
               equipmentId={id}
               equipmentName={equipment.name}
-              currentUserName={userData.name}
+              currentUserName={userData?.name || ''}
             />
           </div>
         </div>

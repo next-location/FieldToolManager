@@ -7,15 +7,6 @@ export default async function ConsumableOrdersPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // ユーザー情報と組織IDを取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('id', userId)
-    .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
 
   // 発注一覧を取得（リレーション込み）
   const { data: orders } = await supabase

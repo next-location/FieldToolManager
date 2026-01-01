@@ -12,16 +12,6 @@ export default async function ConsumableOrderDetailPage({ params }: Props) {
   const { id } = await params
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  // ユーザー情報取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('id', userId)
-    .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
 
   // 発注詳細取得
   const { data: order } = await supabase

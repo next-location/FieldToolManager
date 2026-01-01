@@ -7,15 +7,6 @@ export default async function ConsumablesBulkQRPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // ユーザー情報を取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('id', userId)
-    .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
 
   // 組織設定を取得（QRサイズ）
   const { data: organization } = await supabase

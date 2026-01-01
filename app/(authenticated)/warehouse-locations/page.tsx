@@ -6,15 +6,6 @@ export default async function WarehouseLocationsPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // ユーザー情報を取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('id', userId)
-    .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
 
   // 管理者権限チェック
   if (!['admin', 'super_admin'].includes(userRole)) {

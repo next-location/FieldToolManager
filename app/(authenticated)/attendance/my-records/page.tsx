@@ -3,19 +3,14 @@ import { requireAuth } from '@/lib/auth/page-auth'
 import { MyAttendanceRecordsTable } from './MyAttendanceRecordsTable'
 
 export default async function MyAttendanceRecordsPage() {
-
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-    // ユーザー情報取得
+  // ユーザー名取得
   const { data: userData } = await supabase
     .from('users')
-    .select('organization_id, name')
+    .select('name')
     .eq('id', userId)
     .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -28,7 +23,7 @@ export default async function MyAttendanceRecordsPage() {
         </div>
 
         <div className="bg-white shadow sm:rounded-lg">
-          <MyAttendanceRecordsTable userName={userData.name} />
+          <MyAttendanceRecordsTable userName={userData?.name || ''} />
         </div>
       </div>
     </div>

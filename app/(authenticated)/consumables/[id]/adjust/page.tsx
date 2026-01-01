@@ -11,15 +11,6 @@ export default async function ConsumableAdjustPage({
   const { id } = await params
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('id', userId)
-    .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
 
   // 消耗品情報取得
   const { data: consumable } = await supabase

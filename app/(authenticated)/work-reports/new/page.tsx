@@ -3,19 +3,14 @@ import { requireAuth } from '@/lib/auth/page-auth'
 import { WorkReportForm } from './WorkReportForm'
 
 export default async function NewWorkReportPage() {
-
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-    // ユーザー情報取得
+  // ユーザー情報取得
   const { data: userData } = await supabase
     .from('users')
-    .select('organization_id, role, name')
+    .select('name')
     .eq('id', userId)
     .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
 
   // アクティブな現場一覧を取得
   const { data: sites } = await supabase
@@ -81,7 +76,7 @@ export default async function NewWorkReportPage() {
           organizationUsers={organizationUsers || []}
           organizationTools={organizationTools || []}
           currentUserId={userId}
-          currentUserName={userData.name}
+          currentUserName={userData?.name || ''}
           settings={reportSettings}
           customFields={customFields || []}
         />

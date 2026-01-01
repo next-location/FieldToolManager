@@ -10,20 +10,12 @@ export default async function EditWorkReportPage({
   const { id } = await params
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  const {
-  } = await supabase.auth.getUser()
-
-
-  // ユーザー情報取得
+  // ユーザー名取得
   const { data: userData } = await supabase
     .from('users')
-    .select('organization_id, role, name')
+    .select('name')
     .eq('id', userId)
     .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
 
   // 作業報告書を取得
   const { data: report, error } = await supabase
@@ -120,7 +112,7 @@ export default async function EditWorkReportPage({
           organizationUsers={organizationUsers || []}
           organizationTools={organizationTools || []}
           currentUserId={userId}
-          currentUserName={userData.name}
+          currentUserName={userData?.name || ''}
           settings={reportSettings}
           customFields={customFields || []}
         />

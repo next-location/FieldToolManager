@@ -14,16 +14,6 @@ export default async function NotificationsPage() {
     redirect('/login')
   }
 
-  // ユーザー情報取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('id', userId)
-    .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
 
   // 通知一覧を取得（最新30件、削除されていないもの）
   // target_user_idが指定されている場合はそのユーザー宛、なければ組織全体の通知

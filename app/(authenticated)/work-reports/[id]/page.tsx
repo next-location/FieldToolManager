@@ -22,16 +22,6 @@ export default async function WorkReportDetailPage({
   } = await supabase.auth.getUser()
 
 
-  // ユーザー情報取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('id', userId)
-    .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
 
   // 作業報告書を取得
   const { data: report, error } = await supabase
