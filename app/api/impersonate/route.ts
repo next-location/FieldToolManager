@@ -31,14 +31,17 @@ export async function GET(request: NextRequest) {
 
   const { sessionToken, payload } = result;
 
-  // セッションCookieをセット (sameSite: lax)
+  // セッションCookieをセット (sameSite: lax, domain: サブドメイン全体で有効)
   const cookieStore = await cookies();
+  const isDevelopment = process.env.NODE_ENV === 'development';
+
   cookieStore.set('impersonation_session', sessionToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: 30 * 60, // 30分
     path: '/',
+    domain: isDevelopment ? 'localhost' : '.zairoku.com', // サブドメイン全体で有効
   });
 
   // アクセスログ記録
@@ -52,7 +55,6 @@ export async function GET(request: NextRequest) {
   });
 
   // 組織のダッシュボードにリダイレクト
-  const isDevelopment = process.env.NODE_ENV === 'development';
   const targetUrl = isDevelopment
     ? `http://${payload.subdomain}.localhost:3000/dashboard`
     : `https://${payload.subdomain}.zairoku.com/dashboard`;
