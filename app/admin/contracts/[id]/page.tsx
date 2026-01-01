@@ -157,7 +157,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
               <div className="flex gap-3">
                 {contract.status === 'active' && contract.organizations?.subdomain && session.role === 'owner' && (
                   <ImpersonateButton
-                    organizationId={contract.organization_id}
+                    organizationId={contract.organization_id || contract.organizations.id}
                     organizationName={contract.organizations.name}
                   />
                 )}
