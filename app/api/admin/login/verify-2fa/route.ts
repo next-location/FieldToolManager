@@ -135,6 +135,16 @@ export async function POST(request: NextRequest) {
         );
         console.log('[2FA DEBUG] Decryption successful, secret length:', decryptedSecret?.length);
 
+        // サーバー側で現在の正しいTOTPコードを生成（デバッグ用）
+        const speakeasy = require('speakeasy');
+        const currentServerToken = speakeasy.totp({
+          secret: decryptedSecret,
+          encoding: 'base32',
+        });
+        console.log('[2FA DEBUG] Current server-side TOTP:', currentServerToken);
+        console.log('[2FA DEBUG] User input token:', token);
+        console.log('[2FA DEBUG] Tokens match:', currentServerToken === token);
+
         isValid = verifyToken(decryptedSecret, token);
         console.log('[2FA DEBUG] Token verification result:', isValid);
       } catch (decryptError) {
