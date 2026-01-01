@@ -1,3 +1,4 @@
+import { requireAuth } from '@/lib/auth/page-auth'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { CompleteSiteButton } from './CompleteSiteButton'
@@ -9,15 +10,11 @@ export default async function SiteDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   const {
-    data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect('/login')
-  }
 
   // 現場詳細を取得
   const { data: site, error } = await supabase

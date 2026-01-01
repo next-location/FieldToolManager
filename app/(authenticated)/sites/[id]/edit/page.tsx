@@ -1,6 +1,7 @@
 import { redirect, notFound } from 'next/navigation'
 import { updateSite } from '../../actions'
 import Link from 'next/link'
+import { requireAuth } from '@/lib/auth/page-auth'
 
 export default async function EditSitePage({
   params,
@@ -8,15 +9,7 @@ export default async function EditSitePage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 現場データを取得
   const { data: site, error } = await supabase
@@ -31,12 +24,6 @@ export default async function EditSitePage({
   }
 
   // 組織のユーザー一覧を取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id')
-    .eq('id', userId)
-    .single()
-
   const { data: organizationUsers } = await supabase
     .from('users')
     .select('id, name, email')

@@ -1,5 +1,5 @@
+import { requireAuth } from '@/lib/auth/page-auth'
 import { redirect, notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { WorkReportEditForm } from './WorkReportEditForm'
 
 export default async function EditWorkReportPage({
@@ -8,15 +8,11 @@ export default async function EditWorkReportPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   const {
-    data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect('/login')
-  }
 
   // ユーザー情報取得
   const { data: userData } = await supabase
