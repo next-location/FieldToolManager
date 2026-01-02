@@ -5,26 +5,6 @@ import { BulkMovementForm } from './BulkMovementForm'
 export default async function BulkMovementPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  // 認証チェック
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id')
-    .eq('id', userId)
-    .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
-
   // 道具個別アイテムを取得（削除されていないもの）
   const { data: toolItems } = await supabase
     .from('tool_items')

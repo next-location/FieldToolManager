@@ -1,33 +1,20 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/page-auth'
 import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
 import { PackageRequired } from '@/components/PackageRequired'
 
 export default async function CashflowAnalytics() {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('role, organization_id')
-    .eq('id', user.id)
-    .single()
+  const { organizationId, userRole, supabase } = await requireAuth()
 
   // リーダー以上のみアクセス可能
-  if (!['leader', 'manager', 'admin', 'super_admin'].includes(userData?.role || '')) {
+  if (!['leader', 'manager', 'admin', 'super_admin'].includes(userRole)) {
     redirect('/')
   }
 
   // パッケージチェック（現場DX業務効率化パック必須）
-  if (userData?.organization_id) {
-    const features = await getOrganizationFeatures(userData?.organization_id)
-    if (!hasPackage(features, 'dx')) {
-      return <PackageRequired packageType="dx" featureName="売上分析・資金繰り予測" userRole={userData.role} />
-    }
+  const features = await getOrganizationFeatures(organizationId)
+  if (!hasPackage(features, 'dx')) {
+    return <PackageRequired packageType="dx" featureName="売上分析・資金繰り予測" userRole={userRole} />
   }
 
   // 今日から6ヶ月先までのデータを取得
@@ -47,7 +34,7 @@ export default async function CashflowAnalytics() {
       paid_amount,
       client:clients(name)
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .lte('due_date', sixMonthsLater.toISOString())
     .order('due_date', { ascending: true })
 
@@ -63,7 +50,7 @@ export default async function CashflowAnalytics() {
       paid_amount,
       supplier:clients(name)
     `)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .lte('payment_due_date', sixMonthsLater.toISOString())
     .order('payment_due_date', { ascending: true })
 
@@ -74,14 +61,14 @@ export default async function CashflowAnalytics() {
   const { data: receivedPayments } = await supabase
     .from('payments')
     .select('payment_date, amount, payment_type')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('payment_type', 'receipt')
     .gte('payment_date', threeMonthsAgo.toISOString())
 
   const { data: paidPayments } = await supabase
     .from('payments')
     .select('payment_date, amount, payment_type')
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .eq('payment_type', 'payment')
     .gte('payment_date', threeMonthsAgo.toISOString())
 

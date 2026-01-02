@@ -27,8 +27,18 @@ export async function requireAuth(): Promise<PageAuthResult> {
     const impersonationPayload = await verifySessionToken(impersonationToken);
     if (impersonationPayload) {
       const supabase = createAdminClient();
+
+      // 組織の管理者ユーザーを取得（なりすまし用の仮想ユーザーID）
+      const { data: orgAdmin } = await supabase
+        .from('users')
+        .select('id')
+        .eq('organization_id', impersonationPayload.organizationId)
+        .eq('role', 'admin')
+        .limit(1)
+        .single();
+
       return {
-        userId: impersonationPayload.superAdminId,
+        userId: orgAdmin?.id || impersonationPayload.superAdminId,
         organizationId: impersonationPayload.organizationId,
         userRole: 'admin',
         supabase,
