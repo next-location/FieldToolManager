@@ -66,7 +66,7 @@ export default async function ToolsPage() {
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 pt-3 pb-6 sm:px-0 sm:py-6">
+      <div className="px-4 pb-6 sm:px-0 sm:py-6">
         <div className="flex justify-between items-center mb-6">
           {/* スマホ: text-lg、PC: text-2xl */}
           <h1 className="text-lg sm:text-2xl font-bold text-gray-900">道具一覧</h1>
