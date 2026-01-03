@@ -47,20 +47,32 @@ export function QRScanner({ mode = 'single' }: QRScannerProps) {
         return
       }
 
-      // カメラ権限の明示的な要求
+      // カメラ権限の明示的な要求（デバッグ情報を追加）
+      console.log('カメラ権限を要求中...')
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        })
+        console.log('カメラ権限取得成功')
         // 権限取得後、即座にストリームを停止
-        stream.getTracks().forEach(track => track.stop())
+        stream.getTracks().forEach(track => {
+          console.log('Track:', track.label, track.kind, track.readyState)
+          track.stop()
+        })
       } catch (permissionError) {
-        console.error('カメラ権限エラー:', permissionError)
+        console.error('カメラ権限エラー詳細:', permissionError)
         if (permissionError instanceof Error) {
           if (permissionError.name === 'NotAllowedError') {
             setError('カメラへのアクセスが拒否されました。ブラウザの設定でカメラへのアクセスを許可してください。')
           } else if (permissionError.name === 'NotFoundError') {
             setError('カメラが見つかりません。PCにカメラが接続されていることを確認してください。')
+          } else if (permissionError.name === 'NotReadableError') {
+            setError('カメラが他のアプリで使用中です。他のタブやアプリでカメラを使用していないか確認してください。')
           } else {
-            setError(`カメラの権限エラー: ${permissionError.message}`)
+            setError(`カメラの権限エラー: ${permissionError.name} - ${permissionError.message}`)
           }
         }
         return
@@ -70,15 +82,25 @@ export function QRScanner({ mode = 'single' }: QRScannerProps) {
       scannerRef.current = scanner
 
       // カメラ設定を調整
+      console.log('利用可能なカメラ:', availableCameras)
+      console.log('選択されたカメラID:', selectedCameraId)
+
+      // PCの場合はdeviceIdを明示的に指定
       const cameraConfig = selectedCameraId
-        ? { deviceId: selectedCameraId }
-        : { facingMode: 'environment' } // デフォルトは背面カメラ（モバイル向け）
+        ? { deviceId: { exact: selectedCameraId } }
+        : availableCameras.length > 0
+        ? { deviceId: { exact: availableCameras[0].id } }
+        : { facingMode: 'user' } // フォールバック
+
+      console.log('カメラ設定:', cameraConfig)
+      console.log('Html5Qrcode起動開始...')
 
       await scanner.start(
         cameraConfig,
         {
           fps: 10,
           qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.333333 // 4:3の比率を追加
         },
         async (decodedText) => {
           // QRコードをスキャン成功
@@ -123,6 +145,7 @@ export function QRScanner({ mode = 'single' }: QRScannerProps) {
         }
       )
 
+      console.log('Html5Qrcode起動成功！')
       setIsScanning(true)
     } catch (err) {
       console.error('カメラ起動エラー:', err)
