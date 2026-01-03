@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { SlidersHorizontal } from 'lucide-react'
+import ToolFiltersModal from './ToolFiltersModal'
 
 interface FilterState {
   searchQuery: string
@@ -28,6 +30,7 @@ export default function ToolFilters({ onFilterChange }: ToolFiltersProps) {
   })
 
   const [categories, setCategories] = useState<Category[]>([])
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     // カテゴリー一覧を取得
@@ -69,38 +72,74 @@ export default function ToolFilters({ onFilterChange }: ToolFiltersProps) {
     filters.managementType ||
     filters.stockStatus
 
+  // フィルター数をカウント（検索ワード以外）
+  const filterCount = [filters.categoryId, filters.managementType, filters.stockStatus].filter(Boolean).length
+
+  const handleApply = () => {
+    onFilterChange(filters)
+  }
+
   return (
-    <div className="bg-white shadow rounded-lg p-6 mb-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">検索・フィルター</h2>
-        {hasActiveFilters && (
+    <>
+      {/* モバイル表示: 検索ボックスとフィルターボタンを1行に */}
+      <div className="sm:hidden mb-6">
+        <div className="flex items-center gap-2">
+          <div className="flex-1">
+            <input
+              type="text"
+              value={filters.searchQuery}
+              onChange={(e) => handleFilterChange('searchQuery', e.target.value)}
+              placeholder="道具名で検索..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+            />
+          </div>
           <button
-            onClick={handleReset}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            onClick={() => setIsModalOpen(true)}
+            className="relative p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50"
+            aria-label="フィルター"
           >
-            クリア
+            <SlidersHorizontal className="h-5 w-5 text-gray-600" />
+            {filterCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {filterCount}
+              </span>
+            )}
           </button>
-        )}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* 道具名検索 */}
-        <div>
-          <label
-            htmlFor="search"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            道具名
-          </label>
-          <input
-            type="text"
-            id="search"
-            value={filters.searchQuery}
-            onChange={(e) => handleFilterChange('searchQuery', e.target.value)}
-            placeholder="道具名で検索..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
-          />
+      {/* PC表示: 従来通りのフィルター */}
+      <div className="hidden sm:block bg-white shadow rounded-lg p-6 mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">検索・フィルター</h2>
+          {hasActiveFilters && (
+            <button
+              onClick={handleReset}
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            >
+              クリア
+            </button>
+          )}
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* 道具名検索 */}
+          <div>
+            <label
+              htmlFor="search"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              道具名
+            </label>
+            <input
+              type="text"
+              id="search"
+              value={filters.searchQuery}
+              onChange={(e) => handleFilterChange('searchQuery', e.target.value)}
+              placeholder="道具名で検索..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+            />
+          </div>
 
         {/* カテゴリーフィルター */}
         <div>
@@ -216,6 +255,18 @@ export default function ToolFilters({ onFilterChange }: ToolFiltersProps) {
           )}
         </div>
       )}
-    </div>
+      </div>
+
+      {/* モバイル用フィルターモーダル */}
+      <ToolFiltersModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        filters={filters}
+        categories={categories}
+        onFilterChange={handleFilterChange}
+        onApply={handleApply}
+        onReset={handleReset}
+      />
+    </>
   )
 }
