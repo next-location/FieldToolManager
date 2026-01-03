@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { QRScanner } from './QRScanner'
+import { QRScannerMobile } from './QRScannerMobile'
 
 type TabType = 'bulk' | 'info' | 'inventory' | 'location'
 
@@ -11,6 +12,13 @@ interface QRScanTabsProps {
 
 export function QRScanTabs({ showTabs = true }: QRScanTabsProps) {
   const [activeTab, setActiveTab] = useState<TabType>('bulk')
+  const [isMobile, setIsMobile] = useState(false)
+  const [showMobileScanner, setShowMobileScanner] = useState(false)
+
+  useEffect(() => {
+    // クライアントサイドでモバイル判定
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent))
+  }, [])
 
   const tabs = [
     {
@@ -73,40 +81,63 @@ export function QRScanTabs({ showTabs = true }: QRScanTabsProps) {
           </div>
 
           {/* 各タブのコンテンツ */}
-          {activeTab === 'bulk' && (
+          {/* モバイルの場合 */}
+          {isMobile ? (
             <div>
-              <p className="text-gray-600 mb-4">
-                道具をスキャンした後、移動先を選択して登録します（1つでも複数でも可能）
-              </p>
-              <QRScanner mode="bulk" />
-            </div>
-          )}
+              <button
+                onClick={() => setShowMobileScanner(true)}
+                className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                スキャン開始
+              </button>
 
-          {activeTab === 'info' && (
-            <div>
-              <p className="text-gray-600 mb-4">
-                道具のQRコードをスキャンすると、詳細情報が表示されます
-              </p>
-              <QRScanner mode="info" />
+              {/* モバイルスキャナーをフルスクリーンで表示 */}
+              {showMobileScanner && (
+                <QRScannerMobile
+                  mode={activeTab}
+                  onClose={() => setShowMobileScanner(false)}
+                />
+              )}
             </div>
-          )}
+          ) : (
+            // PCの場合は従来のスキャナーを使用
+            <>
+              {activeTab === 'bulk' && (
+                <div>
+                  <p className="text-gray-600 mb-4">
+                    道具をスキャンした後、移動先を選択して登録します（1つでも複数でも可能）
+                  </p>
+                  <QRScanner mode="bulk" />
+                </div>
+              )}
 
-          {activeTab === 'inventory' && (
-            <div>
-              <p className="text-gray-600 mb-4">
-                道具をスキャンして現在の在庫状況を確認できます
-              </p>
-              <QRScanner mode="inventory" />
-            </div>
-          )}
+              {activeTab === 'info' && (
+                <div>
+                  <p className="text-gray-600 mb-4">
+                    道具のQRコードをスキャンすると、詳細情報が表示されます
+                  </p>
+                  <QRScanner mode="info" />
+                </div>
+              )}
 
-          {activeTab === 'location' && (
-            <div>
-              <p className="text-gray-600 mb-4">
-                倉庫位置や現場のQRコードをスキャンして情報を表示します
-              </p>
-              <QRScanner mode="location" />
-            </div>
+              {activeTab === 'inventory' && (
+                <div>
+                  <p className="text-gray-600 mb-4">
+                    道具をスキャンして現在の在庫状況を確認できます
+                  </p>
+                  <QRScanner mode="inventory" />
+                </div>
+              )}
+
+              {activeTab === 'location' && (
+                <div>
+                  <p className="text-gray-600 mb-4">
+                    倉庫位置や現場のQRコードをスキャンして情報を表示します
+                  </p>
+                  <QRScanner mode="location" />
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
