@@ -217,8 +217,8 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
         <div className="w-6" /> {/* バランス用のスペーサー */}
       </div>
 
-      {/* カメラビュー（70%） */}
-      <div className="flex-1 relative bg-black">
+      {/* カメラビュー（bulkモードは70%、その他は100%） */}
+      <div className={`${mode === 'bulk' ? 'flex-1' : 'flex-1'} relative bg-black`}>
         <div id="qr-reader-mobile" className="h-full" />
 
         {/* エラー表示 */}
@@ -252,7 +252,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
       </div>
 
       {/* ステータスバー + スキャン済みリスト（30%） */}
-      {mode === 'bulk' && (
+      {mode === 'bulk' ? (
         <div className="bg-white border-t">
           {/* ステータスバー */}
           <div className="bg-gray-50 px-4 py-2 border-b">
@@ -306,6 +306,15 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
               完了して移動先を選ぶ
             </button>
           </div>
+        </div>
+      ) : (
+        // その他のモード（info、inventory、location）用の下部UI
+        <div className="bg-white border-t p-4">
+          <p className="text-center text-gray-600 text-sm">
+            {mode === 'info' && '道具のQRコードをスキャンしてください'}
+            {mode === 'inventory' && '在庫確認するQRコードをスキャンしてください'}
+            {mode === 'location' && '倉庫や現場のQRコードをスキャンしてください'}
+          </p>
         </div>
       )}
     </div>
