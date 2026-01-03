@@ -147,7 +147,7 @@ export function ToolRegistrationForm({
             </optgroup>
           )}
         </select>
-        <div className="mt-2 text-sm text-gray-600">
+        <div className="mt-2 text-xs sm:text-sm text-gray-600">
           使いたい道具マスタが見つかりませんか？{' '}
           <Link href="/master/tools-consumables" className="text-blue-600 hover:text-blue-700 font-medium">
             道具・消耗品マスタページ
@@ -169,7 +169,7 @@ export function ToolRegistrationForm({
             {selectedPreset.manufacturer && <div>メーカー: {selectedPreset.manufacturer}</div>}
             <div>単位: {selectedPreset.unit}</div>
           </dl>
-          <p className="mt-2 text-xs text-blue-600">
+          <p className="mt-2 text-[10px] sm:text-xs text-blue-600">
             ※ このプリセットから自社マスタが自動作成され、個別アイテムが登録されます
           </p>
         </div>
@@ -209,7 +209,7 @@ export function ToolRegistrationForm({
               onChange={handleChange}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-[10px] sm:text-xs text-gray-500">
               ※ 指定した個数分の個別アイテム（#001, #002...）とQRコードが作成されます
             </p>
           </div>
