@@ -62,10 +62,10 @@ export default async function ConsumableOrdersPage() {
           </Link>
         </div>
 
-      {/* 統計情報 - スマホは横スクロール、PCはグリッド */}
-      <div className="overflow-x-auto sm:overflow-visible -mx-4 px-4 sm:mx-0 sm:px-0">
-        <div className="flex gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-5 min-w-max sm:min-w-0">
-        <div className="bg-white overflow-hidden shadow rounded-lg w-40 sm:w-auto flex-shrink-0">
+      {/* 統計情報 - スマホは3段折り返し、PCはグリッド */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        {/* 総発注数 - スマホで1行目全幅 */}
+        <div className="col-span-2 sm:col-span-1 bg-white overflow-hidden shadow rounded-lg">
           <div className="p-4 sm:p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -85,15 +85,16 @@ export default async function ConsumableOrdersPage() {
               </div>
               <div className="ml-3 sm:ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">総発注数</dt>
-                  <dd className="text-base sm:text-lg font-semibold text-gray-900">{stats.total}</dd>
+                  <dt className="text-sm font-medium text-gray-500 truncate">総発注数</dt>
+                  <dd className="text-lg font-semibold text-gray-900">{stats.total}</dd>
                 </dl>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white overflow-hidden shadow rounded-lg w-40 sm:w-auto flex-shrink-0">
+        {/* 発注中 - スマホで2行目左 */}
+        <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-4 sm:p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -103,15 +104,16 @@ export default async function ConsumableOrdersPage() {
               </div>
               <div className="ml-3 sm:ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">発注中</dt>
-                  <dd className="text-base sm:text-lg font-semibold text-yellow-600">{stats.pending}</dd>
+                  <dt className="text-sm font-medium text-gray-500 truncate">発注中</dt>
+                  <dd className="text-lg font-semibold text-yellow-600">{stats.pending}</dd>
                 </dl>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white overflow-hidden shadow rounded-lg w-40 sm:w-auto flex-shrink-0">
+        {/* 発注済み - スマホで2行目右 */}
+        <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-4 sm:p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -121,15 +123,16 @@ export default async function ConsumableOrdersPage() {
               </div>
               <div className="ml-3 sm:ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">発注済み</dt>
-                  <dd className="text-base sm:text-lg font-semibold text-blue-600">{stats.ordered}</dd>
+                  <dt className="text-sm font-medium text-gray-500 truncate">発注済み</dt>
+                  <dd className="text-lg font-semibold text-blue-600">{stats.ordered}</dd>
                 </dl>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white overflow-hidden shadow rounded-lg w-40 sm:w-auto flex-shrink-0">
+        {/* 納品済み - スマホで3行目左 */}
+        <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-4 sm:p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -139,15 +142,16 @@ export default async function ConsumableOrdersPage() {
               </div>
               <div className="ml-3 sm:ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">納品済み</dt>
-                  <dd className="text-base sm:text-lg font-semibold text-green-600">{stats.delivered}</dd>
+                  <dt className="text-sm font-medium text-gray-500 truncate">納品済み</dt>
+                  <dd className="text-lg font-semibold text-green-600">{stats.delivered}</dd>
                 </dl>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white overflow-hidden shadow rounded-lg w-40 sm:w-auto flex-shrink-0">
+        {/* キャンセル - スマホで3行目右 */}
+        <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-4 sm:p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -157,14 +161,13 @@ export default async function ConsumableOrdersPage() {
               </div>
               <div className="ml-3 sm:ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">キャンセル</dt>
-                  <dd className="text-base sm:text-lg font-semibold text-gray-600">{stats.cancelled}</dd>
+                  <dt className="text-sm font-medium text-gray-500 truncate">キャンセル</dt>
+                  <dd className="text-lg font-semibold text-gray-600">{stats.cancelled}</dd>
                 </dl>
               </div>
             </div>
           </div>
         </div>
-      </div>
       </div>
 
       {/* 発注一覧 */}
