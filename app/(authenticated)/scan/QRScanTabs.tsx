@@ -3,25 +3,20 @@
 import { useState } from 'react'
 import { QRScanner } from './QRScanner'
 
-type TabType = 'single' | 'bulk' | 'info' | 'inventory' | 'location'
+type TabType = 'bulk' | 'info' | 'inventory' | 'location'
 
 interface QRScanTabsProps {
   showTabs?: boolean
 }
 
 export function QRScanTabs({ showTabs = true }: QRScanTabsProps) {
-  const [activeTab, setActiveTab] = useState<TabType>('single')
+  const [activeTab, setActiveTab] = useState<TabType>('bulk')
 
   const tabs = [
     {
-      id: 'single' as TabType,
-      name: '単体移動',
-      description: '1つの道具をスキャンして移動登録',
-    },
-    {
       id: 'bulk' as TabType,
-      name: '一括移動',
-      description: '複数の道具をスキャンして一括で移動登録',
+      name: '道具を移動',
+      description: '道具をスキャンして移動登録（1つでも複数でも可能）',
     },
     {
       id: 'info' as TabType,
@@ -78,16 +73,10 @@ export function QRScanTabs({ showTabs = true }: QRScanTabsProps) {
           </div>
 
           {/* 各タブのコンテンツ */}
-          {activeTab === 'single' && (
-            <div>
-              <QRScanner mode="single" />
-            </div>
-          )}
-
           {activeTab === 'bulk' && (
             <div>
               <p className="text-gray-600 mb-4">
-                複数の道具をスキャンした後、移動先を選択して一括登録します
+                道具をスキャンした後、移動先を選択して登録します（1つでも複数でも可能）
               </p>
               <QRScanner mode="bulk" />
             </div>
