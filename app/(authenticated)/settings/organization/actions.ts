@@ -53,7 +53,6 @@ export async function updateOrganizationSettings(
         settings.enable_monthly_inventory_reminder,
       enable_site_closure_checklist: settings.enable_site_closure_checklist,
       consumable_movement_tracking: settings.consumable_movement_tracking,
-      qr_print_size: settings.qr_print_size,
       heavy_equipment_enabled: settings.heavy_equipment_enabled,
       updated_at: new Date().toISOString(),
     })
@@ -71,6 +70,7 @@ export async function updateOrganizationSettings(
       {
         organization_id: organizationId,
         enable_low_stock_alert: settings.enable_low_stock_alert,
+        qr_print_size: settings.qr_print_size,
         updated_at: new Date().toISOString(),
       },
       {

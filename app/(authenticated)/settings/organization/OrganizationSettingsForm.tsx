@@ -14,13 +14,13 @@ type Organization = {
   enable_monthly_inventory_reminder: boolean
   enable_site_closure_checklist: boolean
   consumable_movement_tracking: 'quantity' | 'simple' | 'none'
-  qr_print_size: number
   heavy_equipment_enabled: boolean
 }
 
 type OrganizationSettings = {
   organization_id: string
   enable_low_stock_alert: boolean
+  qr_print_size: number
 } | null
 
 type WarehouseTemplate = {
@@ -48,7 +48,7 @@ export function OrganizationSettingsForm({
       organization.enable_monthly_inventory_reminder,
     enable_site_closure_checklist: organization.enable_site_closure_checklist,
     consumable_movement_tracking: organization.consumable_movement_tracking,
-    qr_print_size: organization.qr_print_size || 25,
+    qr_print_size: organizationSettings?.qr_print_size || 25,
     enable_low_stock_alert: organizationSettings?.enable_low_stock_alert ?? true,
     heavy_equipment_enabled: organization.heavy_equipment_enabled ?? true,
   })

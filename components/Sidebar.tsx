@@ -223,8 +223,8 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
             </div>
           )}
 
-          {/* 重機管理（現場資産パックが必要） */}
-          {hasAssetPackage && (
+          {/* 重機管理（現場資産パックが必要 かつ 運用設定で有効化） */}
+          {hasAssetPackage && heavyEquipmentEnabled && (
             <div>
               <button
                 onClick={() => toggleMenu('equipment')}
