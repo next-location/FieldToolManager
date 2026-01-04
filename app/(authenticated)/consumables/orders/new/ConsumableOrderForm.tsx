@@ -87,7 +87,7 @@ export default function ConsumableOrderForm({ consumables, suggestedOrderNumber 
                   defaultValue={suggestedOrderNumber}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-[10px] sm:text-xs text-gray-500">
                   自動生成された番号です。必要に応じて変更できます。
                 </p>
               </div>
@@ -192,7 +192,7 @@ export default function ConsumableOrderForm({ consumables, suggestedOrderNumber 
                   className="w-full px-3 py-2 border border-gray-300 bg-gray-50 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   placeholder="0.00"
                 />
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-[10px] sm:text-xs text-gray-500">
                   単価 × 数量で自動計算されます
                 </p>
               </div>
@@ -242,7 +242,7 @@ export default function ConsumableOrderForm({ consumables, suggestedOrderNumber 
         </div>
 
         {/* フォームフッター */}
-        <div className="px-4 py-3 bg-gray-50 text-right sm:px-6 space-x-3 sm:rounded-b-lg">
+        <div className="px-4 py-3 bg-white text-right sm:px-6 space-x-3 sm:rounded-b-lg">
           <button
             type="button"
             onClick={() => router.back()}
