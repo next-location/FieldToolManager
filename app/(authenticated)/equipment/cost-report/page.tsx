@@ -1,21 +1,27 @@
 import { redirect } from 'next/navigation'
-import { requireAuth } from '@/lib/auth/page-auth'
+import { requireAuth, getOrganizationPackages } from '@/lib/auth/page-auth'
 import CostReportView from './CostReportView'
 import type { HeavyEquipment, HeavyEquipmentMaintenance } from '@/types/heavy-equipment'
 
 export default async function CostReportPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  // 組織の重機管理機能が有効かチェック
+  // パッケージチェック（現場資産パック または フル機能統合パックが必要）
+  const packages = await getOrganizationPackages(organizationId, supabase)
+  if (!packages.hasAssetPackage && packages.packageType !== 'full') {
+    redirect('/')
+  }
+
+  // 組織の重機管理機能設定を取得
   const { data: orgData } = await supabase
     .from('organizations')
     .select('heavy_equipment_enabled')
     .eq('id', organizationId)
     .single()
 
-  // 重機管理機能が無効の場合はダッシュボードへリダイレクト
-  if (!orgData?.heavy_equipment_enabled) {
-    redirect('/')
+  // 運用設定で重機機能が無効化されている場合はリダイレクト
+  if (orgData?.heavy_equipment_enabled === false) {
+    redirect('/equipment')
   }
 
   // 重機一覧を取得

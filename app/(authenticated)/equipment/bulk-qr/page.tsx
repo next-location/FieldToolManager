@@ -1,12 +1,16 @@
 import { redirect } from 'next/navigation'
-import { requireAuth } from '@/lib/auth/page-auth'
+import { requireAuth, getOrganizationPackages } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { EquipmentBulkQRClient } from './EquipmentBulkQRClient'
 
 export default async function EquipmentBulkQRPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  // ユーザー情報を取得
+  // パッケージチェック（現場資産パック または フル機能統合パックが必要）
+  const packages = await getOrganizationPackages(organizationId, supabase)
+  if (!packages.hasAssetPackage && packages.packageType !== 'full') {
+    redirect('/')
+  }
 
   // 組織設定を取得（QRサイズ、重機機能）
   const { data: orgData } = await supabase
@@ -15,8 +19,9 @@ export default async function EquipmentBulkQRPage() {
     .eq('id', organizationId)
     .single()
 
-  if (!orgData?.heavy_equipment_enabled) {
-    redirect('/')
+  // 運用設定で重機機能が無効化されている場合はリダイレクト
+  if (orgData?.heavy_equipment_enabled === false) {
+    redirect('/equipment')
   }
 
   const qrSize = orgData?.qr_print_size || 25

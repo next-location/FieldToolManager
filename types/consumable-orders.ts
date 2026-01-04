@@ -1,6 +1,6 @@
 // 消耗品発注管理の型定義
 
-export type OrderStatus = '発注中' | '発注済み' | '納品済み' | 'キャンセル'
+export type OrderStatus = '下書き中' | '発注済み' | '納品済み' | 'キャンセル'
 
 export interface ConsumableOrder {
   id: string
@@ -91,7 +91,7 @@ export interface UpdateConsumableOrderInput {
 // 発注統計情報
 export interface OrderStatistics {
   total_orders: number
-  pending_orders: number // 発注中
+  pending_orders: number // 下書き中
   ordered_count: number // 発注済み
   delivered_count: number // 納品済み
   cancelled_count: number // キャンセル
