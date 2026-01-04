@@ -72,8 +72,8 @@ export function MovementTabs({
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">移動履歴</h1>
+      <div className="px-4 pb-6 sm:px-0 sm:py-6">
+        <h1 className="text-lg sm:text-2xl font-bold text-gray-900 mb-6">移動履歴</h1>
 
         {/* タブナビゲーション */}
         <div className="mb-6">
@@ -116,7 +116,8 @@ export function MovementTabs({
         {/* タブコンテンツ */}
         {activeTab === 'equipment' ? (
           <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div className="overflow-x-auto">
+            {/* PC: Table view */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -185,10 +186,42 @@ export function MovementTabs({
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile: Card view */}
+            <div className="sm:hidden divide-y divide-gray-200">
+              {equipmentMovements && equipmentMovements.length > 0 ? (
+                equipmentMovements.map((movement) => (
+                  <div key={movement.id} className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-sm font-medium text-gray-900">
+                        {movement.heavy_equipment ? `${movement.heavy_equipment.equipment_code} - ${movement.heavy_equipment.name}` : '削除済み'}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {new Date(movement.action_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <div className="space-y-1 text-sm text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                          {movement.action_type === 'checkout' ? '持出' : movement.action_type === 'checkin' ? '返却' : '移動'}
+                        </span>
+                        <span>{movement.from_site?.name || '倉庫'} → {movement.to_site?.name || '倉庫'}</span>
+                      </div>
+                      <div className="text-xs text-gray-500">実施者: {movement.users?.name || '-'}</div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="px-4 py-12 text-center text-gray-500">
+                  重機の移動履歴がありません
+                </div>
+              )}
+            </div>
           </div>
         ) : activeTab === 'tool' ? (
           <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div className="overflow-x-auto">
+            {/* PC: Table view */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -263,6 +296,46 @@ export function MovementTabs({
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile: Card view */}
+            <div className="sm:hidden divide-y divide-gray-200">
+              {toolMovements && toolMovements.length > 0 ? (
+                toolMovements.map((movement) => (
+                  <div key={movement.id} className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      {movement.tool_items ? (
+                        <Link
+                          href={`/tool-items/${movement.tool_items.id}`}
+                          className="text-sm font-medium text-blue-600"
+                        >
+                          {movement.tool_items.tools[0]?.name || '不明'} #{movement.tool_items.serial_number}
+                        </Link>
+                      ) : (
+                        <span className="text-sm font-medium text-gray-500">削除済み</span>
+                      )}
+                      <span className="text-xs text-gray-500">
+                        {new Date(movement.created_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <div className="space-y-1 text-sm text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                          {movement.to_location === 'site' ? '現場へ' : movement.to_location === 'warehouse' ? '倉庫へ' : '修理へ'}
+                        </span>
+                        <span>
+                          {movement.from_location === 'warehouse' ? '倉庫' : movement.from_location === 'site' ? (movement.from_site?.name || '現場') : '修理中'} → {movement.to_location === 'site' ? (movement.to_site?.name || '現場') : movement.to_location === 'warehouse' ? '倉庫' : '修理中'}
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-500">実施者: {movement.users?.name || '-'}</div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="px-4 py-12 text-center text-gray-500">
+                  道具の移動履歴がありません
+                </div>
+              )}
             </div>
           </div>
         ) : (
