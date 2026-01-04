@@ -63,25 +63,24 @@ export async function updateOrganizationSettings(
     return { error: '更新に失敗しました: ' + updateError.message }
   }
 
-  // organization_settingsテーブルが存在する場合のみ更新
-  // 本番環境にテーブルが存在しない可能性があるため、エラーを無視
-  try {
-    await supabase
-      .from('organization_settings')
-      .upsert(
-        {
-          organization_id: organizationId,
-          enable_low_stock_alert: settings.enable_low_stock_alert,
-          qr_print_size: settings.qr_print_size,
-          updated_at: new Date().toISOString(),
-        },
-        {
-          onConflict: 'organization_id',
-        }
-      )
-  } catch (settingsError) {
-    console.log('organization_settings table not found, skipping:', settingsError)
-    // テーブルが存在しない場合は無視して続行
+  // organization_settingsテーブルの設定を更新（upsert）
+  const { error: settingsError } = await supabase
+    .from('organization_settings')
+    .upsert(
+      {
+        organization_id: organizationId,
+        enable_low_stock_alert: settings.enable_low_stock_alert,
+        qr_print_size: settings.qr_print_size,
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onConflict: 'organization_id',
+      }
+    )
+
+  if (settingsError) {
+    console.error('Settings update error:', settingsError)
+    return { error: '設定の更新に失敗しました: ' + settingsError.message }
   }
 
   revalidatePath('/settings/organization')

@@ -3328,3 +3328,45 @@ CHECK (status IN ('発注中', '発注済み', '納品済み', 'キャンセル'
 COMMENT ON COLUMN consumable_orders.status IS '発注ステータス: 発注中/発注済み/納品済み/キャンセル';
 ```
 
+---
+
+### 20250104_create_organization_settings.sql
+
+**実行日時**: 2025-01-04
+**環境**: ローカル開発環境（未実行）、本番環境（未実行）
+
+#### 変更内容
+- `organization_settings` テーブルを作成
+- 組織ごとの運用設定を保存する専用テーブル
+- `qr_print_size` と `enable_low_stock_alert` を保存
+
+#### 背景
+- `organizations` テーブルに `qr_print_size` カラムが存在せず、運用設定の保存に失敗
+- 設計上、組織の運用設定は `organization_settings` テーブルに保存すべき
+- 本番環境にテーブルが存在しなかったため作成が必要
+
+#### SQL
+詳細は `supabase/migrations/20250104_create_organization_settings.sql` を参照
+
+#### 影響範囲
+- 運用設定画面で `qr_print_size` と `enable_low_stock_alert` が正常に保存できるようになる
+- RLSポリシーで自組織の設定のみアクセス可能
+
+#### 実行コマンド
+
+**本番環境（Supabase Dashboard → SQL Editor）**:
+```sql
+-- 以下のファイルの内容を実行
+-- supabase/migrations/20250104_create_organization_settings.sql
+```
+
+**ローカル環境**:
+```bash
+psql -h localhost -p 54322 -U postgres -d postgres -f supabase/migrations/20250104_create_organization_settings.sql
+```
+
+#### ロールバック
+```sql
+DROP TABLE IF EXISTS organization_settings CASCADE;
+```
+
