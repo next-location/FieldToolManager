@@ -15,6 +15,7 @@ type Organization = {
   enable_site_closure_checklist: boolean
   consumable_movement_tracking: 'quantity' | 'simple' | 'none'
   qr_print_size: number
+  heavy_equipment_enabled: boolean
 }
 
 type OrganizationSettings = {
@@ -49,6 +50,7 @@ export function OrganizationSettingsForm({
     consumable_movement_tracking: organization.consumable_movement_tracking,
     qr_print_size: organization.qr_print_size || 25,
     enable_low_stock_alert: organizationSettings?.enable_low_stock_alert ?? true,
+    heavy_equipment_enabled: organization.heavy_equipment_enabled ?? true,
   })
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{
@@ -498,6 +500,44 @@ export function OrganizationSettingsForm({
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 重機機能設定 */}
+      <div className="border-t border-gray-200 pt-6">
+        <h3 className="text-base font-medium text-gray-900 mb-4">
+          重機機能設定
+        </h3>
+        <div className="flex items-start">
+          <div className="flex items-center h-5">
+            <input
+              id="heavy_equipment_enabled"
+              name="heavy_equipment_enabled"
+              type="checkbox"
+              checked={settings.heavy_equipment_enabled}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  heavy_equipment_enabled: e.target.checked,
+                })
+              }
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+          </div>
+          <div className="ml-3 text-sm">
+            <label
+              htmlFor="heavy_equipment_enabled"
+              className="font-medium text-gray-700"
+            >
+              重機管理機能を有効化
+            </label>
+            <p className="text-gray-500">
+              重機の登録・管理機能を使用します。
+              <span className="text-orange-600 font-medium">
+                ※現場資産パックまたはフル機能統合パックの契約が必要です
+              </span>
+            </p>
           </div>
         </div>
       </div>

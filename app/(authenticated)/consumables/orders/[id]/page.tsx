@@ -78,7 +78,7 @@ export default async function ConsumableOrderDetailPage({ params }: Props) {
       <div>
         <span
           className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-            orderWithRelations.status === '発注中'
+            orderWithRelations.status === '下書き中'
               ? 'bg-yellow-100 text-yellow-800'
               : orderWithRelations.status === '発注済み'
                 ? 'bg-blue-100 text-blue-800'

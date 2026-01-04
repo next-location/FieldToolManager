@@ -10,7 +10,7 @@ interface ConsumableOrdersListProps {
 export default function ConsumableOrdersList({ orders }: ConsumableOrdersListProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case '発注中':
+      case '下書き中':
         return 'bg-yellow-100 text-yellow-800'
       case '発注済み':
         return 'bg-blue-100 text-blue-800'

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { requireAuth } from '@/lib/auth/page-auth'
+import { requireAuth, getOrganizationPackages } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import EquipmentList from '@/components/equipment/EquipmentList'
 import EquipmentPageMobileMenu from '@/components/equipment/EquipmentPageMobileMenu'
@@ -8,12 +8,23 @@ import EquipmentPageFAB from '@/components/equipment/EquipmentPageFAB'
 export default async function EquipmentPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  // 組織の重機管理機能が有効かチェック
+  // パッケージチェック（現場資産パック または フル機能統合パックが必要）
+  const packages = await getOrganizationPackages(organizationId, supabase)
+  if (!packages.hasAssetPackage && packages.packageType !== 'full') {
+    redirect('/')
+  }
+
+  // 組織の重機管理機能設定を取得
   const { data: orgData } = await supabase
     .from('organizations')
     .select('heavy_equipment_enabled, heavy_equipment_settings')
     .eq('id', organizationId)
     .single()
+
+  // 運用設定で重機機能が無効化されている場合はリダイレクト
+  if (orgData?.heavy_equipment_enabled === false) {
+    redirect('/')
+  }
 
   // 重機一覧を取得（機能が無効でも空配列として表示）
   const { data: equipment, error } = await supabase

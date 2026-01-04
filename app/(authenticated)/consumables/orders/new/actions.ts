@@ -70,7 +70,7 @@ export async function createConsumableOrder(formData: FormData) {
     supplier_name: supplierName || null,
     supplier_contact: supplierContact || null,
     notes: notes || null,
-    status: '発注中',
+    status: '下書き中',
     ordered_by: user.id,
   })
 

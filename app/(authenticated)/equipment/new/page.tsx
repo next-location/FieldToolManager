@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { requireAuth } from '@/lib/auth/page-auth'
+import { requireAuth, getOrganizationPackages } from '@/lib/auth/page-auth'
 import { EquipmentRegistrationForm } from './EquipmentRegistrationForm'
 
 export default async function NewEquipmentPage() {
@@ -14,23 +14,28 @@ export default async function NewEquipmentPage() {
     redirect('/login')
   }
 
-
   // リーダー・管理者チェック
   if (!['leader', 'admin', 'super_admin'].includes(userRole)) {
     redirect('/equipment')
   }
 
-  // 組織の重機管理機能設定を取得（設定がなくてもデフォルト値で動作）
+  // パッケージチェック（現場資産パック または フル機能統合パックが必要）
+  const packages = await getOrganizationPackages(organizationId, supabase)
+  if (!packages.hasAssetPackage && packages.packageType !== 'full') {
+    redirect('/')
+  }
+
+  // 組織の重機管理機能設定を取得
   const { data: orgData } = await supabase
     .from('organizations')
     .select('heavy_equipment_enabled, heavy_equipment_settings')
     .eq('id', organizationId)
     .single()
 
-  // heavy_equipment_enabled が明示的に false の場合のみリダイレクト
-  // null や undefined の場合は利用可能とする
+  // 運用設定で重機機能が無効化されている場合はリダイレクト
+  // デフォルトは有効（null/undefined の場合も利用可能）
   if (orgData?.heavy_equipment_enabled === false) {
-    redirect('/')
+    redirect('/equipment')
   }
 
   // カテゴリ一覧を取得

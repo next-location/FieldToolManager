@@ -84,7 +84,7 @@ export default function OrderDetailActions({ order, userId }: Props) {
         <div className="px-4 py-5 sm:p-6">
           <h3 className="text-lg leading-6 font-medium text-gray-900">アクション</h3>
           <div className="mt-5 space-y-3">
-            {order.status === '発注中' && (
+            {order.status === '下書き中' && (
               <>
                 <button
                   onClick={handleMarkAsOrdered}

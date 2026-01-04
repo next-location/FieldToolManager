@@ -91,6 +91,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
         className={`
           fixed ${isImpersonating ? 'top-[104px] h-[calc(100vh-104px)]' : 'top-16 h-[calc(100vh-4rem)]'} left-0 w-64 bg-white border-r border-gray-200 z-40
           transition-transform duration-300 ease-in-out overflow-y-auto
+          pb-16 lg:pb-0
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >

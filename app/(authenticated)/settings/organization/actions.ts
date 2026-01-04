@@ -14,6 +14,7 @@ export async function updateOrganizationSettings(
     consumable_movement_tracking: 'quantity' | 'simple' | 'none'
     qr_print_size: number
     enable_low_stock_alert: boolean
+    heavy_equipment_enabled: boolean
   }
 ) {
   const supabase = await createClient()
@@ -53,6 +54,7 @@ export async function updateOrganizationSettings(
       enable_site_closure_checklist: settings.enable_site_closure_checklist,
       consumable_movement_tracking: settings.consumable_movement_tracking,
       qr_print_size: settings.qr_print_size,
+      heavy_equipment_enabled: settings.heavy_equipment_enabled,
       updated_at: new Date().toISOString(),
     })
     .eq('id', organizationId)

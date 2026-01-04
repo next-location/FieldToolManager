@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS consumable_orders (
   supplier_contact TEXT, -- 仕入れ先連絡先
 
   -- ステータス
-  status TEXT NOT NULL DEFAULT '発注中' CHECK (status IN ('発注中', '発注済み', '納品済み', 'キャンセル')),
+  status TEXT NOT NULL DEFAULT '下書き中' CHECK (status IN ('下書き中', '発注済み', '納品済み', 'キャンセル')),
 
   -- メモ
   notes TEXT,
@@ -96,6 +96,6 @@ CREATE POLICY "Admins can delete consumable orders in their organization"
 -- コメント追加
 COMMENT ON TABLE consumable_orders IS '消耗品の発注管理テーブル';
 COMMENT ON COLUMN consumable_orders.order_number IS '発注番号（企業内で一意）';
-COMMENT ON COLUMN consumable_orders.status IS '発注ステータス: 発注中/発注済み/納品済み/キャンセル';
+COMMENT ON COLUMN consumable_orders.status IS '発注ステータス: 下書き中/発注済み/納品済み/キャンセル';
 COMMENT ON COLUMN consumable_orders.ordered_by IS '発注者のユーザーID';
 COMMENT ON COLUMN consumable_orders.received_by IS '受領者のユーザーID';

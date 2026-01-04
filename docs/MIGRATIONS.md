@@ -3259,3 +3259,72 @@ PGPASSWORD="cF1!hVERlDgjMD" psql -h db.ecehilhaxgwphvamvabj.supabase.co -p 5432 
 DROP TABLE IF EXISTS password_change_tokens CASCADE;
 ```
 
+---
+
+### 20250104_rename_order_status.sql
+
+**実行日時**: 2025-01-04
+**環境**: ローカル開発環境（未実行）、本番環境（未実行）
+
+#### 変更内容
+- 消耗品発注ステータスを「発注中」→「下書き中」に変更
+- ステータスの意味を明確化（下書き状態であることを直感的に表現）
+
+#### 背景
+- 「発注中」は業者に発注している最中と誤解されやすい
+- 「下書き中」の方が未確定状態であることが明確
+
+#### SQL
+```sql
+-- 既存データの更新
+UPDATE consumable_orders
+SET status = '下書き中'
+WHERE status = '発注中';
+
+-- CHECK制約を削除
+ALTER TABLE consumable_orders
+DROP CONSTRAINT IF EXISTS consumable_orders_status_check;
+
+-- 新しいCHECK制約を追加
+ALTER TABLE consumable_orders
+ADD CONSTRAINT consumable_orders_status_check
+CHECK (status IN ('下書き中', '発注済み', '納品済み', 'キャンセル'));
+
+-- コメント更新
+COMMENT ON COLUMN consumable_orders.status IS '発注ステータス: 下書き中/発注済み/納品済み/キャンセル';
+```
+
+#### 影響範囲
+- UIコード: 発注一覧・詳細画面のステータス表示
+- APIコード: 新規発注作成時のデフォルトステータス
+- ドキュメント: MANUAL.md, DATABASE_SCHEMA.md
+
+#### 実行コマンド
+```bash
+# ローカル
+psql -h localhost -p 54322 -U postgres -d postgres -f supabase/migrations/20250104_rename_order_status.sql
+
+# 本番（Supabase Dashboard → SQL Editor）
+# 上記SQLを実行
+```
+
+#### ロールバック
+```sql
+-- 既存データの更新
+UPDATE consumable_orders
+SET status = '発注中'
+WHERE status = '下書き中';
+
+-- CHECK制約を削除
+ALTER TABLE consumable_orders
+DROP CONSTRAINT IF EXISTS consumable_orders_status_check;
+
+-- 元のCHECK制約を追加
+ALTER TABLE consumable_orders
+ADD CONSTRAINT consumable_orders_status_check
+CHECK (status IN ('発注中', '発注済み', '納品済み', 'キャンセル'));
+
+-- コメント復元
+COMMENT ON COLUMN consumable_orders.status IS '発注ステータス: 発注中/発注済み/納品済み/キャンセル';
+```
+

@@ -41,7 +41,7 @@ export default async function ConsumableOrdersPage() {
   // 統計情報を計算
   const stats = {
     total: ordersWithRelations.length,
-    pending: ordersWithRelations.filter((o) => o.status === '発注中').length,
+    pending: ordersWithRelations.filter((o) => o.status === '下書き中').length,
     ordered: ordersWithRelations.filter((o) => o.status === '発注済み').length,
     delivered: ordersWithRelations.filter((o) => o.status === '納品済み').length,
     cancelled: ordersWithRelations.filter((o) => o.status === 'キャンセル').length,
@@ -93,7 +93,7 @@ export default async function ConsumableOrdersPage() {
           </div>
         </div>
 
-        {/* 発注中 - スマホで2行目左 */}
+        {/* 下書き中 - スマホで2行目左 */}
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-4 sm:p-5">
             <div className="flex items-center">
@@ -104,7 +104,7 @@ export default async function ConsumableOrdersPage() {
               </div>
               <div className="ml-3 sm:ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">発注中</dt>
+                  <dt className="text-sm font-medium text-gray-500 truncate">下書き中</dt>
                   <dd className="text-lg font-semibold text-yellow-600">{stats.pending}</dd>
                 </dl>
               </div>

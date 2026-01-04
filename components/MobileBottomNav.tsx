@@ -14,7 +14,7 @@ export function MobileBottomNav({ unreadCount = 0, onMenuClick }: MobileBottomNa
   const isActive = (path: string) => pathname === path
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 safe-area-inset-bottom">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 safe-area-inset-bottom">
       <div className="flex items-center justify-around h-16 px-2">
         {/* ホーム */}
         <Link

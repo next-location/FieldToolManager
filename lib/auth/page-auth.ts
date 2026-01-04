@@ -13,6 +13,12 @@ export interface PageAuthResult {
   isImpersonating: boolean;
 }
 
+export interface OrganizationPackages {
+  hasAssetPackage: boolean;
+  hasDxPackage: boolean;
+  packageType: 'full' | 'asset' | 'dx' | 'none';
+}
+
 /**
  * ページコンポーネント用の認証ヘルパー
  * なりすましセッションと通常の認証の両方に対応
@@ -71,5 +77,34 @@ export async function requireAuth(): Promise<PageAuthResult> {
     userRole: userData.role as 'staff' | 'leader' | 'manager' | 'admin',
     supabase,
     isImpersonating: false,
+  };
+}
+
+/**
+ * 組織のパッケージ情報を取得
+ * Server Component用のパッケージ判定ヘルパー
+ */
+export async function getOrganizationPackages(
+  organizationId: string,
+  supabase: SupabaseClient<any, 'public', any>
+): Promise<OrganizationPackages> {
+  const { data: features } = await supabase
+    .from('organization_features')
+    .select('has_asset_package, has_dx_efficiency_package, package_type')
+    .eq('organization_id', organizationId)
+    .single();
+
+  if (!features) {
+    return {
+      hasAssetPackage: false,
+      hasDxPackage: false,
+      packageType: 'none',
+    };
+  }
+
+  return {
+    hasAssetPackage: features.has_asset_package || false,
+    hasDxPackage: features.has_dx_efficiency_package || false,
+    packageType: features.package_type || 'none',
   };
 }
