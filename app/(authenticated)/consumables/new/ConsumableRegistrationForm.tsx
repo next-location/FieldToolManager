@@ -247,7 +247,7 @@ export function ConsumableRegistrationForm({
           min="0"
           disabled={isSubmitting}
         />
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-[10px] sm:text-xs text-gray-500">
           在庫がこの数を下回ると「在庫不足」として警告されます
         </p>
       </div>
@@ -269,7 +269,7 @@ export function ConsumableRegistrationForm({
           min="0"
           disabled={isSubmitting}
         />
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-[10px] sm:text-xs text-gray-500">
           登録時に倉庫に保管する初期在庫数を設定できます（0の場合は在庫レコードは作成されません）
         </p>
       </div>
