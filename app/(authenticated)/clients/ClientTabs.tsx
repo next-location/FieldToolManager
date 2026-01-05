@@ -114,7 +114,7 @@ export function ClientTabs({ clients, initialTab = 'all' }: ClientTabsProps) {
   return (
     <>
       {/* ヘッダー */}
-      <div className="mb-6 flex justify-between items-start">
+      <div className="mb-6 flex justify-between items-center">
         <div>
           <h1 className="text-lg sm:text-2xl font-bold text-gray-900">取引先マスタ</h1>
           <p className="mt-2 text-sm text-gray-600">
