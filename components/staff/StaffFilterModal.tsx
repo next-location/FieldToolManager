@@ -41,12 +41,12 @@ export default function StaffFilterModal({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40 animate-fadeIn"
+        className="fixed inset-0 bg-black bg-opacity-50 z-[60] animate-fadeIn"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="fixed inset-x-0 bottom-0 bg-white rounded-t-2xl shadow-xl z-50 max-h-[80vh] overflow-hidden flex flex-col animate-slideUp">
+      <div className="fixed inset-x-0 bottom-0 bg-white rounded-t-2xl shadow-xl z-[70] max-h-[80vh] overflow-hidden flex flex-col animate-slideUp">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-lg font-semibold text-gray-900">フィルター</h2>
@@ -75,7 +75,7 @@ export default function StaffFilterModal({
               onChange={(e) => onDepartmentChange(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="all">全ての部署</option>
+              <option value="all">すべて</option>
               {departments.map((dept) => (
                 <option key={dept} value={dept}>
                   {dept}
@@ -98,7 +98,7 @@ export default function StaffFilterModal({
               onChange={(e) => onRoleChange(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="all">全ての権限</option>
+              <option value="all">すべて</option>
               <option value="admin">管理者</option>
               <option value="leader">リーダー</option>
               <option value="staff">一般スタッフ</option>
@@ -119,7 +119,7 @@ export default function StaffFilterModal({
               onChange={(e) => onStatusChange(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="all">全ての状態</option>
+              <option value="all">すべて</option>
               <option value="active">有効</option>
               <option value="inactive">無効</option>
             </select>
