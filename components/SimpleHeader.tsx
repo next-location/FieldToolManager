@@ -51,12 +51,12 @@ export function SimpleHeader({
   return (
     <header className={`fixed ${isImpersonating ? 'top-10' : 'top-0'} left-0 right-0 h-16 bg-white border-b border-gray-200 z-50 shadow-sm`}>
       <div className="h-full flex items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* 左側：ハンバーガーメニュー + 組織名 */}
+        {/* 左側：組織名（スマホ時はロゴのみ左寄せ、PC時はハンバーガーメニュー + 組織名） */}
         <div className="flex items-center space-x-4">
-          {/* ハンバーガーメニュー */}
+          {/* ハンバーガーメニュー（PC時のみ表示） */}
           <button
             onClick={onMenuClick}
-            className="lg:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors"
+            className="hidden lg:block p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors"
             aria-label="メニューを開く"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
