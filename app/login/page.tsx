@@ -24,22 +24,29 @@ export default function LoginPage() {
       try {
         const hostname = window.location.hostname
         const subdomain = hostname.split('.')[0]
+        console.log('[LOGIN] Hostname:', hostname, 'Subdomain:', subdomain)
 
         // localhostまたはサブドメインがない場合はスキップ
         if (hostname === 'localhost' || hostname.startsWith('127.0.0.1') || subdomain === hostname) {
+          console.log('[LOGIN] Local environment detected, using default name')
           setOrganizationName('ザイロク')
           return
         }
 
+        console.log('[LOGIN] Fetching organization info for subdomain:', subdomain)
         const response = await fetch(`/api/organization/info?subdomain=${subdomain}`)
+        console.log('[LOGIN] Response status:', response.status)
+
         if (response.ok) {
           const data = await response.json()
+          console.log('[LOGIN] Organization data:', data)
           setOrganizationName(data.name || 'ザイロク')
         } else {
+          console.log('[LOGIN] Failed to fetch, using default')
           setOrganizationName('ザイロク')
         }
       } catch (error) {
-        console.error('Failed to fetch organization name:', error)
+        console.error('[LOGIN] Failed to fetch organization name:', error)
         setOrganizationName('ザイロク')
       }
     }
