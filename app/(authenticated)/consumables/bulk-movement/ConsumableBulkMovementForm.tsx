@@ -464,14 +464,14 @@ export function ConsumableBulkMovementForm({
       <div className="flex justify-end gap-3">
         <a
           href="/consumables"
-          className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+          className="px-4 sm:px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors text-xs sm:text-sm whitespace-nowrap"
         >
           キャンセル
         </a>
         <button
           type="submit"
           disabled={isSubmitting || selectedConsumables.length === 0}
-          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+          className="px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-xs sm:text-sm whitespace-nowrap"
         >
           {isSubmitting
             ? '移動中...'
