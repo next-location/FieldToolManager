@@ -295,30 +295,38 @@ export default function LoginForm({ organizationName }: LoginFormProps) {
             </div>
           </div>
 
+          {/* タイトル（スマホ時はカードの外） */}
+          <div className="text-center mb-6 lg:hidden">
+            <h2 className="text-lg font-bold text-gray-900 mb-2 break-words">
+              「{organizationName}」ログインページ
+            </h2>
+            <p className="text-sm text-gray-600">
+              アカウントにログインしてください
+            </p>
+          </div>
+
           {/* ログインカード */}
           <div className="bg-white rounded-[7px] shadow-lg lg:shadow-none p-6 sm:p-8">
-            {/* PC時のロゴ */}
-            <div className="text-center hidden lg:block mb-8">
-              <div className="flex justify-center mb-8">
-                <Image
-                  src="/images/zairoku-logo.png"
-                  alt="ザイロク"
-                  width={240}
-                  height={60}
-                  priority
-                  className="h-16 w-auto"
-                />
+            {/* PC時のロゴとタイトル */}
+            <div className="hidden lg:block">
+              <div className="text-center mb-8">
+                <div className="flex justify-center mb-8">
+                  <Image
+                    src="/images/zairoku-logo.png"
+                    alt="ザイロク"
+                    width={240}
+                    height={60}
+                    priority
+                    className="h-16 w-auto"
+                  />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2 break-words">
+                  「{organizationName}」ログインページ
+                </h2>
+                <p className="text-sm text-gray-600">
+                  アカウントにログインしてください
+                </p>
               </div>
-            </div>
-
-            {/* タイトル */}
-            <div className="text-center mb-6 sm:mb-8">
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-2 break-words">
-                「{organizationName}」ログインページ
-              </h2>
-              <p className="text-sm text-gray-600">
-                アカウントにログインしてください
-              </p>
             </div>
 
             <form className="space-y-5 sm:space-y-6" onSubmit={handleSubmit}>
