@@ -86,48 +86,87 @@ export default async function InventoryOptimizationPage() {
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">在庫最適化レポート</h1>
-        <p className="mt-1 text-sm text-gray-600">消耗品の在庫状況と推奨在庫レベル</p>
+      <div className="px-4 pb-6 sm:px-0 sm:py-6 space-y-6">
+      <div className="mb-6">
+        <h1 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2">在庫最適化レポート</h1>
+        <p className="text-sm text-gray-600">消耗品の在庫状況と推奨在庫レベル</p>
       </div>
 
       {/* 統計カード */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
-        <div className="bg-white p-5 shadow rounded-lg">
+      <div>
+        {/* 総消耗品数 - モバイルで1列 */}
+        <div className="bg-white p-4 shadow rounded-lg mb-3 sm:hidden">
           <div className="text-sm font-medium text-gray-500">総消耗品数</div>
           <div className="mt-1 text-2xl font-semibold text-gray-900">
             {report.total_consumables}
           </div>
         </div>
-        <div className="bg-green-50 p-5 shadow rounded-lg">
-          <div className="text-sm font-medium text-green-700">適正在庫</div>
-          <div className="mt-1 text-2xl font-semibold text-green-900">
-            {report.optimal_stock_count}
+
+        {/* その他のカード - モバイルで2列 */}
+        <div className="grid grid-cols-2 gap-3 sm:hidden">
+          <div className="bg-green-50 p-4 shadow rounded-lg">
+            <div className="text-sm font-medium text-green-700">適正在庫</div>
+            <div className="mt-1 text-2xl font-semibold text-green-900">
+              {report.optimal_stock_count}
+            </div>
+          </div>
+          <div className="bg-yellow-50 p-4 shadow rounded-lg">
+            <div className="text-sm font-medium text-yellow-700">低在庫</div>
+            <div className="mt-1 text-2xl font-semibold text-yellow-900">
+              {report.low_stock_count}
+            </div>
+          </div>
+          <div className="bg-blue-50 p-4 shadow rounded-lg">
+            <div className="text-sm font-medium text-blue-700">過剰在庫</div>
+            <div className="mt-1 text-2xl font-semibold text-blue-900">
+              {report.excess_stock_count}
+            </div>
+          </div>
+          <div className="bg-red-50 p-4 shadow rounded-lg">
+            <div className="text-sm font-medium text-red-700">在庫切れ</div>
+            <div className="mt-1 text-2xl font-semibold text-red-900">
+              {report.out_of_stock_count}
+            </div>
           </div>
         </div>
-        <div className="bg-yellow-50 p-5 shadow rounded-lg">
-          <div className="text-sm font-medium text-yellow-700">低在庫</div>
-          <div className="mt-1 text-2xl font-semibold text-yellow-900">
-            {report.low_stock_count}
+
+        {/* PC表示 - 従来通り */}
+        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-5 gap-5">
+          <div className="bg-white p-5 shadow rounded-lg">
+            <div className="text-sm font-medium text-gray-500">総消耗品数</div>
+            <div className="mt-1 text-2xl font-semibold text-gray-900">
+              {report.total_consumables}
+            </div>
           </div>
-        </div>
-        <div className="bg-blue-50 p-5 shadow rounded-lg">
-          <div className="text-sm font-medium text-blue-700">過剰在庫</div>
-          <div className="mt-1 text-2xl font-semibold text-blue-900">
-            {report.excess_stock_count}
+          <div className="bg-green-50 p-5 shadow rounded-lg">
+            <div className="text-sm font-medium text-green-700">適正在庫</div>
+            <div className="mt-1 text-2xl font-semibold text-green-900">
+              {report.optimal_stock_count}
+            </div>
           </div>
-        </div>
-        <div className="bg-red-50 p-5 shadow rounded-lg">
-          <div className="text-sm font-medium text-red-700">在庫切れ</div>
-          <div className="mt-1 text-2xl font-semibold text-red-900">
-            {report.out_of_stock_count}
+          <div className="bg-yellow-50 p-5 shadow rounded-lg">
+            <div className="text-sm font-medium text-yellow-700">低在庫</div>
+            <div className="mt-1 text-2xl font-semibold text-yellow-900">
+              {report.low_stock_count}
+            </div>
+          </div>
+          <div className="bg-blue-50 p-5 shadow rounded-lg">
+            <div className="text-sm font-medium text-blue-700">過剰在庫</div>
+            <div className="mt-1 text-2xl font-semibold text-blue-900">
+              {report.excess_stock_count}
+            </div>
+          </div>
+          <div className="bg-red-50 p-5 shadow rounded-lg">
+            <div className="text-sm font-medium text-red-700">在庫切れ</div>
+            <div className="mt-1 text-2xl font-semibold text-red-900">
+              {report.out_of_stock_count}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 最適化テーブル */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+      {/* 最適化テーブル - PC */}
+      <div className="hidden sm:block bg-white shadow overflow-hidden sm:rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -190,6 +229,56 @@ export default async function InventoryOptimizationPage() {
               ))}
           </tbody>
         </table>
+      </div>
+
+      {/* モバイル用カードビュー */}
+      <div className="sm:hidden space-y-3">
+        {report.optimizations
+          .sort((a, b) => {
+            if (a.status === 'out_of_stock') return -1
+            if (b.status === 'out_of_stock') return 1
+            if (a.status === 'low') return -1
+            if (b.status === 'low') return 1
+            return 0
+          })
+          .map((opt) => (
+            <div key={opt.tool_id} className="bg-white shadow rounded-lg p-4 border border-gray-200">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-900">{opt.tool_name}</h3>
+                </div>
+                <span
+                  className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                    opt.status
+                  )}`}
+                >
+                  {getStatusLabel(opt.status)}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                <div>
+                  <span className="text-gray-500">現在在庫</span>
+                  <p className="font-semibold text-gray-900">{opt.current_inventory}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">月平均使用量</span>
+                  <p className="font-medium text-gray-900">{opt.average_usage_per_month.toFixed(1)}</p>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-gray-500">推奨最小在庫</span>
+                  <p className="font-medium text-gray-900">{opt.recommended_min_stock}</p>
+                </div>
+              </div>
+
+              {opt.action_needed && opt.action_needed !== '-' && (
+                <div className="pt-3 border-t border-gray-100">
+                  <span className="text-xs text-gray-500">アクション: </span>
+                  <span className="text-xs font-medium text-gray-700">{opt.action_needed}</span>
+                </div>
+              )}
+            </div>
+          ))}
       </div>
       </div>
     </div>
