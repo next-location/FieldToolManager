@@ -418,31 +418,29 @@ export function BulkMovementForm({
         <h3 className="text-base font-semibold text-gray-900">2. 移動する道具の選択方法</h3>
 
         {/* タブ */}
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-4">
-            <button
-              type="button"
-              onClick={() => handleTabChange('individual')}
-              className={`py-2 px-4 border-b-2 font-medium text-sm transition-colors ${
-                selectionMode === 'individual'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              個別選択
-            </button>
-            <button
-              type="button"
-              onClick={() => handleTabChange('set')}
-              className={`py-2 px-4 border-b-2 font-medium text-sm transition-colors ${
-                selectionMode === 'set'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              道具セット
-            </button>
-          </nav>
+        <div className="flex space-x-2">
+          <button
+            type="button"
+            onClick={() => handleTabChange('individual')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              selectionMode === 'individual'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            個別選択
+          </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange('set')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              selectionMode === 'set'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            道具セット
+          </button>
         </div>
 
         {/* 個別選択タブ */}
