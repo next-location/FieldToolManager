@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import EquipmentCategoriesPageFAB from '@/components/master/EquipmentCategoriesPageFAB'
 
 interface Category {
   id: string
@@ -165,21 +166,19 @@ export function EquipmentCategoriesClient({
     <div className="space-y-6">
       {/* ヘッダー */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">重機カテゴリ管理</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            重機のカテゴリを管理します。カテゴリを追加・編集・削除できます。
-          </p>
-        </div>
+        <h1 className="text-lg sm:text-2xl font-bold text-gray-900">重機カテゴリ管理</h1>
         {!isAdding && (
           <button
             onClick={() => setIsAdding(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+            className="hidden sm:inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
           >
             + カテゴリを追加
           </button>
         )}
       </div>
+
+      {/* FAB for mobile */}
+      {!isAdding && <EquipmentCategoriesPageFAB onAdd={() => setIsAdding(true)} />}
 
       {error && (
         <div className="rounded-md bg-red-50 p-4">
@@ -247,7 +246,8 @@ export function EquipmentCategoriesClient({
 
       {/* カテゴリ一覧 */}
       <div className="bg-white shadow sm:rounded-lg overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
+        {/* PC: Table view */}
+        <table className="hidden sm:table min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -371,8 +371,119 @@ export function EquipmentCategoriesClient({
           </tbody>
         </table>
 
+        {/* Mobile: Card view */}
+        <div className="sm:hidden divide-y divide-gray-200">
+          {categories.length > 0 ? (
+            categories.map((category) => {
+              const isSystemCategory = !category.organization_id
+              const isEditing = editingId === category.id
+
+              return (
+                <div key={category.id} className={`p-4 ${isEditing ? 'bg-blue-50' : ''}`}>
+                  {isEditing ? (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          カテゴリ名
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.name}
+                          onChange={(e) =>
+                            setFormData({ ...formData, name: e.target.value })
+                          }
+                          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          コード接頭辞
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.code_prefix}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              code_prefix: e.target.value,
+                            })
+                          }
+                          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                        />
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <button
+                          onClick={() => handleUpdate(category.id)}
+                          disabled={loading}
+                          className="flex-1 px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          保存
+                        </button>
+                        <button
+                          onClick={cancelEdit}
+                          className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                        >
+                          キャンセル
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-sm font-medium text-gray-900">
+                          {category.name}
+                        </span>
+                        {isSystemCategory ? (
+                          <span className="px-2 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                            システム
+                          </span>
+                        ) : (
+                          <span className="px-2 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                            カスタム
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-sm text-gray-600 mb-2">
+                        コード接頭辞: {category.code_prefix || '-'}
+                      </div>
+                      {!isSystemCategory && (
+                        <div className="flex gap-3 text-sm pt-2">
+                          <button
+                            onClick={() => startEdit(category)}
+                            className="text-blue-600 hover:text-blue-900 font-medium"
+                          >
+                            編集
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleDelete(category.id, isSystemCategory)
+                            }
+                            className="text-red-600 hover:text-red-900 font-medium"
+                          >
+                            削除
+                          </button>
+                        </div>
+                      )}
+                      {isSystemCategory && (
+                        <p className="text-xs text-gray-500 pt-2">編集不可</p>
+                      )}
+                    </>
+                  )}
+                </div>
+              )
+            })
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-sm text-gray-500">
+                カテゴリが登録されていません
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Empty state for PC */}
         {categories.length === 0 && (
-          <div className="text-center py-12">
+          <div className="hidden sm:block text-center py-12">
             <p className="text-sm text-gray-500">
               カテゴリが登録されていません
             </p>
