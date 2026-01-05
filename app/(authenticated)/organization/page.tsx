@@ -218,17 +218,11 @@ export default function OrganizationPage() {
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
+      <div className="px-4 pb-6 sm:px-0 sm:py-6">
       {/* ヘッダー */}
-      <div className="mb-8">
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-        >
-          ← ダッシュボードに戻る
-        </Link>
-        <h1 className="mt-4 text-2xl font-bold text-gray-900">組織情報設定</h1>
-        <p className="mt-1 text-sm text-gray-600">
+      <div className="mb-6">
+        <h1 className="text-lg sm:text-2xl font-bold text-gray-900">組織情報設定</h1>
+        <p className="mt-2 text-sm text-gray-600">
           組織の基本情報を編集できます（管理者のみ）
         </p>
       </div>
@@ -363,17 +357,16 @@ export default function OrganizationPage() {
             </label>
             <div className="space-y-4">
               {/* 書体選択 */}
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 {[
                   { value: 'gothic', label: 'ゴシック体', description: 'モダンで読みやすい' },
                   { value: 'mincho', label: '明朝体', description: '伝統的で格式高い' },
-                  { value: 'classical', label: '古印体', description: '趣のある筆文字風' },
                 ].map((style) => (
                   <button
                     key={style.value}
                     type="button"
                     onClick={() => handleFontStyleChange(style.value as SealFontStyle)}
-                    className={`relative p-3 rounded-lg border-2 transition-all ${
+                    className={`relative p-4 rounded-lg border-2 transition-all ${
                       selectedFontStyle === style.value
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-300 hover:border-gray-400'
