@@ -114,36 +114,36 @@ export function ClientTabs({ clients, initialTab = 'all' }: ClientTabsProps) {
   return (
     <>
       {/* ヘッダー */}
-      <div className="mb-6 flex justify-between items-center">
-        <div>
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-2">
           <h1 className="text-lg sm:text-2xl font-bold text-gray-900">取引先マスタ</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            顧客・仕入先・協力会社などの取引先情報を管理します
-          </p>
+          <div className="hidden sm:flex gap-3">
+            <ImportExportButtons
+              filters={{
+                client_type: activeTab !== 'all' ? activeTab : undefined,
+                is_active: 'true',
+              }}
+            />
+            <Link
+              href="/clients/new"
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+            >
+              + 新規登録
+            </Link>
+          </div>
+          <div className="sm:hidden">
+            <ImportExportButtons
+              mobileMenuOnly
+              filters={{
+                client_type: activeTab !== 'all' ? activeTab : undefined,
+                is_active: 'true',
+              }}
+            />
+          </div>
         </div>
-        <div className="hidden sm:flex gap-3">
-          <ImportExportButtons
-            filters={{
-              client_type: activeTab !== 'all' ? activeTab : undefined,
-              is_active: 'true',
-            }}
-          />
-          <Link
-            href="/clients/new"
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-          >
-            + 新規登録
-          </Link>
-        </div>
-        <div className="sm:hidden">
-          <ImportExportButtons
-            mobileMenuOnly
-            filters={{
-              client_type: activeTab !== 'all' ? activeTab : undefined,
-              is_active: 'true',
-            }}
-          />
-        </div>
+        <p className="text-sm text-gray-600">
+          顧客・仕入先・協力会社などの取引先情報を管理します
+        </p>
       </div>
 
       {/* FAB for mobile */}
