@@ -446,13 +446,13 @@ export function BulkMovementForm({
         {/* 個別選択タブ */}
         {selectionMode === 'individual' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <p className="text-sm text-gray-600">QRスキャンまたは検索して道具を選択</p>
               <button
                 type="button"
                 onClick={() => setShowCamera(true)}
                 disabled={isSubmitting}
-                className="px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center gap-2"
+                className="w-full sm:w-auto px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
               >
                 📷 QRコードをスキャン
               </button>

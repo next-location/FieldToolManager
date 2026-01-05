@@ -461,22 +461,22 @@ export function ConsumableBulkMovementForm({
       </div>
 
       {/* ボタン */}
-      <div className="flex gap-4">
-        <button
-          type="submit"
-          disabled={isSubmitting || selectedConsumables.length === 0}
-          className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
-        >
-          {isSubmitting
-            ? '移動中...'
-            : `${selectedConsumables.length}件を一括移動`}
-        </button>
+      <div className="flex justify-end gap-3">
         <a
           href="/consumables"
-          className="px-6 py-3 border border-gray-300 rounded-md hover:bg-gray-50 text-center"
+          className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
         >
           キャンセル
         </a>
+        <button
+          type="submit"
+          disabled={isSubmitting || selectedConsumables.length === 0}
+          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+        >
+          {isSubmitting
+            ? '移動中...'
+            : `移動を実行（${selectedConsumables.length}個）`}
+        </button>
       </div>
     </form>
   )
