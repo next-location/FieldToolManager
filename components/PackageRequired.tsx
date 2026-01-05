@@ -121,14 +121,11 @@ export function PackageRequired({ packageType, featureName, userRole, currentPac
             {isAdmin ? (
               <>
                 <Link
-                  href="/organization"
+                  href="/contact"
                   className="block w-full bg-blue-600 text-white text-center py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
                 >
-                  パッケージを追加する
+                  アップグレードについて問い合わせる
                 </Link>
-                <p className="text-sm text-gray-600 text-center">
-                  組織情報ページから契約を変更できます
-                </p>
               </>
             ) : (
               <>
