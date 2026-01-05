@@ -203,8 +203,37 @@ export default function AnalyticsReportView({
             </div>
           </div>
         </div>
-        {/* サマリーカード */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* サマリーカード - モバイル */}
+        <div className="grid grid-cols-2 gap-3 sm:hidden mb-6">
+          {/* 平均稼働率 */}
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="text-sm font-medium text-gray-500 mb-1">平均稼働率</div>
+            <div className="text-2xl font-bold text-gray-900">{report.average_operation_rate}%</div>
+          </div>
+
+          {/* 高稼働率 */}
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="text-sm font-medium text-gray-500 mb-1">高稼働率重機</div>
+            <div className="text-xl font-bold text-gray-900">{report.high_performers_count}台</div>
+            <div className="text-xs text-gray-500 mt-1">稼働率80%以上</div>
+          </div>
+
+          {/* 低稼働率 */}
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="text-sm font-medium text-gray-500 mb-1">低稼働率重機</div>
+            <div className="text-xl font-bold text-gray-900">{report.low_performers_count}台</div>
+            <div className="text-xs text-gray-500 mt-1">稼働率30%以下</div>
+          </div>
+
+          {/* 総重機数 */}
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="text-sm font-medium text-gray-500 mb-1">総重機数</div>
+            <div className="text-2xl font-bold text-gray-900">{report.total_equipment_count}台</div>
+          </div>
+        </div>
+
+        {/* サマリーカード - PC */}
+        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* 平均稼働率 */}
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
@@ -307,43 +336,46 @@ export default function AnalyticsReportView({
 
         {/* 詳細テーブル */}
         <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">重機別稼働率詳細</h2>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => setSortBy('rate')}
-                className={`px-3 py-1 text-sm font-medium rounded ${
-                  sortBy === 'rate'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                稼働率順
-              </button>
-              <button
-                onClick={() => setSortBy('efficiency')}
-                className={`px-3 py-1 text-sm font-medium rounded ${
-                  sortBy === 'efficiency'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                効率順
-              </button>
-              <button
-                onClick={() => setSortBy('code')}
-                className={`px-3 py-1 text-sm font-medium rounded ${
-                  sortBy === 'code'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                コード順
-              </button>
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+              <h2 className="text-lg font-semibold text-gray-900">重機別稼働率詳細</h2>
+              <div className="flex space-x-2 justify-end sm:justify-start">
+                <button
+                  onClick={() => setSortBy('rate')}
+                  className={`px-3 py-1 text-sm font-medium rounded ${
+                    sortBy === 'rate'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  稼働率順
+                </button>
+                <button
+                  onClick={() => setSortBy('efficiency')}
+                  className={`px-3 py-1 text-sm font-medium rounded ${
+                    sortBy === 'efficiency'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  効率順
+                </button>
+                <button
+                  onClick={() => setSortBy('code')}
+                  className={`px-3 py-1 text-sm font-medium rounded ${
+                    sortBy === 'code'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  コード順
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* PC用テーブル */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -422,7 +454,68 @@ export default function AnalyticsReportView({
           </div>
 
           {sortedAnalytics.length === 0 && (
-            <div className="text-center py-12">
+            <div className="hidden sm:block text-center py-12">
+              <p className="text-gray-500">分析データがありません</p>
+            </div>
+          )}
+
+          {/* モバイル用カードビュー */}
+          <div className="sm:hidden divide-y divide-gray-200">
+            {sortedAnalytics.map((analysis) => (
+              <div key={analysis.equipment_id} className="p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-900">{analysis.equipment_name}</h3>
+                    <p className="text-sm text-gray-500 mt-1">{analysis.equipment_code}</p>
+                  </div>
+                  <span
+                    className={`inline-flex px-2 py-0.5 rounded text-xs font-semibold ${
+                      analysis.ownership_type === 'owned'
+                        ? 'bg-blue-100 text-blue-800'
+                        : analysis.ownership_type === 'leased'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-orange-100 text-orange-800'
+                    }`}
+                  >
+                    {getOwnershipTypeLabel(analysis.ownership_type)}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                  <div>
+                    <span className="text-gray-500">稼働日数</span>
+                    <p className="font-medium text-gray-900">
+                      {analysis.operation_days} / {analysis.total_days}日
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">稼働率</span>
+                    <p className={`font-bold ${getOperationRateColor(analysis.operation_rate)}`}>
+                      {analysis.operation_rate}%
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">使用回数</span>
+                    <p className="font-medium text-gray-900">{analysis.total_usage_count}回</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">効率スコア</span>
+                    <p className="font-semibold text-gray-900">{analysis.cost_efficiency_score}点</p>
+                  </div>
+                </div>
+
+                <Link
+                  href={`/equipment/${analysis.equipment_id}`}
+                  className="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                >
+                  詳細を見る →
+                </Link>
+              </div>
+            ))}
+          </div>
+
+          {sortedAnalytics.length === 0 && (
+            <div className="sm:hidden text-center py-12">
               <p className="text-gray-500">分析データがありません</p>
             </div>
           )}
