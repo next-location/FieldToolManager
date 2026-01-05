@@ -180,7 +180,7 @@ export default function CostReportView({
         </div>
 
         {/* サマリーカード - モバイル */}
-        <div className="grid grid-cols-2 gap-3 sm:hidden">
+        <div className="grid grid-cols-2 gap-3 sm:hidden mb-6">
           {/* 総重機数 */}
           <div className="bg-white rounded-lg shadow p-4">
             <div className="text-sm font-medium text-gray-500 mb-1">総重機数</div>
@@ -346,7 +346,7 @@ export default function CostReportView({
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
               <h2 className="text-lg font-semibold text-gray-900">重機別コスト詳細</h2>
               {/* ソート切り替え */}
-              <div className="flex space-x-2">
+              <div className="flex space-x-2 justify-end sm:justify-start">
                 <button
                   onClick={() => setSortBy('cost')}
                   className={`px-3 py-1 text-sm font-medium rounded ${
@@ -447,7 +447,7 @@ export default function CostReportView({
           </div>
 
           {sortedDetails.length === 0 && (
-            <div className="text-center py-12">
+            <div className="hidden sm:block text-center py-12">
               <p className="text-gray-500">コストデータがありません</p>
             </div>
           )}
