@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import type { HeavyEquipment, HeavyEquipmentMaintenance, CostReport } from '@/types/heavy-equipment'
 import {
@@ -13,39 +13,45 @@ import EquipmentCostReportMobileMenu from '@/components/equipment/EquipmentCostR
 interface CostReportViewProps {
   equipment: HeavyEquipment[]
   maintenanceMap: Record<string, HeavyEquipmentMaintenance[]>
-  periodStart: string
-  periodEnd: string
+  defaultPeriodStart: string
+  defaultPeriodEnd: string
   userRole: string
 }
 
 export default function CostReportView({
   equipment,
   maintenanceMap,
-  periodStart,
-  periodEnd,
+  defaultPeriodStart,
+  defaultPeriodEnd,
   userRole,
 }: CostReportViewProps) {
+  const [periodStart, setPeriodStart] = useState(defaultPeriodStart)
+  const [periodEnd, setPeriodEnd] = useState(defaultPeriodEnd)
   const [selectedPeriod, setSelectedPeriod] = useState<'month' | 'year'>('year')
   const [sortBy, setSortBy] = useState<'code' | 'cost'>('cost')
 
-  // コストレポート生成
-  const report: CostReport = generateCostReport(
-    equipment,
-    maintenanceMap,
-    periodStart,
-    periodEnd
-  )
+  // コストレポート生成（期間に基づいて動的に計算）
+  const report: CostReport = useMemo(() => {
+    return generateCostReport(
+      equipment,
+      maintenanceMap,
+      periodStart,
+      periodEnd
+    )
+  }, [equipment, maintenanceMap, periodStart, periodEnd])
 
   // ソート
-  const sortedDetails = [...report.equipment_details].sort((a, b) => {
-    if (sortBy === 'cost') {
-      return (
-        (selectedPeriod === 'year' ? b.total_cost_this_year : b.total_cost_this_month) -
-        (selectedPeriod === 'year' ? a.total_cost_this_year : a.total_cost_this_month)
-      )
-    }
-    return a.equipment_code.localeCompare(b.equipment_code)
-  })
+  const sortedDetails = useMemo(() => {
+    return [...report.equipment_details].sort((a, b) => {
+      if (sortBy === 'cost') {
+        return (
+          (selectedPeriod === 'year' ? b.total_cost_this_year : b.total_cost_this_month) -
+          (selectedPeriod === 'year' ? a.total_cost_this_year : a.total_cost_this_month)
+        )
+      }
+      return a.equipment_code.localeCompare(b.equipment_code)
+    })
+  }, [report.equipment_details, selectedPeriod, sortBy])
 
   // CSVエクスポート
   const exportToCSV = () => {
@@ -95,27 +101,69 @@ export default function CostReportView({
         <div className="px-4 pb-6 sm:px-0 sm:py-6 space-y-6">
 
         {/* ヘッダー */}
-        <div className="mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <h1 className="text-lg sm:text-2xl font-bold text-gray-900">重機コストレポート</h1>
-            <div className="hidden sm:flex">
-              <button
-                onClick={exportToCSV}
-                className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 flex items-center"
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                CSVエクスポート
-              </button>
+        <div className="bg-white border-b border-gray-200 -mx-4 sm:mx-0 sm:rounded-t-lg">
+          <div className="px-4 sm:px-6 py-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-lg sm:text-2xl font-bold text-gray-900">重機コストレポート</h1>
+                <p className="mt-1 text-sm text-gray-500">
+                  期間: {periodStart} ～ {periodEnd}
+                </p>
+              </div>
+              <div className="hidden sm:flex">
+                <button
+                  onClick={exportToCSV}
+                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 flex items-center"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  CSVエクスポート
+                </button>
+              </div>
+              <div className="sm:hidden">
+                <EquipmentCostReportMobileMenu onExport={exportToCSV} />
+              </div>
             </div>
-            <div className="sm:hidden">
-              <EquipmentCostReportMobileMenu onExport={exportToCSV} />
+
+            {/* 期間選択 */}
+            <div className="flex flex-col sm:flex-row sm:items-end space-y-3 sm:space-y-0 sm:space-x-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  開始日
+                </label>
+                <input
+                  type="date"
+                  value={periodStart}
+                  onChange={(e) => setPeriodStart(e.target.value)}
+                  className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  終了日
+                </label>
+                <input
+                  type="date"
+                  value={periodEnd}
+                  onChange={(e) => setPeriodEnd(e.target.value)}
+                  className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm"
+                />
+              </div>
+              <div>
+                <button
+                  onClick={() => {
+                    const today = new Date()
+                    setPeriodStart(`${today.getFullYear()}-01-01`)
+                    setPeriodEnd(`${today.getFullYear()}-12-31`)
+                  }}
+                  className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 rounded-md hover:bg-blue-50"
+                >
+                  今年
+                </button>
+              </div>
             </div>
           </div>
-          <p className="text-sm text-gray-600">
-            期間: {new Date(periodStart).getFullYear()}年
-          </p>
         </div>
 
         {/* サマリーカード - モバイル */}

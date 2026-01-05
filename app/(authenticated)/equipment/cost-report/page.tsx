@@ -55,17 +55,17 @@ export default async function CostReportPage() {
     }
   }
 
-  // 期間設定（今年の1月1日～12月31日）
+  // デフォルト期間: 今年の1月1日～12月31日
   const today = new Date()
-  const periodStart = `${today.getFullYear()}-01-01`
-  const periodEnd = `${today.getFullYear()}-12-31`
+  const defaultPeriodStart = `${today.getFullYear()}-01-01`
+  const defaultPeriodEnd = `${today.getFullYear()}-12-31`
 
   return (
     <CostReportView
       equipment={equipment as HeavyEquipment[] || []}
       maintenanceMap={maintenanceMap}
-      periodStart={periodStart}
-      periodEnd={periodEnd}
+      defaultPeriodStart={defaultPeriodStart}
+      defaultPeriodEnd={defaultPeriodEnd}
       userRole={userRole || 'staff'}
     />
   )
