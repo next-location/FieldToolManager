@@ -45,7 +45,7 @@ export default async function BulkMovementPage() {
     .order('code')
 
   // 道具セット一覧を取得
-  const { data: toolSets } = await supabase
+  const { data: toolSetsRaw } = await supabase
     .from('tool_sets')
     .select(`
       id,
@@ -53,7 +53,8 @@ export default async function BulkMovementPage() {
       description,
       status,
       tool_set_items (
-        tool_item:tool_items (
+        tool_item_id,
+        tool_items (
           id,
           serial_number,
           current_location,
@@ -71,6 +72,17 @@ export default async function BulkMovementPage() {
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
+
+  // データを整形
+  const toolSets = (toolSetsRaw || []).map((set: any) => ({
+    id: set.id,
+    name: set.name,
+    description: set.description,
+    status: set.status,
+    tool_set_items: (set.tool_set_items || []).map((item: any) => ({
+      tool_item: item.tool_items
+    }))
+  }))
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
