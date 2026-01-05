@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
+import { SlidersHorizontal } from 'lucide-react'
 import type { HeavyEquipment, HeavyEquipmentMaintenance, CostReport } from '@/types/heavy-equipment'
 import {
   generateCostReport,
@@ -9,6 +10,7 @@ import {
   getOwnershipTypeLabel,
 } from '@/lib/equipment-cost'
 import EquipmentCostReportMobileMenu from '@/components/equipment/EquipmentCostReportMobileMenu'
+import CostReportPeriodModal from '@/components/equipment/CostReportPeriodModal'
 
 interface CostReportViewProps {
   equipment: HeavyEquipment[]
@@ -29,6 +31,7 @@ export default function CostReportView({
   const [periodEnd, setPeriodEnd] = useState(defaultPeriodEnd)
   const [selectedPeriod, setSelectedPeriod] = useState<'month' | 'year'>('year')
   const [sortBy, setSortBy] = useState<'code' | 'cost'>('cost')
+  const [isPeriodModalOpen, setIsPeriodModalOpen] = useState(false)
 
   // コストレポート生成（期間に基づいて動的に計算）
   const report: CostReport = useMemo(() => {
@@ -95,73 +98,85 @@ export default function CostReportView({
     document.body.removeChild(link)
   }
 
+  const handleResetPeriod = () => {
+    const today = new Date()
+    setPeriodStart(`${today.getFullYear()}-01-01`)
+    setPeriodEnd(`${today.getFullYear()}-12-31`)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 pb-6 sm:px-0 sm:py-6 space-y-6">
+      <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div className="px-4 pb-6 sm:px-0 sm:py-6">
 
         {/* ヘッダー */}
-        <div className="bg-white border-b border-gray-200 -mx-4 sm:mx-0 sm:rounded-t-lg">
-          <div className="px-4 sm:px-6 py-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h1 className="text-lg sm:text-2xl font-bold text-gray-900">重機コストレポート</h1>
-                <p className="mt-1 text-sm text-gray-500">
-                  期間: {periodStart} ～ {periodEnd}
-                </p>
-              </div>
-              <div className="hidden sm:flex">
-                <button
-                  onClick={exportToCSV}
-                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 flex items-center"
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  CSVエクスポート
-                </button>
-              </div>
-              <div className="sm:hidden">
-                <EquipmentCostReportMobileMenu onExport={exportToCSV} />
-              </div>
-            </div>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">重機コストレポート</h1>
+          <div className="hidden sm:flex">
+            <button
+              onClick={exportToCSV}
+              className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 flex items-center"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              CSVエクスポート
+            </button>
+          </div>
+          <div className="sm:hidden">
+            <EquipmentCostReportMobileMenu onExport={exportToCSV} />
+          </div>
+        </div>
 
-            {/* 期間選択 */}
-            <div className="flex flex-col sm:flex-row sm:items-end space-y-3 sm:space-y-0 sm:space-x-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  開始日
-                </label>
-                <input
-                  type="date"
-                  value={periodStart}
-                  onChange={(e) => setPeriodStart(e.target.value)}
-                  className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  終了日
-                </label>
-                <input
-                  type="date"
-                  value={periodEnd}
-                  onChange={(e) => setPeriodEnd(e.target.value)}
-                  className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm"
-                />
-              </div>
-              <div>
-                <button
-                  onClick={() => {
-                    const today = new Date()
-                    setPeriodStart(`${today.getFullYear()}-01-01`)
-                    setPeriodEnd(`${today.getFullYear()}-12-31`)
-                  }}
-                  className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 rounded-md hover:bg-blue-50"
-                >
-                  今年
-                </button>
-              </div>
+        {/* 期間選択 - Mobile */}
+        <div className="sm:hidden mb-6">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-sm text-gray-700">
+              {periodStart} ～ {periodEnd}
+            </div>
+            <button
+              onClick={() => setIsPeriodModalOpen(true)}
+              className="relative p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50"
+              aria-label="期間設定"
+            >
+              <SlidersHorizontal className="h-5 w-5 text-gray-600" />
+            </button>
+          </div>
+        </div>
+
+        {/* 期間選択 - PC */}
+        <div className="hidden sm:block bg-white shadow rounded-lg p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">期間設定</h2>
+          <div className="flex items-end space-x-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                開始日
+              </label>
+              <input
+                type="date"
+                value={periodStart}
+                onChange={(e) => setPeriodStart(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                終了日
+              </label>
+              <input
+                type="date"
+                value={periodEnd}
+                onChange={(e) => setPeriodEnd(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+              />
+            </div>
+            <div>
+              <button
+                onClick={handleResetPeriod}
+                className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 rounded-md hover:bg-blue-50"
+              >
+                今年
+              </button>
             </div>
           </div>
         </div>
@@ -546,6 +561,17 @@ export default function CostReportView({
             </div>
           )}
         </div>
+
+        {/* Period Modal */}
+        <CostReportPeriodModal
+          isOpen={isPeriodModalOpen}
+          onClose={() => setIsPeriodModalOpen(false)}
+          periodStart={periodStart}
+          periodEnd={periodEnd}
+          onPeriodStartChange={setPeriodStart}
+          onPeriodEndChange={setPeriodEnd}
+          onReset={handleResetPeriod}
+        />
         </div>
       </div>
     </div>
