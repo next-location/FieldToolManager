@@ -95,8 +95,10 @@ export default function CostReportView({
 
   const handleResetPeriod = () => {
     const today = new Date()
-    setPeriodStart(`${today.getFullYear()}-01-01`)
-    setPeriodEnd(`${today.getFullYear()}-12-31`)
+    const threeMonthsAgo = new Date(today)
+    threeMonthsAgo.setMonth(today.getMonth() - 3)
+    setPeriodStart(threeMonthsAgo.toISOString().split('T')[0])
+    setPeriodEnd(today.toISOString().split('T')[0])
   }
 
   return (
@@ -173,7 +175,7 @@ export default function CostReportView({
                 onClick={handleResetPeriod}
                 className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 rounded-md hover:bg-blue-50"
               >
-                今年
+                過去3ヶ月
               </button>
             </div>
           </div>

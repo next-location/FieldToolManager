@@ -86,7 +86,7 @@ export default function CostReportPeriodModal({
                 onClick={onReset}
                 className="w-full px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 rounded-md hover:bg-blue-50"
               >
-                今年（リセット）
+                過去3ヶ月（リセット）
               </button>
             </div>
           </div>
