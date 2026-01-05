@@ -6,9 +6,10 @@ interface PackageRequiredProps {
   packageType: 'asset' | 'dx' | 'full'
   featureName: string
   userRole?: string
+  currentPackage?: 'asset' | 'dx' | 'none'
 }
 
-export function PackageRequired({ packageType, featureName, userRole }: PackageRequiredProps) {
+export function PackageRequired({ packageType, featureName, userRole, currentPackage = 'none' }: PackageRequiredProps) {
   const packageNames = {
     asset: '現場資産パック',
     dx: '現場DX業務効率化パック',
@@ -42,6 +43,9 @@ export function PackageRequired({ packageType, featureName, userRole }: PackageR
     ],
   }
 
+  // 既存パッケージ保有者には、フル機能統合パックを推奨
+  const recommendedPackage = (currentPackage === 'asset' || currentPackage === 'dx') ? 'full' : packageType
+
   const isAdmin = userRole === 'admin' || userRole === 'super_admin'
 
   return (
@@ -69,29 +73,29 @@ export function PackageRequired({ packageType, featureName, userRole }: PackageR
 
           {/* タイトル */}
           <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">
-            この機能は {packageNames[packageType]} が必要です
+            この機能は {packageNames[recommendedPackage]} が必要です
           </h1>
 
           <p className="text-gray-600 text-center mb-6">
-            「{featureName}」をご利用いただくには、{packageNames[packageType]}のご契約が必要です。
+            「{featureName}」をご利用いただくには、{packageNames[recommendedPackage]}のご契約が必要です。
           </p>
 
           {/* パッケージ情報 */}
           <div className="bg-blue-50 rounded-lg p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">
-                {packageNames[packageType]}
+                {packageNames[recommendedPackage]}
               </h2>
               <div className="text-right">
                 <div className="text-2xl font-bold text-blue-600">
-                  {packagePrices[packageType]}
+                  {packagePrices[recommendedPackage]}
                 </div>
                 <div className="text-sm text-gray-600">/ 月</div>
               </div>
             </div>
 
             <ul className="space-y-2">
-              {packageFeatures[packageType].map((feature, index) => (
+              {packageFeatures[recommendedPackage].map((feature, index) => (
                 <li key={index} className="flex items-start">
                   <svg
                     className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0"

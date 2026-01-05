@@ -15,7 +15,9 @@ export default async function SalesAnalytics() {
   // パッケージチェック（現場DX業務効率化パック必須）
   const features = await getOrganizationFeatures(organizationId)
   if (!hasPackage(features, 'dx')) {
-    return <PackageRequired packageType="dx" featureName="売上分析・資金繰り予測" userRole={userRole} />
+    // 現在のパッケージタイプを取得
+    const currentPackage = features.package_type as 'asset' | 'dx' | 'none'
+    return <PackageRequired packageType="dx" featureName="売上分析・資金繰り予測" userRole={userRole} currentPackage={currentPackage} />
   }
 
   // 請求書データを取得（過去12ヶ月）

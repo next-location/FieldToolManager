@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Client, ClientType } from '@/types/clients'
 import ImportExportButtons from './ImportExportButtons'
+import ClientsPageFAB from '@/components/clients/ClientsPageFAB'
 
 type TabType = 'all' | 'customer' | 'supplier' | 'partner' | 'both'
 
@@ -115,12 +116,12 @@ export function ClientTabs({ clients, initialTab = 'all' }: ClientTabsProps) {
       {/* ヘッダー */}
       <div className="mb-6 flex justify-between items-start">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">取引先マスタ</h1>
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">取引先マスタ</h1>
           <p className="mt-2 text-sm text-gray-600">
             顧客・仕入先・協力会社などの取引先情報を管理します
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="hidden sm:flex gap-3">
           <ImportExportButtons
             filters={{
               client_type: activeTab !== 'all' ? activeTab : undefined,
@@ -134,7 +135,19 @@ export function ClientTabs({ clients, initialTab = 'all' }: ClientTabsProps) {
             + 新規登録
           </Link>
         </div>
+        <div className="sm:hidden">
+          <ImportExportButtons
+            mobileMenuOnly
+            filters={{
+              client_type: activeTab !== 'all' ? activeTab : undefined,
+              is_active: 'true',
+            }}
+          />
+        </div>
       </div>
+
+      {/* FAB for mobile */}
+      <ClientsPageFAB />
 
       {/* タブナビゲーション */}
       <div className="mb-6">

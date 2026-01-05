@@ -2,15 +2,17 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import ClientsPageMobileMenu from '@/components/clients/ClientsPageMobileMenu'
 
 interface ImportExportButtonsProps {
+  mobileMenuOnly?: boolean
   filters?: {
     client_type?: string
     is_active?: string
   }
 }
 
-export default function ImportExportButtons({ filters }: ImportExportButtonsProps) {
+export default function ImportExportButtons({ mobileMenuOnly = false, filters }: ImportExportButtonsProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [importing, setImporting] = useState(false)
@@ -94,6 +96,79 @@ export default function ImportExportButtons({ filters }: ImportExportButtonsProp
     } finally {
       setImporting(false)
     }
+  }
+
+  // モバイルメニューモードの場合
+  if (mobileMenuOnly) {
+    return (
+      <>
+        <ClientsPageMobileMenu
+          onExport={handleExport}
+          onImportClick={handleImportClick}
+          exporting={exporting}
+          importing={importing}
+        />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+        {/* インポート結果表示（モバイル用） */}
+        {importResult && (
+          <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg shadow-lg p-4 max-w-md w-full">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">インポート結果</h3>
+              <p className="text-sm text-gray-600 mb-3">
+                成功: <span className="font-bold text-green-600">{importResult.success}件</span>
+                {importResult.errors.length > 0 && (
+                  <>
+                    {' '}
+                    / エラー: <span className="font-bold text-red-600">{importResult.errors.length}件</span>
+                  </>
+                )}
+              </p>
+
+              {importResult.errors.length > 0 && (
+                <div className="mt-3">
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">エラー詳細:</h4>
+                  <div className="max-h-60 overflow-y-auto">
+                    <table className="min-w-full text-sm">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-3 py-2 text-left">行</th>
+                          <th className="px-3 py-2 text-left">エラー</th>
+                          <th className="px-3 py-2 text-left">データ</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {importResult.errors.map((err, idx) => (
+                          <tr key={idx}>
+                            <td className="px-3 py-2">{err.row}</td>
+                            <td className="px-3 py-2 text-red-600">{err.error}</td>
+                            <td className="px-3 py-2 text-gray-500 text-xs truncate max-w-xs">
+                              {err.data}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              <button
+                onClick={() => setImportResult(null)}
+                className="mt-3 w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm"
+              >
+                閉じる
+              </button>
+            </div>
+          </div>
+        )}
+      </>
+    )
   }
 
   return (
