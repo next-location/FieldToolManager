@@ -48,44 +48,34 @@ export function SettingsTabs({
   ];
 
   return (
-    <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div>
       {/* タブナビゲーション */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex" aria-label="タブ">
+      <div className="mb-6">
+        <div className="flex space-x-2">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`
-                  group inline-flex items-center py-4 px-6 border-b-2 font-medium text-sm
-                  ${activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }
-                `}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors inline-flex items-center ${
+                  activeTab === tab.id
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                }`}
               >
-                <Icon
-                  className={`
-                    -ml-0.5 mr-2 h-5 w-5
-                    ${activeTab === tab.id
-                      ? 'text-blue-500'
-                      : 'text-gray-400 group-hover:text-gray-500'
-                    }
-                  `}
-                />
+                <Icon className="mr-2 h-4 w-4" />
                 <span>{tab.name}</span>
               </button>
             );
           })}
-        </nav>
+        </div>
       </div>
 
       {/* タブコンテンツ */}
-      <div className="px-4 py-5 sm:px-6">
-        {activeTab === 'profile' && (
-          <div>
+      <div className={activeTab === 'profile' ? 'block' : 'hidden'}>
+        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+          <div className="px-4 py-5 sm:px-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">
               プロフィール設定
             </h2>
@@ -97,10 +87,12 @@ export function SettingsTabs({
               currentSealData={userSealData}
             />
           </div>
-        )}
+        </div>
+      </div>
 
-        {activeTab === 'security' && (
-          <div>
+      <div className={activeTab === 'security' ? 'block' : 'hidden'}>
+        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+          <div className="px-4 py-5 sm:px-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">
               セキュリティ設定
             </h2>
@@ -110,7 +102,7 @@ export function SettingsTabs({
               initialEnabled={twoFactorEnabled}
             />
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
