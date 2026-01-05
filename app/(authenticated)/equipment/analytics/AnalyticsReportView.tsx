@@ -147,7 +147,7 @@ export default function AnalyticsReportView({
             </div>
           </div>
           <p className="text-sm text-gray-600">
-            期間: {periodStart} ～ {periodEnd}（{report.total_days}日間）
+            重機の稼働状況と効率性の分析
           </p>
         </div>
 
