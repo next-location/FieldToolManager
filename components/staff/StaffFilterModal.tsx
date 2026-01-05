@@ -1,5 +1,7 @@
 'use client'
 
+import { X } from 'lucide-react'
+
 interface StaffFilterModalProps {
   isOpen: boolean
   onClose: () => void
@@ -36,101 +38,110 @@ export default function StaffFilterModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-full items-end justify-center sm:items-center">
-        {/* 背景オーバーレイ */}
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
-          onClick={onClose}
-        />
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 z-40 animate-fadeIn"
+        onClick={onClose}
+      />
 
-        {/* モーダルコンテンツ */}
-        <div className="relative bg-white rounded-t-2xl sm:rounded-lg shadow-xl w-full sm:max-w-lg transform transition-all">
-          {/* ヘッダー */}
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">絞り込み</h3>
-          </div>
+      {/* Modal */}
+      <div className="fixed inset-x-0 bottom-0 bg-white rounded-t-2xl shadow-xl z-50 max-h-[80vh] overflow-hidden flex flex-col animate-slideUp">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b">
+          <h2 className="text-lg font-semibold text-gray-900">フィルター</h2>
+          <button
+            onClick={onClose}
+            className="p-1 text-gray-400 hover:text-gray-600"
+            aria-label="閉じる"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
 
-          {/* フィルター内容 */}
-          <div className="px-6 py-4 space-y-4">
-            {/* 部署フィルター */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                部署
-              </label>
-              <select
-                value={departmentFilter}
-                onChange={(e) => onDepartmentChange(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="all">全ての部署</option>
-                {departments.map((dept) => (
-                  <option key={dept} value={dept}>
-                    {dept}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* 権限フィルター */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                権限
-              </label>
-              <select
-                value={roleFilter}
-                onChange={(e) => onRoleChange(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="all">全ての権限</option>
-                <option value="admin">管理者</option>
-                <option value="leader">リーダー</option>
-                <option value="staff">一般スタッフ</option>
-              </select>
-            </div>
-
-            {/* 状態フィルター */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                状態
-              </label>
-              <select
-                value={statusFilter}
-                onChange={(e) => onStatusChange(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="all">全ての状態</option>
-                <option value="active">有効</option>
-                <option value="inactive">無効</option>
-              </select>
-            </div>
-          </div>
-
-          {/* フッター */}
-          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-            <button
-              onClick={handleReset}
-              className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-4 pb-8 space-y-4">
+          {/* 部署フィルター */}
+          <div>
+            <label
+              htmlFor="modal-department"
+              className="block text-sm font-medium text-gray-700 mb-2"
             >
-              リセット
-            </button>
-            <div className="flex space-x-3">
-              <button
-                onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                キャンセル
-              </button>
-              <button
-                onClick={handleApply}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-              >
-                適用
-              </button>
-            </div>
+              部署
+            </label>
+            <select
+              id="modal-department"
+              value={departmentFilter}
+              onChange={(e) => onDepartmentChange(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">全ての部署</option>
+              {departments.map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* 権限フィルター */}
+          <div>
+            <label
+              htmlFor="modal-role"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              権限
+            </label>
+            <select
+              id="modal-role"
+              value={roleFilter}
+              onChange={(e) => onRoleChange(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">全ての権限</option>
+              <option value="admin">管理者</option>
+              <option value="leader">リーダー</option>
+              <option value="staff">一般スタッフ</option>
+            </select>
+          </div>
+
+          {/* 状態フィルター */}
+          <div>
+            <label
+              htmlFor="modal-status"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              状態
+            </label>
+            <select
+              id="modal-status"
+              value={statusFilter}
+              onChange={(e) => onStatusChange(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">全ての状態</option>
+              <option value="active">有効</option>
+              <option value="inactive">無効</option>
+            </select>
           </div>
         </div>
+
+        {/* Footer */}
+        <div className="flex gap-3 p-4 border-t bg-gray-50">
+          <button
+            onClick={handleReset}
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+          >
+            リセット
+          </button>
+          <button
+            onClick={handleApply}
+            className="flex-1 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+          >
+            適用
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
