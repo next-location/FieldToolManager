@@ -146,7 +146,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
                   (pathname === '/tools' || (pathname?.startsWith('/tools/') && !pathname?.startsWith('/tools/movements'))) ||
                   (pathname === '/consumables' || (pathname?.startsWith('/consumables/') && !pathname?.startsWith('/consumables/bulk-movement'))) ||
-                  (pathname === '/tool-sets' || (pathname?.startsWith('/tool-sets/') && !pathname?.startsWith('/tool-sets/movement')))
+                  (pathname === '/tool-sets' || pathname?.startsWith('/tool-sets/'))
                     ? 'bg-blue-50 text-blue-700 font-medium'
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
@@ -211,7 +211,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                     href="/tool-sets"
                     onClick={onClose}
                     className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                      pathname === '/tool-sets' || (pathname?.startsWith('/tool-sets/') && !pathname?.startsWith('/tool-sets/movement'))
+                      pathname === '/tool-sets' || pathname?.startsWith('/tool-sets/')
                         ? 'bg-blue-50 text-blue-700 font-medium'
                         : 'text-gray-600 hover:bg-gray-50'
                     }`}
@@ -279,7 +279,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
               <button
                 onClick={() => toggleMenu('movement')}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                  isActive('/movements') || isActive('/tool-sets/movement') || isActive('/equipment/movement') || isActive('/consumables/bulk-movement')
+                  isActive('/movements') || isActive('/equipment/movement') || isActive('/consumables/bulk-movement')
                     ? 'bg-blue-50 text-blue-700 font-medium'
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
@@ -328,17 +328,6 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                     }`}
                   >
                     消耗品移動
-                  </Link>
-                  <Link
-                    href="/tool-sets/movement"
-                    onClick={onClose}
-                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                      isActive('/tool-sets/movement')
-                        ? 'bg-blue-50 text-blue-700 font-medium'
-                        : 'text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    道具セット移動
                   </Link>
                   {heavyEquipmentEnabled && (
                     <Link

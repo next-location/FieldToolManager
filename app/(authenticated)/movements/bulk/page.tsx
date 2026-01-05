@@ -44,6 +44,34 @@ export default async function BulkMovementPage() {
     .is('deleted_at', null)
     .order('code')
 
+  // 道具セット一覧を取得
+  const { data: toolSets } = await supabase
+    .from('tool_sets')
+    .select(`
+      id,
+      name,
+      description,
+      status,
+      tool_set_items (
+        tool_item:tool_items (
+          id,
+          serial_number,
+          current_location,
+          current_site_id,
+          status,
+          qr_code,
+          tools (
+            id,
+            name,
+            model_number
+          )
+        )
+      )
+    `)
+    .eq('organization_id', organizationId)
+    .is('deleted_at', null)
+    .order('name')
+
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 pt-3 sm:px-0 sm:py-6">
@@ -59,6 +87,7 @@ export default async function BulkMovementPage() {
             toolItems={toolItems || []}
             sites={sites || []}
             warehouseLocations={warehouseLocations || []}
+            toolSets={toolSets || []}
           />
         </div>
       </div>
