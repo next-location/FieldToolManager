@@ -27,7 +27,12 @@ export default async function LoginPage() {
 
   // サブドメインがある場合は組織名を取得
   if (subdomain) {
-    const supabase = await createClient()
+    const { createClient: createServiceClient } = await import('@supabase/supabase-js')
+    const supabase = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
     const { data: organization } = await supabase
       .from('organizations')
       .select('name')
