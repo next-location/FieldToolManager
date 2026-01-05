@@ -112,7 +112,33 @@ export function AuditLogList({ initialAuditLogs }: AuditLogListProps) {
 
   return (
     <div>
-      {/* フィルター・検索・エクスポート */}
+      {/* ヘッダー */}
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">監査ログ</h1>
+          <div className="hidden sm:flex">
+            <button
+              onClick={handleExportCSV}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center space-x-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              <span>CSVエクスポート</span>
+            </button>
+          </div>
+        </div>
+        <p className="text-sm text-gray-600">
+          システム内の操作履歴を確認できます（管理者専用）
+        </p>
+      </div>
+
+      {/* フィルター・検索 */}
       <div className="mb-6 bg-white p-4 rounded-lg shadow">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* 検索 */}
@@ -161,16 +187,11 @@ export function AuditLogList({ initialAuditLogs }: AuditLogListProps) {
             </select>
           </div>
         </div>
+      </div>
 
-        <div className="mt-4 flex justify-between items-center">
-          <p className="text-sm text-gray-600">{filteredLogs.length}件の記録</p>
-          <button
-            onClick={handleExportCSV}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-          >
-            CSVエクスポート
-          </button>
-        </div>
+      {/* 結果件数表示 */}
+      <div className="mb-4 text-sm text-gray-600">
+        {filteredLogs.length}件の記録
       </div>
 
       {/* 監査ログリスト */}
