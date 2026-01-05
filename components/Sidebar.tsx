@@ -316,7 +316,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                         : 'text-gray-600 hover:bg-gray-50'
                     }`}
                   >
-                    道具一括移動
+                    道具移動
                   </Link>
                   <Link
                     href="/consumables/bulk-movement"
@@ -327,7 +327,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                         : 'text-gray-600 hover:bg-gray-50'
                     }`}
                   >
-                    消耗品一括移動
+                    消耗品移動
                   </Link>
                   <Link
                     href="/tool-sets/movement"
