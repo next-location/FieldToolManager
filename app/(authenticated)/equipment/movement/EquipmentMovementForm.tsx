@@ -272,7 +272,7 @@ export default function EquipmentMovementForm({
 
           {/* 重機選択 */}
           <div>
-            <label htmlFor="equipment_id" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="equipment_id" className="block text-sm font-medium text-gray-700 mb-2">
               重機 <span className="text-red-500">*</span>
             </label>
             <select
@@ -281,7 +281,7 @@ export default function EquipmentMovementForm({
               value={formData.equipment_id}
               onChange={handleChange}
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">選択してください</option>
               {equipment.map((equip) => (
@@ -332,7 +332,7 @@ export default function EquipmentMovementForm({
           {/* 持出の場合 */}
           {formData.action_type === 'checkout' && (
             <div>
-              <label htmlFor="to_location_id" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="to_location_id" className="block text-sm font-medium text-gray-700 mb-2">
                 持出先（現場） <span className="text-red-500">*</span>
               </label>
               <select
@@ -341,7 +341,7 @@ export default function EquipmentMovementForm({
                 value={formData.to_location_id}
                 onChange={handleChange}
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">選択してください</option>
                 {sites.map((site) => (
@@ -360,7 +360,7 @@ export default function EquipmentMovementForm({
           {formData.action_type === 'checkin' && (
             <>
               <div>
-                <label htmlFor="from_location_id" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="from_location_id" className="block text-sm font-medium text-gray-700 mb-2">
                   返却元（現在地） <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -369,7 +369,7 @@ export default function EquipmentMovementForm({
                   value={formData.from_location_id}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">選択してください</option>
                   {sites.map((site) => (
@@ -386,7 +386,7 @@ export default function EquipmentMovementForm({
           {formData.action_type === 'transfer' && (
             <>
               <div>
-                <label htmlFor="from_location_id" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="from_location_id" className="block text-sm font-medium text-gray-700 mb-2">
                   移動元（現在地） <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -395,7 +395,7 @@ export default function EquipmentMovementForm({
                   value={formData.from_location_id}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">選択してください</option>
                   {sites.map((site) => (
@@ -406,7 +406,7 @@ export default function EquipmentMovementForm({
                 </select>
               </div>
               <div>
-                <label htmlFor="to_location_id" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="to_location_id" className="block text-sm font-medium text-gray-700 mb-2">
                   移動先 <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -415,7 +415,7 @@ export default function EquipmentMovementForm({
                   value={formData.to_location_id}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">選択してください</option>
                   {sites
@@ -433,7 +433,7 @@ export default function EquipmentMovementForm({
           {/* メーター記録（オプション） */}
           {selectedEquipment?.enable_hour_meter && (
             <div>
-              <label htmlFor="hour_meter_reading" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="hour_meter_reading" className="block text-sm font-medium text-gray-700 mb-2">
                 アワーメーター値（時間）
               </label>
               <input
@@ -443,7 +443,7 @@ export default function EquipmentMovementForm({
                 name="hour_meter_reading"
                 value={formData.hour_meter_reading}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder={`現在: ${selectedEquipment.current_hour_meter || 0} 時間`}
               />
             </div>
@@ -451,7 +451,7 @@ export default function EquipmentMovementForm({
 
           {/* 備考 */}
           <div>
-            <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
               備考
             </label>
             <textarea
@@ -460,7 +460,7 @@ export default function EquipmentMovementForm({
               rows={3}
               value={formData.notes}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="特記事項があれば入力してください"
             />
           </div>
