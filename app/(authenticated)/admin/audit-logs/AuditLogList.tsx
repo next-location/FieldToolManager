@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { SlidersHorizontal } from 'lucide-react'
 import { AuditLog } from '@/types/audit-log'
 import AuditLogFiltersModal from '@/components/admin/AuditLogFiltersModal'
+import AuditLogMobileMenu from '@/components/admin/AuditLogMobileMenu'
 
 interface AuditLogListProps {
   initialAuditLogs: (AuditLog & {
@@ -141,6 +142,9 @@ export function AuditLogList({ initialAuditLogs }: AuditLogListProps) {
               </svg>
               CSVエクスポート
             </button>
+          </div>
+          <div className="sm:hidden">
+            <AuditLogMobileMenu onExport={handleExportCSV} />
           </div>
         </div>
         <p className="text-sm text-gray-600">
