@@ -279,29 +279,49 @@ export default function LoginForm({ organizationName }: LoginFormProps) {
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-blue-50 via-white to-blue-50 lg:bg-white">
       {/* 左側：ログインフォーム */}
-      <div className="flex-1 flex items-center justify-center px-6 sm:px-8 lg:px-8 py-8 bg-white lg:bg-transparent">
-        <div className="max-w-md w-full space-y-6 sm:space-y-8">
-          {/* ロゴ */}
-          <div className="text-center">
-            <div className="flex justify-center mb-6 sm:mb-8">
+      <div className="flex-1 flex flex-col items-center justify-start lg:justify-center px-6 sm:px-8 lg:px-8 pt-8 pb-8 lg:py-8">
+        <div className="max-w-md w-full">
+          {/* ロゴ（スマホ時は上部に独立表示） */}
+          <div className="text-center mb-6 lg:hidden">
+            <div className="flex justify-center">
               <Image
                 src="/images/zairoku-logo.png"
                 alt="ザイロク"
                 width={240}
                 height={60}
                 priority
-                className="h-12 sm:h-16 w-auto"
+                className="h-12 w-auto"
               />
             </div>
-            <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-2 break-words px-2">
-              「{organizationName}」ログインページ
-            </h2>
-            <p className="text-sm text-gray-600">
-              アカウントにログインしてください
-            </p>
           </div>
 
-          <form className="mt-6 sm:mt-8 space-y-5 sm:space-y-6" onSubmit={handleSubmit}>
+          {/* ログインカード */}
+          <div className="bg-white rounded-[7px] shadow-lg lg:shadow-none p-6 sm:p-8">
+            {/* PC時のロゴ */}
+            <div className="text-center hidden lg:block mb-8">
+              <div className="flex justify-center mb-8">
+                <Image
+                  src="/images/zairoku-logo.png"
+                  alt="ザイロク"
+                  width={240}
+                  height={60}
+                  priority
+                  className="h-16 w-auto"
+                />
+              </div>
+            </div>
+
+            {/* タイトル */}
+            <div className="text-center mb-6 sm:mb-8">
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-2 break-words">
+                「{organizationName}」ログインページ
+              </h2>
+              <p className="text-sm text-gray-600">
+                アカウントにログインしてください
+              </p>
+            </div>
+
+            <form className="space-y-5 sm:space-y-6" onSubmit={handleSubmit}>
             {error && (
               <div className="bg-red-50 border-l-4 border-red-500 p-3 sm:p-4 rounded-lg">
                 <p className="text-sm text-red-800">{error}</p>
@@ -378,15 +398,16 @@ export default function LoginForm({ organizationName }: LoginFormProps) {
             </button>
           </form>
 
-          {/* フッターリンク */}
-          <div className="text-center space-y-3 sm:space-y-4 pt-4 sm:pt-6 border-t border-gray-200">
-            <Link
-              href="mailto:support@zairoku.com"
-              className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <HelpCircle className="w-4 h-4" />
-              運営への問い合わせ
-            </Link>
+            {/* フッターリンク */}
+            <div className="text-center space-y-3 sm:space-y-4 pt-4 sm:pt-6 border-t border-gray-200 mt-6">
+              <Link
+                href="mailto:support@zairoku.com"
+                className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                <HelpCircle className="w-4 h-4" />
+                運営への問い合わせ
+              </Link>
+            </div>
           </div>
         </div>
       </div>
