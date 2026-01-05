@@ -32,7 +32,7 @@ export default function ClientsPageMobileMenu({
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 text-gray-700 hover:bg-gray-100 rounded-md"
+        className="text-gray-700 hover:bg-gray-100 rounded-md p-1"
         aria-label="メニュー"
       >
         <MoreVertical className="h-5 w-5" />
