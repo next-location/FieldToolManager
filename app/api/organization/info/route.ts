@@ -3,8 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function GET(request: Request) {
   try {
+    console.log('[ORGANIZATION INFO API] Request received')
     const { searchParams } = new URL(request.url)
     const subdomain = searchParams.get('subdomain')
+    console.log('[ORGANIZATION INFO API] Subdomain:', subdomain)
 
     if (!subdomain) {
       return NextResponse.json(
