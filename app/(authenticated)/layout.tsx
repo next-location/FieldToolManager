@@ -101,18 +101,24 @@ export default async function AuthenticatedLayout({ children }: AuthenticatedLay
     role: userData.role
   })
 
-  const { data: organization } = await supabase
+  const { data: organization, error: orgError } = await supabase
     .from('organizations')
     .select('name, heavy_equipment_enabled')
     .eq('id', userData?.organization_id)
     .single()
+
+  console.log('[AUTH LAYOUT] Organization query result:', {
+    organizationId: userData?.organization_id,
+    organizationName: organization?.name,
+    error: orgError?.message
+  })
 
   return (
     <AppLayout
       user={{ email: user.email || null, id: user.id, name: userData.name }}
       userRole={userData.role}
       organizationId={userData?.organization_id}
-      organizationName={organization?.name || null}
+      organizationName={organization?.name || ''}
       heavyEquipmentEnabled={organization?.heavy_equipment_enabled || false}
     >
       {children}

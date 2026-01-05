@@ -61,7 +61,7 @@ export function SimpleHeader({
             className="shadow-sm"
           />
           <span className="text-sm font-semibold text-gray-900 hidden sm:inline">
-            {organizationName || '組織名未設定'}
+            {organizationName}
           </span>
         </div>
 
