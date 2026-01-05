@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
+import WarehouseLocationsPageMobileMenu from '@/components/warehouse-locations/WarehouseLocationsPageMobileMenu'
+import WarehouseLocationsPageFAB from '@/components/warehouse-locations/WarehouseLocationsPageFAB'
 
 export default async function WarehouseLocationsPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
@@ -39,15 +41,12 @@ export default async function WarehouseLocationsPage() {
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
+      <div className="px-4 pb-6 sm:px-0 sm:py-6">
         <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">倉庫位置管理</h1>
-            <p className="mt-1 text-sm text-gray-600">
-              倉庫内の位置情報を管理し、道具の保管場所を記録します
-            </p>
-          </div>
-          <div className="flex gap-3">
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">倉庫位置管理</h1>
+
+          {/* PC表示: 従来通り横並び */}
+          <div className="hidden sm:flex gap-3">
             <Link
               href="/settings/organization#warehouse-hierarchy"
               className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
@@ -61,7 +60,15 @@ export default async function WarehouseLocationsPage() {
               + 新規登録
             </Link>
           </div>
+
+          {/* スマホ表示: 3点メニューのみ */}
+          <div className="sm:hidden">
+            <WarehouseLocationsPageMobileMenu />
+          </div>
         </div>
+
+        {/* FAB for mobile */}
+        <WarehouseLocationsPageFAB />
 
         {locationsWithCounts.length > 0 ? (
           <div className="bg-white shadow overflow-hidden sm:rounded-lg">
