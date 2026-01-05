@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { SlidersHorizontal } from 'lucide-react'
 import { AddStaffModal } from './AddStaffModal'
 import { EditStaffModal } from './EditStaffModal'
 import { DeleteConfirmModal } from './DeleteConfirmModal'
@@ -8,6 +9,9 @@ import { HistoryModal } from './HistoryModal'
 import { BulkImportModal } from './BulkImportModal'
 import { PermissionMatrixModal } from './PermissionMatrixModal'
 import { PlanUpgradeModal } from './PlanUpgradeModal'
+import StaffPageMobileMenu from '@/components/staff/StaffPageMobileMenu'
+import StaffFilterModal from '@/components/staff/StaffFilterModal'
+import StaffPageFAB from '@/components/staff/StaffPageFAB'
 
 interface User {
   id: string
@@ -46,6 +50,7 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
   const [isBulkImportModalOpen, setIsBulkImportModalOpen] = useState(false)
   const [isPermissionMatrixOpen, setIsPermissionMatrixOpen] = useState(false)
   const [isPlanUpgradeModalOpen, setIsPlanUpgradeModalOpen] = useState(false)
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
   const [editingStaff, setEditingStaff] = useState<User | null>(null)
   const [deletingStaff, setDeletingStaff] = useState<User | null>(null)
   const [historyStaff, setHistoryStaff] = useState<User | null>(null)
@@ -208,50 +213,62 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
   return (
     <div className="space-y-6">
       {/* ヘッダー */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-2">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-gray-900">スタッフ管理</h1>
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-900">スタッフ管理</h1>
             {organization && (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
+              <span className="inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-semibold bg-blue-100 text-blue-800">
                 {organization.current_count}/{organization.max_users}名
               </span>
             )}
           </div>
-          <p className="mt-2 text-sm text-gray-600">組織内のスタッフを管理します</p>
+          {isAdmin && (
+            <>
+              {/* PC表示: 従来通り横並び */}
+              <div className="hidden sm:flex space-x-2">
+                <button
+                  onClick={() => setIsBulkImportModalOpen(true)}
+                  disabled={usagePercent >= 100}
+                  className={`px-4 py-2 text-sm font-medium rounded-md shadow-sm ${
+                    usagePercent >= 100
+                      ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                      : 'bg-purple-600 text-white hover:bg-purple-700'
+                  }`}
+                >
+                  📥 CSVインポート
+                </button>
+                <button
+                  onClick={() => setIsPermissionMatrixOpen(true)}
+                  className="px-4 py-2 text-sm font-medium rounded-md shadow-sm bg-gray-600 text-white hover:bg-gray-700"
+                >
+                  🔐 権限一覧
+                </button>
+                <button
+                  onClick={() => setIsAddModalOpen(true)}
+                  disabled={usagePercent >= 100}
+                  className={`px-4 py-2 text-sm font-medium rounded-md shadow-sm text-white ${
+                    usagePercent >= 100
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  }`}
+                >
+                  + スタッフを追加
+                </button>
+              </div>
+
+              {/* スマホ表示: 3点メニューのみ */}
+              <div className="sm:hidden">
+                <StaffPageMobileMenu
+                  onCsvImport={() => setIsBulkImportModalOpen(true)}
+                  onPermissions={() => setIsPermissionMatrixOpen(true)}
+                  disabled={usagePercent >= 100}
+                />
+              </div>
+            </>
+          )}
         </div>
-        {isAdmin && (
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              disabled={usagePercent >= 100}
-              className={`px-4 py-2 text-sm font-medium rounded-md shadow-sm text-white ${
-                usagePercent >= 100
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700'
-              }`}
-            >
-              + スタッフを追加
-            </button>
-            <button
-              onClick={() => setIsBulkImportModalOpen(true)}
-              disabled={usagePercent >= 100}
-              className={`px-4 py-2 text-sm font-medium rounded-md shadow-sm ${
-                usagePercent >= 100
-                  ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                  : 'bg-green-600 text-white hover:bg-green-700'
-              }`}
-            >
-              📥 CSV一括登録
-            </button>
-            <button
-              onClick={() => setIsPermissionMatrixOpen(true)}
-              className="px-4 py-2 text-sm font-medium rounded-md shadow-sm bg-purple-600 text-white hover:bg-purple-700"
-            >
-              🔐 権限一覧
-            </button>
-          </div>
-        )}
+        <p className="text-sm text-gray-600">組織内のスタッフを管理します</p>
       </div>
 
       {/* 利用状況バー */}
@@ -302,8 +319,28 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
         </div>
       )}
 
-      {/* 検索・フィルタ */}
-      <div className="bg-white p-4 rounded-lg shadow">
+      {/* 検索・フィルタ - Mobile */}
+      <div className="sm:hidden mb-6">
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            placeholder="🔍 名前・メールで検索"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          <button
+            onClick={() => setIsFilterModalOpen(true)}
+            className="relative p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50"
+            aria-label="絞り込み"
+          >
+            <SlidersHorizontal className="h-5 w-5 text-gray-600" />
+          </button>
+        </div>
+      </div>
+
+      {/* 検索・フィルタ - PC */}
+      <div className="hidden sm:block bg-white p-4 rounded-lg shadow">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <input
             type="text"
@@ -708,6 +745,26 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
           currentPlan={organization.plan}
           currentUserCount={organization.current_count}
           maxUsers={organization.max_users}
+        />
+      )}
+
+      <StaffFilterModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        departmentFilter={departmentFilter}
+        roleFilter={roleFilter}
+        statusFilter={statusFilter}
+        onDepartmentChange={setDepartmentFilter}
+        onRoleChange={setRoleFilter}
+        onStatusChange={setStatusFilter}
+        departments={departments}
+      />
+
+      {/* スマホのみ: FABボタン */}
+      {isAdmin && (
+        <StaffPageFAB
+          onClick={() => setIsAddModalOpen(true)}
+          disabled={usagePercent >= 100}
         />
       )}
     </div>
