@@ -80,34 +80,37 @@ export function MovementTabs({
           <div className="flex space-x-2">
             <button
               onClick={() => setActiveTab('tool')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'tool'
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
               }`}
             >
-              道具移動履歴
+              <span className="hidden sm:inline">道具移動履歴</span>
+              <span className="sm:hidden">道具</span>
             </button>
             <button
               onClick={() => setActiveTab('consumable')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'consumable'
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
               }`}
             >
-              消耗品移動履歴
+              <span className="hidden sm:inline">消耗品移動履歴</span>
+              <span className="sm:hidden">消耗品</span>
             </button>
             {heavyEquipmentEnabled && (
               <button
                 onClick={() => setActiveTab('equipment')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`px-3 sm:px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                   activeTab === 'equipment'
                     ? 'bg-blue-600 text-white'
                     : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                 }`}
               >
-                重機移動履歴
+                <span className="hidden sm:inline">重機移動履歴</span>
+                <span className="sm:hidden">重機</span>
               </button>
             )}
           </div>
