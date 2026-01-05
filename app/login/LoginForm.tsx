@@ -277,23 +277,23 @@ export default function LoginForm({ organizationName }: LoginFormProps) {
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-gradient-to-br from-blue-50 via-white to-blue-50 lg:bg-white">
       {/* 左側：ログインフォーム */}
-      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-md w-full space-y-8">
+      <div className="flex-1 flex items-center justify-center px-6 sm:px-8 lg:px-8 py-8 bg-white lg:bg-transparent">
+        <div className="max-w-md w-full space-y-6 sm:space-y-8">
           {/* ロゴ */}
           <div className="text-center">
-            <div className="flex justify-center mb-8">
+            <div className="flex justify-center mb-6 sm:mb-8">
               <Image
                 src="/images/zairoku-logo.png"
                 alt="ザイロク"
                 width={240}
                 height={60}
                 priority
-                className="h-16 w-auto"
+                className="h-12 sm:h-16 w-auto"
               />
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 break-words">
+            <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-2 break-words px-2">
               「{organizationName}」ログインページ
             </h2>
             <p className="text-sm text-gray-600">
@@ -301,14 +301,14 @@ export default function LoginForm({ organizationName }: LoginFormProps) {
             </p>
           </div>
 
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <form className="mt-6 sm:mt-8 space-y-5 sm:space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+              <div className="bg-red-50 border-l-4 border-red-500 p-3 sm:p-4 rounded-lg">
                 <p className="text-sm text-red-800">{error}</p>
               </div>
             )}
 
-            <div className="space-y-4">
+            <div className="space-y-4 sm:space-y-5">
               <div>
                 <label htmlFor="email-address" className="block text-sm font-medium text-gray-700 mb-2">
                   メールアドレス
@@ -365,7 +365,7 @@ export default function LoginForm({ organizationName }: LoginFormProps) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+              className="w-full py-3.5 sm:py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg text-base sm:text-sm"
             >
               {loading ? (
                 'ログイン中...'
@@ -379,7 +379,7 @@ export default function LoginForm({ organizationName }: LoginFormProps) {
           </form>
 
           {/* フッターリンク */}
-          <div className="text-center space-y-4 pt-6 border-t border-gray-200">
+          <div className="text-center space-y-3 sm:space-y-4 pt-4 sm:pt-6 border-t border-gray-200">
             <Link
               href="mailto:support@zairoku.com"
               className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
