@@ -51,32 +51,18 @@ export function SimpleHeader({
   return (
     <header className={`fixed ${isImpersonating ? 'top-10' : 'top-0'} left-0 right-0 h-[58px] bg-white border-b border-gray-200 z-[100] shadow-sm`}>
       <div className="h-full flex items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* 左側：組織名（スマホ時はロゴのみ左寄せ、PC時はハンバーガーメニュー + 組織名） */}
-        <div className="flex items-center space-x-4 -ml-2 lg:ml-0">
-          {/* ハンバーガーメニュー（PC時のみ表示） */}
-          <button
-            onClick={onMenuClick}
-            className="hidden lg:block p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors"
-            aria-label="メニューを開く"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-
-          {/* 組織名 */}
-          <div className="flex items-center space-x-2">
-            <Image
-              src="/zairoku-icon.png"
-              alt="ザイロク"
-              width={28}
-              height={28}
-              className="shadow-sm"
-            />
-            <span className="text-sm font-semibold text-gray-900 hidden sm:inline">
-              {organizationName || '組織名未設定'}
-            </span>
-          </div>
+        {/* 左側：組織名 */}
+        <div className="flex items-center space-x-2">
+          <Image
+            src="/zairoku-icon.png"
+            alt="ザイロク"
+            width={28}
+            height={28}
+            className="shadow-sm"
+          />
+          <span className="text-sm font-semibold text-gray-900 hidden sm:inline">
+            {organizationName || '組織名未設定'}
+          </span>
         </div>
 
         {/* 右側：通知 + ユーザーメニュー */}
