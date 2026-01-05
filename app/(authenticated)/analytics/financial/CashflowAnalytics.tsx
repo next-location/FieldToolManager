@@ -14,7 +14,8 @@ export default async function CashflowAnalytics() {
   // パッケージチェック（現場DX業務効率化パック必須）
   const features = await getOrganizationFeatures(organizationId)
   if (!hasPackage(features, 'dx')) {
-    return <PackageRequired packageType="dx" featureName="売上分析・資金繰り予測" userRole={userRole} />
+    const currentPackage = features.package_type as 'asset' | 'dx' | 'none'
+    return <PackageRequired packageType="dx" featureName="売上分析・資金繰り予測" userRole={userRole} currentPackage={currentPackage} />
   }
 
   // 今日から6ヶ月先までのデータを取得
