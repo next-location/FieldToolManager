@@ -1,7 +1,10 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { SlidersHorizontal } from 'lucide-react'
 import { analyzeCosts, type ToolCostAnalysis } from '@/lib/analytics/cost-analysis'
+import CostAnalyticsPageMobileMenu from '@/components/analytics/CostAnalyticsPageMobileMenu'
+import CostAnalyticsFiltersModal from '@/components/analytics/CostAnalyticsFiltersModal'
 
 interface Props {
   tools: any[]
@@ -25,6 +28,7 @@ export default function CostAnalyticsView({
   const [periodMonths, setPeriodMonths] = useState(12)
   const [sortBy, setSortBy] = useState<'cost' | 'efficiency'>('cost')
   const [filterType, setFilterType] = useState<'all' | 'tool' | 'consumable'>('all')
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
 
   // コスト分析実行
   const report = useMemo(() => {
@@ -106,33 +110,38 @@ export default function CostAnalyticsView({
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0 space-y-6">
+      <div className="px-4 pb-6 sm:px-0 sm:py-6 space-y-6">
       {/* ヘッダー */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">コスト分析レポート</h1>
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">コスト分析レポート</h1>
           <p className="mt-1 text-sm text-gray-600">
             道具・消耗品のコスト分析と効率評価
           </p>
         </div>
-        <button
-          onClick={exportToCSV}
-          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center space-x-2"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-          <span>CSVエクスポート</span>
-        </button>
+        <div className="hidden sm:flex">
+          <button
+            onClick={exportToCSV}
+            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center space-x-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <span>CSVエクスポート</span>
+          </button>
+        </div>
+        <div className="sm:hidden">
+          <CostAnalyticsPageMobileMenu onExport={exportToCSV} />
+        </div>
       </div>
 
       {/* 統計カード */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
@@ -234,8 +243,19 @@ export default function CostAnalyticsView({
         </div>
       </div>
 
-      {/* フィルター */}
-      <div className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
+      {/* フィルター - モバイル */}
+      <div className="sm:hidden">
+        <button
+          onClick={() => setIsFilterModalOpen(true)}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50"
+        >
+          <SlidersHorizontal className="h-5 w-5 text-gray-600" />
+          <span className="text-sm font-medium text-gray-700">絞り込み</span>
+        </button>
+      </div>
+
+      {/* フィルター - PC */}
+      <div className="hidden sm:block rounded-lg bg-white p-6 shadow-sm border border-gray-200">
         <div className="flex items-center gap-4">
           <div>
             <label className="text-sm font-medium text-gray-700">分析期間</label>
@@ -276,8 +296,8 @@ export default function CostAnalyticsView({
         </div>
       </div>
 
-      {/* コスト分析テーブル */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+      {/* コスト分析テーブル - PC */}
+      <div className="hidden sm:block bg-white shadow overflow-hidden sm:rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -367,6 +387,76 @@ export default function CostAnalyticsView({
           </tbody>
         </table>
       </div>
+
+      {/* モバイル用カードビュー */}
+      <div className="sm:hidden space-y-3">
+        {filteredAndSorted.map((analysis) => (
+          <div key={analysis.tool_id} className="bg-white shadow rounded-lg p-4 border border-gray-200">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                      analysis.is_consumable
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-blue-100 text-blue-800'
+                    }`}
+                  >
+                    {analysis.is_consumable ? '消耗品' : '道具'}
+                  </span>
+                  <span className="text-xs text-gray-500">{analysis.category_name || '未分類'}</span>
+                </div>
+                <h3 className="font-medium text-gray-900">{analysis.tool_name}</h3>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <span className="text-gray-500">総コスト</span>
+                <p className="font-semibold text-gray-900">¥{analysis.total_cost.toLocaleString()}</p>
+              </div>
+              <div>
+                <span className="text-gray-500">移動回数</span>
+                <p className="font-medium text-gray-900">{analysis.movement_count}回</p>
+              </div>
+              <div>
+                <span className="text-gray-500">購入価格</span>
+                <p className="font-medium text-gray-900">
+                  {analysis.purchase_price ? `¥${analysis.purchase_price.toLocaleString()}` : '-'}
+                </p>
+              </div>
+              <div>
+                <span className="text-gray-500">効率スコア</span>
+                <div className="flex items-center gap-2 mt-1">
+                  <div
+                    className={`flex-1 h-2 rounded-full ${
+                      analysis.cost_efficiency_score >= 70
+                        ? 'bg-green-500'
+                        : analysis.cost_efficiency_score >= 40
+                          ? 'bg-yellow-500'
+                          : 'bg-red-500'
+                    }`}
+                    style={{ width: `${Math.max(20, analysis.cost_efficiency_score)}%` }}
+                  />
+                  <span className="text-xs font-medium">{analysis.cost_efficiency_score.toFixed(0)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* フィルターモーダル */}
+      <CostAnalyticsFiltersModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        periodMonths={periodMonths}
+        filterType={filterType}
+        sortBy={sortBy}
+        onPeriodChange={setPeriodMonths}
+        onFilterTypeChange={setFilterType}
+        onSortByChange={setSortBy}
+      />
       </div>
     </div>
   )
