@@ -904,7 +904,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                         </span>
                       </Link>
                       {heavyEquipmentEnabled && (
-                        <div>
+                        <div className="space-y-1.5">
                           <Link
                             href="/equipment/cost-report"
                             onClick={onClose}
