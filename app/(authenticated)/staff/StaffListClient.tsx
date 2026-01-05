@@ -236,13 +236,13 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
                       : 'bg-purple-600 text-white hover:bg-purple-700'
                   }`}
                 >
-                  📥 CSVインポート
+                  CSVインポート
                 </button>
                 <button
                   onClick={() => setIsPermissionMatrixOpen(true)}
                   className="px-4 py-2 text-sm font-medium rounded-md shadow-sm bg-purple-600 text-white hover:bg-purple-700"
                 >
-                  🔐 権限一覧
+                  権限一覧
                 </button>
                 <button
                   onClick={() => setIsAddModalOpen(true)}
