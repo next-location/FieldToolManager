@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { login } from './actions'
 import { Shield, Mail, ArrowRight, HelpCircle, Eye, EyeOff } from 'lucide-react'
 import Image from 'next/image'
@@ -15,7 +15,36 @@ export default function LoginPage() {
   const [tempCredentials, setTempCredentials] = useState<{ email: string; password: string }>({ email: '', password: '' })
   const [twoFAMethod, setTwoFAMethod] = useState<'totp' | 'email'>('totp')
   const [showPassword, setShowPassword] = useState(false)
+  const [organizationName, setOrganizationName] = useState<string>('')
   const { token: csrfToken } = useCsrfToken()
+
+  // 組織名を取得
+  useEffect(() => {
+    async function fetchOrganizationName() {
+      try {
+        const hostname = window.location.hostname
+        const subdomain = hostname.split('.')[0]
+
+        // localhostまたはサブドメインがない場合はスキップ
+        if (hostname === 'localhost' || hostname.startsWith('127.0.0.1') || subdomain === hostname) {
+          setOrganizationName('ザイロク')
+          return
+        }
+
+        const response = await fetch(`/api/organization/info?subdomain=${subdomain}`)
+        if (response.ok) {
+          const data = await response.json()
+          setOrganizationName(data.name || 'ザイロク')
+        } else {
+          setOrganizationName('ザイロク')
+        }
+      } catch (error) {
+        console.error('Failed to fetch organization name:', error)
+        setOrganizationName('ザイロク')
+      }
+    }
+    fetchOrganizationName()
+  }, [])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -289,8 +318,8 @@ export default function LoginPage() {
                 className="h-16 w-auto"
               />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              ようこそ
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 break-words">
+              {organizationName ? `「${organizationName}」ログインページ` : 'ログインページ'}
             </h2>
             <p className="text-sm text-gray-600">
               アカウントにログインしてください
