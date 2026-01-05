@@ -1030,7 +1030,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                   アカウント設定
                 </Link>
                 {isAdmin && (
-                  <div>
+                  <div className="space-y-1.5">
                     <Link
                       href="/staff"
                       onClick={onClose}
