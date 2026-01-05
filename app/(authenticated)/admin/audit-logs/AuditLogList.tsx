@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { SlidersHorizontal } from 'lucide-react'
 import { AuditLog } from '@/types/audit-log'
+import AuditLogFiltersModal from '@/components/admin/AuditLogFiltersModal'
 
 interface AuditLogListProps {
   initialAuditLogs: (AuditLog & {
@@ -18,6 +20,7 @@ export function AuditLogList({ initialAuditLogs }: AuditLogListProps) {
   const [entityFilter, setEntityFilter] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [expandedLog, setExpandedLog] = useState<string | null>(null)
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
 
   // フィルタリングされた監査ログ
   const filteredLogs = auditLogs.filter((log) => {
@@ -110,6 +113,18 @@ export function AuditLogList({ initialAuditLogs }: AuditLogListProps) {
     document.body.removeChild(link)
   }
 
+  const handleApplyFilters = () => {
+    // フィルターは既にstateで管理されているので、特に処理不要
+  }
+
+  const handleResetFilters = () => {
+    setActionFilter('all')
+    setEntityFilter('all')
+  }
+
+  // フィルター数をカウント（検索ワード以外）
+  const filterCount = [actionFilter !== 'all' ? 1 : 0, entityFilter !== 'all' ? 1 : 0].reduce((a, b) => a + b, 0)
+
   return (
     <div>
       {/* ヘッダー */}
@@ -133,28 +148,65 @@ export function AuditLogList({ initialAuditLogs }: AuditLogListProps) {
         </p>
       </div>
 
-      {/* フィルター・検索 */}
-      <div className="mb-6 bg-white p-4 rounded-lg shadow">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* 検索 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">検索</label>
+      {/* 検索・フィルタ - Mobile */}
+      <div className="sm:hidden mb-6">
+        <div className="flex items-center gap-2">
+          <div className="flex-1">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="ユーザー名、エンティティなど"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+            />
+          </div>
+          <button
+            onClick={() => setIsFilterModalOpen(true)}
+            className="relative p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50"
+            aria-label="フィルター"
+          >
+            <SlidersHorizontal className="h-5 w-5 text-gray-600" />
+            {filterCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {filterCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* 検索・フィルタ - PC */}
+      <div className="hidden sm:block bg-white shadow rounded-lg p-6 mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">検索・フィルター</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* 検索 */}
+          <div>
+            <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+              検索
+            </label>
+            <input
+              type="text"
+              id="search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="ユーザー名、エンティティなど"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
             />
           </div>
 
           {/* アクションフィルター */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">操作</label>
+            <label htmlFor="action" className="block text-sm font-medium text-gray-700 mb-1">
+              操作
+            </label>
             <select
+              id="action"
               value={actionFilter}
               onChange={(e) => setActionFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
             >
               <option value="all">すべて</option>
               {uniqueActions.map((action) => (
@@ -167,11 +219,14 @@ export function AuditLogList({ initialAuditLogs }: AuditLogListProps) {
 
           {/* エンティティフィルター */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">エンティティ</label>
+            <label htmlFor="entity" className="block text-sm font-medium text-gray-700 mb-1">
+              エンティティ
+            </label>
             <select
+              id="entity"
               value={entityFilter}
               onChange={(e) => setEntityFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
             >
               <option value="all">すべて</option>
               {uniqueEntities.map((entity) => (
@@ -290,6 +345,22 @@ export function AuditLogList({ initialAuditLogs }: AuditLogListProps) {
           </div>
         )}
       </div>
+
+      {/* モバイル用フィルターモーダル */}
+      <AuditLogFiltersModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        actionFilter={actionFilter}
+        entityFilter={entityFilter}
+        onActionChange={setActionFilter}
+        onEntityChange={setEntityFilter}
+        onApply={handleApplyFilters}
+        onReset={handleResetFilters}
+        uniqueActions={uniqueActions}
+        uniqueEntities={uniqueEntities}
+        getActionLabel={getActionLabel}
+        getEntityLabel={getEntityLabel}
+      />
     </div>
   )
 }
