@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { SlidersHorizontal } from 'lucide-react'
 import { copyPresetToOrganization, deleteToolMaster, deleteCategoryMaster } from './actions'
 import { ToolMasterForm } from './ToolMasterForm'
 import { CategoryMasterForm } from './CategoryMasterForm'
+import ToolMasterFiltersModal from '@/components/master/ToolMasterFiltersModal'
 
 type Preset = {
   id: string
@@ -74,6 +76,7 @@ export function ToolsConsumablesMasterClient({
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
 
   // フィルタリング処理
   const filteredToolPresets = toolPresets.filter((preset) => {
@@ -166,7 +169,7 @@ export function ToolsConsumablesMasterClient({
     <div className="space-y-6">
       {/* ヘッダー */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-lg sm:text-2xl font-bold text-gray-900">
           道具マスタ
         </h1>
         <p className="mt-2 text-sm text-gray-600">
@@ -228,13 +231,13 @@ export function ToolsConsumablesMasterClient({
           {/* カテゴリ管理タブ */}
           {activeTab === 'categories' && (
             <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <p className="text-sm text-gray-600">
+              <div className="sm:flex sm:justify-between sm:items-center">
+                <p className="text-sm text-gray-600 mb-3 sm:mb-0">
                   道具や消耗品を分類するためのカテゴリを管理します。
                 </p>
                 <button
                   onClick={() => setShowCategoryForm(true)}
-                  className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -362,14 +365,14 @@ export function ToolsConsumablesMasterClient({
           {activeTab === 'tools' && (
             <div className="space-y-6">
               {/* 説明と新規作成ボタン */}
-              <div className="flex justify-between items-center">
-                <p className="text-sm text-gray-600">
-                  道具の種類（テンプレート）を管理します。ここで登録したマスタは、実際の道具を登録する際に選択できます。<br />
+              <div className="sm:flex sm:justify-between sm:items-center">
+                <p className="text-sm text-gray-600 mb-3 sm:mb-0">
+                  道具の種類（テンプレート）を管理します。ここで登録したマスタは、実際の道具を登録する際に選択できます。<br className="hidden sm:block" />
                   <span className="text-xs text-gray-500">※実際の道具を登録してQRコードを発行するには、「道具一覧」ページから行います。</span>
                 </p>
                 <button
                   onClick={() => setShowToolForm(true)}
-                  className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -378,8 +381,35 @@ export function ToolsConsumablesMasterClient({
                 </button>
               </div>
 
-              {/* 検索・フィルター */}
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              {/* 検索・フィルター - モバイル */}
+              <div className="sm:hidden mb-6">
+                <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="道具名、メーカー、型番で検索..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    />
+                  </div>
+                  <button
+                    onClick={() => setIsFilterModalOpen(true)}
+                    className="relative p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50"
+                    aria-label="フィルター"
+                  >
+                    <SlidersHorizontal className="h-5 w-5 text-gray-600" />
+                    {selectedCategory && (
+                      <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        1
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* 検索・フィルター - PC */}
+              <div className="hidden sm:block bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-sm font-semibold text-gray-900">検索・フィルター</h3>
                   {(searchQuery || selectedCategory) && (
@@ -637,6 +667,21 @@ export function ToolsConsumablesMasterClient({
           )}
         </div>
       </div>
+
+      {/* フィルターモーダル */}
+      <ToolMasterFiltersModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        searchQuery={searchQuery}
+        selectedCategory={selectedCategory}
+        categories={categories}
+        onSearchChange={setSearchQuery}
+        onCategoryChange={setSelectedCategory}
+        onReset={() => {
+          setSearchQuery('')
+          setSelectedCategory('')
+        }}
+      />
     </div>
   )
 }
