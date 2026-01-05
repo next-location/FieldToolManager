@@ -3,7 +3,9 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { useDebounce } from '@/hooks/useDebounce'
+import { SlidersHorizontal } from 'lucide-react'
 import { PREFECTURES } from '@/lib/prefectures'
+import SiteFiltersModal from '@/components/sites/SiteFiltersModal'
 
 interface SiteFilterProps {
   cities: string[] // サーバーから渡される実際の市区町村リスト
@@ -17,6 +19,7 @@ export function SiteFilter({ cities }: SiteFilterProps) {
   const [selectedPrefecture, setSelectedPrefecture] = useState(searchParams.get('prefecture') || '')
   const [selectedCity, setSelectedCity] = useState(searchParams.get('city') || '')
   const [keyword, setKeyword] = useState(searchParams.get('keyword') || '')
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   // キーワードのみデバウンス（500ms）
   const debouncedKeyword = useDebounce(keyword, 500)
@@ -62,6 +65,12 @@ export function SiteFilter({ cities }: SiteFilterProps) {
     setSelectedCity('') // 都道府県変更時は市区町村をリセット
   }
 
+  const filterCount = [selectedPrefecture, selectedCity].filter(Boolean).length
+
+  const handleModalApply = () => {
+    // モーダルでの変更は既にstateに反映されているのでそのまま閉じる
+  }
+
   return (
     <div className="mb-6 space-y-4">
       {/* ステータスフィルター */}
@@ -101,8 +110,33 @@ export function SiteFilter({ cities }: SiteFilterProps) {
         </div>
       </div>
 
-      {/* 住所検索フィルター */}
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+      {/* Mobile: Search + Filter button */}
+      <div className="sm:hidden">
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            placeholder="現場名、住所で検索..."
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+          />
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="relative p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50"
+            aria-label="フィルター"
+          >
+            <SlidersHorizontal className="h-5 w-5 text-gray-600" />
+            {filterCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {filterCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* PC: Full filter form */}
+      <div className="hidden sm:block bg-gray-50 border border-gray-200 rounded-lg p-4">
         <h3 className="text-lg font-semibold text-gray-900 mb-3">現場を検索</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -228,6 +262,19 @@ export function SiteFilter({ cities }: SiteFilterProps) {
           </div>
         )}
       </div>
+
+      {/* Filter Modal */}
+      <SiteFiltersModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        selectedPrefecture={selectedPrefecture}
+        selectedCity={selectedCity}
+        filteredCities={filteredCities}
+        onPrefectureChange={handlePrefectureChange}
+        onCityChange={setSelectedCity}
+        onReset={clearFilters}
+        onApply={handleModalApply}
+      />
     </div>
   )
 }
