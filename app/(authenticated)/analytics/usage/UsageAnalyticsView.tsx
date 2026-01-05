@@ -2,6 +2,9 @@
 
 import { useState, useMemo } from 'react'
 import { analyzeUsage, type UsageAnalysis } from '@/lib/analytics/usage-analysis'
+import { SlidersHorizontal } from 'lucide-react'
+import UsageAnalyticsPageMobileMenu from '@/components/analytics/UsageAnalyticsPageMobileMenu'
+import UsageAnalyticsFiltersModal from '@/components/analytics/UsageAnalyticsFiltersModal'
 
 interface Props {
   tools: any[]
@@ -12,6 +15,7 @@ interface Props {
 
 export default function UsageAnalyticsView({ tools, movements, sites, users }: Props) {
   const [periodMonths, setPeriodMonths] = useState(6)
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'rarely_used'>('all')
   const [sortBy, setSortBy] = useState<'usage' | 'score'>('score')
 
@@ -116,33 +120,38 @@ export default function UsageAnalyticsView({ tools, movements, sites, users }: P
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0 space-y-6">
+      <div className="px-4 pb-6 sm:px-0 sm:py-6 space-y-6">
       {/* ヘッダー */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">使用頻度分析</h1>
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">使用頻度分析</h1>
           <p className="mt-1 text-sm text-gray-600">
             道具・消耗品の使用パターンと利用状況を分析
           </p>
         </div>
-        <button
-          onClick={exportToCSV}
-          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center space-x-2"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-          <span>CSVエクスポート</span>
-        </button>
+        <div className="hidden sm:flex">
+          <button
+            onClick={exportToCSV}
+            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center space-x-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <span>CSVエクスポート</span>
+          </button>
+        </div>
+        <div className="sm:hidden">
+          <UsageAnalyticsPageMobileMenu onExport={exportToCSV} />
+        </div>
       </div>
 
       {/* 統計カード */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
@@ -229,15 +238,29 @@ export default function UsageAnalyticsView({ tools, movements, sites, users }: P
         </div>
       </div>
 
-      {/* フィルター */}
-      <div className="bg-white shadow rounded-lg p-4">
-        <div className="flex flex-wrap gap-4">
+      {/* フィルター - モバイル */}
+      <div className="sm:hidden">
+        <button
+          onClick={() => setIsFilterModalOpen(true)}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50"
+        >
+          <SlidersHorizontal className="h-5 w-5 text-gray-600" />
+          <span className="text-sm font-medium text-gray-700">絞り込み</span>
+        </button>
+      </div>
+
+      {/* フィルター - PC */}
+      <div className="hidden sm:block bg-white shadow rounded-lg p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">分析期間</label>
+            <label htmlFor="period" className="block text-sm font-medium text-gray-700 mb-1">
+              分析期間
+            </label>
             <select
+              id="period"
               value={periodMonths}
               onChange={(e) => setPeriodMonths(Number(e.target.value))}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
             >
               <option value={1}>過去1ヶ月</option>
               <option value={3}>過去3ヶ月</option>
@@ -246,11 +269,14 @@ export default function UsageAnalyticsView({ tools, movements, sites, users }: P
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">ステータス</label>
+            <label htmlFor="statusFilter" className="block text-sm font-medium text-gray-700 mb-1">
+              ステータス
+            </label>
             <select
+              id="statusFilter"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
             >
               <option value="all">すべて</option>
               <option value="active">活発</option>
@@ -259,11 +285,14 @@ export default function UsageAnalyticsView({ tools, movements, sites, users }: P
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">ソート</label>
+            <label htmlFor="sortBy" className="block text-sm font-medium text-gray-700 mb-1">
+              ソート
+            </label>
             <select
+              id="sortBy"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
             >
               <option value="score">利用率スコアが高い順</option>
               <option value="usage">使用回数が多い順</option>
@@ -272,8 +301,8 @@ export default function UsageAnalyticsView({ tools, movements, sites, users }: P
         </div>
       </div>
 
-      {/* 使用頻度分析テーブル */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+      {/* 使用頻度分析テーブル - PC */}
+      <div className="hidden sm:block bg-white shadow overflow-hidden sm:rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -357,6 +386,84 @@ export default function UsageAnalyticsView({ tools, movements, sites, users }: P
           </tbody>
         </table>
       </div>
+
+      {/* モバイル用カードビュー */}
+      <div className="sm:hidden space-y-3">
+        {filteredAndSorted.map((analysis) => (
+          <div key={analysis.tool_id} className="bg-white shadow rounded-lg p-4 border border-gray-200">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex-1">
+                <h3 className="font-medium text-gray-900">{analysis.tool_name}</h3>
+                <p className="text-xs text-gray-500 mt-1">{analysis.category_name || '未分類'}</p>
+              </div>
+              <span
+                className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                  analysis.status
+                )}`}
+              >
+                {getStatusLabel(analysis.status)}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <span className="text-gray-500">総移動回数</span>
+                <p className="font-semibold text-gray-900">{analysis.total_movements}回</p>
+              </div>
+              <div>
+                <span className="text-gray-500">月平均</span>
+                <p className="font-medium text-gray-900">{analysis.average_movements_per_month.toFixed(1)}回</p>
+              </div>
+              <div>
+                <span className="text-gray-500">最終使用日</span>
+                <p className="font-medium text-gray-900 text-xs">
+                  {analysis.last_usage_date
+                    ? new Date(analysis.last_usage_date).toLocaleDateString('ja-JP')
+                    : '未使用'}
+                </p>
+                {analysis.days_since_last_use !== null && (
+                  <p className="text-xs text-gray-400">{analysis.days_since_last_use}日前</p>
+                )}
+              </div>
+              <div>
+                <span className="text-gray-500">利用率スコア</span>
+                <div className="flex items-center gap-2 mt-1">
+                  <div
+                    className={`flex-1 h-2 rounded-full ${
+                      analysis.usage_score >= 70
+                        ? 'bg-green-500'
+                        : analysis.usage_score >= 40
+                          ? 'bg-yellow-500'
+                          : 'bg-red-500'
+                    }`}
+                    style={{ width: `${Math.max(20, analysis.usage_score)}%` }}
+                  />
+                  <span className="text-xs font-medium">{analysis.usage_score.toFixed(0)}</span>
+                </div>
+              </div>
+            </div>
+
+            {analysis.most_active_site && (
+              <div className="mt-2 pt-2 border-t border-gray-100">
+                <span className="text-xs text-gray-500">最も使用されている現場: </span>
+                <span className="text-xs font-medium text-gray-700">{analysis.most_active_site}</span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* フィルターモーダル */}
+      <UsageAnalyticsFiltersModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        periodMonths={periodMonths}
+        statusFilter={statusFilter}
+        sortBy={sortBy}
+        onPeriodChange={setPeriodMonths}
+        onStatusFilterChange={setStatusFilter}
+        onSortByChange={setSortBy}
+      />
       </div>
     </div>
   )
