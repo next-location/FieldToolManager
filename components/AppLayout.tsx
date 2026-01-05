@@ -55,8 +55,8 @@ export function AppLayout({
       />
 
       {/* メインコンテンツエリア */}
-      <div className={`${isImpersonating ? 'pt-[104px]' : 'pt-16'} lg:pl-64 pb-16 lg:pb-0`}>
-        <main className="min-h-[calc(100vh-4rem)]">
+      <div className={`${isImpersonating ? 'pt-[98px]' : 'pt-[58px]'} lg:pl-64 pb-16 lg:pb-0`}>
+        <main className="min-h-[calc(100vh-58px)]">
           {children}
         </main>
       </div>
