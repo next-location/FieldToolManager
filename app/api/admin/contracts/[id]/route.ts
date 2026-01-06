@@ -115,6 +115,25 @@ export async function PUT(
         })
     }
 
+    // 未送信の見積もりを削除（契約編集時に自動的に古い見積もりを削除）
+    const { data: existingEstimates } = await supabase
+      .from('invoices')
+      .select('id')
+      .eq('contract_id', contractId)
+      .eq('document_type', 'estimate')
+      .eq('status', 'estimate')
+      .eq('is_initial_invoice', true)
+
+    if (existingEstimates && existingEstimates.length > 0) {
+      const estimateIds = existingEstimates.map(e => e.id)
+      await supabase
+        .from('invoices')
+        .delete()
+        .in('id', estimateIds)
+
+      console.log('[Contract Edit] Deleted old estimates:', estimateIds)
+    }
+
     // ログ記録
     await supabase.from('super_admin_logs').insert({
       super_admin_id: session.id,
@@ -122,12 +141,16 @@ export async function PUT(
       details: {
         contract_id: contractId,
         organization_id: contract.organization_id,
+        deleted_estimates: existingEstimates?.length || 0,
       },
       ip_address: request.headers.get('x-forwarded-for') || 'unknown',
       user_agent: request.headers.get('user-agent'),
     })
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({
+      success: true,
+      deleted_estimates: existingEstimates?.length || 0,
+    })
   } catch (error: any) {
     console.error('[API PUT /api/admin/contracts/[id]]:', error)
     return NextResponse.json({ error: 'サーバーエラー' }, { status: 500 })

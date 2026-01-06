@@ -213,6 +213,27 @@ export default function EditContractForm({ contract, contractPackages, packages 
         throw new Error(data.error || '契約の更新に失敗しました');
       }
 
+      const result = await response.json();
+
+      // 見積もりが削除された場合は自動的に再生成
+      if (result.deleted_estimates > 0) {
+        try {
+          const estimateResponse = await fetch('/api/admin/invoices/generate-estimate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contract_id: contract.id }),
+          });
+
+          if (!estimateResponse.ok) {
+            console.error('Failed to regenerate estimate after contract edit');
+          } else {
+            console.log('Estimate regenerated successfully after contract edit');
+          }
+        } catch (estimateError) {
+          console.error('Error regenerating estimate:', estimateError);
+        }
+      }
+
       router.push(`/admin/contracts/${contract.id}`);
       router.refresh();
     } catch (err: any) {
