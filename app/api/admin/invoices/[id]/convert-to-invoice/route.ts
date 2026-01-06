@@ -289,6 +289,12 @@ export async function POST(
         isEstimate: false,
       });
 
+      // 見積もりのステータスを更新
+      await supabase
+        .from('invoices')
+        .update({ status: 'converted' })
+        .eq('id', estimate.id);
+
       // ログを記録
       await supabase
         .from('super_admin_logs')
