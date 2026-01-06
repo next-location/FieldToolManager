@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { SlidersHorizontal } from 'lucide-react'
+import AttendanceFiltersModal from '@/components/attendance/AttendanceFiltersModal'
 
 interface MyAttendanceRecordsTableProps {
   userName: string
@@ -14,6 +16,7 @@ export function MyAttendanceRecordsTable({
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
 
   // フィルター状態
   const [filters, setFilters] = useState({
@@ -136,60 +139,85 @@ export function MyAttendanceRecordsTable({
     )
   }
 
+  // フィルター適用数をカウント
+  const filterCount = [
+    filters.start_date !== '',
+    filters.end_date !== '',
+  ].filter(Boolean).length
+
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* 月次集計 */}
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="bg-blue-50 rounded-lg p-4">
-          <div className="text-sm font-medium text-blue-600">出勤日数</div>
-          <div className="mt-2 text-2xl font-bold text-blue-900">
-            {monthlyStats.totalDays} 日
+      <div className="mb-6 grid grid-cols-3 gap-2 sm:gap-4">
+        <div className="bg-blue-50 rounded-lg p-3 sm:p-4">
+          <div className="text-xs sm:text-sm font-medium text-blue-600">出勤日数</div>
+          <div className="mt-1 sm:mt-2 text-lg sm:text-2xl font-bold text-blue-900">
+            {monthlyStats.totalDays}<span className="text-sm sm:text-base ml-0.5">日</span>
           </div>
         </div>
-        <div className="bg-green-50 rounded-lg p-4">
-          <div className="text-sm font-medium text-green-600">総勤務時間</div>
-          <div className="mt-2 text-2xl font-bold text-green-900">
-            {monthlyStats.totalHours} 時間
+        <div className="bg-green-50 rounded-lg p-3 sm:p-4">
+          <div className="text-xs sm:text-sm font-medium text-green-600 whitespace-nowrap">総勤務時間</div>
+          <div className="mt-1 sm:mt-2 text-lg sm:text-2xl font-bold text-green-900">
+            {monthlyStats.totalHours}<span className="text-sm sm:text-base ml-0.5">h</span>
           </div>
         </div>
-        <div className="bg-purple-50 rounded-lg p-4">
-          <div className="text-sm font-medium text-purple-600">平均勤務時間</div>
-          <div className="mt-2 text-2xl font-bold text-purple-900">
-            {monthlyStats.averageHours} 時間/日
+        <div className="bg-purple-50 rounded-lg p-3 sm:p-4">
+          <div className="text-xs sm:text-sm font-medium text-purple-600 whitespace-nowrap">平均時間</div>
+          <div className="mt-1 sm:mt-2 text-lg sm:text-2xl font-bold text-purple-900">
+            {monthlyStats.averageHours}<span className="text-sm sm:text-base ml-0.5">h</span>
           </div>
         </div>
       </div>
 
-      {/* フィルター */}
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            開始日
-          </label>
-          <input
-            type="date"
-            value={filters.start_date}
-            onChange={(e) => {
-              setFilters({ ...filters, start_date: e.target.value })
-              setPage(1)
-            }}
-            className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
+      {/* モバイル: フィルターボタン */}
+      <div className="sm:hidden mb-6">
+        <button
+          onClick={() => setIsFilterModalOpen(true)}
+          className="relative w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+          aria-label="フィルター"
+        >
+          <SlidersHorizontal className="h-5 w-5 text-gray-600" />
+          <span className="text-sm font-medium text-gray-700">フィルター</span>
+          {filterCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              {filterCount}
+            </span>
+          )}
+        </button>
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            終了日
-          </label>
-          <input
-            type="date"
-            value={filters.end_date}
-            onChange={(e) => {
-              setFilters({ ...filters, end_date: e.target.value })
-              setPage(1)
-            }}
-            className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-          />
+      {/* PC: フィルター */}
+      <div className="hidden sm:block mb-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              開始日
+            </label>
+            <input
+              type="date"
+              value={filters.start_date}
+              onChange={(e) => {
+                setFilters({ ...filters, start_date: e.target.value })
+                setPage(1)
+              }}
+              className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              終了日
+            </label>
+            <input
+              type="date"
+              value={filters.end_date}
+              onChange={(e) => {
+                setFilters({ ...filters, end_date: e.target.value })
+                setPage(1)
+              }}
+              className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
         </div>
       </div>
 
@@ -329,6 +357,23 @@ export function MyAttendanceRecordsTable({
           </button>
         </div>
       )}
+
+      {/* フィルターモーダル */}
+      <AttendanceFiltersModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        startDate={filters.start_date}
+        setStartDate={(value) => {
+          setFilters({ ...filters, start_date: value })
+          setPage(1)
+        }}
+        endDate={filters.end_date}
+        setEndDate={(value) => {
+          setFilters({ ...filters, end_date: value })
+          setPage(1)
+        }}
+        onReset={handleResetFilters}
+      />
     </div>
   )
 }
