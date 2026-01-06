@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { SlidersHorizontal, Search } from 'lucide-react'
+import RecordsFiltersModal from '@/components/attendance/RecordsFiltersModal'
 
 interface Staff {
   id: string
@@ -30,6 +32,8 @@ export function AttendanceFilter({
     location_type: '',
     site_id: '',
   })
+  const [keyword, setKeyword] = useState('')
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
 
   useEffect(() => {
     onFiltersChange(filters)
@@ -44,12 +48,52 @@ export function AttendanceFilter({
       site_id: '',
     }
     setFilters(resetFilters)
+    setKeyword('')
   }
 
   const hasActiveFilters = filters.user_id || filters.start_date || filters.end_date || filters.location_type || filters.site_id
 
+  // フィルター適用数をカウント
+  const filterCount = [
+    filters.user_id !== '',
+    filters.start_date !== '',
+    filters.end_date !== '',
+    filters.location_type !== '',
+    filters.site_id !== '',
+  ].filter(Boolean).length
+
   return (
-    <div className="bg-white shadow rounded-lg p-6 mb-6">
+    <>
+      {/* モバイル表示 */}
+      <div className="sm:hidden mb-6 space-y-3">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder="スタッフ名で検索"
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <button
+            onClick={() => setIsFilterModalOpen(true)}
+            className="relative p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            aria-label="フィルター"
+          >
+            <SlidersHorizontal className="h-5 w-5 text-gray-600" />
+            {filterCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {filterCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* PC表示 */}
+      <div className="hidden sm:block bg-white shadow rounded-lg p-6 mb-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-gray-900">検索・フィルター</h2>
         {hasActiveFilters && (
@@ -150,5 +194,25 @@ export function AttendanceFilter({
         </div>
       </div>
     </div>
+
+      {/* フィルターモーダル */}
+      <RecordsFiltersModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        userId={filters.user_id}
+        setUserId={(value) => setFilters({ ...filters, user_id: value })}
+        startDate={filters.start_date}
+        setStartDate={(value) => setFilters({ ...filters, start_date: value })}
+        endDate={filters.end_date}
+        setEndDate={(value) => setFilters({ ...filters, end_date: value })}
+        locationType={filters.location_type}
+        setLocationType={(value) => setFilters({ ...filters, location_type: value })}
+        siteId={filters.site_id}
+        setSiteId={(value) => setFilters({ ...filters, site_id: value })}
+        staffList={staffList}
+        sitesList={sitesList}
+        onReset={handleResetFilters}
+      />
+    </>
   )
 }

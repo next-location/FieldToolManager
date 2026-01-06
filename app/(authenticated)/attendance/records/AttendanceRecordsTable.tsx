@@ -164,8 +164,8 @@ export function AttendanceRecordsTable({
         </div>
       </div>
 
-      {/* テーブル部分（白い背景） */}
-      <div className="bg-white shadow sm:rounded-lg p-6">
+      {/* PC: テーブル表示 */}
+      <div className="hidden sm:block bg-white shadow sm:rounded-lg p-6">
         <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
