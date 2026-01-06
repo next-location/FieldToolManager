@@ -27,7 +27,7 @@ export default function CommercialLawPage() {
 
           <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-3">販売価格</h2>
-            <p>各プラン・サービスページに記載の価格（税込）</p>
+            <p>各プラン・サービスページに記載の価格（税抜価格を表示。別途消費税10%が加算されます）</p>
           </section>
 
           <section>
