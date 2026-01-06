@@ -117,10 +117,11 @@ export async function generateStripeInvoicePDF(data: StripeInvoiceData): Promise
   // 左側: 請求先情報
   let leftY = yPos + 3;
 
-  doc.setFontSize(16);
+  // 取引先名（フォントサイズを小さく、左揃え）
+  doc.setFontSize(12);
   doc.setFont('NotoSansJP', 'normal');
   doc.setTextColor(0, 0, 0);
-  doc.text(`${data.organization.name} 様`, leftColumnX + 5, leftY);
+  doc.text(`${data.organization.name} 様`, leftColumnX, leftY);
   leftY += 4;
 
   // 取引先名の下に青い下線
@@ -130,6 +131,7 @@ export async function generateStripeInvoicePDF(data: StripeInvoiceData): Promise
 
   leftY += 6;
 
+  // 住所（取引先名と左揃え）
   doc.setFontSize(9);
   doc.setFont('NotoSansJP', 'normal');
   if (data.organization.address) {

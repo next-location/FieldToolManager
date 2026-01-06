@@ -178,14 +178,44 @@ export function calculateMonthlyFee(contract: Contract): MonthlyFeeCalculation {
     subtotal += contract.pending_plan_change.initial_fee;
   }
 
-  // 4. 初期費用（初回のみ）
-  if (firstInvoice && contract.total_initial_fee > 0) {
-    items.push({
-      description: '初期導入費用（一回限り）',
-      amount: contract.total_initial_fee,
-      type: 'initial_fee',
-    });
-    subtotal += contract.total_initial_fee;
+  // 4. 初期費用（初回のみ）- 各費用を個別に加算
+  if (firstInvoice) {
+    let initialFeeTotal = 0;
+
+    // 初期設定費
+    if (contract.initial_setup_fee && contract.initial_setup_fee > 0) {
+      initialFeeTotal += contract.initial_setup_fee;
+    }
+
+    // データ登録費
+    if (contract.initial_data_registration_fee && contract.initial_data_registration_fee > 0) {
+      initialFeeTotal += contract.initial_data_registration_fee;
+    }
+
+    // オンサイト作業費
+    if (contract.initial_onsite_fee && contract.initial_onsite_fee > 0) {
+      initialFeeTotal += contract.initial_onsite_fee;
+    }
+
+    // 研修費
+    if (contract.initial_training_fee && contract.initial_training_fee > 0) {
+      initialFeeTotal += contract.initial_training_fee;
+    }
+
+    // その他費用
+    if (contract.initial_other_fee && contract.initial_other_fee > 0) {
+      initialFeeTotal += contract.initial_other_fee;
+    }
+
+    // 初期費用合計を明細に追加
+    if (initialFeeTotal > 0) {
+      items.push({
+        description: '初期導入費用（一回限り）',
+        amount: initialFeeTotal,
+        type: 'initial_fee',
+      });
+      subtotal += initialFeeTotal;
+    }
   }
 
   // 5. 割引計算（初回のみ）
