@@ -218,10 +218,9 @@ export default function EditContractForm({ contract, contractPackages, packages 
       // 見積もりが削除された場合は自動的に再生成
       if (result.deleted_estimates > 0) {
         try {
-          const estimateResponse = await fetch('/api/admin/invoices/generate-estimate', {
+          const estimateResponse = await fetch(`/api/admin/contracts/${contract.id}/generate-estimate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contract_id: contract.id }),
           });
 
           if (!estimateResponse.ok) {
