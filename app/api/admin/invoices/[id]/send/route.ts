@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
 import { sendInvoiceEmail } from '@/lib/email/invoice';
+import { stripe } from '@/lib/stripe/client';
 import { jsPDF } from 'jspdf';
 import fs from 'fs';
 import path from 'path';
@@ -49,6 +50,20 @@ export async function POST(
         { error: '請求先メールアドレスが登録されていません' },
         { status: 400 }
       );
+    }
+
+    // 見積もりの場合、Stripe Invoiceを確定してPDFを生成
+    if (invoice.document_type === 'estimate' && invoice.stripe_invoice_id) {
+      try {
+        await stripe.invoices.finalizeInvoice(invoice.stripe_invoice_id);
+        console.log('[Send Estimate] Stripe Invoice finalized:', invoice.stripe_invoice_id);
+      } catch (error: any) {
+        console.error('[Send Estimate] Failed to finalize Stripe Invoice:', error);
+        return NextResponse.json(
+          { error: 'Stripe請求書の確定に失敗しました', details: error.message },
+          { status: 500 }
+        );
+      }
     }
 
     // PDF生成（同じロジックを使用）
