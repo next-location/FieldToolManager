@@ -242,37 +242,106 @@ export function AttendanceRecordsTable({
             ))}
           </tbody>
         </table>
-      </div>
+        </div>
 
         {records.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500">勤怠記録がありません</p>
           </div>
         )}
+      </div>
 
-        {/* ページネーション */}
-        {totalPages > 1 && (
-          <div className="mt-6 flex items-center justify-between">
-            <button
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page === 1}
-              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
-            >
-              前へ
-            </button>
-            <span className="text-sm text-gray-700">
-              {page} / {totalPages} ページ
-            </span>
-            <button
-              onClick={() => setPage(Math.min(totalPages, page + 1))}
-              disabled={page === totalPages}
-              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
-            >
-              次へ
-            </button>
+      {/* モバイル: カード表示 */}
+      <div className="sm:hidden space-y-3">
+        {records.map((record) => (
+          <div key={record.id} className="bg-white border border-gray-200 rounded-lg p-4">
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <div className="text-sm font-medium text-gray-900">
+                  {record.user_name}
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5">
+                  {formatDate(record.date)}
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                {!record.clock_out_time && (
+                  <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full font-medium">
+                    勤務中
+                  </span>
+                )}
+                {record.is_manually_edited && (
+                  <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full font-medium">
+                    編集済
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+              <div>
+                <div className="text-xs text-gray-500 mb-1">出勤</div>
+                <div className="font-medium text-gray-900">{formatTime(record.clock_in_time)}</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">退勤</div>
+                <div className="font-medium text-gray-900">{formatTime(record.clock_out_time)}</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">勤務時間</div>
+                <div className="font-medium text-gray-900">{calculateWorkHours(record)}</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">場所</div>
+                <div className="font-medium text-gray-900">
+                  {record.clock_in_location_type === 'office' && '会社'}
+                  {record.clock_in_location_type === 'site' &&
+                    `${record.clock_in_site_name || '現場'}`}
+                  {record.clock_in_location_type === 'remote' && 'リモート'}
+                </div>
+              </div>
+            </div>
+
+            {isAdminOrManager && (
+              <button
+                onClick={() => handleEdit(record)}
+                className="w-full px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+              >
+                編集
+              </button>
+            )}
+          </div>
+        ))}
+
+        {records.length === 0 && (
+          <div className="text-center py-12 bg-gray-50 rounded-lg">
+            <p className="text-gray-500">勤怠記録がありません</p>
           </div>
         )}
       </div>
+
+      {/* ページネーション */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-between">
+          <button
+            onClick={() => setPage(Math.max(1, page - 1))}
+            disabled={page === 1}
+            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            前へ
+          </button>
+          <span className="text-sm text-gray-700">
+            {page} / {totalPages} ページ
+          </span>
+          <button
+            onClick={() => setPage(Math.min(totalPages, page + 1))}
+            disabled={page === totalPages}
+            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            次へ
+          </button>
+        </div>
+      )}
 
       {/* 編集モーダル */}
       {editingRecord && (
