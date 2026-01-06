@@ -22,6 +22,9 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function ContractDetailPage({ params }: { params: Promise<{ id: string }> }) {
   // 認証チェック
   const session = await getSuperAdminSession();
