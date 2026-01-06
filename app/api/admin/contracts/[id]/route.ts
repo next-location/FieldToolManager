@@ -121,11 +121,12 @@ export async function PUT(
 
       // パッケージキーに基づいてhas_*_packageフラグを設定
       if (packageData) {
-        if (packageData.package_key === 'asset_pack') {
+        // 新旧両方のpackage_keyに対応
+        if (packageData.package_key === 'asset_pack' || packageData.package_key === 'has_asset_package') {
           hasAssetPackage = true
-        } else if (packageData.package_key === 'dx_efficiency_pack') {
+        } else if (packageData.package_key === 'dx_efficiency_pack' || packageData.package_key === 'has_dx_efficiency_package') {
           hasDxEfficiencyPackage = true
-        } else if (packageData.package_key === 'full_integration_pack') {
+        } else if (packageData.package_key === 'full_integration_pack' || packageData.package_key === 'has_both_packages') {
           hasBothPackages = true
         }
       }
