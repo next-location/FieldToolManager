@@ -94,9 +94,10 @@ interface ContractDetailViewProps {
   invoices: Invoice[];
   contractPackages: ContractPackage[];
   initialInvoice: InitialInvoice | null;
+  latestEstimate?: InitialInvoice | null;
 }
 
-export default function ContractDetailView({ contract, invoices, contractPackages, initialInvoice }: ContractDetailViewProps) {
+export default function ContractDetailView({ contract, invoices, contractPackages, initialInvoice, latestEstimate }: ContractDetailViewProps) {
   // プラン名の日本語変換
   const planLabels: Record<string, string> = {
     start: 'スタート',
@@ -456,6 +457,75 @@ export default function ContractDetailView({ contract, invoices, contractPackage
           </div>
         </dl>
       </div>
+
+      {/* 見積もり詳細カード */}
+      {latestEstimate && (
+        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">見積もり情報</h3>
+          <dl className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div className="flex">
+              <dt className="text-gray-600 w-32">見積書番号:</dt>
+              <dd className="text-gray-900 font-mono font-semibold">{latestEstimate.invoice_number}</dd>
+            </div>
+            <div className="flex">
+              <dt className="text-gray-600 w-32">ステータス:</dt>
+              <dd>
+                <span
+                  className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${
+                    latestEstimate.status === 'estimate'
+                      ? 'bg-blue-100 text-blue-800'
+                      : latestEstimate.status === 'estimate_sent'
+                      ? 'bg-green-100 text-green-800'
+                      : latestEstimate.status === 'rejected'
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}
+                >
+                  {latestEstimate.status === 'estimate'
+                    ? '見積もり（未送信）'
+                    : latestEstimate.status === 'estimate_sent'
+                    ? '見積もり送信済み'
+                    : latestEstimate.status === 'rejected'
+                    ? '却下（再見積もり必要）'
+                    : latestEstimate.status}
+                </span>
+              </dd>
+            </div>
+            <div className="flex">
+              <dt className="text-gray-600 w-32">見積金額:</dt>
+              <dd className="text-gray-900 font-bold text-lg">
+                ¥{latestEstimate.total_amount.toLocaleString()}
+                <span className="text-xs text-gray-500 font-normal ml-1">(税込)</span>
+              </dd>
+            </div>
+          </dl>
+          {latestEstimate.status === 'estimate' && (
+            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-blue-800">
+                💡 「見積書をダウンロード」ボタンで内容を確認し、問題なければ「見積もりを送信」してください。
+                <br />
+                修正が必要な場合は「見積もりを削除」して再度作成できます。
+              </p>
+            </div>
+          )}
+          {latestEstimate.status === 'estimate_sent' && (
+            <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-3">
+              <p className="text-sm text-green-800">
+                ✅ 見積もりを顧客に送信しました。承認されたら「請求書に変換」してください。
+                <br />
+                却下された場合は「見積もりを却下」して再見積もりを作成できます。
+              </p>
+            </div>
+          )}
+          {latestEstimate.status === 'rejected' && (
+            <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-sm text-red-800">
+                ❌ 見積もりが却下されました。新しい見積もりを作成してください。
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 備考カード */}
       {contract.notes && (

@@ -50,6 +50,9 @@ export interface StripeInvoiceData {
 
   // 備考
   notes?: string;
+
+  // 見積書フラグ（trueの場合「見積書」、falseまたは未指定の場合「請求書」）
+  isEstimate?: boolean;
 }
 
 /**
@@ -88,11 +91,12 @@ export async function generateStripeInvoicePDF(data: StripeInvoiceData): Promise
   // ヘッダー部分
   // ========================================
 
-  // 左上: 大きな「請求書」タイトル
+  // 左上: 大きな「請求書」または「見積書」タイトル
+  const documentTitle = data.isEstimate ? '見　積　書' : '請　求　書';
   doc.setFontSize(28);
   doc.setFont('NotoSansJP', 'normal');
   doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-  doc.text('請　求　書', leftColumnX, yPos);
+  doc.text(documentTitle, leftColumnX, yPos);
 
   // 右上: 日付と請求書番号
   doc.setFontSize(10);

@@ -13,6 +13,8 @@ import SendEstimateButton from '@/components/admin/SendEstimateButton';
 import RejectEstimateButton from '@/components/admin/RejectEstimateButton';
 import ConvertToInvoiceButton from '@/components/admin/ConvertToInvoiceButton';
 import ResendInvoiceButton from '@/components/admin/ResendInvoiceButton';
+import DownloadEstimateButton from '@/components/admin/DownloadEstimateButton';
+import DeleteEstimateButton from '@/components/admin/DeleteEstimateButton';
 import ImpersonateButton from '@/components/admin/ImpersonateButton';
 
 const supabase = createClient(
@@ -185,10 +187,20 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
                     )}
 
                     {latestEstimate && latestEstimate.status === 'estimate' && (
-                      <SendEstimateButton
-                        estimateId={latestEstimate.id}
-                        estimateNumber={latestEstimate.invoice_number}
-                      />
+                      <>
+                        <DownloadEstimateButton
+                          estimateId={latestEstimate.id}
+                          estimateNumber={latestEstimate.invoice_number}
+                        />
+                        <SendEstimateButton
+                          estimateId={latestEstimate.id}
+                          estimateNumber={latestEstimate.invoice_number}
+                        />
+                        <DeleteEstimateButton
+                          estimateId={latestEstimate.id}
+                          estimateNumber={latestEstimate.invoice_number}
+                        />
+                      </>
                     )}
 
                     {latestEstimate && latestEstimate.status === 'estimate_sent' && (
@@ -254,6 +266,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
             invoices={invoices || []}
             contractPackages={contractPackages || []}
             initialInvoice={initialInvoice || null}
+            latestEstimate={latestEstimate || null}
           />
         </main>
       </div>

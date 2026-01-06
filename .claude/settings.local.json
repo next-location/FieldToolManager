@@ -10,7 +10,8 @@
       "Bash(wc:*)",
       "Bash(curl -v http://localhost:3000/api/organization/info?subdomain=ijthywxu)",
       "Bash(curl -s 'https://ijthywxu.zairoku.com/login')",
-      "Bash(head:*)"
+      "Bash(head:*)",
+      "Bash(npx supabase:*)"
     ],
     "deny": [],
     "ask": []
