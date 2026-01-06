@@ -118,6 +118,8 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
   const latestEstimate = estimates.find(est => est.status !== 'rejected' && est.status !== 'converted') || estimates[0] || null;
 
   console.log('[Contract Detail] Latest estimate:', latestEstimate);
+  console.log('[Contract Detail] DEBUG - initialInvoice value:', JSON.stringify(initialInvoice));
+  console.log('[Contract Detail] DEBUG - latestEstimate value:', JSON.stringify(latestEstimate));
 
   if (error || !contract) {
     console.log('[Contract Detail] Contract not found or error:', error);
