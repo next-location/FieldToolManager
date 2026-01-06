@@ -32,7 +32,12 @@ export interface Contract {
 
   // 初期費用・割引（初回のみ）
   initial_setup_fee: number;
-  initial_discount: number; // パーセンテージ（例: 10 = 10%）
+  initial_data_registration_fee?: number;
+  initial_onsite_fee?: number;
+  initial_training_fee?: number;
+  initial_other_fee?: number;
+  total_initial_fee: number; // 初期費用の合計
+  initial_discount: number; // 金額（パーセンテージではなく金額）
 
   // 基本プラン料金（契約で個別設定）
   monthly_base_fee?: number; // 人数ベース基本料金
@@ -174,13 +179,13 @@ export function calculateMonthlyFee(contract: Contract): MonthlyFeeCalculation {
   }
 
   // 4. 初期費用（初回のみ）
-  if (firstInvoice && contract.initial_setup_fee > 0) {
+  if (firstInvoice && contract.total_initial_fee > 0) {
     items.push({
       description: '初期導入費用（一回限り）',
-      amount: contract.initial_setup_fee,
+      amount: contract.total_initial_fee,
       type: 'initial_fee',
     });
-    subtotal += contract.initial_setup_fee;
+    subtotal += contract.total_initial_fee;
   }
 
   // 5. 割引計算（初回のみ）
