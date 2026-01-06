@@ -78,12 +78,13 @@ export async function POST(
     const invoiceDate = new Date().toISOString().split('T')[0];
 
     // 新しい請求書レコードを作成
+    // stripe_invoice_idはnullにする（見積もりのStripe Invoiceは再利用しない）
     const { data: newInvoice, error: createError } = await supabase
       .from('invoices')
       .insert({
         organization_id: estimate.organization_id,
         contract_id: estimate.contract_id,
-        stripe_invoice_id: estimate.stripe_invoice_id,
+        stripe_invoice_id: null,
         invoice_number: invoiceNumber,
         invoice_date: invoiceDate,
         billing_period_start: estimate.billing_period_start,
