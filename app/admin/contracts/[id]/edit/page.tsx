@@ -90,7 +90,7 @@ export default async function EditContractPage({ params }: { params: Promise<{ i
   }
 
   // 契約パッケージ情報を取得
-  const { data: contractPackages } = await supabase
+  const { data: contractPackagesRaw } = await supabase
     .from('contract_packages')
     .select(`
       package_id,
@@ -101,6 +101,12 @@ export default async function EditContractPage({ params }: { params: Promise<{ i
       )
     `)
     .eq('contract_id', id);
+
+  // 型を修正（packages配列を単一オブジェクトに変換）
+  const contractPackages = contractPackagesRaw?.map((cp: any) => ({
+    package_id: cp.package_id,
+    packages: Array.isArray(cp.packages) ? cp.packages[0] : cp.packages,
+  })) || [];
 
   // パッケージ一覧を取得
   const { data: packages } = await supabase
