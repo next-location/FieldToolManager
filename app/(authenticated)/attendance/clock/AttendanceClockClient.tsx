@@ -238,20 +238,20 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
   return (
     <div className="space-y-6">
       {/* 日付と現在の状態 */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold text-gray-900">
+      <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+        <div className="text-center mb-4 sm:mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
             {today.getMonth() + 1}月{today.getDate()}日（
             {['日', '月', '火', '水', '木', '金', '土'][today.getDay()]}）
           </h2>
-          <p className="text-sm text-gray-500 mt-1">{today.getFullYear()}年</p>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">{today.getFullYear()}年</p>
         </div>
 
         {/* 当日の出退勤記録 */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-blue-50 rounded-lg p-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="bg-blue-50 rounded-lg p-3 sm:p-4">
             <div className="text-xs text-blue-600 font-medium mb-1">出勤時刻</div>
-            <div className="text-2xl font-bold text-blue-900">
+            <div className="text-xl sm:text-2xl font-bold text-blue-900">
               {todayRecord?.clock_in_time
                 ? new Date(todayRecord.clock_in_time).toLocaleTimeString('ja-JP', {
                     hour: '2-digit',
@@ -268,9 +268,9 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
             )}
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
             <div className="text-xs text-gray-600 font-medium mb-1">退勤時刻</div>
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-xl sm:text-2xl font-bold text-gray-900">
               {todayRecord?.clock_out_time
                 ? new Date(todayRecord.clock_out_time).toLocaleTimeString('ja-JP', {
                     hour: '2-digit',
@@ -283,9 +283,9 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
 
         {/* 勤務時間表示 */}
         {isWorking && duration && (
-          <div className="bg-green-50 rounded-lg p-4 text-center">
-            <div className="text-sm text-green-700 mb-1">勤務時間</div>
-            <div className="text-3xl font-bold text-green-900">
+          <div className="bg-green-50 rounded-lg p-3 sm:p-4 text-center">
+            <div className="text-xs sm:text-sm text-green-700 mb-1">勤務時間</div>
+            <div className="text-xl sm:text-2xl font-bold text-green-900">
               {duration.hours}時間{duration.minutes}分
             </div>
           </div>
@@ -338,14 +338,14 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
 
       {/* 打刻ボタン */}
       {!isWorking ? (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">出勤打刻</h3>
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">出勤打刻</h3>
 
           {/* QRコードスキャンボタン */}
           {canUseQR && !showQRScanner && (
             <button
               onClick={() => setShowQRScanner(true)}
-              className="w-full mb-4 inline-flex justify-center items-center px-6 py-4 border-2 border-blue-600 text-lg font-medium rounded-lg text-blue-600 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="w-full mb-3 sm:mb-4 inline-flex justify-center items-center px-4 sm:px-6 py-3 sm:py-4 border-2 border-blue-600 text-base sm:text-lg font-medium rounded-lg text-blue-600 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
