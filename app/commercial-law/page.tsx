@@ -22,7 +22,7 @@ export default function CommercialLawPage() {
 
           <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-3">お問い合わせ</h2>
-            <p>メールアドレス: info@next-location.com</p>
+            <p>お問い合わせフォーム: <a href="https://zairoku.com/contact" className="text-blue-600 hover:underline">https://zairoku.com/contact</a></p>
           </section>
 
           <section>
