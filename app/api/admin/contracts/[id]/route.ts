@@ -38,6 +38,12 @@ export async function PUT(
     const { id: contractId } = await params
     const body = await request.json()
 
+    console.log('[Contract Edit] Request body:', {
+      package_id: body.package_id,
+      plan: body.plan,
+      billing_cycle: body.billing_cycle,
+    })
+
     // 契約がdraft状態であることを確認
     const { data: contract, error: contractError } = await supabase
       .from('contracts')
@@ -98,9 +104,13 @@ export async function PUT(
       return NextResponse.json({ error: '契約の更新に失敗しました' }, { status: 500 })
     }
 
-    // contract_packagesを更新
+    // contract_packagesとhas_*_packageフラグを更新（必ず実行）
+    // パッケージ情報を取得
+    let hasAssetPackage = false
+    let hasDxEfficiencyPackage = false
+    let hasBothPackages = false
+
     if (body.package_id) {
-      // パッケージ情報を取得
       const { data: packageData } = await supabase
         .from('packages')
         .select('package_key')
@@ -110,10 +120,6 @@ export async function PUT(
       console.log('[Contract Edit] Package data:', { package_id: body.package_id, packageData })
 
       // パッケージキーに基づいてhas_*_packageフラグを設定
-      let hasAssetPackage = false
-      let hasDxEfficiencyPackage = false
-      let hasBothPackages = false
-
       if (packageData) {
         if (packageData.package_key === 'asset_pack') {
           hasAssetPackage = true
@@ -123,29 +129,32 @@ export async function PUT(
           hasBothPackages = true
         }
       }
+    }
 
-      console.log('[Contract Edit] Package flags:', {
-        hasAssetPackage,
-        hasDxEfficiencyPackage,
-        hasBothPackages,
+    console.log('[Contract Edit] Package flags:', {
+      hasAssetPackage,
+      hasDxEfficiencyPackage,
+      hasBothPackages,
+    })
+
+    // contractsテーブルのhas_*_packageフラグを必ず更新
+    const { error: flagUpdateError } = await supabase
+      .from('contracts')
+      .update({
+        has_asset_package: hasAssetPackage,
+        has_dx_efficiency_package: hasDxEfficiencyPackage,
+        has_both_packages: hasBothPackages,
       })
+      .eq('id', contractId)
 
-      // contractsテーブルのhas_*_packageフラグを更新
-      const { error: flagUpdateError } = await supabase
-        .from('contracts')
-        .update({
-          has_asset_package: hasAssetPackage,
-          has_dx_efficiency_package: hasDxEfficiencyPackage,
-          has_both_packages: hasBothPackages,
-        })
-        .eq('id', contractId)
+    if (flagUpdateError) {
+      console.error('[Contract Edit] Failed to update package flags:', flagUpdateError)
+    } else {
+      console.log('[Contract Edit] Package flags updated successfully')
+    }
 
-      if (flagUpdateError) {
-        console.error('[Contract Edit] Failed to update package flags:', flagUpdateError)
-      } else {
-        console.log('[Contract Edit] Package flags updated successfully')
-      }
-
+    // contract_packagesテーブルを更新
+    if (body.package_id) {
       // 既存のパッケージを削除
       await supabase
         .from('contract_packages')
