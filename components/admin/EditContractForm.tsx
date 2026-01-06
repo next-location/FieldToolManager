@@ -88,7 +88,17 @@ export default function EditContractForm({ contract, contractPackages, packages 
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showInitialFees, setShowInitialFees] = useState(false);
+
+  // 初期費用が1つでも入力されている場合はデフォルトで開く
+  const hasInitialFees = !!(
+    contract.initial_setup_fee ||
+    contract.initial_data_registration_fee ||
+    contract.initial_onsite_fee ||
+    contract.initial_training_fee ||
+    contract.initial_other_fee ||
+    contract.initial_discount
+  );
+  const [showInitialFees, setShowInitialFees] = useState(hasInitialFees);
 
   const [formData, setFormData] = useState({
     contractType: contract.billing_cycle as 'monthly' | 'annual',

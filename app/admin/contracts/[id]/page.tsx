@@ -178,7 +178,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
                   <>
                     <Link
                       href={`/admin/contracts/${contract.id}/edit`}
-                      className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium"
+                      className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium flex items-center"
                     >
                       編集
                     </Link>
