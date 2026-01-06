@@ -68,10 +68,17 @@ export default function ConvertToInvoiceButton({
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-bold text-gray-900 mb-4">請求書への変換</h3>
             <p className="text-gray-700 mb-2">見積書番号: {estimateNumber}</p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+              <p className="text-sm text-blue-800">
+                <strong>ℹ️ 内容確認:</strong> 請求書の内容は見積書と同じです。
+                <br />
+                送信前に見積書PDFで内容を確認してください。
+              </p>
+            </div>
             <p className="text-gray-700 mb-4">
               見積もりを請求書に変換し、顧客に送信します。
               <br />
-              この操作は取り消せません。
+              <strong className="text-red-600">この操作は取り消せません。</strong>
             </p>
             <div className="flex justify-end space-x-3">
               <button
@@ -86,7 +93,7 @@ export default function ConvertToInvoiceButton({
                 disabled={loading}
                 className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
               >
-                {loading ? '変換中...' : '変換して送信'}
+                {loading ? '変換中...' : '確認済み - 変換して送信'}
               </button>
             </div>
           </div>
