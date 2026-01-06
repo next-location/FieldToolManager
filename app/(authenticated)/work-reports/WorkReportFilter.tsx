@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useDebounce } from '@/hooks/useDebounce'
+import { SlidersHorizontal } from 'lucide-react'
+import WorkReportFiltersModal from '@/components/work-reports/WorkReportFiltersModal'
 
 interface Site {
   id: string
@@ -29,6 +31,7 @@ export function WorkReportFilter({ sites, users }: WorkReportFilterProps) {
   const [dateFrom, setDateFrom] = useState(searchParams.get('date_from') || '')
   const [dateTo, setDateTo] = useState(searchParams.get('date_to') || '')
   const [keyword, setKeyword] = useState(searchParams.get('keyword') || '')
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
 
   // キーワードのみデバウンス（500ms）
   const debouncedKeyword = useDebounce(keyword, 500)
@@ -57,8 +60,44 @@ export function WorkReportFilter({ sites, users }: WorkReportFilterProps) {
 
   const hasActiveFilters = status !== 'all' || siteId || createdBy || dateFrom || dateTo || keyword
 
+  // フィルター適用数をカウント
+  const filterCount = [
+    status !== 'all',
+    siteId !== '',
+    createdBy !== '',
+    dateFrom !== '',
+    dateTo !== '',
+  ].filter(Boolean).length
+
   return (
-    <div className="bg-white shadow rounded-lg p-6 mb-6">
+    <>
+      {/* モバイル表示 */}
+      <div className="sm:hidden mb-6 space-y-3">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            placeholder="キーワード検索"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            onClick={() => setIsFilterModalOpen(true)}
+            className="relative p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            aria-label="フィルター"
+          >
+            <SlidersHorizontal className="h-5 w-5 text-gray-600" />
+            {filterCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {filterCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* PC表示 */}
+      <div className="hidden sm:block bg-white shadow rounded-lg p-6 mb-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-gray-900">検索・フィルター</h2>
         {hasActiveFilters && (
@@ -175,31 +214,26 @@ export function WorkReportFilter({ sites, users }: WorkReportFilterProps) {
         </div>
       </div>
 
-      {/* タブ型ステータスフィルター（モバイル向け簡易版） */}
-      <div className="mt-4 md:hidden flex gap-2 overflow-x-auto pb-2">
-        {['all', 'draft', 'submitted', 'approved', 'rejected'].map((s) => {
-          const labels: Record<string, string> = {
-            all: 'すべて',
-            draft: '下書き',
-            submitted: '提出済',
-            approved: '承認済',
-            rejected: '差戻',
-          }
-          return (
-            <button
-              key={s}
-              onClick={() => setStatus(s)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
-                status === s
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {labels[s]}
-            </button>
-          )
-        })}
       </div>
-    </div>
+
+      {/* フィルターモーダル */}
+      <WorkReportFiltersModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        status={status}
+        setStatus={setStatus}
+        siteId={siteId}
+        setSiteId={setSiteId}
+        createdBy={createdBy}
+        setCreatedBy={setCreatedBy}
+        dateFrom={dateFrom}
+        setDateFrom={setDateFrom}
+        dateTo={dateTo}
+        setDateTo={setDateTo}
+        onReset={clearFilter}
+        sites={sites}
+        users={users}
+      />
+    </>
   )
 }

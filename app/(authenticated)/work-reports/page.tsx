@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { WorkReportFilter } from './WorkReportFilter'
 import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
 import { PackageRequired } from '@/components/PackageRequired'
+import WorkReportPageFAB from '@/components/work-reports/WorkReportPageFAB'
 
 export default async function WorkReportsPage({
   searchParams,
@@ -132,17 +133,17 @@ export default async function WorkReportsPage({
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">作業報告書</h1>
+      <div className="px-4 pt-3 sm:px-0 sm:py-6">
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-2">
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-900">作業報告書</h1>
+            <Link
+              href="/work-reports/new"
+              className="hidden sm:inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+            >
+              + 新規作成
+            </Link>
           </div>
-          <Link
-            href="/work-reports/new"
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-          >
-            + 新規作成
-          </Link>
         </div>
 
         <WorkReportFilter sites={sites || []} users={users || []} />
@@ -271,6 +272,9 @@ export default async function WorkReportsPage({
             )}
           </ul>
         </div>
+
+        {/* FAB (モバイルのみ) */}
+        <WorkReportPageFAB />
       </div>
     </div>
   )
