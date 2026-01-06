@@ -599,7 +599,10 @@ export default function LandingPage() {
       {/* フッター */}
       <footer className="bg-gradient-to-br from-blue-900 to-blue-800 text-blue-100 py-6 sm:py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-xs sm:text-sm text-center text-blue-200 space-y-2">
+          <div className="text-xs sm:text-sm text-center text-blue-200 space-y-3">
+            <div className="text-blue-100 font-medium">
+              運営会社: 株式会社ネクストロケーション
+            </div>
             <div className="flex justify-center gap-4">
               <Link href="/commercial-law" className="hover:text-white transition-colors">
                 特定商取引法に基づく表記
