@@ -101,14 +101,19 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
     .eq('is_initial_invoice', true)
     .order('created_at', { ascending: true });
 
+  // デバッグ: 取得した全データ
+  console.log('[Contract Detail] All invoices for check:', invoicesForCheck);
+
   // 見積もりと請求書を分ける
   const estimates = invoicesForCheck?.filter(inv => inv.document_type === 'estimate') || [];
   const initialInvoice = invoicesForCheck?.find(inv => inv.document_type === 'invoice') || null;
 
+  console.log('[Contract Detail] Estimates:', estimates);
+  console.log('[Contract Detail] Initial invoice:', initialInvoice);
+
   // 最新の見積もり（却下・変換済みでないもの優先）
   const latestEstimate = estimates.find(est => est.status !== 'rejected' && est.status !== 'converted') || estimates[0] || null;
 
-  console.log('[Contract Detail] Initial invoice:', initialInvoice);
   console.log('[Contract Detail] Latest estimate:', latestEstimate);
 
   if (error || !contract) {
