@@ -100,6 +100,38 @@ export async function PUT(
 
     // contract_packagesを更新
     if (body.package_id) {
+      // パッケージ情報を取得
+      const { data: packageData } = await supabase
+        .from('packages')
+        .select('package_key')
+        .eq('id', body.package_id)
+        .single()
+
+      // パッケージキーに基づいてhas_*_packageフラグを設定
+      let hasAssetPackage = false
+      let hasDxEfficiencyPackage = false
+      let hasBothPackages = false
+
+      if (packageData) {
+        if (packageData.package_key === 'asset_pack') {
+          hasAssetPackage = true
+        } else if (packageData.package_key === 'dx_efficiency_pack') {
+          hasDxEfficiencyPackage = true
+        } else if (packageData.package_key === 'full_integration_pack') {
+          hasBothPackages = true
+        }
+      }
+
+      // contractsテーブルのhas_*_packageフラグを更新
+      await supabase
+        .from('contracts')
+        .update({
+          has_asset_package: hasAssetPackage,
+          has_dx_efficiency_package: hasDxEfficiencyPackage,
+          has_both_packages: hasBothPackages,
+        })
+        .eq('id', contractId)
+
       // 既存のパッケージを削除
       await supabase
         .from('contract_packages')
