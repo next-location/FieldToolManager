@@ -421,6 +421,22 @@ export default function ContractDetailView({ contract, invoices, contractPackage
       {/* 請求情報カード */}
       <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
         <h3 className="text-lg font-bold text-gray-900 mb-4">請求情報</h3>
+
+        {/* 警告表示: 契約のメールアドレスと組織情報が異なる場合 */}
+        {contract.billing_contact_email &&
+         contract.organizations?.billing_contact_email &&
+         contract.billing_contact_email !== contract.organizations.billing_contact_email && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+            <p className="text-sm text-yellow-800 font-semibold mb-1">
+              ⚠️ この契約の請求先メールアドレスは、現在の組織情報と異なります
+            </p>
+            <p className="text-xs text-yellow-700">
+              契約時: <span className="font-mono">{contract.billing_contact_email}</span><br/>
+              現在の組織情報: <span className="font-mono">{contract.organizations.billing_contact_email}</span>
+            </p>
+          </div>
+        )}
+
         <dl className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div className="flex">
             <dt className="text-gray-600 w-32">担当者名:</dt>

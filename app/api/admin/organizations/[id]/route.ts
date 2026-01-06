@@ -32,6 +32,33 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       }
     }
 
+    // 請求担当者メールアドレスの変更チェック（active契約がある場合は変更不可）
+    if (body.billing_contact_email) {
+      // 現在の組織情報を取得
+      const { data: currentOrg } = await supabase
+        .from('organizations')
+        .select('billing_contact_email')
+        .eq('id', id)
+        .single();
+
+      // メールアドレスが変更されようとしているか確認
+      if (currentOrg && body.billing_contact_email !== currentOrg.billing_contact_email) {
+        // active契約の有無を確認
+        const { data: activeContract } = await supabase
+          .from('contracts')
+          .select('id')
+          .eq('organization_id', id)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (activeContract) {
+          return NextResponse.json({
+            error: '有効な契約が存在するため、請求担当者メールアドレスは変更できません。変更が必要な場合はサポートまでお問い合わせください。'
+          }, { status: 400 });
+        }
+      }
+    }
+
     // スーパーアドミンの監査コンテキストを設定
     await setSuperAdminAuditContext(supabase, session.id, session.name);
 
@@ -60,6 +87,40 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (error) {
       console.error('Organization update error:', error);
       return NextResponse.json({ error: '組織の更新に失敗しました', details: error.message }, { status: 500 });
+    }
+
+    // 請求担当者メールアドレスが変更された場合、draft状態の契約も自動更新
+    if (body.billing_contact_email) {
+      console.log(`[Organization Update] Checking for draft contracts to update email from billing_contact_email: ${body.billing_contact_email}`);
+
+      const { data: draftContracts, error: draftError } = await supabase
+        .from('contracts')
+        .select('id, billing_contact_email, admin_email')
+        .eq('organization_id', id)
+        .eq('status', 'draft');
+
+      if (draftError) {
+        console.error('[Organization Update] Error fetching draft contracts:', draftError);
+      } else if (draftContracts && draftContracts.length > 0) {
+        console.log(`[Organization Update] Found ${draftContracts.length} draft contract(s) to update`);
+
+        const { error: updateError } = await supabase
+          .from('contracts')
+          .update({
+            billing_contact_email: body.billing_contact_email,
+            admin_email: body.billing_contact_email,
+          })
+          .eq('organization_id', id)
+          .eq('status', 'draft');
+
+        if (updateError) {
+          console.error('[Organization Update] Error updating draft contracts:', updateError);
+        } else {
+          console.log(`[Organization Update] Successfully updated ${draftContracts.length} draft contract(s) with new email: ${body.billing_contact_email}`);
+        }
+      } else {
+        console.log('[Organization Update] No draft contracts found to update');
+      }
     }
 
     // 操作ログを記録

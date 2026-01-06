@@ -47,6 +47,14 @@ export default async function EditOrganizationPage({ params }: { params: Promise
     );
   }
 
+  // active契約の有無を確認
+  const { data: activeContract } = await supabase
+    .from('contracts')
+    .select('id')
+    .eq('organization_id', id)
+    .eq('status', 'active')
+    .maybeSingle();
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       <AdminHeader userName={session.name} />
@@ -61,7 +69,11 @@ export default async function EditOrganizationPage({ params }: { params: Promise
             </Link>
             <h1 className="text-2xl font-bold text-gray-900">組織編集</h1>
           </div>
-          <OrganizationForm mode="edit" initialData={organization} />
+          <OrganizationForm
+            mode="edit"
+            initialData={organization}
+            hasActiveContract={!!activeContract}
+          />
         </main>
       </div>
     </div>

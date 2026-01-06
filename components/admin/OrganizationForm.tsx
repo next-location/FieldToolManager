@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 
 interface OrganizationFormProps {
   mode: 'create' | 'edit';
+  hasActiveContract?: boolean;
   initialData?: {
     id?: string;
     name: string;
@@ -22,7 +23,7 @@ interface OrganizationFormProps {
   };
 }
 
-export default function OrganizationForm({ mode, initialData }: OrganizationFormProps) {
+export default function OrganizationForm({ mode, hasActiveContract = false, initialData }: OrganizationFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingAddress, setIsLoadingAddress] = useState(false);
@@ -368,9 +369,17 @@ export default function OrganizationForm({ mode, initialData }: OrganizationForm
                 name="billing_contact_email"
                 value={formData.billing_contact_email}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                disabled={hasActiveContract}
+                className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  hasActiveContract ? 'bg-gray-100 cursor-not-allowed' : ''
+                }`}
                 placeholder="billing@example.com"
               />
+              {hasActiveContract && (
+                <p className="text-xs text-red-600 mt-1">
+                  ⚠️ 有効な契約が存在するため、請求担当者メールアドレスは変更できません
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
