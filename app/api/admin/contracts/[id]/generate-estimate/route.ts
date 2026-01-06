@@ -106,21 +106,43 @@ export async function POST(
       console.log('[GenerateEstimate] Stripe Customer created:', stripeCustomerId);
     }
 
+    // デバッグ: 契約データの確認
+    console.log('[GenerateEstimate] Contract data:', {
+      contractId,
+      plan: contract.plan,
+      user_count: contract.user_count,
+      billing_cycle: contract.billing_cycle,
+      has_asset_package: contract.has_asset_package,
+      has_dx_efficiency_package: contract.has_dx_efficiency_package,
+      has_both_packages: contract.has_both_packages,
+      base_monthly_fee: contract.base_monthly_fee,
+      package_monthly_fee: contract.package_monthly_fee,
+      total_monthly_fee: contract.total_monthly_fee,
+      initial_setup_fee: contract.initial_setup_fee,
+      initial_data_registration_fee: contract.initial_data_registration_fee,
+      initial_onsite_fee: contract.initial_onsite_fee,
+      initial_training_fee: contract.initial_training_fee,
+      initial_other_fee: contract.initial_other_fee,
+      initial_discount: contract.initial_discount,
+    });
+
     // 料金計算（初回なので初期費用・割引が含まれる）
     const feeCalculation = calculateMonthlyFee(contract as Contract);
+
+    console.log('[GenerateEstimate] Calculated fee:', {
+      contractId,
+      items: feeCalculation.items,
+      subtotal: feeCalculation.subtotal,
+      discount: feeCalculation.discount,
+      total: feeCalculation.total,
+      isFirstInvoice: feeCalculation.isFirstInvoice,
+    });
 
     if (feeCalculation.total <= 0) {
       return NextResponse.json({
         error: '見積金額が0円以下です。契約内容を確認してください。',
       }, { status: 400 });
     }
-
-    console.log('[GenerateEstimate] Calculated initial fee:', {
-      contractId,
-      total: feeCalculation.total,
-      itemCount: feeCalculation.items.length,
-      isFirstInvoice: feeCalculation.isFirstInvoice,
-    });
 
     // Stripe Invoiceを作成（Draft状態のまま）
     const billingMonth = contract.billing_cycle === 'annual'
