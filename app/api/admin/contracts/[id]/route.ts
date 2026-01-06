@@ -14,6 +14,123 @@ const PLAN_LIMITS: Record<string, number> = {
   pro: 100,
 }
 
+// PUT /api/admin/contracts/[id] - draft契約の編集
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getSuperAdminSession()
+    if (!session) {
+      return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
+    }
+
+    const { data: adminData } = await supabase
+      .from('super_admins')
+      .select('role')
+      .eq('id', session.id)
+      .single()
+
+    if (adminData?.role !== 'owner') {
+      return NextResponse.json({ error: '権限がありません' }, { status: 403 })
+    }
+
+    const { id: contractId } = await params
+    const body = await request.json()
+
+    // 契約がdraft状態であることを確認
+    const { data: contract, error: contractError } = await supabase
+      .from('contracts')
+      .select('status, organization_id')
+      .eq('id', contractId)
+      .single()
+
+    if (contractError || !contract) {
+      return NextResponse.json({ error: '契約が見つかりません' }, { status: 404 })
+    }
+
+    if (contract.status !== 'draft') {
+      return NextResponse.json({ error: 'draft状態の契約のみ編集可能です' }, { status: 400 })
+    }
+
+    // 契約を更新
+    const updateData: any = {
+      billing_cycle: body.billing_cycle,
+      plan: body.plan,
+      user_count: body.user_count,
+      monthly_base_fee: body.monthly_base_fee,
+      start_date: body.start_date,
+      end_date: body.end_date,
+      auto_renew: body.auto_renew,
+      trial_end_date: body.trial_end_date,
+      billing_day: body.billing_day,
+      initial_setup_fee: body.initial_setup_fee,
+      initial_data_registration_fee: body.initial_data_registration_fee,
+      initial_onsite_fee: body.initial_onsite_fee,
+      initial_training_fee: body.initial_training_fee,
+      initial_other_fee: body.initial_other_fee,
+      initial_discount: body.initial_discount,
+      total_initial_fee: body.total_initial_fee,
+      billing_contact_name: body.billing_contact_name,
+      billing_contact_email: body.billing_contact_email,
+      billing_contact_phone: body.billing_contact_phone,
+      billing_address: body.billing_address,
+      notes: body.notes,
+    }
+
+    // null値の除外
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] === null || updateData[key] === undefined) {
+        delete updateData[key]
+      }
+    })
+
+    const { error: updateError } = await supabase
+      .from('contracts')
+      .update(updateData)
+      .eq('id', contractId)
+
+    if (updateError) {
+      console.error('Contract update failed:', updateError)
+      return NextResponse.json({ error: '契約の更新に失敗しました' }, { status: 500 })
+    }
+
+    // contract_packagesを更新
+    if (body.package_id) {
+      // 既存のパッケージを削除
+      await supabase
+        .from('contract_packages')
+        .delete()
+        .eq('contract_id', contractId)
+
+      // 新しいパッケージを追加
+      await supabase
+        .from('contract_packages')
+        .insert({
+          contract_id: contractId,
+          package_id: body.package_id,
+        })
+    }
+
+    // ログ記録
+    await supabase.from('super_admin_logs').insert({
+      super_admin_id: session.id,
+      action: 'edit_draft_contract',
+      details: {
+        contract_id: contractId,
+        organization_id: contract.organization_id,
+      },
+      ip_address: request.headers.get('x-forwarded-for') || 'unknown',
+      user_agent: request.headers.get('user-agent'),
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    console.error('[API PUT /api/admin/contracts/[id]]:', error)
+    return NextResponse.json({ error: 'サーバーエラー' }, { status: 500 })
+  }
+}
+
 // PATCH /api/admin/contracts/[id] - 契約情報の更新
 export async function PATCH(
   request: NextRequest,

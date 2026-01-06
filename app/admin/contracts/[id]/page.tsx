@@ -176,6 +176,12 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
                 )}
                 {contract.status === 'draft' && !isSalesRole && (
                   <>
+                    <Link
+                      href={`/admin/contracts/${contract.id}/edit`}
+                      className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium"
+                    >
+                      編集
+                    </Link>
                     <CreateContractDocumentButton contract={contract} />
 
                     {/* 見積もり・請求書の生成・管理 */}
