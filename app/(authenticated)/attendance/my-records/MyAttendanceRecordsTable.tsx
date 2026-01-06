@@ -163,7 +163,7 @@ export function MyAttendanceRecordsTable({
       {/* フィルター */}
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             開始日
           </label>
           <input
@@ -173,12 +173,12 @@ export function MyAttendanceRecordsTable({
               setFilters({ ...filters, start_date: e.target.value })
               setPage(1)
             }}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             終了日
           </label>
           <input
@@ -188,7 +188,7 @@ export function MyAttendanceRecordsTable({
               setFilters({ ...filters, end_date: e.target.value })
               setPage(1)
             }}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
       </div>
@@ -206,8 +206,8 @@ export function MyAttendanceRecordsTable({
         </button>
       </div>
 
-      {/* テーブル */}
-      <div className="overflow-x-auto">
+      {/* PC: テーブル表示 */}
+      <div className="hidden sm:block overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -259,8 +259,50 @@ export function MyAttendanceRecordsTable({
         </table>
       </div>
 
+      {/* モバイル: カード表示 */}
+      <div className="sm:hidden space-y-3">
+        {records.map((record) => (
+          <div key={record.id} className="bg-white border border-gray-200 rounded-lg p-4">
+            <div className="flex justify-between items-start mb-3">
+              <div className="text-sm font-medium text-gray-900">
+                {formatDate(record.date)}
+              </div>
+              {!record.clock_out_time && (
+                <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full font-medium">
+                  勤務中
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <div className="text-xs text-gray-500 mb-1">出勤</div>
+                <div className="font-medium text-gray-900">{formatTime(record.clock_in_time)}</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">退勤</div>
+                <div className="font-medium text-gray-900">{formatTime(record.clock_out_time)}</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">勤務時間</div>
+                <div className="font-medium text-gray-900">{calculateWorkHours(record)}</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">場所</div>
+                <div className="font-medium text-gray-900">
+                  {record.clock_in_location_type === 'office' && '会社'}
+                  {record.clock_in_location_type === 'site' &&
+                    `${record.clock_in_site_name || '現場'}`}
+                  {record.clock_in_location_type === 'remote' && 'リモート'}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {records.length === 0 && (
-        <div className="text-center py-12">
+        <div className="text-center py-12 bg-gray-50 rounded-lg">
           <p className="text-gray-500">勤怠記録がありません</p>
         </div>
       )}
