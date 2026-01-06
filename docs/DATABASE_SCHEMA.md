@@ -987,11 +987,15 @@ CREATE TABLE invoices (
   subtotal DECIMAL(10, 2) NOT NULL DEFAULT 0,
   tax DECIMAL(10, 2) NOT NULL DEFAULT 0,
   total DECIMAL(10, 2) NOT NULL DEFAULT 0,
-  status TEXT DEFAULT 'pending' CHECK (status IN ('draft', 'sent', 'paid', 'overdue', 'cancelled', 'pending')),
+  status TEXT DEFAULT 'pending' CHECK (status IN ('estimate', 'estimate_sent', 'rejected', 'draft', 'sent', 'paid', 'overdue', 'cancelled', 'pending')),
   sent_date TIMESTAMP,
   paid_date TIMESTAMP,
   pdf_url TEXT,
   notes TEXT,
+
+  -- 見積もり・請求書区別（2025-01-06追加）
+  document_type TEXT DEFAULT 'invoice' CHECK (document_type IN ('estimate', 'invoice')),
+  converted_from_invoice_id UUID REFERENCES invoices(id) ON DELETE SET NULL,
 
   -- Stripe Billing統合（2025-12-12追加）
   stripe_invoice_id TEXT UNIQUE,
@@ -1007,6 +1011,16 @@ CREATE TABLE invoices (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
+COMMENT ON COLUMN invoices.status IS 'Invoice/Estimate status:
+  estimate: 見積もり（未送信）
+  estimate_sent: 見積もり送信済み
+  rejected: 見積もり却下（再見積もり必要）
+  sent: 請求書送付済み
+  paid: 支払済み
+  overdue: 期限超過
+  cancelled: キャンセル';
+COMMENT ON COLUMN invoices.document_type IS 'Document type: estimate (見積もり) or invoice (請求書)';
+COMMENT ON COLUMN invoices.converted_from_invoice_id IS 'Original estimate ID if this invoice was converted from an estimate';
 COMMENT ON COLUMN invoices.stripe_invoice_id IS 'Stripe Invoice ID（in_xxxxx）';
 COMMENT ON COLUMN invoices.is_initial_invoice IS '初回請求書フラグ（true: 初回請求書（初期費用含む）, false: 2回目以降（月額のみ））';
 
@@ -1016,10 +1030,45 @@ CREATE INDEX idx_invoices_status ON invoices(status);
 CREATE INDEX idx_invoices_due_date ON invoices(due_date);
 CREATE INDEX idx_invoices_stripe_invoice_id ON invoices(stripe_invoice_id);
 CREATE INDEX idx_invoices_contract_initial ON invoices(contract_id, is_initial_invoice) WHERE is_initial_invoice = true;
+CREATE INDEX idx_invoices_document_type ON invoices(document_type);
+CREATE INDEX idx_invoices_converted_from ON invoices(converted_from_invoice_id) WHERE converted_from_invoice_id IS NOT NULL;
 
 -- RLS有効化
 ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
 ```
+
+##### 見積もり・請求書ステータス遷移 (2025-01-06追加)
+
+```
+[見積もりフロー]
+estimate (見積もり作成)
+  ↓ 送信
+estimate_sent (見積もり送信済み)
+  ↓ 承認               ↓ 却下
+sent (請求書変換)     rejected (再見積もり)
+  ↓                      ↓ 再作成
+paid (支払完了)        estimate (新規見積もり)
+
+[従来の請求書フロー（後方互換性維持）]
+draft → sent → paid
+```
+
+**ステータス説明**:
+- `estimate`: 見積もり作成済み（未送信）。編集・削除可能。
+- `estimate_sent`: 見積もり送信済み。顧客の承認待ち。
+- `rejected`: 見積もり却下。再見積もりが必要。
+- `sent`: 請求書送信済み（見積もりから変換、または直接請求）。
+- `paid`: 支払完了。
+- `overdue`: 期限超過。
+- `cancelled`: キャンセル。
+
+**document_type**:
+- `estimate`: 見積もり文書
+- `invoice`: 請求書文書
+
+**converted_from_invoice_id**:
+- 見積もりから請求書に変換した際、元の見積もりIDを記録
+- 変換履歴の追跡とトレーサビリティ確保
 
 #### payment_records (入金記録)
 ```sql

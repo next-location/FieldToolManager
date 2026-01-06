@@ -113,6 +113,147 @@ npm run health-check
 
 ## 3. マイグレーション履歴
 
+### 📄 見積もり機能: invoicesテーブルにステータス追加（2025-01-06）
+
+#### 20250106000001_add_estimate_status_to_invoices.sql ✨NEW
+
+**適用予定日**: 2025-01-06
+**適用環境**: 未適用（本番環境、テスト環境）
+**影響範囲**: `invoices`テーブルのステータス制約変更、カラム追加、インデックス追加
+
+**背景**:
+- 現状は請求書生成と同時に送信されるため、事前確認や編集ができない
+- 顧客への見積もり送信→承認→請求書変換のワークフローが必要
+- 見積もり却下後の再見積もり機能が必要
+- 請求書の再送信機能が必要
+
+**変更内容**:
+1. **ステータス制約の変更**:
+   - 既存: `('draft', 'sent', 'paid', 'overdue', 'cancelled', 'pending')`
+   - 追加: `'estimate'`, `'estimate_sent'`, `'rejected'`
+   - 新制約: `('estimate', 'estimate_sent', 'rejected', 'draft', 'sent', 'paid', 'overdue', 'cancelled', 'pending')`
+
+2. **invoicesテーブルに新カラム追加**:
+   - `document_type` (TEXT DEFAULT 'invoice'): 文書種別（estimate: 見積もり, invoice: 請求書）
+   - `converted_from_invoice_id` (UUID): 見積もりから変換した場合の元見積もりID
+
+3. **インデックス追加**:
+   - `idx_invoices_status`: ステータス検索の高速化（既存）
+   - `idx_invoices_document_type`: 文書タイプ検索の高速化
+   - `idx_invoices_converted_from`: 変換元の見積もり検索の高速化（部分インデックス）
+
+4. **既存データの整合性確保**:
+   - 既存の請求書は全て `document_type = 'invoice'` に設定
+   - 既存ステータスの検証
+
+**SQL**:
+```sql
+-- 既存の制約を削除
+ALTER TABLE invoices DROP CONSTRAINT IF EXISTS invoices_status_check;
+
+-- 新しい制約を追加（見積もりステータス含む）
+ALTER TABLE invoices ADD CONSTRAINT invoices_status_check
+  CHECK (status IN (
+    'estimate',        -- 見積もり（未送信）
+    'estimate_sent',   -- 見積もり送信済み
+    'rejected',        -- 見積もり却下（再見積もり必要）
+    'sent',            -- 請求書送付済み（既存）
+    'paid',            -- 支払済み（既存）
+    'overdue',         -- 期限超過（既存）
+    'cancelled'        -- キャンセル（既存）
+  ));
+
+-- 新規カラム追加
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS document_type TEXT DEFAULT 'invoice';
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS converted_from_invoice_id UUID REFERENCES invoices(id) ON DELETE SET NULL;
+
+-- インデックス追加
+CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status);
+CREATE INDEX IF NOT EXISTS idx_invoices_document_type ON invoices(document_type);
+CREATE INDEX IF NOT EXISTS idx_invoices_converted_from ON invoices(converted_from_invoice_id) WHERE converted_from_invoice_id IS NOT NULL;
+
+-- コメント追加
+COMMENT ON COLUMN invoices.status IS 'Invoice/Estimate status:
+  estimate: 見積もり（未送信）
+  estimate_sent: 見積もり送信済み
+  rejected: 見積もり却下（再見積もり必要）
+  sent: 請求書送付済み
+  paid: 支払済み
+  overdue: 期限超過
+  cancelled: キャンセル';
+
+COMMENT ON COLUMN invoices.document_type IS 'Document type: estimate (見積もり) or invoice (請求書)';
+COMMENT ON COLUMN invoices.converted_from_invoice_id IS 'Original estimate ID if this invoice was converted from an estimate';
+
+-- 既存データの整合性確保
+UPDATE invoices SET document_type = 'invoice' WHERE document_type IS NULL;
+
+-- 確認: 既存データのステータスが新しい制約に適合しているか
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM invoices
+    WHERE status NOT IN ('estimate', 'estimate_sent', 'rejected', 'sent', 'paid', 'overdue', 'cancelled')
+  ) THEN
+    RAISE EXCEPTION '既存データに新しい制約に適合しないステータスが存在します';
+  END IF;
+END $$;
+```
+
+**影響する機能**:
+- 見積もり生成API（新規）: `/api/admin/contracts/[id]/generate-estimate`
+- 見積もり送信API（新規）: `/api/admin/invoices/[id]/send-estimate`
+- 見積もり却下API（新規）: `/api/admin/invoices/[id]/reject`
+- 請求書変換API（新規）: `/api/admin/invoices/[id]/convert-to-invoice`
+- 請求書再送信API（新規）: `/api/admin/invoices/[id]/resend`
+- 契約詳細画面: 見積もり・請求書の状態に応じたボタン表示
+
+**ステータス遷移**:
+```
+[見積もりフロー]
+estimate (見積もり作成)
+  ↓ 送信
+estimate_sent (見積もり送信済み)
+  ↓ 承認               ↓ 却下
+sent (請求書変換)     rejected (再見積もり)
+  ↓                      ↓ 再作成
+paid (支払完了)        estimate (新規見積もり)
+
+[従来の請求書フロー（後方互換性維持）]
+draft → sent → paid
+```
+
+**ロールバック手順**:
+```sql
+-- インデックス削除
+DROP INDEX IF EXISTS idx_invoices_converted_from;
+DROP INDEX IF EXISTS idx_invoices_document_type;
+
+-- カラム削除
+ALTER TABLE invoices
+DROP COLUMN IF EXISTS converted_from_invoice_id,
+DROP COLUMN IF EXISTS document_type;
+
+-- 制約を元に戻す
+ALTER TABLE invoices DROP CONSTRAINT IF EXISTS invoices_status_check;
+ALTER TABLE invoices ADD CONSTRAINT invoices_status_check
+  CHECK (status IN ('draft', 'sent', 'paid', 'overdue', 'cancelled', 'pending'));
+```
+
+**適用手順**:
+```bash
+# ローカル環境
+npx supabase migration up
+
+# テスト環境（Supabase Dashboard → SQL Editor）
+# 上記SQLを実行
+
+# 本番環境（Supabase Dashboard → SQL Editor）
+# 上記SQLを実行
+```
+
+---
+
 ### 📝 プラン変更: 日割り差額カラムの追加（2025-12-29）
 
 #### 20251229000002_add_prorated_charge_to_contracts.sql ✨NEW

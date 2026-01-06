@@ -8,6 +8,11 @@ import ContractDetailView from '@/components/admin/ContractDetailView';
 import CompleteContractButton from '@/components/admin/CompleteContractButton';
 import CreateContractDocumentButton from '@/components/admin/CreateContractDocumentButton';
 import GenerateInitialInvoiceButton from '@/components/admin/GenerateInitialInvoiceButton';
+import GenerateEstimateButton from '@/components/admin/GenerateEstimateButton';
+import SendEstimateButton from '@/components/admin/SendEstimateButton';
+import RejectEstimateButton from '@/components/admin/RejectEstimateButton';
+import ConvertToInvoiceButton from '@/components/admin/ConvertToInvoiceButton';
+import ResendInvoiceButton from '@/components/admin/ResendInvoiceButton';
 import ImpersonateButton from '@/components/admin/ImpersonateButton';
 
 const supabase = createClient(
@@ -86,17 +91,23 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
 
   console.log('[Contract Detail] Invoices result:', { invoices, invoicesError });
 
-  // 初回請求書を取得（契約の最初の請求書）
+  // 初回請求書/見積もりを取得（契約の最初の文書）
   const { data: invoicesForCheck } = await supabase
     .from('invoices')
-    .select('id, invoice_number, status, total_amount')
+    .select('id, invoice_number, status, total_amount, document_type, is_initial_invoice')
     .eq('contract_id', id)
-    .order('created_at', { ascending: true })
-    .limit(1);
+    .eq('is_initial_invoice', true)
+    .order('created_at', { ascending: true });
 
-  const initialInvoice = invoicesForCheck && invoicesForCheck.length > 0 ? invoicesForCheck[0] : null;
+  // 見積もりと請求書を分ける
+  const estimates = invoicesForCheck?.filter(inv => inv.document_type === 'estimate') || [];
+  const initialInvoice = invoicesForCheck?.find(inv => inv.document_type === 'invoice') || null;
+
+  // 最新の見積もり（却下されていないもの優先）
+  const latestEstimate = estimates.find(est => est.status !== 'rejected') || estimates[0] || null;
 
   console.log('[Contract Detail] Initial invoice:', initialInvoice);
+  console.log('[Contract Detail] Latest estimate:', latestEstimate);
 
   if (error || !contract) {
     console.log('[Contract Detail] Contract not found or error:', error);
@@ -164,12 +175,49 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
                 {contract.status === 'draft' && !isSalesRole && (
                   <>
                     <CreateContractDocumentButton contract={contract} />
-                    {!initialInvoice && (
-                      <GenerateInitialInvoiceButton
+
+                    {/* 見積もり・請求書の生成・管理 */}
+                    {!latestEstimate && !initialInvoice && (
+                      <GenerateEstimateButton
                         contractId={contract.id}
                         contractNumber={contract.contract_number}
                       />
                     )}
+
+                    {latestEstimate && latestEstimate.status === 'estimate' && (
+                      <SendEstimateButton
+                        estimateId={latestEstimate.id}
+                        estimateNumber={latestEstimate.invoice_number}
+                      />
+                    )}
+
+                    {latestEstimate && latestEstimate.status === 'estimate_sent' && (
+                      <>
+                        <ConvertToInvoiceButton
+                          estimateId={latestEstimate.id}
+                          estimateNumber={latestEstimate.invoice_number}
+                        />
+                        <RejectEstimateButton
+                          estimateId={latestEstimate.id}
+                          estimateNumber={latestEstimate.invoice_number}
+                        />
+                      </>
+                    )}
+
+                    {latestEstimate && latestEstimate.status === 'rejected' && (
+                      <GenerateEstimateButton
+                        contractId={contract.id}
+                        contractNumber={contract.contract_number}
+                      />
+                    )}
+
+                    {initialInvoice && initialInvoice.status === 'sent' && (
+                      <ResendInvoiceButton
+                        invoiceId={initialInvoice.id}
+                        invoiceNumber={initialInvoice.invoice_number}
+                      />
+                    )}
+
                     {initialInvoice && initialInvoice.status === 'paid' && (
                       <CompleteContractButton
                         contractId={contract.id}

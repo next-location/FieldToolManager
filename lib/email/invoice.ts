@@ -14,6 +14,7 @@ interface SendInvoiceEmailParams {
   pdfBuffer: Buffer;
   emailSubject?: string;
   emailTemplate?: string;
+  isEstimate?: boolean;
 }
 
 function formatDate(dateStr: string): string {
@@ -35,14 +36,19 @@ function getEmailHtml(params: SendInvoiceEmailParams): string {
     billingPeriodStart,
     billingPeriodEnd,
     emailTemplate,
+    isEstimate = false,
   } = params;
+
+  const documentType = isEstimate ? '見積書' : '請求書';
+  const documentLabel = isEstimate ? '見積もり金額' : '請求金額';
+  const dateLabel = isEstimate ? '有効期限' : 'お支払い期限';
 
   // カスタムテンプレートがある場合は変数を置換
   let bodyText = emailTemplate || `平素より格別のご高配を賜り、厚く御礼申し上げます。
 
-{billing_period_start}〜{billing_period_end}分のご請求書をお送りいたします。
-請求金額：{total_amount}円（税込）
-お支払い期限：{due_date}
+{billing_period_start}〜{billing_period_end}分の${documentType}をお送りいたします。
+${documentLabel}：{total_amount}円（税込）
+${dateLabel}：{due_date}
 
 ご確認のほど、よろしくお願いいたします。`;
 
@@ -60,12 +66,12 @@ function getEmailHtml(params: SendInvoiceEmailParams): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>請求書のお知らせ</title>
+  <title>${documentType}のお知らせ</title>
 </head>
 <body style="font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif; line-height: 1.6; color: #333;">
   <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
     <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
-      <h1 style="color: #2563eb; margin: 0 0 10px 0; font-size: 24px;">請求書のお知らせ</h1>
+      <h1 style="color: #2563eb; margin: 0 0 10px 0; font-size: 24px;">${documentType}のお知らせ</h1>
     </div>
 
     <div style="background-color: white; padding: 20px; border: 1px solid #e5e7eb; border-radius: 5px;">
@@ -74,7 +80,7 @@ function getEmailHtml(params: SendInvoiceEmailParams): string {
       <div style="background-color: #f3f4f6; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
-            <td style="padding: 5px 0; color: #6b7280;">請求書番号：</td>
+            <td style="padding: 5px 0; color: #6b7280;">${documentType}番号：</td>
             <td style="padding: 5px 0; font-weight: bold;">${invoiceNumber}</td>
           </tr>
           <tr>
@@ -82,22 +88,22 @@ function getEmailHtml(params: SendInvoiceEmailParams): string {
             <td style="padding: 5px 0;">${formatDate(invoiceDate)}</td>
           </tr>
           <tr>
-            <td style="padding: 5px 0; color: #6b7280;">お支払い期限：</td>
+            <td style="padding: 5px 0; color: #6b7280;">${dateLabel}：</td>
             <td style="padding: 5px 0; color: #dc2626; font-weight: bold;">${formatDate(dueDate)}</td>
           </tr>
           <tr>
-            <td style="padding: 5px 0; color: #6b7280;">請求期間：</td>
+            <td style="padding: 5px 0; color: #6b7280;">期間：</td>
             <td style="padding: 5px 0;">${formatDate(billingPeriodStart)} 〜 ${formatDate(billingPeriodEnd)}</td>
           </tr>
           <tr>
-            <td style="padding: 5px 0; color: #6b7280;">請求金額：</td>
+            <td style="padding: 5px 0; color: #6b7280;">${documentLabel}：</td>
             <td style="padding: 5px 0; font-size: 18px; font-weight: bold; color: #2563eb;">¥${formatCurrency(totalAmount)}</td>
           </tr>
         </table>
       </div>
 
       <p style="font-size: 14px; color: #6b7280; margin: 20px 0 0 0;">
-        添付の請求書PDFをご確認ください。<br>
+        添付の${documentType}PDFをご確認ください。<br>
         ご不明な点がございましたら、お気軽にお問い合わせください。
       </p>
     </div>
@@ -116,24 +122,27 @@ function getEmailHtml(params: SendInvoiceEmailParams): string {
 }
 
 export async function sendInvoiceEmail(params: SendInvoiceEmailParams) {
-  const { toEmail, organizationName, invoiceNumber, pdfBuffer, emailSubject } = params;
+  const { toEmail, organizationName, invoiceNumber, pdfBuffer, emailSubject, isEstimate = false } = params;
+
+  const documentType = isEstimate ? '見積書' : '請求書';
 
   logger.debug('[Invoice Email] Starting email send process', {
     to: toEmail,
     organization: organizationName,
     invoiceNumber,
+    documentType,
     hasResendKey: !!process.env.RESEND_API_KEY,
     smtpHost: process.env.SMTP_HOST,
     smtpPort: process.env.SMTP_PORT,
   });
 
   const subject = emailSubject?.replace(/{organization_name}/g, organizationName) ||
-    `【${organizationName}】ご請求書のお知らせ`;
+    `【${organizationName}】ご${documentType}のお知らせ`;
   const html = getEmailHtml(params);
 
   // PDFを Base64 エンコード
   const pdfBase64 = pdfBuffer.toString('base64');
-  const fileName = `請求書_${invoiceNumber}.pdf`;
+  const fileName = `${documentType}_${invoiceNumber}.pdf`;
 
   // Resendを使用（本番環境）
   if (process.env.RESEND_API_KEY) {
