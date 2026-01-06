@@ -64,7 +64,7 @@ export async function PUT(
       billing_cycle: body.billing_cycle,
       plan: body.plan,
       user_count: body.user_count,
-      monthly_base_fee: body.monthly_base_fee,
+      monthly_base_fee: body.base_monthly_fee, // calculateMonthlyFee()が参照するフィールド
       base_monthly_fee: body.base_monthly_fee,
       package_monthly_fee: body.package_monthly_fee,
       total_monthly_fee: body.total_monthly_fee,
