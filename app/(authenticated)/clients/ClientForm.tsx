@@ -698,21 +698,20 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
         </div>
 
         {/* アクションボタン */}
-        {/* アクションボタン */}
-        <div className="flex gap-4 pt-4">
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? '保存中...' : mode === 'create' ? '登録する' : '更新する'}
-          </button>
+        <div className="flex justify-end space-x-3 pt-4">
           <Link
             href="/clients"
-            className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 font-medium text-center"
+            className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             キャンセル
           </Link>
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? '保存中...' : mode === 'create' ? '登録する' : '更新する'}
+          </button>
         </div>
       </div>
     </form>

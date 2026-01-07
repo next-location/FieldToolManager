@@ -15,10 +15,10 @@ export default async function NewClientPage() {
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">取引先新規登録</h1>
-          <p className="mt-1 text-sm text-gray-500">
+      <div className="px-4 pb-6 sm:px-0 sm:py-6">
+        <div className="mb-8">
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">取引先新規登録</h1>
+          <p className="mt-1 text-sm text-gray-600">
             顧客・仕入先・協力会社の情報を登録します
           </p>
         </div>
