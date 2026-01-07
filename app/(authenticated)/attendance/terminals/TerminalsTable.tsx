@@ -37,11 +37,26 @@ export function TerminalsTable({ sitesList, userRole }: TerminalsTableProps) {
 
   // スクロール検知
   useEffect(() => {
+    let lastScrollY = window.scrollY
+
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 100)
+      const currentScrollY = window.scrollY
+
+      // スクロールダウン時に縮小
+      if (currentScrollY > lastScrollY && currentScrollY > 50) {
+        setIsScrolled(true)
+      } else if (currentScrollY < lastScrollY) {
+        setIsScrolled(false)
+      }
+
+      lastScrollY = currentScrollY
     }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
   }, [])
 
   // データ取得
@@ -358,12 +373,13 @@ export function TerminalsTable({ sitesList, userRole }: TerminalsTableProps) {
       {/* モバイル用FABボタン */}
       <button
         onClick={() => setIsRegisterModalOpen(true)}
-        className={`sm:hidden fixed right-4 bottom-4 z-40 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 active:scale-95 transition-all duration-200 flex items-center justify-center ${
-          isScrolled ? 'w-10 h-10' : 'w-14 h-14'
+        className={`sm:hidden fixed right-4 z-40 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300 flex items-center justify-center ${
+          isScrolled ? 'w-10 h-10 bottom-20' : 'w-14 h-14 bottom-24'
         }`}
+        style={{ bottom: isScrolled ? '5rem' : '6rem' }}
         aria-label="端末登録"
       >
-        <Plus className={isScrolled ? 'w-5 h-5' : 'w-6 h-6'} />
+        <Plus className={isScrolled ? 'h-5 w-5' : 'h-6 w-6'} />
       </button>
 
       {/* 登録モーダル */}
