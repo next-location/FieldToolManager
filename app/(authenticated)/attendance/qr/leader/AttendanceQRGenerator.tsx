@@ -354,40 +354,44 @@ export default function AttendanceQRGenerator({ sites, existingQRs, userRole, is
 
           {officeQR ? (
             <div className="space-y-4">
-              <div className="flex items-center justify-between rounded-lg border border-gray-200 p-4">
-                <div>
-                  <h3 className="font-medium text-gray-900">会社QRコード</h3>
-                  <p className="text-sm text-gray-500">
-                    有効期限: {new Date(officeQR.valid_until).toLocaleString('ja-JP')}
-                  </p>
-                  <p className="text-sm text-gray-500">残り {officeQR.days_remaining} 日</p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setShowOfficeQR(!showOfficeQR)}
-                    className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-                  >
-                    {showOfficeQR ? '非表示' : '表示'}
-                  </button>
-                  <button
-                    onClick={handleDownloadOffice}
-                    className="rounded-lg border-2 border-blue-600 bg-white px-3 py-1.5 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50"
-                  >
-                    保存
-                  </button>
-                  <button
-                    onClick={handlePrintOffice}
-                    className="rounded-lg border-2 border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-                  >
-                    印刷
-                  </button>
-                  <button
-                    onClick={handleGenerateOffice}
-                    disabled={isGeneratingOffice}
-                    className="rounded-lg bg-orange-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-orange-700 disabled:bg-gray-300"
-                  >
-                    {isGeneratingOffice ? '再発行中...' : '再発行'}
-                  </button>
+              <div className="rounded-lg border border-gray-200 p-4">
+                {/* スマホ: 縦並び、PC: 横並び */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <h3 className="font-medium text-gray-900">会社QRコード</h3>
+                    <p className="text-sm text-gray-500">
+                      有効期限: {new Date(officeQR.valid_until).toLocaleString('ja-JP')}
+                    </p>
+                    <p className="text-sm text-gray-500">残り {officeQR.days_remaining} 日</p>
+                  </div>
+                  {/* スマホ: 2x2グリッド、PC: 横並び */}
+                  <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-2">
+                    <button
+                      onClick={() => setShowOfficeQR(!showOfficeQR)}
+                      className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                    >
+                      {showOfficeQR ? '非表示' : '表示'}
+                    </button>
+                    <button
+                      onClick={handleDownloadOffice}
+                      className="rounded-lg border-2 border-blue-600 bg-white px-3 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50"
+                    >
+                      保存
+                    </button>
+                    <button
+                      onClick={handlePrintOffice}
+                      className="rounded-lg border-2 border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                    >
+                      印刷
+                    </button>
+                    <button
+                      onClick={handleGenerateOffice}
+                      disabled={isGeneratingOffice}
+                      className="rounded-lg bg-orange-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-700 disabled:bg-gray-300"
+                    >
+                      {isGeneratingOffice ? '再発行中...' : '再発行'}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -477,7 +481,8 @@ export default function AttendanceQRGenerator({ sites, existingQRs, userRole, is
 
               return (
                 <div key={site.id} className="rounded-lg border border-gray-200 p-4">
-                  <div className="flex items-center justify-between">
+                  {/* スマホ: 縦並び、PC: 横並び */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                       <h3 className="font-medium text-gray-900">{site.name}</h3>
                       <p className="text-sm text-gray-500">
@@ -487,22 +492,23 @@ export default function AttendanceQRGenerator({ sites, existingQRs, userRole, is
                         有効期限: {expiresAt.toLocaleString('ja-JP')}
                       </p>
                     </div>
-                    <div className="flex gap-2">
+                    {/* スマホ: 3列グリッド、PC: 横並び */}
+                    <div className="grid grid-cols-3 gap-2 sm:flex sm:gap-2">
                       <button
                         onClick={() => handleView(site.id)}
-                        className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                        className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
                       >
                         {isViewing ? '非表示' : '表示'}
                       </button>
                       <button
                         onClick={() => handleDownload(site.id)}
-                        className="rounded-lg border-2 border-blue-600 bg-white px-3 py-1.5 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50"
+                        className="rounded-lg border-2 border-blue-600 bg-white px-3 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50"
                       >
                         保存
                       </button>
                       <button
                         onClick={() => handlePrint(site.id)}
-                        className="rounded-lg border-2 border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                        className="rounded-lg border-2 border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
                       >
                         印刷
                       </button>
