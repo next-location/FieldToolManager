@@ -805,31 +805,33 @@ export default function NewEstimatePage() {
         </div>
 
         {/* フォームフッター */}
-        <div className="px-4 py-3 bg-white text-right sm:px-6 space-x-3 sm:rounded-b-lg">
-          <button
-            type="button"
-            onClick={() => router.push('/estimates')}
-            className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            disabled={loading}
-          >
-            キャンセル
-          </button>
-          <button
-            type="submit"
-            onClick={(e) => handleSubmit(e as any, 'draft')}
-            className="inline-flex justify-center rounded-md border border-transparent bg-gray-500 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={loading}
-          >
-            {loading ? '保存中...' : '下書き保存'}
-          </button>
-          <button
-            type="button"
-            onClick={(e) => handleSubmit(e as any, 'submitted')}
-            className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={loading}
-          >
-            {loading ? '提出中...' : '確定・提出'}
-          </button>
+        <div className="px-4 py-3 bg-white sm:px-6 sm:rounded-b-lg">
+          <div className="flex gap-2 justify-end">
+            <button
+              type="button"
+              onClick={() => router.push('/estimates')}
+              className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-3 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              disabled={loading}
+            >
+              キャンセル
+            </button>
+            <button
+              type="submit"
+              onClick={(e) => handleSubmit(e as any, 'draft')}
+              className="inline-flex justify-center rounded-md border border-transparent bg-gray-500 py-2 px-3 text-sm font-medium text-white shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading}
+            >
+              {loading ? '保存中...' : '下書き'}
+            </button>
+            <button
+              type="button"
+              onClick={(e) => handleSubmit(e as any, 'submitted')}
+              className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-3 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading}
+            >
+              {loading ? '提出中...' : '提出'}
+            </button>
+          </div>
         </div>
       </form>
       </div>
