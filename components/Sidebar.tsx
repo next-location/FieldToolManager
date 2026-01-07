@@ -483,7 +483,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
 
                   {/* リーダー以上のみ表示 */}
                   {isLeaderOrAbove && (
-                    <div>
+                    <div className="space-y-1.5">
                       <Link
                         href="/attendance/records"
                         onClick={onClose}
