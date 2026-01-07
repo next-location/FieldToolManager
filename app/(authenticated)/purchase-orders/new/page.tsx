@@ -251,11 +251,13 @@ export default function NewPurchaseOrderPage() {
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-2">発注書作成</h1>
-        <p className="text-gray-600">材料・外注の発注書を作成します</p>
-      </div>
+      <div className="px-4 pb-6 sm:px-0 sm:py-6">
+        <div className="mb-8">
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">発注書作成</h1>
+          <p className="mt-1 text-sm text-gray-600">
+            発注書情報を登録します。必須項目を入力してください。
+          </p>
+        </div>
 
       <form onSubmit={(e) => handleSubmit(e, 'draft')}>
         <div className="bg-white shadow-sm rounded-lg p-6 mb-6">
@@ -383,51 +385,51 @@ export default function NewPurchaseOrderPage() {
                 </div>
 
                 <div className="space-y-3">
-                  {/* 種別・品名・仕様を1行 */}
-                  <div className="grid gap-2" style={{ gridTemplateColumns: '140px 1fr 1fr' }}>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">種別</label>
-                      <select
-                        value={item.item_type}
-                        onChange={(e) => handleItemChange(index, 'item_type', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
-                      >
-                        <option value="material">材料</option>
-                        <option value="equipment">機材</option>
-                        <option value="subcontract">外注</option>
-                        <option value="labor">労務</option>
-                        <option value="other">その他</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        品名 <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={item.item_name}
-                        onChange={(e) => handleItemChange(index, 'item_name', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
-                        placeholder="品名を入力"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">仕様・規格</label>
-                      <input
-                        type="text"
-                        value={item.description}
-                        onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
-                        placeholder="仕様や規格を入力"
-                      />
-                    </div>
+                  {/* 種別 */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">種別</label>
+                    <select
+                      value={item.item_type}
+                      onChange={(e) => handleItemChange(index, 'item_type', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
+                    >
+                      <option value="material">材料</option>
+                      <option value="equipment">機材</option>
+                      <option value="subcontract">外注</option>
+                      <option value="labor">労務</option>
+                      <option value="other">その他</option>
+                    </select>
                   </div>
 
-                  {/* 数量・単位・単価・税率・金額を1行 */}
-                  <div className="grid gap-2" style={{ gridTemplateColumns: '100px 120px 1fr 90px 1fr' }}>
+                  {/* 品名 */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      品名 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={item.item_name}
+                      onChange={(e) => handleItemChange(index, 'item_name', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
+                      placeholder="品名を入力"
+                      required
+                    />
+                  </div>
+
+                  {/* 仕様・規格 */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">仕様・規格</label>
+                    <input
+                      type="text"
+                      value={item.description}
+                      onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
+                      placeholder="仕様や規格を入力"
+                    />
+                  </div>
+
+                  {/* 数量・単位 */}
+                  <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
                         数量 <span className="text-red-500">*</span>
@@ -436,7 +438,7 @@ export default function NewPurchaseOrderPage() {
                         type="text"
                         value={item.quantity}
                         onChange={(e) => handleNumericInput(index, 'quantity', e.target.value)}
-                        className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm bg-white"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
                         placeholder="0"
                         inputMode="decimal"
                         required
@@ -450,7 +452,7 @@ export default function NewPurchaseOrderPage() {
                       <select
                         value={item.unit}
                         onChange={(e) => handleItemChange(index, 'unit', e.target.value)}
-                        className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm bg-white"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
                         required
                       >
                         <option value="個">個</option>
@@ -471,7 +473,10 @@ export default function NewPurchaseOrderPage() {
                         <option value="人">人</option>
                       </select>
                     </div>
+                  </div>
 
+                  {/* 単価・税率 */}
+                  <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
                         単価 <span className="text-red-500">*</span>
@@ -480,7 +485,7 @@ export default function NewPurchaseOrderPage() {
                         type="text"
                         value={item.unit_price}
                         onChange={(e) => handleNumericInput(index, 'unit_price', e.target.value)}
-                        className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm bg-white"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
                         placeholder="0"
                         inputMode="numeric"
                         required
@@ -492,19 +497,20 @@ export default function NewPurchaseOrderPage() {
                       <select
                         value={item.tax_rate}
                         onChange={(e) => handleItemChange(index, 'tax_rate', parseFloat(e.target.value))}
-                        className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm bg-white"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
                       >
                         <option value="10">10%</option>
                         <option value="8">8%</option>
                         <option value="0">0%</option>
                       </select>
                     </div>
+                  </div>
 
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">金額</label>
-                      <div className="w-full px-2 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm font-medium text-right">
-                        ¥{item.amount.toLocaleString()}
-                      </div>
+                  {/* 金額 */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">金額</label>
+                    <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm font-medium text-right">
+                      ¥{item.amount.toLocaleString()}
                     </div>
                   </div>
                 </div>
@@ -570,29 +576,31 @@ export default function NewPurchaseOrderPage() {
           </div>
         </div>
 
-        <div className="flex justify-between">
-          <button
-            type="button"
-            onClick={() => router.push('/purchase-orders')}
-            className="bg-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-400"
-          >
-            キャンセル
-          </button>
-          <div className="space-x-3">
+        {/* フォームフッター */}
+        <div className="px-4 py-3 bg-white sm:px-6 sm:rounded-b-lg">
+          <div className="flex gap-2 justify-end">
             <button
-              type="submit"
-              className="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600"
+              type="button"
+              onClick={() => router.push('/purchase-orders')}
+              className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-3 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               disabled={loading}
             >
-              下書き保存
+              キャンセル
+            </button>
+            <button
+              type="submit"
+              className="inline-flex justify-center rounded-md border border-transparent bg-gray-500 py-2 px-3 text-sm font-medium text-white shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading}
+            >
+              下書き
             </button>
             <button
               type="button"
               onClick={(e) => handleSubmit(e as any, 'submit')}
-              className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600"
+              className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-3 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading}
             >
-              確定・提出
+              提出
             </button>
           </div>
         </div>
