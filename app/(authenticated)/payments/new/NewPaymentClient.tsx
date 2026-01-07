@@ -208,12 +208,12 @@ export default function NewPaymentPage() {
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
+      <div className="px-4 pb-6 sm:px-0 sm:py-6">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-2">
+        <h1 className="text-lg sm:text-2xl font-bold text-gray-900">
           {isReceipt ? '入金登録' : '支払登録'}
         </h1>
-        <p className="text-gray-600">
+        <p className="mt-1 text-sm text-gray-600">
           {isReceipt ? '請求書に対する入金を登録します' : '発注書に対する支払を登録します'}
         </p>
       </div>
@@ -369,21 +369,21 @@ export default function NewPaymentPage() {
           </div>
         </div>
 
-        <div className="flex justify-between">
+        <div className="flex justify-end gap-3">
           <button
             type="button"
             onClick={() => router.push('/payments')}
-            className="bg-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-400"
+            className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             キャンセル
           </button>
           <button
             type="submit"
-            className={`${
+            className={`inline-flex justify-center rounded-md border border-transparent py-2 px-4 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
               isReceipt
-                ? 'bg-green-500 hover:bg-green-600'
-                : 'bg-red-500 hover:bg-red-600'
-            } text-white px-6 py-2 rounded-md`}
+                ? 'bg-green-500 hover:bg-green-600 focus:ring-green-500'
+                : 'bg-red-500 hover:bg-red-600 focus:ring-red-500'
+            }`}
             disabled={loading}
           >
             {loading ? '登録中...' : `${isReceipt ? '入金' : '支払'}を登録`}
