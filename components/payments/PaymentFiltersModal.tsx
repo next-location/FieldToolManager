@@ -5,20 +5,44 @@ import { X } from 'lucide-react'
 interface PaymentFiltersModalProps {
   isOpen: boolean
   onClose: () => void
-  typeFilter: 'all' | 'receipt' | 'payment'
-  setTypeFilter: (value: 'all' | 'receipt' | 'payment') => void
-  methodFilter: string
-  setMethodFilter: (value: string) => void
+  useMonthFilter: boolean
+  setUseMonthFilter: (value: boolean) => void
+  selectedYear: number
+  setSelectedYear: (value: number) => void
+  selectedMonth: number
+  setSelectedMonth: (value: number) => void
+  startDate: string
+  setStartDate: (value: string) => void
+  endDate: string
+  setEndDate: (value: string) => void
+  paymentTypeFilter: 'all' | 'receipt' | 'payment'
+  setPaymentTypeFilter: (value: 'all' | 'receipt' | 'payment') => void
+  paymentMethodFilter: string
+  setPaymentMethodFilter: (value: string) => void
+  yearOptions: number[]
+  monthOptions: number[]
   onReset: () => void
 }
 
 export default function PaymentFiltersModal({
   isOpen,
   onClose,
-  typeFilter,
-  setTypeFilter,
-  methodFilter,
-  setMethodFilter,
+  useMonthFilter,
+  setUseMonthFilter,
+  selectedYear,
+  setSelectedYear,
+  selectedMonth,
+  setSelectedMonth,
+  startDate,
+  setStartDate,
+  endDate,
+  setEndDate,
+  paymentTypeFilter,
+  setPaymentTypeFilter,
+  paymentMethodFilter,
+  setPaymentMethodFilter,
+  yearOptions,
+  monthOptions,
   onReset,
 }: PaymentFiltersModalProps) {
   if (!isOpen) return null
@@ -50,30 +74,151 @@ export default function PaymentFiltersModal({
 
         {/* コンテンツ */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {/* 種別 */}
+          {/* 日付フィルター切り替え */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              種別
+              日付フィルター
             </label>
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value as 'all' | 'receipt' | 'payment')}
-              className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="all">すべて</option>
-              <option value="receipt">入金</option>
-              <option value="payment">支払</option>
-            </select>
+            <div className="inline-flex w-full rounded-lg border border-gray-300 bg-gray-50 p-0.5">
+              <button
+                type="button"
+                onClick={() => setUseMonthFilter(true)}
+                className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                  useMonthFilter
+                    ? 'bg-blue-500 text-white shadow-md'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-white'
+                }`}
+              >
+                月単位
+              </button>
+              <button
+                type="button"
+                onClick={() => setUseMonthFilter(false)}
+                className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                  !useMonthFilter
+                    ? 'bg-blue-500 text-white shadow-md'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-white'
+                }`}
+              >
+                期間指定
+              </button>
+            </div>
           </div>
 
-          {/* 支払方法 */}
+          {/* 月単位フィルター */}
+          {useMonthFilter ? (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  年
+                </label>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(Number(e.target.value))}
+                  className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  {yearOptions.map(year => (
+                    <option key={year} value={year}>
+                      {year}年
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  月
+                </label>
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                  className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  {monthOptions.map(month => (
+                    <option key={month} value={month}>
+                      {month}月
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          ) : (
+            /* 期間指定フィルター */
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  開始日
+                </label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  終了日
+                </label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* 入出金タイプフィルター（ボタン形式） */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              入出金タイプ
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setPaymentTypeFilter('all')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  paymentTypeFilter === 'all'
+                    ? 'bg-blue-500 text-white shadow-md'
+                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
+                }`}
+              >
+                すべて
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentTypeFilter('receipt')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  paymentTypeFilter === 'receipt'
+                    ? 'bg-green-500 text-white shadow-md'
+                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
+                }`}
+              >
+                入金のみ
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentTypeFilter('payment')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  paymentTypeFilter === 'payment'
+                    ? 'bg-red-500 text-white shadow-md'
+                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
+                }`}
+              >
+                出金のみ
+              </button>
+            </div>
+          </div>
+
+          {/* 支払方法フィルター */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               支払方法
             </label>
             <select
-              value={methodFilter}
-              onChange={(e) => setMethodFilter(e.target.value)}
+              value={paymentMethodFilter}
+              onChange={(e) => setPaymentMethodFilter(e.target.value)}
               className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">すべて</option>

@@ -630,10 +630,22 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
       <PaymentFiltersModal
         isOpen={isFilterModalOpen}
         onClose={() => setIsFilterModalOpen(false)}
-        typeFilter={paymentTypeFilter}
-        setTypeFilter={setPaymentTypeFilter}
-        methodFilter={paymentMethodFilter}
-        setMethodFilter={setPaymentMethodFilter}
+        useMonthFilter={useMonthFilter}
+        setUseMonthFilter={setUseMonthFilter}
+        selectedYear={selectedYear}
+        setSelectedYear={setSelectedYear}
+        selectedMonth={selectedMonth}
+        setSelectedMonth={setSelectedMonth}
+        startDate={startDate}
+        setStartDate={setStartDate}
+        endDate={endDate}
+        setEndDate={setEndDate}
+        paymentTypeFilter={paymentTypeFilter}
+        setPaymentTypeFilter={setPaymentTypeFilter}
+        paymentMethodFilter={paymentMethodFilter}
+        setPaymentMethodFilter={setPaymentMethodFilter}
+        yearOptions={yearOptions}
+        monthOptions={monthOptions}
         onReset={handleReset}
       />
     </>
