@@ -19,15 +19,17 @@ export default async function TerminalsPage() {
     .order('name')
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">タブレット端末管理</h1>
-        <p className="text-gray-600 mt-1">
-          QRコード表示用のタブレット端末を管理します
-        </p>
-      </div>
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="px-4 pb-6 sm:px-0 sm:py-6">
+        <div className="mb-8">
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">タブレット端末管理</h1>
+          <p className="mt-1 text-sm text-gray-600">
+            QRコード表示用のタブレット端末を管理します
+          </p>
+        </div>
 
-      <TerminalsTable sitesList={sites || []} userRole={userRole} />
+        <TerminalsTable sitesList={sites || []} userRole={userRole} />
+      </div>
     </div>
   )
 }
