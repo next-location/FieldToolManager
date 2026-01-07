@@ -355,9 +355,12 @@ export default function NewEstimatePage() {
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
+      <div className="px-4 pb-6 sm:px-0 sm:py-6">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold mb-2">見積書作成</h1>
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">見積書作成</h1>
+          <p className="mt-1 text-sm text-gray-600">
+            見積書情報を登録します。必須項目を入力してください。
+          </p>
         </div>
 
         <form onSubmit={(e) => handleSubmit(e, 'draft')}>
@@ -585,44 +588,19 @@ export default function NewEstimatePage() {
                 </div>
 
                 <div className="space-y-3">
-                  {/* 種別・項目名・説明を1行 */}
-                  <div className="grid gap-2" style={{ gridTemplateColumns: '140px 1fr 1fr' }}>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">種別</label>
-                      <select
-                        value={item.item_type}
-                        onChange={(e) => handleItemChange(index, 'item_type', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                      >
-                        <option value="construction">工事費</option>
-                        <option value="material">材料費</option>
-                        <option value="expense">諸経費</option>
-                        <option value="other">その他</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        項目名 <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={item.item_name}
-                        onChange={(e) => handleItemChange(index, 'item_name', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">説明</label>
-                      <input
-                        type="text"
-                        value={item.description}
-                        onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                      />
-                    </div>
+                  {/* 種別 */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">種別</label>
+                    <select
+                      value={item.item_type}
+                      onChange={(e) => handleItemChange(index, 'item_type', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    >
+                      <option value="construction">工事費</option>
+                      <option value="material">材料費</option>
+                      <option value="expense">諸経費</option>
+                      <option value="other">その他</option>
+                    </select>
                   </div>
 
                   {/* 種別が「その他」の場合のカスタム種別入力 */}
@@ -639,8 +617,33 @@ export default function NewEstimatePage() {
                     </div>
                   )}
 
-                  {/* 数量・単位・単価・税率・金額を1行 */}
-                  <div className="grid gap-2" style={{ gridTemplateColumns: '80px 100px 1fr 90px 1fr' }}>
+                  {/* 項目名 */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      項目名 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={item.item_name}
+                      onChange={(e) => handleItemChange(index, 'item_name', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      required
+                    />
+                  </div>
+
+                  {/* 説明 */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">説明</label>
+                    <input
+                      type="text"
+                      value={item.description}
+                      onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    />
+                  </div>
+
+                  {/* 数量・単位 */}
+                  <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
                         数量 <span className="text-red-500">*</span>
@@ -649,7 +652,7 @@ export default function NewEstimatePage() {
                         type="text"
                         value={item.quantity || ''}
                         onChange={(e) => handleNumericInput(index, 'quantity', e.target.value)}
-                        className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                         placeholder="0"
                         inputMode="numeric"
                         required
@@ -663,7 +666,7 @@ export default function NewEstimatePage() {
                       <select
                         value={item.unit}
                         onChange={(e) => handleItemChange(index, 'unit', e.target.value)}
-                        className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                         required
                       >
                         <option value="式">式</option>
@@ -683,41 +686,6 @@ export default function NewEstimatePage() {
                         <option value="other">その他</option>
                       </select>
                     </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        単価 <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={item.unit_price || ''}
-                        onChange={(e) => handleNumericInput(index, 'unit_price', e.target.value)}
-                        className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm"
-                        placeholder="0"
-                        inputMode="numeric"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">税率</label>
-                      <select
-                        value={item.tax_rate}
-                        onChange={(e) => handleItemChange(index, 'tax_rate', parseFloat(e.target.value))}
-                        className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm"
-                      >
-                        <option value="10">10%</option>
-                        <option value="8">8%</option>
-                        <option value="0">0%</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">金額</label>
-                      <div className="w-full px-2 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm font-medium text-right">
-                        ¥{item.amount.toLocaleString()}
-                      </div>
-                    </div>
                   </div>
 
                   {/* 単位が「その他」の場合のカスタム単位入力 */}
@@ -733,6 +701,45 @@ export default function NewEstimatePage() {
                       />
                     </div>
                   )}
+
+                  {/* 単価・税率 */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        単価 <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={item.unit_price || ''}
+                        onChange={(e) => handleNumericInput(index, 'unit_price', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                        placeholder="0"
+                        inputMode="numeric"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">税率</label>
+                      <select
+                        value={item.tax_rate}
+                        onChange={(e) => handleItemChange(index, 'tax_rate', parseFloat(e.target.value))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      >
+                        <option value="10">10%</option>
+                        <option value="8">8%</option>
+                        <option value="0">0%</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* 金額 */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">金額</label>
+                    <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm font-medium text-right">
+                      ¥{item.amount.toLocaleString()}
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
@@ -797,32 +804,32 @@ export default function NewEstimatePage() {
           </div>
         </div>
 
-        <div className="flex justify-between">
+        {/* フォームフッター */}
+        <div className="px-4 py-3 bg-white text-right sm:px-6 space-x-3 sm:rounded-b-lg">
           <button
             type="button"
             onClick={() => router.push('/estimates')}
-            className="bg-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-400"
+            className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            disabled={loading}
           >
             キャンセル
           </button>
-          <div className="space-x-3">
-            <button
-              type="submit"
-              onClick={(e) => handleSubmit(e as any, 'draft')}
-              className="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600"
-              disabled={loading}
-            >
-              {loading ? '保存中...' : '下書き保存'}
-            </button>
-            <button
-              type="button"
-              onClick={(e) => handleSubmit(e as any, 'submitted')}
-              className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
-              disabled={loading}
-            >
-              {loading ? '提出中...' : '確定・提出'}
-            </button>
-          </div>
+          <button
+            type="submit"
+            onClick={(e) => handleSubmit(e as any, 'draft')}
+            className="inline-flex justify-center rounded-md border border-transparent bg-gray-500 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading}
+          >
+            {loading ? '保存中...' : '下書き保存'}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => handleSubmit(e as any, 'submitted')}
+            className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading}
+          >
+            {loading ? '提出中...' : '確定・提出'}
+          </button>
         </div>
       </form>
       </div>
