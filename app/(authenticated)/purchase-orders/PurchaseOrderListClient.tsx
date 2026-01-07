@@ -4,10 +4,13 @@ import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { PlusIcon } from '@heroicons/react/24/outline'
+import { SlidersHorizontal, Search } from 'lucide-react'
 import { DeletePurchaseOrderButton } from '@/components/purchase-orders/DeletePurchaseOrderButton'
 import { SendOrderButton } from '@/components/purchase-orders/SendOrderButton'
 import { MarkReceivedButton } from '@/components/purchase-orders/MarkReceivedButton'
 import { MarkPaidButton } from '@/components/purchase-orders/MarkPaidButton'
+import PurchaseOrderPageFAB from '@/components/purchase-orders/PurchaseOrderPageFAB'
+import PurchaseOrderFiltersModal from '@/components/purchase-orders/PurchaseOrderFiltersModal'
 
 interface PurchaseOrder {
   id: string
@@ -50,6 +53,7 @@ export function PurchaseOrderListClient({
   const [creatorFilter, setCreatorFilter] = useState('')
   const [creatorSearchQuery, setCreatorSearchQuery] = useState('')
   const [showCreatorDropdown, setShowCreatorDropdown] = useState(false)
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
 
   const isManagerOrAdmin = ['manager', 'admin'].includes(currentUserRole)
 
@@ -126,32 +130,63 @@ export function PurchaseOrderListClient({
     )
   }
 
+  const filterCount = (statusFilter !== 'all' ? 1 : 0) + (creatorFilter ? 1 : 0)
+
+  const handleReset = () => {
+    setSearchQuery('')
+    setStatusFilter('all')
+    setCreatorFilter('')
+    setCreatorSearchQuery('')
+  }
+
   return (
     <>
       {/* ヘッダー */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">発注書一覧</h1>
+        <h1 className="text-lg sm:text-2xl font-bold text-gray-900">発注書一覧</h1>
         <Link
           href="/purchase-orders/new"
-          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          className="hidden sm:inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
         >
           <PlusIcon className="h-5 w-5 mr-2" />
           新規作成
         </Link>
       </div>
 
-      {/* 検索・フィルタエリア */}
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
+      {/* モバイル: 検索+フィルターボタン */}
+      <div className="sm:hidden mb-6 space-y-3">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="発注番号・取引先・工事名で検索"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <button
+            onClick={() => setIsFilterModalOpen(true)}
+            className="relative px-4 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 flex items-center gap-2"
+          >
+            <SlidersHorizontal className="h-5 w-5 text-gray-600" />
+            {filterCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {filterCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* PC: 検索・フィルタエリア */}
+      <div className="hidden sm:block bg-white shadow rounded-lg p-6 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-gray-900">検索・フィルター</h2>
           {(searchQuery || statusFilter !== 'all' || creatorFilter) && (
             <button
-              onClick={() => {
-                setSearchQuery('')
-                setStatusFilter('all')
-                setCreatorFilter('')
-                setCreatorSearchQuery('')
-              }}
+              onClick={handleReset}
               className="text-sm text-blue-600 hover:text-blue-700 font-medium"
             >
               クリア
@@ -432,6 +467,22 @@ export function PurchaseOrderListClient({
           </div>
         )}
       </div>
+
+      {/* FAB */}
+      <PurchaseOrderPageFAB />
+
+      {/* フィルターモーダル */}
+      <PurchaseOrderFiltersModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        creatorFilter={creatorFilter}
+        setCreatorFilter={setCreatorFilter}
+        staffList={staffList}
+        isManagerOrAdmin={isManagerOrAdmin}
+        onReset={handleReset}
+      />
     </>
   )
 }

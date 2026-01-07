@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { PaymentListClient } from '@/components/payments/PaymentListClient'
 import { requireAuth } from '@/lib/auth/page-auth'
+import PaymentPageFAB from '@/components/payments/PaymentPageFAB'
 
 async function PaymentList() {
   const { organizationId, supabase } = await requireAuth()
@@ -31,15 +32,15 @@ export default async function PaymentsPage() {
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
-        <div className="mb-6 flex justify-between items-start">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">入出金管理</h1>
-            <p className="mt-2 text-sm text-gray-600">
-              入金・支払の記録と管理を行います
-            </p>
+      <div className="px-4 pb-6 sm:px-0 sm:py-6">
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-2">
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-900">入出金管理</h1>
           </div>
-          <div className="flex gap-3">
+          <p className="text-sm text-gray-600 mb-4">
+            入金・支払の記録と管理を行います
+          </p>
+          <div className="hidden sm:flex gap-3">
             <Link
               href="/payments/new?type=receipt"
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
@@ -64,6 +65,8 @@ export default async function PaymentsPage() {
         >
           <PaymentList />
         </Suspense>
+
+        <PaymentPageFAB />
       </div>
     </div>
   )

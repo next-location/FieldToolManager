@@ -3,6 +3,8 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { toHiragana, toKatakana } from '@/lib/utils/japanese'
+import { SlidersHorizontal, Search } from 'lucide-react'
+import PaymentFiltersModal from './PaymentFiltersModal'
 
 interface Payment {
   id: string
@@ -58,7 +60,9 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [paymentTypeFilter, setPaymentTypeFilter] = useState<'all' | 'receipt' | 'payment'>('all')
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState('all')
   const [useMonthFilter, setUseMonthFilter] = useState(true)
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
 
   // 年の選択肢を生成（過去5年から来年まで）
   const yearOptions = Array.from({ length: 7 }, (_, i) => currentDate.getFullYear() - 5 + i)
@@ -114,6 +118,11 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
       filtered = filtered.filter(payment => payment.payment_type === paymentTypeFilter)
     }
 
+    // 支払方法フィルター
+    if (paymentMethodFilter !== 'all') {
+      filtered = filtered.filter(payment => payment.payment_method === paymentMethodFilter)
+    }
+
     // 日付順でソート（新しい順 - 降順）
     filtered.sort((a, b) => {
       const dateA = new Date(a.payment_date).getTime()
@@ -122,7 +131,7 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
     })
 
     return filtered
-  }, [payments, searchQuery, selectedYear, selectedMonth, startDate, endDate, paymentTypeFilter, useMonthFilter])
+  }, [payments, searchQuery, selectedYear, selectedMonth, startDate, endDate, paymentTypeFilter, paymentMethodFilter, useMonthFilter])
 
   // 集計
   const totals = useMemo(() => {
@@ -141,11 +150,14 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
     }
   }, [filteredPayments])
 
-  const hasActiveFilters = searchQuery || paymentTypeFilter !== 'all' || !useMonthFilter || startDate || endDate
+  const hasActiveFilters = searchQuery || paymentTypeFilter !== 'all' || paymentMethodFilter !== 'all' || !useMonthFilter || startDate || endDate
+
+  const filterCount = (paymentTypeFilter !== 'all' ? 1 : 0) + (paymentMethodFilter !== 'all' ? 1 : 0)
 
   const handleReset = () => {
     setSearchQuery('')
     setPaymentTypeFilter('all')
+    setPaymentMethodFilter('all')
     setUseMonthFilter(true)
     setStartDate('')
     setEndDate('')
@@ -155,8 +167,35 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
 
   return (
     <>
-      {/* フィルターエリア */}
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
+      {/* モバイル: 検索+フィルターボタン */}
+      <div className="sm:hidden mb-6 space-y-3">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="取引先名・請求書番号で検索"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <button
+            onClick={() => setIsFilterModalOpen(true)}
+            className="relative px-4 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 flex items-center gap-2"
+          >
+            <SlidersHorizontal className="h-5 w-5 text-gray-600" />
+            {filterCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {filterCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* PC: フィルターエリア */}
+      <div className="hidden sm:block bg-white shadow rounded-lg p-6 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-gray-900">検索・フィルター</h2>
           {hasActiveFilters && (
@@ -322,8 +361,8 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
         </div>
       </div>
 
-      {/* データテーブル */}
-      <div className="bg-white shadow-sm rounded-lg">
+      {/* PC: データテーブル */}
+      <div className="hidden sm:block bg-white shadow-sm rounded-lg">
         <div className="px-6 py-4 border-b flex justify-between items-center">
           <h2 className="text-lg font-semibold">
             入出金一覧
@@ -465,6 +504,138 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
           </div>
         )}
       </div>
+
+      {/* モバイル: カードレイアウト */}
+      <div className="sm:hidden space-y-3">
+        {filteredPayments.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            条件に一致する入出金データがありません
+          </div>
+        ) : (
+          filteredPayments.map((payment) => {
+            const isReceipt = payment.payment_type === 'receipt'
+            const clientName = isReceipt
+              ? payment.invoice?.client?.name
+              : payment.purchase_order?.supplier?.name
+
+            return (
+              <div key={payment.id} className="bg-white border border-gray-200 rounded-lg p-4">
+                {/* ヘッダー: 日付・種別 */}
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">日付</div>
+                    <div className="font-medium text-gray-900">
+                      {new Date(payment.payment_date).toLocaleDateString('ja-JP')}
+                    </div>
+                  </div>
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                    isReceipt
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {isReceipt ? '入金' : '出金'}
+                  </span>
+                </div>
+
+                {/* 詳細情報 2x2グリッド */}
+                <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">取引先</div>
+                    <div className="font-medium text-gray-900">{clientName || '-'}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">支払方法</div>
+                    <div className="font-medium text-gray-900">
+                      {payment.payment_method === 'bank_transfer' ? '銀行振込'
+                        : payment.payment_method === 'cash' ? '現金'
+                        : payment.payment_method === 'check' ? '小切手'
+                        : payment.payment_method === 'credit_card' ? 'クレジットカード'
+                        : 'その他'}
+                    </div>
+                  </div>
+                  <div className="col-span-2">
+                    <div className="text-xs text-gray-500 mb-1">関連帳票</div>
+                    <div className="font-medium text-gray-900">
+                      {isReceipt && payment.invoice
+                        ? `請求書: ${payment.invoice.invoice_number}`
+                        : !isReceipt && payment.purchase_order
+                        ? `発注書: ${payment.purchase_order.order_number}`
+                        : '-'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 金額（大きく表示） */}
+                <div className="mb-3 pb-3 border-b border-gray-200">
+                  <div className="text-xs text-gray-500 mb-1">金額</div>
+                  <div className={`text-2xl font-bold ${isReceipt ? 'text-green-600' : 'text-red-600'}`}>
+                    {isReceipt ? '+' : '-'}¥{payment.amount.toLocaleString()}
+                  </div>
+                </div>
+
+                {/* ボタン */}
+                <div className="flex gap-2">
+                  <Link
+                    href={`/payments/${payment.id}`}
+                    className="flex-1 text-center px-3 py-2 border border-blue-600 text-blue-600 rounded-md text-sm font-medium hover:bg-blue-50 transition-colors"
+                  >
+                    詳細
+                  </Link>
+                  {isReceipt && (
+                    <a
+                      href={`/api/payments/${payment.id}/receipt`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 text-center px-3 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 transition-colors"
+                    >
+                      領収書
+                    </a>
+                  )}
+                </div>
+              </div>
+            )
+          })
+        )}
+
+        {/* モバイル: 集計 */}
+        {filteredPayments.length > 0 && (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600">入金合計:</span>
+                <span className="font-semibold text-green-600">
+                  ¥{totals.receipts.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">出金合計:</span>
+                <span className="font-semibold text-red-600">
+                  ¥{totals.payments.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex justify-between pt-2 border-t border-gray-300">
+                <span className="text-gray-900 font-medium">収支:</span>
+                <span className={`font-bold text-lg ${
+                  totals.balance >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  ¥{totals.balance.toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* フィルターモーダル */}
+      <PaymentFiltersModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        typeFilter={paymentTypeFilter}
+        setTypeFilter={setPaymentTypeFilter}
+        methodFilter={paymentMethodFilter}
+        setMethodFilter={setPaymentMethodFilter}
+        onReset={handleReset}
+      />
     </>
   )
 }
