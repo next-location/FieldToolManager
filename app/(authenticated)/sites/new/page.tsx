@@ -32,10 +32,10 @@ export default async function NewSitePage() {
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">新規現場登録</h1>
-          <p className="mt-1 text-sm text-gray-500">
+      <div className="px-4 pb-6 sm:px-0 sm:py-6">
+        <div className="mb-8">
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">現場新規登録</h1>
+          <p className="mt-1 text-sm text-gray-600">
             新しい現場情報を登録します
           </p>
         </div>
@@ -126,19 +126,19 @@ export default async function NewSitePage() {
               </div>
 
               {/* ボタン */}
-              <div className="flex gap-4 pt-4">
-                <button
-                  type="submit"
-                  className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium"
-                >
-                  登録する
-                </button>
+              <div className="flex justify-end space-x-3 pt-4">
                 <Link
                   href="/sites"
-                  className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 font-medium text-center"
+                  className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                 >
                   キャンセル
                 </Link>
+                <button
+                  type="submit"
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                >
+                  登録する
+                </button>
               </div>
             </div>
           </form>
