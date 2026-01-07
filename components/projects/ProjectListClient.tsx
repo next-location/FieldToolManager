@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { ChevronUp, ChevronDown } from 'lucide-react'
+import { ChevronUp, ChevronDown, SlidersHorizontal, Search } from 'lucide-react'
+import ProjectFiltersModal from './ProjectFiltersModal'
 
 interface Project {
   id: string
@@ -24,6 +25,7 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
   const [statusFilter, setStatusFilter] = useState('all')
   const [sortField, setSortField] = useState<'start_date' | 'end_date' | 'contract_amount'>('start_date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
 
   // ソート処理
   const handleSort = (field: typeof sortField) => {
@@ -95,10 +97,43 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
     setStatusFilter('all')
   }
 
+  // フィルター適用数をカウント
+  const filterCount = [
+    statusFilter !== 'all',
+  ].filter(Boolean).length
+
   return (
     <>
-      {/* 検索・フィルタエリア */}
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
+      {/* モバイル表示 */}
+      <div className="sm:hidden mb-6 space-y-3">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="工事番号・工事名・取引先で検索"
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <button
+            onClick={() => setIsFilterModalOpen(true)}
+            className="relative p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            aria-label="フィルター"
+          >
+            <SlidersHorizontal className="h-5 w-5 text-gray-600" />
+            {filterCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {filterCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* PC表示 */}
+      <div className="hidden sm:block bg-white shadow rounded-lg p-6 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-gray-900">検索・フィルター</h2>
           {hasActiveFilters && (
@@ -153,8 +188,8 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
         </div>
       </div>
 
-      {/* テーブル */}
-      <div className="bg-white shadow-sm rounded-lg">
+      {/* PC表示：テーブル */}
+      <div className="hidden sm:block bg-white shadow-sm rounded-lg">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -254,6 +289,95 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
           )}
         </div>
       </div>
+
+      {/* モバイル表示：カードレイアウト */}
+      <div className="sm:hidden space-y-3">
+        {filteredAndSortedProjects.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            {searchQuery || statusFilter !== 'all'
+              ? '検索条件に一致する工事がありません'
+              : '工事データがありません'}
+          </div>
+        ) : (
+          filteredAndSortedProjects.map((project) => (
+            <div key={project.id} className="bg-white border border-gray-200 rounded-lg p-4 relative">
+              {/* ステータスバッジ（右上） */}
+              <div className="absolute top-3 right-3">
+                <span className={`inline-flex px-2 text-xs leading-5 font-semibold rounded-full ${
+                  project.status === 'planning'
+                    ? 'bg-gray-100 text-gray-800'
+                    : project.status === 'in_progress'
+                    ? 'bg-blue-100 text-blue-800'
+                    : project.status === 'completed'
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-red-100 text-red-800'
+                }`}>
+                  {project.status === 'planning' ? '計画中'
+                    : project.status === 'in_progress' ? '進行中'
+                    : project.status === 'completed' ? '完了'
+                    : 'キャンセル'}
+                </span>
+              </div>
+
+              {/* 工事番号・工事名 */}
+              <div className="pr-20 mb-3">
+                <div className="text-xs text-gray-500">工事番号</div>
+                <div className="font-medium text-gray-900">{project.project_code}</div>
+                <div className="text-sm font-medium text-gray-900 mt-1">{project.project_name}</div>
+              </div>
+
+              {/* 詳細情報 2x2グリッド */}
+              <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+                <div>
+                  <div className="text-xs text-gray-500 mb-1">取引先</div>
+                  <div className="font-medium text-gray-900">{project.client?.name || '-'}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-500 mb-1">契約金額</div>
+                  <div className="font-medium text-gray-900">
+                    {project.contract_amount
+                      ? `¥${project.contract_amount.toLocaleString()}`
+                      : '-'}
+                  </div>
+                </div>
+                <div className="col-span-2">
+                  <div className="text-xs text-gray-500 mb-1">工期</div>
+                  <div className="font-medium text-gray-900">
+                    {project.start_date && project.end_date
+                      ? `${new Date(project.start_date).toLocaleDateString('ja-JP')} ～ ${new Date(project.end_date).toLocaleDateString('ja-JP')}`
+                      : '-'}
+                  </div>
+                </div>
+              </div>
+
+              {/* ボタン */}
+              <div className="flex gap-2 pt-3 border-t border-gray-200">
+                <Link
+                  href={`/projects/${project.id}`}
+                  className="flex-1 text-center px-3 py-2 border border-blue-600 text-blue-600 rounded-md text-sm font-medium hover:bg-blue-50 transition-colors"
+                >
+                  詳細
+                </Link>
+                <Link
+                  href={`/projects/${project.id}/edit`}
+                  className="flex-1 text-center px-3 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                >
+                  編集
+                </Link>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* フィルターモーダル */}
+      <ProjectFiltersModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        onReset={handleReset}
+      />
     </>
   )
 }

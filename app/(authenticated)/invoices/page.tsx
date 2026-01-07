@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
 import { PackageRequired } from '@/components/PackageRequired'
 import { InvoiceListClient } from '@/components/invoices/InvoiceListClient'
+import InvoicePageFAB from '@/components/invoices/InvoicePageFAB'
 
 async function InvoiceList() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
@@ -43,17 +44,12 @@ export default async function InvoicesPage() {
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
-        <div className="mb-6 flex justify-between items-start">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">請求書管理</h1>
-            <p className="mt-2 text-sm text-gray-600">
-              請求書の作成・管理を行います
-            </p>
-          </div>
+      <div className="px-4 pb-6 sm:px-0 sm:py-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">請求書管理</h1>
           <Link
             href="/invoices/new"
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+            className="hidden sm:inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
           >
             + 新規請求書作成
           </Link>
@@ -68,6 +64,8 @@ export default async function InvoicesPage() {
         >
           <InvoiceList />
         </Suspense>
+
+        <InvoicePageFAB />
       </div>
     </div>
   )

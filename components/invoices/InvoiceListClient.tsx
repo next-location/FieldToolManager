@@ -4,6 +4,8 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toHiragana, toKatakana } from '@/lib/utils/japanese'
+import { SlidersHorizontal, Search } from 'lucide-react'
+import InvoiceFiltersModal from './InvoiceFiltersModal'
 
 interface Invoice {
   id: string
@@ -57,6 +59,7 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
   const [staffFilter, setStaffFilter] = useState('all')
   const [sortField, setSortField] = useState<'invoice_date' | 'due_date' | 'total_amount'>('invoice_date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
 
   const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userRole)
 
@@ -181,6 +184,8 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
 
   const hasActiveFilters = searchQuery || statusFilter !== 'all' || paymentFilter !== 'all' || (isManagerOrAdmin && staffFilter !== 'all')
 
+  const filterCount = (statusFilter !== 'all' ? 1 : 0) + (paymentFilter !== 'all' ? 1 : 0) + (staffFilter !== 'all' ? 1 : 0)
+
   const handleReset = () => {
     setSearchQuery('')
     setStatusFilter('all')
@@ -190,8 +195,35 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
 
   return (
     <>
-      {/* 検索・フィルタエリア */}
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
+      {/* モバイル: 検索+フィルターボタン */}
+      <div className="sm:hidden mb-6 space-y-3">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="請求番号・取引先・工事名で検索"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <button
+            onClick={() => setIsFilterModalOpen(true)}
+            className="relative px-4 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 flex items-center gap-2"
+          >
+            <SlidersHorizontal className="h-5 w-5 text-gray-600" />
+            {filterCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {filterCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* PC: 検索・フィルタエリア */}
+      <div className="hidden sm:block bg-white shadow rounded-lg p-6 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-gray-900">検索・フィルター</h2>
           {hasActiveFilters && (
@@ -445,6 +477,21 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
             : '請求書データがありません'}
         </div>
       )}
+
+      {/* フィルターモーダル */}
+      <InvoiceFiltersModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        paymentFilter={paymentFilter}
+        setPaymentFilter={setPaymentFilter}
+        staffFilter={staffFilter}
+        setStaffFilter={setStaffFilter}
+        staffList={staffList}
+        isManagerOrAdmin={isManagerOrAdmin}
+        onReset={handleReset}
+      />
     </>
   )
 }
