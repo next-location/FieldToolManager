@@ -11,9 +11,9 @@ export default async function AlertsPage() {
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
+      <div className="px-4 pb-6 sm:px-0 sm:py-6">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">出退勤アラート</h1>
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">出退勤アラート</h1>
           <p className="mt-2 text-sm text-gray-600">
             出勤・退勤忘れや日次レポートなどの通知を確認できます
           </p>
