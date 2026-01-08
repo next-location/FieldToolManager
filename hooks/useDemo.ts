@@ -1,4 +1,6 @@
-import { useAuth } from '@/hooks/useAuth'
+import { useEffect, useState } from 'react'
+import { createBrowserClient } from '@supabase/ssr'
+import type { User } from '@supabase/supabase-js'
 
 export const demoRestrictions = {
   // データ量制限
@@ -34,7 +36,25 @@ export const demoRestrictions = {
 }
 
 export function useDemo() {
-  const { user } = useAuth()
+  const [user, setUser] = useState<User | null>(null)
+
+  useEffect(() => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
   const isDemo = user?.user_metadata?.is_demo || false
   const expiresAt = user?.user_metadata?.expires_at
 
