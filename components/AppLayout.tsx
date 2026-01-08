@@ -7,6 +7,7 @@ import { MobileBottomNav } from './MobileBottomNav'
 import { DevPackageControl } from './DevPackageControl'
 import SessionTimeoutMonitor from './SessionTimeoutMonitor'
 import { TwoFactorReminderModal } from './TwoFactorReminderModal'
+import { DemoPageGuard } from './DemoPageGuard'
 
 interface AppLayoutProps {
   user: {
@@ -57,7 +58,7 @@ export function AppLayout({
       {/* メインコンテンツエリア */}
       <div className={`${isImpersonating ? 'pt-[98px]' : 'pt-[58px]'} lg:pl-64 pb-16 lg:pb-0`}>
         <main className="min-h-[calc(100vh-58px)]">
-          {children}
+          <DemoPageGuard>{children}</DemoPageGuard>
         </main>
       </div>
 

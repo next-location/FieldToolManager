@@ -25,6 +25,24 @@ export const demoRestrictions = {
     'custom_qr',          // QRコードカスタマイズ
   ],
 
+  // デモで使用不可のページパス
+  restrictedPages: [
+    '/settings',          // 設定・管理
+    '/staff',             // スタッフ管理
+    '/locations',         // 拠点管理
+    '/categories',        // カテゴリ管理
+    '/work-reports',      // 作業報告書
+    '/analytics',         // 分析・レポート
+    '/estimates',         // 見積もり
+    '/invoices',          // 請求書
+    '/purchase-orders',   // 発注書
+    '/clients',           // 取引先
+    '/suppliers',         // 仕入先
+    '/projects',          // 案件管理
+    '/equipment',         // 重機管理
+    '/attendance',        // 勤怠管理
+  ],
+
   // UI表示
   ui: {
     watermark: 'デモ環境',
@@ -68,6 +86,11 @@ export function useDemo() {
     return demoRestrictions.disabledFeatures.includes(feature)
   }
 
+  const isPageRestricted = (pathname: string): boolean => {
+    if (!isDemo) return false
+    return demoRestrictions.restrictedPages.some(page => pathname.startsWith(page))
+  }
+
   const getDaysRemaining = (): number => {
     if (!expiresAt) return 0
     const diff = new Date(expiresAt).getTime() - Date.now()
@@ -85,6 +108,7 @@ export function useDemo() {
     expiresAt,
     checkLimit,
     isFeatureDisabled,
+    isPageRestricted,
     getDaysRemaining,
     getHoursRemaining,
     restrictions: demoRestrictions
