@@ -133,10 +133,8 @@ export async function POST(request: NextRequest) {
       .insert({
         name: `${companyName}（デモ）`,
         subdomain: `demo${timestamp}`,
-        is_demo: true,
-        plan: 'demo',
-        created_by: authUser.user.id,
-        expires_at: expiresAt.toISOString()
+        plan: 'basic',
+        is_active: true
       })
       .select()
       .single()
