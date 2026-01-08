@@ -1,24 +1,19 @@
-import { createClient } from '@/lib/supabase/server'
+import { getSuperAdminSession } from '@/lib/auth/super-admin'
 import { redirect } from 'next/navigation'
+import { createClient } from '@supabase/supabase-js'
+import AdminSidebar from '@/components/admin/AdminSidebar'
+import AdminHeader from '@/components/admin/AdminHeader'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export default async function DemoAnalyticsPage() {
-  const supabase = await createClient()
+  const session = await getSuperAdminSession()
 
-  // 認証チェック
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
-
-  // 管理者チェック
-  const { data: staff } = await supabase
-    .from('staff')
-    .select('role')
-    .eq('user_id', user.id)
-    .single()
-
-  if (!staff || staff.role !== 'admin') {
-    redirect('/dashboard')
+  if (!session) {
+    redirect('/admin/login')
   }
 
   // KPIデータ取得
@@ -42,9 +37,20 @@ export default async function DemoAnalyticsPage() {
   const recentRequests = requests?.filter(r => new Date(r.created_at) >= sevenDaysAgo).length || 0
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">デモ環境KPI</h1>
+    <div className="flex flex-col h-screen bg-gray-50">
+      {/* ヘッダー */}
+      <AdminHeader userName={session.name} />
+
+      {/* サイドバーとメインコンテンツ */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* サイドバー */}
+        <div className="w-64 flex-shrink-0">
+          <AdminSidebar />
+        </div>
+
+        {/* メインコンテンツ */}
+        <main className="flex-1 overflow-y-auto p-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">デモ環境KPI</h1>
 
         {/* KPIカード */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -144,6 +150,7 @@ export default async function DemoAnalyticsPage() {
             </table>
           </div>
         </div>
+        </main>
       </div>
     </div>
   )
