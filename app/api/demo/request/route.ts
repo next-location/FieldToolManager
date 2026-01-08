@@ -299,8 +299,18 @@ export async function POST(request: NextRequest) {
       </div>
     </div>
 
-    <div style="text-align: center;">
+    <div style="text-align: center; margin: 30px 0;">
       <a href="https://zairoku.com/login" class="button">デモ環境にログイン</a>
+    </div>
+
+    <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
+      <h3 style="margin-top: 0;">📄 サービス資料</h3>
+      <p>ザイロクの詳しい機能やプランについては、以下の資料をご覧ください。</p>
+      <div style="text-align: center; margin-top: 15px;">
+        <a href="https://zairoku.com/materials/service-guide.pdf" class="button" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">
+          サービス資料をダウンロード（PDF）
+        </a>
+      </div>
     </div>
 
     <div class="features">
