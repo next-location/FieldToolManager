@@ -52,15 +52,20 @@ export async function POST(request: NextRequest) {
     const ipAddress = forwardedFor ? forwardedFor.split(',')[0] : headersList.get('x-real-ip') || 'unknown'
     const userAgent = headersList.get('user-agent') || 'unknown'
 
-    // 24時間以内の重複申請チェック
-    const { data: duplicateCheck } = await supabase.rpc('check_duplicate_demo_request', {
-      p_email: email,
-      p_ip_address: ipAddress
-    })
+    // 24時間以内の重複申請チェック（メールアドレスのみ）
+    const oneDayAgo = new Date()
+    oneDayAgo.setHours(oneDayAgo.getHours() - 24)
 
-    if (duplicateCheck) {
+    const { data: existingRequest } = await supabase
+      .from('demo_requests')
+      .select('id')
+      .eq('email', email)
+      .gte('created_at', oneDayAgo.toISOString())
+      .limit(1)
+
+    if (existingRequest && existingRequest.length > 0) {
       return NextResponse.json(
-        { error: '24時間以内に同じメールアドレスまたはIPアドレスから申請がありました。しばらく時間をおいてから再度お試しください。' },
+        { error: '24時間以内に同じメールアドレスから申請がありました。しばらく時間をおいてから再度お試しください。' },
         { status: 429 }
       )
     }
