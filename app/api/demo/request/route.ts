@@ -148,6 +148,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // usersテーブルにレコード追加
+    const { error: userInsertError } = await supabase
+      .from('users')
+      .insert({
+        id: authUser.user.id,
+        organization_id: organization.id,
+        email: demoEmail,
+        name: personName,
+        role: 'admin',
+        is_active: true
+      })
+
+    if (userInsertError) {
+      console.error('Failed to create user record:', userInsertError)
+      await supabase.auth.admin.deleteUser(authUser.user.id)
+      return NextResponse.json(
+        { error: 'デモユーザーの作成に失敗しました' },
+        { status: 500 }
+      )
+    }
+
     // サンプルデータ投入
     try {
       await insertSampleData(authUser.user.id, organization.id)
