@@ -29,6 +29,7 @@ export default async function ContractsPage() {
   const isOwner = userRole === 'owner';
 
   // 契約データを取得（機能パック情報を含む）
+  // デモアカウントの契約は除外（contract_numberが'DEMO-'で始まるものを除く）
   const { data: contractsData, error } = await supabase
     .from('contracts')
     .select(`
@@ -47,6 +48,7 @@ export default async function ContractsPage() {
         subdomain
       )
     `)
+    .not('contract_number', 'like', 'DEMO-%')
     .order('created_at', { ascending: false });
 
   if (error) {
