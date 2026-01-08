@@ -74,19 +74,24 @@ export async function middleware(request: NextRequest) {
 
   // ルートパスの処理
   if (request.nextUrl.pathname === '/') {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
     // サブドメインがある場合は、認証済みユーザーを/dashboardにリダイレクト
     if (subdomain) {
-      const supabase = await createClient()
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
       if (user) {
         console.log('[Middleware] Authenticated user accessing root, redirecting to /dashboard')
         return NextResponse.redirect(new URL('/dashboard', request.url))
       }
     } else {
-      // サブドメインなしの場合はランディングページを表示
+      // サブドメインなし + 認証済み + デモユーザーの場合もダッシュボードへ
+      if (user && user.user_metadata?.is_demo) {
+        console.log('[Middleware] Demo user accessing root, redirecting to /dashboard')
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
+      // それ以外はランディングページを表示
       console.log('[Middleware] No subdomain, showing landing page')
       return response
     }
