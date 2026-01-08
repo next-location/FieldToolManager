@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 export class DemoAnalytics {
   // デモログイン記録
   static async trackLogin(demoRequestId: string) {
-    const supabase = createClient()
+    const supabase = await createClient()
 
     try {
       // ログイン回数をインクリメント
@@ -31,7 +31,7 @@ export class DemoAnalytics {
 
   // 機能使用記録
   static async trackFeatureUse(demoRequestId: string, featureName: string, details?: any) {
-    const supabase = createClient()
+    const supabase = await createClient()
 
     try {
       await supabase.from('demo_activity_logs').insert({
@@ -56,7 +56,7 @@ export class DemoAnalytics {
 
   // エクスポート試行記録（ブロック対象）
   static async trackExportAttempt(demoRequestId: string, exportType: string) {
-    const supabase = createClient()
+    const supabase = await createClient()
 
     try {
       await supabase.from('demo_activity_logs').insert({
@@ -79,7 +79,7 @@ export class DemoAnalytics {
 
   // ページビュー記録
   static async trackPageView(demoRequestId: string, pagePath: string) {
-    const supabase = createClient()
+    const supabase = await createClient()
 
     try {
       await supabase.from('demo_activity_logs').insert({

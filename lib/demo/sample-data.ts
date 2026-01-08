@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 
 export async function insertSampleData(userId: string, companyId: string) {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   try {
     // 1. 拠点データ

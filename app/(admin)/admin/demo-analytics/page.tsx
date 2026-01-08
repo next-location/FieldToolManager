@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
 export default async function DemoAnalyticsPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   // 認証チェック
   const { data: { user } } = await supabase.auth.getUser()

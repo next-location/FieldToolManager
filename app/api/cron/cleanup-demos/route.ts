@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // 1. 期限切れのデモアカウントを取得
     const { data: expiredDemos, error: fetchError } = await supabase
