@@ -64,12 +64,12 @@ export default function LandingPage() {
                 >
                   お問い合わせ
                 </Link>
-                <a
-                  href="#features"
+                <Link
+                  href="/request-demo"
                   className="w-full sm:w-1/2 sm:min-w-[200px] px-6 sm:px-8 py-3 bg-white/10 backdrop-blur-sm text-white text-sm sm:text-base font-semibold rounded-full border-2 border-white/30 hover:bg-white/20 transition-all text-center flex items-center justify-center"
                 >
-                  機能と料金プランを見る
-                </a>
+                  資料請求してデモ画面を見る
+                </Link>
               </div>
             </div>
           </div>
