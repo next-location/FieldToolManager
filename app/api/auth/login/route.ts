@@ -250,8 +250,8 @@ export async function POST(request: Request) {
   // ログイン成功を記録
   await recordLoginAttempt(email, ipAddress, userAgent, true)
 
-  // 2FAが設定済みで、認証が必要な場合
-  if (userData.two_factor_enabled) {
+  // 2FAが必要な場合（デモユーザーはスキップ）
+  if (!isDemo && userData.two_factor_enabled) {
     // メール方式の場合、認証コードを送信
     if (userData.two_factor_method === 'email' && userData.two_factor_email) {
       // 6桁の認証コードを生成
