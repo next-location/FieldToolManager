@@ -1,39 +1,59 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 
 export async function insertSampleData(userId: string, companyId: string) {
-  const supabase = await createClient()
+  // サービスロールクライアントを使用してRLSをバイパス
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
 
   try {
+    console.log('[Sample Data] Starting data insertion for organization:', companyId)
+
     // 1. 拠点データ
     const locations = [
-      { name: '本社倉庫', address: '東京都千代田区丸の内1-1-1', company_id: companyId },
-      { name: '現場A', address: '神奈川県横浜市中区1-1', company_id: companyId },
-      { name: '現場B', address: '埼玉県さいたま市大宮区1-1', company_id: companyId },
+      { name: '本社倉庫', address: '東京都千代田区丸の内1-1-1', organization_id: companyId },
+      { name: '現場A', address: '神奈川県横浜市中区1-1', organization_id: companyId },
+      { name: '現場B', address: '埼玉県さいたま市大宮区1-1', organization_id: companyId },
     ]
-    const { data: insertedLocations } = await supabase
+    const { data: insertedLocations, error: locationsError } = await supabase
       .from('locations')
       .insert(locations)
       .select()
+
+    if (locationsError) {
+      console.error('[Sample Data] Failed to insert locations:', locationsError)
+      throw new Error(`Failed to insert locations: ${locationsError.message}`)
+    }
 
     if (!insertedLocations || insertedLocations.length === 0) {
       throw new Error('Failed to insert locations')
     }
 
+    console.log('[Sample Data] Inserted locations:', insertedLocations.length)
+
     // 2. カテゴリデータ
     const categories = [
-      { name: '電動工具', company_id: companyId },
-      { name: '手動工具', company_id: companyId },
-      { name: '測定機器', company_id: companyId },
-      { name: '安全用品', company_id: companyId },
+      { name: '電動工具', organization_id: companyId },
+      { name: '手動工具', organization_id: companyId },
+      { name: '測定機器', organization_id: companyId },
+      { name: '安全用品', organization_id: companyId },
     ]
-    const { data: insertedCategories } = await supabase
+    const { data: insertedCategories, error: categoriesError } = await supabase
       .from('categories')
       .insert(categories)
       .select()
 
+    if (categoriesError) {
+      console.error('[Sample Data] Failed to insert categories:', categoriesError)
+      throw new Error(`Failed to insert categories: ${categoriesError.message}`)
+    }
+
     if (!insertedCategories || insertedCategories.length === 0) {
       throw new Error('Failed to insert categories')
     }
+
+    console.log('[Sample Data] Inserted categories:', insertedCategories.length)
 
     // 3. 工具データ（20個）
     const tools = [
@@ -43,7 +63,7 @@ export async function insertSampleData(userId: string, companyId: string) {
         status: 'available',
         category_id: insertedCategories[0].id,
         location_id: insertedLocations[0].id,
-        company_id: companyId,
+        organization_id: companyId,
         quantity: 1,
         unit: '台'
       },
@@ -53,7 +73,7 @@ export async function insertSampleData(userId: string, companyId: string) {
         status: 'in_use',
         category_id: insertedCategories[0].id,
         location_id: insertedLocations[1].id,
-        company_id: companyId,
+        organization_id: companyId,
         quantity: 1,
         unit: '台'
       },
@@ -63,7 +83,7 @@ export async function insertSampleData(userId: string, companyId: string) {
         status: 'maintenance',
         category_id: insertedCategories[0].id,
         location_id: insertedLocations[0].id,
-        company_id: companyId,
+        organization_id: companyId,
         quantity: 1,
         unit: '台'
       },
@@ -73,7 +93,7 @@ export async function insertSampleData(userId: string, companyId: string) {
         status: 'available',
         category_id: insertedCategories[1].id,
         location_id: insertedLocations[0].id,
-        company_id: companyId,
+        organization_id: companyId,
         quantity: 5,
         unit: '個'
       },
@@ -83,7 +103,7 @@ export async function insertSampleData(userId: string, companyId: string) {
         status: 'available',
         category_id: insertedCategories[1].id,
         location_id: insertedLocations[0].id,
-        company_id: companyId,
+        organization_id: companyId,
         quantity: 3,
         unit: 'セット'
       },
@@ -93,7 +113,7 @@ export async function insertSampleData(userId: string, companyId: string) {
         status: 'in_use',
         category_id: insertedCategories[2].id,
         location_id: insertedLocations[1].id,
-        company_id: companyId,
+        organization_id: companyId,
         quantity: 1,
         unit: '台'
       },
@@ -103,7 +123,7 @@ export async function insertSampleData(userId: string, companyId: string) {
         status: 'available',
         category_id: insertedCategories[2].id,
         location_id: insertedLocations[0].id,
-        company_id: companyId,
+        organization_id: companyId,
         quantity: 2,
         unit: '個'
       },
@@ -113,7 +133,7 @@ export async function insertSampleData(userId: string, companyId: string) {
         status: 'available',
         category_id: insertedCategories[3].id,
         location_id: insertedLocations[0].id,
-        company_id: companyId,
+        organization_id: companyId,
         quantity: 20,
         unit: '個'
       },
@@ -123,7 +143,7 @@ export async function insertSampleData(userId: string, companyId: string) {
         status: 'available',
         category_id: insertedCategories[3].id,
         location_id: insertedLocations[0].id,
-        company_id: companyId,
+        organization_id: companyId,
         quantity: 10,
         unit: '個'
       },
@@ -133,7 +153,7 @@ export async function insertSampleData(userId: string, companyId: string) {
         status: 'available',
         category_id: insertedCategories[0].id,
         location_id: insertedLocations[0].id,
-        company_id: companyId,
+        organization_id: companyId,
         quantity: 2,
         unit: '台'
       },
@@ -143,7 +163,7 @@ export async function insertSampleData(userId: string, companyId: string) {
         status: 'in_use',
         category_id: insertedCategories[0].id,
         location_id: insertedLocations[2].id,
-        company_id: companyId,
+        organization_id: companyId,
         quantity: 1,
         unit: '台'
       },
@@ -153,7 +173,7 @@ export async function insertSampleData(userId: string, companyId: string) {
         status: 'available',
         category_id: insertedCategories[0].id,
         location_id: insertedLocations[0].id,
-        company_id: companyId,
+        organization_id: companyId,
         quantity: 1,
         unit: '台'
       },
@@ -163,7 +183,7 @@ export async function insertSampleData(userId: string, companyId: string) {
         status: 'available',
         category_id: insertedCategories[1].id,
         location_id: insertedLocations[0].id,
-        company_id: companyId,
+        organization_id: companyId,
         quantity: 10,
         unit: '本'
       },
@@ -173,7 +193,7 @@ export async function insertSampleData(userId: string, companyId: string) {
         status: 'available',
         category_id: insertedCategories[1].id,
         location_id: insertedLocations[0].id,
-        company_id: companyId,
+        organization_id: companyId,
         quantity: 5,
         unit: '本'
       },
@@ -183,7 +203,7 @@ export async function insertSampleData(userId: string, companyId: string) {
         status: 'available',
         category_id: insertedCategories[2].id,
         location_id: insertedLocations[0].id,
-        company_id: companyId,
+        organization_id: companyId,
         quantity: 10,
         unit: '個'
       },
@@ -193,7 +213,7 @@ export async function insertSampleData(userId: string, companyId: string) {
         status: 'in_use',
         category_id: insertedCategories[1].id,
         location_id: insertedLocations[1].id,
-        company_id: companyId,
+        organization_id: companyId,
         quantity: 1,
         unit: '台'
       },
@@ -203,7 +223,7 @@ export async function insertSampleData(userId: string, companyId: string) {
         status: 'available',
         category_id: insertedCategories[0].id,
         location_id: insertedLocations[0].id,
-        company_id: companyId,
+        organization_id: companyId,
         quantity: 3,
         unit: '台'
       },
@@ -213,7 +233,7 @@ export async function insertSampleData(userId: string, companyId: string) {
         status: 'available',
         category_id: insertedCategories[3].id,
         location_id: insertedLocations[0].id,
-        company_id: companyId,
+        organization_id: companyId,
         quantity: 15,
         unit: '足'
       },
@@ -223,7 +243,7 @@ export async function insertSampleData(userId: string, companyId: string) {
         status: 'available',
         category_id: insertedCategories[3].id,
         location_id: insertedLocations[0].id,
-        company_id: companyId,
+        organization_id: companyId,
         quantity: 50,
         unit: '双'
       },
@@ -233,18 +253,27 @@ export async function insertSampleData(userId: string, companyId: string) {
         status: 'available',
         category_id: insertedCategories[0].id,
         location_id: insertedLocations[0].id,
-        company_id: companyId,
+        organization_id: companyId,
         quantity: 1,
         unit: '台'
       },
     ]
 
-    await supabase.from('items').insert(tools)
+    const { data: insertedTools, error: toolsError } = await supabase
+      .from('items')
+      .insert(tools)
+      .select()
 
-    console.log('Sample data inserted successfully')
+    if (toolsError) {
+      console.error('[Sample Data] Failed to insert tools:', toolsError)
+      throw new Error(`Failed to insert tools: ${toolsError.message}`)
+    }
+
+    console.log('[Sample Data] Inserted tools:', insertedTools?.length || 0)
+    console.log('[Sample Data] Sample data inserted successfully')
     return { success: true }
   } catch (error) {
-    console.error('Failed to insert sample data:', error)
+    console.error('[Sample Data] Failed to insert sample data:', error)
     throw error
   }
 }
