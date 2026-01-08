@@ -197,6 +197,9 @@ export async function POST(request: Request) {
     return response
   }
 
+  // デモユーザーは2FAをスキップ
+  const isDemo = data.user.user_metadata?.is_demo || false
+
   // システム設定で権限別2FA必須をチェック
   const { data: systemSettings } = await supabaseAdmin
     .from('system_settings')
@@ -204,9 +207,9 @@ export async function POST(request: Request) {
     .eq('key', 'security_settings')
     .single()
 
-  let require2FA = userData.two_factor_enabled || false
+  let require2FA = isDemo ? false : (userData.two_factor_enabled || false)
 
-  if (systemSettings?.value) {
+  if (!isDemo && systemSettings?.value) {
     const settings = systemSettings.value as any
     // 権限に応じて2FA必須かチェック
     if (userData.role === 'admin' && settings.require2FAForOrganizationAdmin) {
@@ -220,7 +223,7 @@ export async function POST(request: Request) {
     }
   }
 
-  console.log('[LOGIN API] 2FA check - user enabled:', userData.two_factor_enabled, 'required by policy:', require2FA, 'role:', userData.role)
+  console.log('[LOGIN API] 2FA check - isDemo:', isDemo, 'user enabled:', userData.two_factor_enabled, 'required by policy:', require2FA, 'role:', userData.role)
 
   // パスワード有効期限チェック
   const passwordCheck = await checkPasswordExpiration(data.user.id)
