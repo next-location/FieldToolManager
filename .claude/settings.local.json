@@ -12,7 +12,9 @@
       "Bash(curl -s 'https://ijthywxu.zairoku.com/login')",
       "Bash(head:*)",
       "Bash(npx supabase:*)",
-      "Bash(echo $DATABASE_URL)"
+      "Bash(echo $DATABASE_URL)",
+      "Read(//Users/youichiakashi/Desktop/**)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

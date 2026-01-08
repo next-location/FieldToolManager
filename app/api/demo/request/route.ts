@@ -177,7 +177,12 @@ export async function POST(request: NextRequest) {
       .from('contracts')
       .insert({
         organization_id: organization.id,
+        contract_number: `DEMO-${Date.now()}`,
+        contract_type: 'monthly',
+        plan: 'basic',
         plan_type: 'asset_management',
+        monthly_fee: 0,
+        has_asset_package: true,
         start_date: startDate.toISOString().split('T')[0],
         end_date: endDate.toISOString().split('T')[0],
         status: 'active',
@@ -416,6 +421,54 @@ export async function POST(request: NextRequest) {
           const errorData = await emailResponse.json()
           console.error('Resend API error:', errorData)
         }
+
+        // 管理者への通知メール
+        const notificationHtml = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="font-family: sans-serif; padding: 20px;">
+  <h2>【見込み客獲得】資料請求がありました。</h2>
+
+  <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    <h3>申請者情報</h3>
+    <p><strong>会社名:</strong> ${companyName}</p>
+    <p><strong>担当者名:</strong> ${personName}</p>
+    <p><strong>メールアドレス:</strong> ${email}</p>
+    <p><strong>電話番号:</strong> ${phone}</p>
+    <p><strong>部署:</strong> ${department || '未記入'}</p>
+    <p><strong>従業員数:</strong> ${employeeCount || '未記入'}</p>
+    <p><strong>管理する工具数:</strong> ${toolCount || '未記入'}</p>
+    <p><strong>導入時期:</strong> ${timeline || '未記入'}</p>
+    ${message ? `<p><strong>メッセージ:</strong><br>${message}</p>` : ''}
+  </div>
+
+  <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    <h3>デモアカウント情報</h3>
+    <p><strong>メールアドレス:</strong> ${demoEmail}</p>
+    <p><strong>パスワード:</strong> ${demoPassword}</p>
+    <p><strong>有効期限:</strong> ${formattedExpiry}</p>
+  </div>
+
+  <p><strong>IPアドレス:</strong> ${ipAddress}</p>
+  <p><strong>申請日時:</strong> ${new Date().toLocaleString('ja-JP')}</p>
+</body>
+</html>
+        `
+
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${resendApiKey}`
+          },
+          body: JSON.stringify({
+            from: 'ザイロク <noreply@zairoku.com>',
+            to: 'info@zairoku.com',
+            subject: '【見込み客獲得】資料請求がありました。',
+            html: notificationHtml
+          })
+        })
       }
     } catch (emailError) {
       console.error('Failed to send email:', emailError)
