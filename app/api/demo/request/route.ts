@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     // IPアドレス取得
-    const headersList = headers()
+    const headersList = await headers()
     const forwardedFor = headersList.get('x-forwarded-for')
     const ipAddress = forwardedFor ? forwardedFor.split(',')[0] : headersList.get('x-real-ip') || 'unknown'
     const userAgent = headersList.get('user-agent') || 'unknown'
