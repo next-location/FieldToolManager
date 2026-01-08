@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // usersテーブルにレコード追加
+    // usersテーブルにレコード追加（一般スタッフ権限）
     const { error: userInsertError } = await supabase
       .from('users')
       .insert({
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
         organization_id: organization.id,
         email: demoEmail,
         name: personName,
-        role: 'admin',
+        role: 'user',
         is_active: true
       })
 
@@ -167,6 +167,38 @@ export async function POST(request: NextRequest) {
         { error: 'デモユーザーの作成に失敗しました' },
         { status: 500 }
       )
+    }
+
+    // デモ契約作成（資産管理パック）
+    const startDate = new Date()
+    const endDate = new Date(expiresAt)
+
+    const { data: contract, error: contractError } = await supabase
+      .from('contracts')
+      .insert({
+        organization_id: organization.id,
+        plan_type: 'asset_management',
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0],
+        status: 'active',
+        billing_cycle: 'monthly',
+        created_by: authUser.user.id
+      })
+      .select()
+      .single()
+
+    if (contractError || !contract) {
+      console.error('Failed to create contract:', contractError)
+    } else {
+      // 資産管理パックを契約に追加
+      await supabase
+        .from('contract_packages')
+        .insert({
+          contract_id: contract.id,
+          package_type: 'asset_management',
+          price: 0,
+          is_active: true
+        })
     }
 
     // サンプルデータ投入
