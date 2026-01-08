@@ -191,10 +191,12 @@ export default function RequestDemoForm() {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">選択してください</option>
-            <option value="~100個">〜100個</option>
-            <option value="101-500個">101-500個</option>
-            <option value="501-1000個">501-1000個</option>
-            <option value="1000個〜">1000個〜</option>
+            <option value="~100">〜100</option>
+            <option value="~200">〜200</option>
+            <option value="~300">〜300</option>
+            <option value="~500">〜500</option>
+            <option value="~1000">〜1000</option>
+            <option value="1001~">1001〜</option>
           </select>
         </div>
 
