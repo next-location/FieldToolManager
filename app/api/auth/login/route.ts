@@ -145,13 +145,52 @@ export async function POST(request: Request) {
   }
 
   // 2FA確認（AdminクライアントでRLS回避）
-  const { data: userData, error: userError } = await supabaseAdmin
+  let { data: userData, error: userError } = await supabaseAdmin
     .from('users')
     .select('two_factor_enabled, two_factor_method, two_factor_email, password_expires_at, force_password_change, role, organization_id')
     .eq('id', data.user.id)
     .single()
 
-  if (userError) {
+  // デモユーザーでusersレコードがない場合、自動作成
+  if (userError && data.user.user_metadata?.is_demo) {
+    console.log('[LOGIN API] Demo user missing users record, creating...')
+
+    // デモユーザーの組織IDを取得
+    const { data: demoOrg } = await supabaseAdmin
+      .from('organizations')
+      .select('id')
+      .ilike('name', '%デモ%')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (demoOrg) {
+      const { error: insertError } = await supabaseAdmin
+        .from('users')
+        .insert({
+          id: data.user.id,
+          organization_id: demoOrg.id,
+          email: data.user.email,
+          name: data.user.user_metadata?.company_name || 'デモユーザー',
+          role: 'admin',
+          is_active: true
+        })
+
+      if (!insertError) {
+        // 再度取得
+        const { data: retryUserData } = await supabaseAdmin
+          .from('users')
+          .select('two_factor_enabled, two_factor_method, two_factor_email, password_expires_at, force_password_change, role, organization_id')
+          .eq('id', data.user.id)
+          .single()
+
+        userData = retryUserData
+        userError = null
+      }
+    }
+  }
+
+  if (userError || !userData) {
     console.error('[LOGIN API] Failed to fetch user data:', userError)
     const response = NextResponse.json({ error: 'ユーザー情報の取得に失敗しました' }, { status: 500 })
     cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
