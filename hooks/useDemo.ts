@@ -25,22 +25,12 @@ export const demoRestrictions = {
     'custom_qr',          // QRコードカスタマイズ
   ],
 
-  // デモで使用不可のページパス
-  restrictedPages: [
-    '/settings',          // 設定・管理
-    '/staff',             // スタッフ管理
-    '/locations',         // 拠点管理
-    '/categories',        // カテゴリ管理
-    '/work-reports',      // 作業報告書
-    '/analytics',         // 分析・レポート
-    '/estimates',         // 見積もり
-    '/invoices',          // 請求書
-    '/purchase-orders',   // 発注書
-    '/clients',           // 取引先
-    '/suppliers',         // 仕入先
-    '/projects',          // 案件管理
-    '/equipment',         // 重機管理
-    '/attendance',        // 勤怠管理
+  // デモで使用可能なページパス（これ以外は全て制限）
+  allowedPages: [
+    '/dashboard',         // ダッシュボード
+    '/scan',              // QRスキャン
+    '/tools',             // 道具一覧（閲覧のみ）
+    '/consumables',       // 消耗品一覧（閲覧のみ、/consumables/ordersと/consumables/bulk-movementは除く）
   ],
 
   // UI表示
@@ -88,7 +78,27 @@ export function useDemo() {
 
   const isPageRestricted = (pathname: string): boolean => {
     if (!isDemo) return false
-    return demoRestrictions.restrictedPages.some(page => pathname.startsWith(page))
+
+    // 許可されたページかチェック
+    const isAllowed = demoRestrictions.allowedPages.some(page => {
+      if (page === '/consumables') {
+        // 消耗品は一覧のみ許可、orders と bulk-movement は禁止
+        return pathname === '/consumables' ||
+               (pathname.startsWith('/consumables/') &&
+                !pathname.startsWith('/consumables/orders') &&
+                !pathname.startsWith('/consumables/bulk-movement') &&
+                pathname.match(/^\/consumables\/[a-f0-9-]+$/)) // 詳細ページのみ許可
+      }
+      if (page === '/tools') {
+        // 道具は一覧と詳細のみ許可、編集・削除・追加は禁止
+        return pathname === '/tools' ||
+               (pathname.startsWith('/tools/') &&
+                pathname.match(/^\/tools\/[a-f0-9-]+$/)) // 詳細ページのみ許可
+      }
+      return pathname.startsWith(page)
+    })
+
+    return !isAllowed
   }
 
   const getDaysRemaining = (): number => {
