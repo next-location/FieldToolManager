@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useFeatures } from '@/hooks/useFeatures'
+import { useDemo } from '@/hooks/useDemo'
 
 interface SidebarProps {
   userRole: 'staff' | 'leader' | 'manager' | 'admin' | 'super_admin'
@@ -20,6 +21,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
   const [submittedInvoicesCount, setSubmittedInvoicesCount] = useState(0)
   const [submittedPurchaseOrdersCount, setSubmittedPurchaseOrdersCount] = useState(0)
   const features = useFeatures()
+  const { isDemo } = useDemo()
 
   const isAdmin = userRole === 'admin' || userRole === 'super_admin'
   const isManagerOrAdmin = userRole === 'manager' || userRole === 'admin' || userRole === 'super_admin'
@@ -196,28 +198,32 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                   >
                     消耗品一覧
                   </Link>
-                  <Link
-                    href="/consumables/orders"
-                    onClick={onClose}
-                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                      isActive('/consumables/orders')
-                        ? 'bg-blue-50 text-blue-700 font-medium'
-                        : 'text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    消耗品発注管理
-                  </Link>
-                  <Link
-                    href="/tool-sets"
-                    onClick={onClose}
-                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                      pathname === '/tool-sets' || pathname?.startsWith('/tool-sets/')
-                        ? 'bg-blue-50 text-blue-700 font-medium'
-                        : 'text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    道具セット登録
-                  </Link>
+                  {!isDemo && (
+                    <>
+                      <Link
+                        href="/consumables/orders"
+                        onClick={onClose}
+                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                          isActive('/consumables/orders')
+                            ? 'bg-blue-50 text-blue-700 font-medium'
+                            : 'text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        消耗品発注管理
+                      </Link>
+                      <Link
+                        href="/tool-sets"
+                        onClick={onClose}
+                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                          pathname === '/tool-sets' || pathname?.startsWith('/tool-sets/')
+                            ? 'bg-blue-50 text-blue-700 font-medium'
+                            : 'text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        道具セット登録
+                      </Link>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -273,8 +279,8 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
             </div>
           )}
 
-          {/* 移動管理（現場資産パックが必要） */}
-          {hasAssetPackage && (
+          {/* 移動管理（現場資産パックが必要、デモでは非表示） */}
+          {hasAssetPackage && !isDemo && (
             <div>
               <button
                 onClick={() => toggleMenu('movement')}
