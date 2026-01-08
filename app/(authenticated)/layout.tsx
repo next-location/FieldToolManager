@@ -113,10 +113,13 @@ export default async function AuthenticatedLayout({ children }: AuthenticatedLay
     error: orgError?.message
   })
 
+  // roleのマッピング（DB: user -> UI: staff）
+  const mappedRole = userData.role === 'user' ? 'staff' : userData.role
+
   return (
     <AppLayout
       user={{ email: user.email || null, id: user.id, name: userData.name }}
-      userRole={userData.role}
+      userRole={mappedRole}
       organizationId={userData?.organization_id}
       organizationName={organization?.name || ''}
       heavyEquipmentEnabled={organization?.heavy_equipment_enabled || false}
