@@ -59,14 +59,12 @@ export default function RequestDemoPage() {
             </p>
           </div>
 
-          {/* 2カラムレイアウト */}
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 max-w-6xl mx-auto">
-            {/* 左側：フォーム */}
-            <div>
-              <RequestDemoForm />
-            </div>
+          {/* 1カラムレイアウト */}
+          <div className="max-w-2xl mx-auto space-y-8">
+            {/* フォーム */}
+            <RequestDemoForm />
 
-            {/* 右側：デモ環境の特徴 */}
+            {/* デモ環境の特徴 */}
             <div className="space-y-6">
               <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-lg">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">デモ環境の特徴</h2>
