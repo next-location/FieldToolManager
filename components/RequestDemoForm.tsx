@@ -170,10 +170,11 @@ export default function RequestDemoForm() {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">選択してください</option>
-            <option value="~50名">〜50名</option>
+            <option value="~10名">〜10名</option>
+            <option value="11-30名">11-30名</option>
+            <option value="31-50名">31-50名</option>
             <option value="51-100名">51-100名</option>
-            <option value="101-300名">101-300名</option>
-            <option value="301名〜">301名〜</option>
+            <option value="101名〜">101名〜</option>
           </select>
         </div>
 
