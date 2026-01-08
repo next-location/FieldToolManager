@@ -127,9 +127,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // デモ用会社データ作成
-    const { data: company, error: companyError } = await supabase
-      .from('companies')
+    // デモ用組織データ作成
+    const { data: organization, error: organizationError } = await supabase
+      .from('organizations')
       .insert({
         name: `${companyName}（デモ）`,
         subdomain: `demo${timestamp}`,
@@ -141,18 +141,18 @@ export async function POST(request: NextRequest) {
       .select()
       .single()
 
-    if (companyError || !company) {
-      console.error('Failed to create company:', companyError)
+    if (organizationError || !organization) {
+      console.error('Failed to create organization:', organizationError)
       await supabase.auth.admin.deleteUser(authUser.user.id)
       return NextResponse.json(
-        { error: 'デモ会社の作成に失敗しました' },
+        { error: 'デモ組織の作成に失敗しました' },
         { status: 500 }
       )
     }
 
     // サンプルデータ投入
     try {
-      await insertSampleData(authUser.user.id, company.id)
+      await insertSampleData(authUser.user.id, organization.id)
     } catch (sampleDataError) {
       console.error('Failed to insert sample data:', sampleDataError)
     }
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
         demo_email: demoEmail,
         demo_password_hash: crypto.createHash('sha256').update(demoPassword).digest('hex'),
         demo_user_id: authUser.user.id,
-        demo_company_id: company.id,
+        demo_company_id: organization.id,
         demo_expires_at: expiresAt.toISOString(),
         status: 'approved'
       })
