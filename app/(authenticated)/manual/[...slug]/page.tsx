@@ -6,9 +6,13 @@ import Link from 'next/link'
 
 export async function generateStaticParams() {
   const articles = await getAllManualArticles()
-  return articles.map((article) => ({
-    slug: article.slug.split('/').filter(Boolean),
-  }))
+  return articles
+    .filter((article) => article.frontmatter.category === 'manual')
+    .map((article) => ({
+      // article.slugは "manual/00_public/login" のような形式
+      // ルートパス "/manual/" は既に含まれているため、"manual/"を削除
+      slug: article.slug.replace(/^manual\//, '').split('/').filter(Boolean),
+    }))
 }
 
 export default async function ManualArticlePage({
@@ -23,7 +27,7 @@ export default async function ManualArticlePage({
   // paramsを解決
   const { slug } = await params
 
-  // slug配列からパスを構築
+  // slug配列からパスを構築 (manualは既にルートに含まれているため不要)
   const slugPath = `manual/${slug.join('/')}`
 
   // 記事を取得

@@ -8,7 +8,9 @@ export async function generateStaticParams() {
   const articles = await getAllManualArticles()
   const qaArticles = articles.filter((a) => a.frontmatter.category === 'qa')
   return qaArticles.map((article) => ({
-    slug: article.slug.replace('qa/', '').split('/').filter(Boolean),
+    // article.slugは "qa/staff/qr-error" のような形式
+    // ルートパス "/qa/" は既に含まれているため、"qa/"を削除
+    slug: article.slug.replace(/^qa\//, '').split('/').filter(Boolean),
   }))
 }
 
