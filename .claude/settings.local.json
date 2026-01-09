@@ -32,7 +32,8 @@
       "Bash(curl -s 'https://zairoku.com/api/admin/contracts/319bcdfc-ee8b-4ca5-927c-171855e78fa0/complete')",
       "Bash(echo \"Vercelのログを確認するには、以下のコマンドをローカルで実行してください：\n\nvercel logs --follow --filter=''contracts/319bcdfc-ee8b-4ca5-927c-171855e78fa0/complete''\n\nまたは、Vercel Dashboardで確認：\nhttps://vercel.com/your-project/logs\n\n特に以下のログメッセージを探してください：\n- ''[API /api/admin/contracts/complete] Auth user created:''\n- ''[API /api/admin/contracts/complete] User table insert failed:''\n- ''[API /api/admin/contracts/complete] Rolling back: Deleting Auth user...''\n\nこれらのログで、usersテーブル挿入時にどんなエラーが発生したかが分かります。\")",
       "Bash(echo:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npx tsx:*)"
     ],
     "deny": [],
     "ask": []
