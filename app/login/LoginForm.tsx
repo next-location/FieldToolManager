@@ -408,13 +408,21 @@ export default function LoginForm({ organizationName }: LoginFormProps) {
 
             {/* フッターリンク */}
             <div className="text-center space-y-3 sm:space-y-4 pt-4 sm:pt-6 border-t border-gray-200 mt-6">
-              <Link
-                href="mailto:support@zairoku.com"
-                className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <HelpCircle className="w-4 h-4" />
-                運営への問い合わせ
-              </Link>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6">
+                <Link
+                  href="/help/login"
+                  className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  ログイン方法を確認
+                </Link>
+                <Link
+                  href="mailto:support@zairoku.com"
+                  className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  運営への問い合わせ
+                </Link>
+              </div>
             </div>
           </div>
         </div>
