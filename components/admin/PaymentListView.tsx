@@ -279,23 +279,12 @@ export default function PaymentListView({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {!isSalesRole ? (
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => {
-                              setEditingPayment(payment);
-                              setShowModal(true);
-                            }}
-                            className="text-blue-600 hover:text-blue-800"
-                          >
-                            編集
-                          </button>
-                          <button
-                            onClick={() => handleDelete(payment.id)}
-                            className="text-red-600 hover:text-red-800"
-                          >
-                            削除
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => handleDelete(payment.id)}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          削除
+                        </button>
                       ) : (
                         <span className="text-gray-400">-</span>
                       )}
