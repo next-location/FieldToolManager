@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
-import { sendInvoiceEmail } from '@/lib/email/invoice-email';
+import { sendInvoiceEmail } from '@/lib/email/invoice';
 import { generateStripeInvoicePDF } from '@/lib/pdf/stripe-invoice-generator';
 
 const supabase = createClient(
