@@ -152,6 +152,19 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     const { id } = await params;
 
+    // 組織に紐づくユーザーのAuth IDを取得（削除前に取得）
+    const { data: users, error: usersError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('organization_id', id);
+
+    if (usersError) {
+      console.error('Error fetching users for deletion:', usersError);
+      return NextResponse.json({ error: 'ユーザー情報の取得に失敗しました', details: usersError.message }, { status: 500 });
+    }
+
+    console.log(`[Organization Delete] Found ${users?.length || 0} users to delete from Auth`);
+
     // 組織削除前に操作ログを記録（削除後は組織が存在しないため）
     await supabase.from('super_admin_logs').insert({
       super_admin_id: session.id,
@@ -169,6 +182,22 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     if (error) {
       console.error('Organization delete error:', error);
       return NextResponse.json({ error: '組織の削除に失敗しました', details: error.message }, { status: 500 });
+    }
+
+    // Supabase Auth上のユーザーも削除
+    if (users && users.length > 0) {
+      for (const user of users) {
+        try {
+          const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
+          if (authError) {
+            console.error(`[Organization Delete] Failed to delete auth user ${user.id}:`, authError);
+          } else {
+            console.log(`[Organization Delete] Successfully deleted auth user ${user.id}`);
+          }
+        } catch (err) {
+          console.error(`[Organization Delete] Exception deleting auth user ${user.id}:`, err);
+        }
+      }
     }
 
     return NextResponse.json({ success: true });
