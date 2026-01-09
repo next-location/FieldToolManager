@@ -108,7 +108,6 @@ export async function PUT(
     // パッケージ情報を取得
     let hasAssetPackage = false
     let hasDxEfficiencyPackage = false
-    let hasBothPackages = false
 
     if (body.package_id) {
       const { data: packageData } = await supabase
@@ -127,7 +126,9 @@ export async function PUT(
         } else if (packageData.package_key === 'dx_efficiency_pack' || packageData.package_key === 'has_dx_efficiency_package') {
           hasDxEfficiencyPackage = true
         } else if (packageData.package_key === 'full_integration_pack' || packageData.package_key === 'has_both_packages') {
-          hasBothPackages = true
+          // フル機能パックは両方のフラグをtrueに設定
+          hasAssetPackage = true
+          hasDxEfficiencyPackage = true
         }
       }
     }
@@ -135,7 +136,6 @@ export async function PUT(
     console.log('[Contract Edit] Package flags:', {
       hasAssetPackage,
       hasDxEfficiencyPackage,
-      hasBothPackages,
     })
 
     // contractsテーブルのhas_*_packageフラグを必ず更新
@@ -144,7 +144,6 @@ export async function PUT(
       .update({
         has_asset_package: hasAssetPackage,
         has_dx_efficiency_package: hasDxEfficiencyPackage,
-        has_both_packages: hasBothPackages,
       })
       .eq('id', contractId)
 
