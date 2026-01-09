@@ -408,7 +408,7 @@ export default function LoginForm({ organizationName }: LoginFormProps) {
 
             {/* フッターリンク */}
             <div className="text-center space-y-3 sm:space-y-4 pt-4 sm:pt-6 border-t border-gray-200 mt-6">
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6">
+              <div className="flex flex-col items-center justify-center gap-3">
                 <Link
                   href="/help/login"
                   className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors"

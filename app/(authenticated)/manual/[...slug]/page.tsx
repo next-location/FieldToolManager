@@ -105,7 +105,7 @@ export default async function ManualArticlePage({
         </div>
 
         {/* 記事本文 */}
-        <article className="prose prose-blue max-w-none">
+        <article className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-a:text-blue-600 prose-strong:text-gray-900 prose-code:text-blue-600 prose-img:rounded-lg prose-img:border prose-img:border-gray-200">
           <div dangerouslySetInnerHTML={{ __html: article.content }} />
         </article>
 

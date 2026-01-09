@@ -105,7 +105,7 @@ export default async function QAArticlePage({
         </div>
 
         {/* 記事本文 */}
-        <article className="prose prose-green max-w-none">
+        <article className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-a:text-green-600 prose-strong:text-gray-900 prose-code:text-green-600 prose-img:rounded-lg prose-img:border prose-img:border-gray-200">
           <div dangerouslySetInnerHTML={{ __html: article.content }} />
         </article>
 
