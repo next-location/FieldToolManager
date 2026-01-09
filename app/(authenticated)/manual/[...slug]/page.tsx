@@ -40,9 +40,17 @@ export default async function ManualArticlePage({
   }
 
   // プランチェック
+  const planMapping: Record<string, string> = {
+    'none': 'basic',
+    'full': 'basic',
+    'asset': 'asset_pack',
+    'dx': 'dx_pack'
+  }
+  const mappedPlan = planMapping[packageType] || 'basic'
+
   if (
     !article.frontmatter.plans.includes('basic') &&
-    !article.frontmatter.plans.includes(packageType)
+    !article.frontmatter.plans.includes(mappedPlan as 'basic' | 'asset_pack' | 'dx_pack')
   ) {
     notFound()
   }
