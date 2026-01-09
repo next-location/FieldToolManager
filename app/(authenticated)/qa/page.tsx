@@ -12,6 +12,15 @@ export default async function QAPage() {
   // ユーザーのプラン情報を取得
   const { packageType } = await getOrganizationPackages(organizationId, supabase)
 
+  // プランマッピング
+  const planMapping: Record<string, string> = {
+    'none': 'basic',
+    'full': 'basic',
+    'asset': 'asset_pack',
+    'dx': 'dx_pack'
+  }
+  const mappedPlan = planMapping[packageType] || 'basic'
+
   // 全記事を取得してQ&Aのみをフィルタ
   const allArticles = getAllManualArticles()
   const qaArticles = allArticles.filter(
@@ -19,7 +28,7 @@ export default async function QAPage() {
       article.frontmatter.category === 'qa' &&
       article.frontmatter.permission <= userPermission &&
       (article.frontmatter.plans.includes('basic') ||
-        article.frontmatter.plans.includes(packageType))
+        article.frontmatter.plans.includes(mappedPlan as 'basic' | 'asset_pack' | 'dx_pack'))
   )
 
   // タグ別に分類

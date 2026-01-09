@@ -13,6 +13,15 @@ export default async function ManualPage() {
   // ユーザーのプラン情報を取得
   const { packageType } = await getOrganizationPackages(organizationId, supabase)
 
+  // プランマッピング
+  const planMapping: Record<string, string> = {
+    'none': 'basic',
+    'full': 'basic',
+    'asset': 'asset_pack',
+    'dx': 'dx_pack'
+  }
+  const mappedPlan = planMapping[packageType] || 'basic'
+
   // 全マニュアル記事を取得して権限別に分類
   const allArticles = getAllManualArticles()
   const articlesByPermission = groupArticlesByPermission(
@@ -24,7 +33,7 @@ export default async function ManualPage() {
     (article) =>
       article.frontmatter.permission <= userPermission &&
       (article.frontmatter.plans.includes('basic') ||
-        article.frontmatter.plans.includes(packageType))
+        article.frontmatter.plans.includes(mappedPlan as 'basic' | 'asset_pack' | 'dx_pack'))
   )
 
   // 最近更新された記事（上位5件）
