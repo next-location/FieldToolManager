@@ -177,7 +177,7 @@ export async function generateStripeInvoicePDF(data: StripeInvoiceData): Promise
 
     const sealImageData = fs.readFileSync(sealImagePath);
     const sealImageBase64 = sealImageData.toString('base64');
-    doc.addImage(sealImageBase64, 'PNG', rightColumnX + 60, yPos + 15, 20, 20);
+    doc.addImage(`data:image/png;base64,${sealImageBase64}`, 'PNG', rightColumnX + 60, yPos + 15, 20, 20);
     console.log('[PDF] Company seal image loaded successfully');
   } catch (error) {
     console.error('[PDF] Failed to load company seal image:', error);
