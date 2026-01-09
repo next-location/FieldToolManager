@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
 import { sendInvoiceEmail } from '@/lib/email/invoice';
-import { stripe } from '@/lib/stripe/client';
+import { jsPDF } from 'jspdf';
+import fs from 'fs';
+import path from 'path';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -129,29 +131,148 @@ export async function POST(
         .insert(itemsToInsert);
     }
 
+    // PDF生成（請求書用）
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
+
+    const fontPath = path.join(process.cwd(), 'public', 'fonts', 'NotoSansJP-Regular.ttf');
+    const fontData = fs.readFileSync(fontPath);
+    const fontBase64 = fontData.toString('base64');
+
+    doc.addFileToVFS('NotoSansJP-Regular.ttf', fontBase64);
+    doc.addFont('NotoSansJP-Regular.ttf', 'NotoSansJP', 'normal');
+    doc.setFont('NotoSansJP');
+
+    const formatDate = (dateStr: string | null) => {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+    };
+
+    const formatCurrency = (amount: number) => {
+      return new Intl.NumberFormat('ja-JP').format(amount);
+    };
+
     const organizationName = estimate.organizations?.name || '';
+    const billingAddress = estimate.organizations?.billing_address || '';
+    const contactName = estimate.contracts?.billing_contact_name || '';
 
-    // 見積もりのStripe Invoice IDを使用してPDFを取得
-    if (!estimate.stripe_invoice_id) {
-      return NextResponse.json(
-        { error: '見積もりにStripe Invoice IDが設定されていません' },
-        { status: 500 }
-      );
+    let yPos = 20;
+
+    doc.setFontSize(20);
+    doc.text('請 求 書', 105, yPos, { align: 'center' });
+    yPos += 15;
+
+    doc.setFontSize(10);
+    doc.text(`請求書番号: ${invoiceNumber}`, 20, yPos);
+    yPos += 6;
+    doc.text(`発行日: ${formatDate(invoiceDate)}`, 20, yPos);
+    yPos += 6;
+    doc.text(`お支払い期限: ${formatDate(newInvoice.due_date)}`, 20, yPos);
+    yPos += 15;
+
+    doc.setFontSize(12);
+    doc.text(organizationName + ' 御中', 20, yPos);
+    yPos += 7;
+    if (contactName) {
+      doc.setFontSize(10);
+      doc.text(`ご担当: ${contactName} 様`, 20, yPos);
+      yPos += 7;
+    }
+    if (billingAddress) {
+      doc.setFontSize(9);
+      const addressLines = doc.splitTextToSize(billingAddress, 80);
+      doc.text(addressLines, 20, yPos);
+      yPos += addressLines.length * 5;
+    }
+    yPos += 10;
+
+    doc.setFontSize(14);
+    doc.text('ご請求金額', 20, yPos);
+    yPos += 8;
+    doc.setFontSize(18);
+    doc.text(`¥${formatCurrency(Number(newInvoice.total_amount))}`, 20, yPos);
+    doc.setFontSize(10);
+    doc.text('（税込）', 70, yPos);
+    yPos += 15;
+
+    doc.setFontSize(11);
+    doc.text('請求期間', 20, yPos);
+    yPos += 6;
+    doc.setFontSize(10);
+    doc.text(
+      `${formatDate(newInvoice.billing_period_start)} 〜 ${formatDate(newInvoice.billing_period_end)}`,
+      20,
+      yPos
+    );
+    yPos += 15;
+
+    doc.setFontSize(11);
+    doc.text('明細', 20, yPos);
+    yPos += 7;
+
+    doc.setFontSize(9);
+    doc.setFillColor(240, 240, 240);
+    doc.rect(20, yPos - 5, 170, 7, 'F');
+    doc.text('項目', 25, yPos);
+    doc.text('金額', 160, yPos, { align: 'right' });
+    yPos += 10;
+
+    doc.setFontSize(9);
+    doc.text('サービス利用料', 25, yPos);
+    doc.text(`¥${formatCurrency(Number(newInvoice.amount))}`, 160, yPos, { align: 'right' });
+    yPos += 7;
+
+    doc.text('消費税（10%）', 25, yPos);
+    doc.text(`¥${formatCurrency(Number(newInvoice.tax_amount))}`, 160, yPos, { align: 'right' });
+    yPos += 10;
+
+    doc.setLineWidth(0.5);
+    doc.line(130, yPos - 3, 190, yPos - 3);
+
+    doc.setFontSize(11);
+    doc.text('合計金額', 25, yPos);
+    doc.text(`¥${formatCurrency(Number(newInvoice.total_amount))}`, 160, yPos, { align: 'right' });
+    yPos += 15;
+
+    if (newInvoice.notes) {
+      doc.setFontSize(10);
+      doc.text('備考', 20, yPos);
+      yPos += 6;
+      doc.setFontSize(9);
+      const notesLines = doc.splitTextToSize(newInvoice.notes, 170);
+      doc.text(notesLines, 20, yPos);
+      yPos += notesLines.length * 5 + 10;
     }
 
-    const stripeInvoice = await stripe.invoices.retrieve(estimate.stripe_invoice_id);
-    const invoicePdfUrl = stripeInvoice.invoice_pdf;
+    yPos += 10;
+    doc.setFontSize(11);
+    doc.text('お振込先', 20, yPos);
+    yPos += 7;
+    doc.setFontSize(9);
+    doc.text('銀行名: ○○銀行', 25, yPos);
+    yPos += 5;
+    doc.text('支店名: ○○支店', 25, yPos);
+    yPos += 5;
+    doc.text('口座種別: 普通', 25, yPos);
+    yPos += 5;
+    doc.text('口座番号: 1234567', 25, yPos);
+    yPos += 5;
+    doc.text('口座名義: カ）ネクストロケーション', 25, yPos);
+    yPos += 15;
 
-    if (!invoicePdfUrl) {
-      return NextResponse.json(
-        { error: 'Stripe請求書PDFの取得に失敗しました' },
-        { status: 500 }
-      );
-    }
+    doc.setFontSize(10);
+    doc.text('株式会社ネクストロケーション', 20, yPos);
+    yPos += 5;
+    doc.setFontSize(9);
+    doc.text('〒107-0062 東京都港区南青山2丁目2番15号 WinAoyamaビル917', 20, yPos);
+    yPos += 5;
+    doc.text('TEL: 03-XXXX-XXXX', 20, yPos);
 
-    // PDFをダウンロード
-    const pdfResponse = await fetch(invoicePdfUrl);
-    const pdfBuffer = Buffer.from(await pdfResponse.arrayBuffer());
+    const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
 
     // メール送信
     try {
