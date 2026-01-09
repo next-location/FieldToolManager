@@ -1,11 +1,11 @@
-import FlexSearch from 'flexsearch'
+import { Document } from 'flexsearch'
 import type { ManualArticle, SearchResultItem } from './types'
 
 /**
  * 検索インデックスを作成
  */
 export function createSearchIndex(articles: ManualArticle[]) {
-  const index = new FlexSearch.Document({
+  const index = new Document({
     document: {
       id: 'slug',
       index: ['title', 'description', 'content', 'tags'],
@@ -35,7 +35,7 @@ export function createSearchIndex(articles: ManualArticle[]) {
  * 検索を実行
  */
 export async function searchArticles(
-  index: FlexSearch.Document<any>,
+  index: Document<any>,
   query: string,
   limit: number = 10
 ): Promise<SearchResultItem[]> {

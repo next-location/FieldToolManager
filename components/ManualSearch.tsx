@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import FlexSearch from 'flexsearch'
+import { Document } from 'flexsearch'
 import type { SearchResultItem } from '@/lib/manual/types'
 
 interface ManualSearchProps {
@@ -16,7 +16,7 @@ export default function ManualSearch({ userPermission, userPlan }: ManualSearchP
   const [isLoading, setIsLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
-  const indexRef = useRef<FlexSearch.Document<any> | null>(null)
+  const indexRef = useRef<Document<any> | null>(null)
   const router = useRouter()
 
   // 検索インデックスをロード
@@ -26,7 +26,7 @@ export default function ManualSearch({ userPermission, userPlan }: ManualSearchP
         const response = await fetch('/search-index.json')
         const data = await response.json()
 
-        const index = new FlexSearch.Document({
+        const index = new Document({
           document: {
             id: 'slug',
             index: ['title', 'description', 'content', 'tags'],
