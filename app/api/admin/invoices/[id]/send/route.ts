@@ -97,19 +97,21 @@ export async function POST(
 
     let yPos = 20;
 
+    const documentTitle = invoice.document_type === 'estimate' ? '見 積 書' : '請 求 書';
     doc.setFontSize(20);
-    doc.text('請 求 書', 105, yPos, { align: 'center' });
+    doc.text(documentTitle, 105, yPos, { align: 'center' });
     yPos += 15;
 
     doc.setFontSize(10);
-    doc.text(`請求書番号: ${invoice.invoice_number}`, 20, yPos);
+    const numberLabel = invoice.document_type === 'estimate' ? '見積書番号' : '請求書番号';
+    doc.text(`${numberLabel}: ${invoice.invoice_number}`, 20, yPos);
     yPos += 6;
     doc.text(`発行日: ${formatDate(invoice.invoice_date)}`, 20, yPos);
     yPos += 6;
     doc.text(`お支払い期限: ${formatDate(invoice.due_date)}`, 20, yPos);
     yPos += 15;
 
-    doc.setFontSize(12);
+    doc.setFontSize(11);
     doc.text(organizationName + ' 御中', 20, yPos);
     yPos += 7;
     if (contactName) {
@@ -207,6 +209,16 @@ export async function POST(
     yPos += 5;
     doc.text('TEL: 03-XXXX-XXXX', 20, yPos);
 
+    // 角印を追加
+    try {
+      const stampPath = path.join(process.cwd(), 'public', 'company-stamp.png');
+      const stampData = fs.readFileSync(stampPath);
+      const stampBase64 = stampData.toString('base64');
+      doc.addImage(`data:image/png;base64,${stampBase64}`, 'PNG', 160, 250, 30, 30);
+    } catch (error) {
+      console.error('[Send Invoice] Failed to add stamp image:', error);
+    }
+
     const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
 
     // メール送信
@@ -223,18 +235,20 @@ export async function POST(
         pdfBuffer,
       });
 
-      // 送信日時を更新
+      // 送信日時を更新（見積もりの場合はestimate_sent、請求書の場合はsent）
+      const newStatus = invoice.document_type === 'estimate' ? 'estimate_sent' : 'sent';
       await supabase
         .from('invoices')
         .update({
-          status: 'sent',
+          status: newStatus,
           sent_date: new Date().toISOString(),
         })
         .eq('id', id);
 
+      const successMessage = invoice.document_type === 'estimate' ? '見積書を送信しました' : '請求書を送信しました';
       return NextResponse.json({
         success: true,
-        message: '請求書を送信しました',
+        message: successMessage,
       });
     } catch (emailError: any) {
       console.error('[Invoice Send] Email error:', emailError);

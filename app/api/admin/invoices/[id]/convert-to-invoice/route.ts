@@ -174,7 +174,7 @@ export async function POST(
     doc.text(`お支払い期限: ${formatDate(newInvoice.due_date)}`, 20, yPos);
     yPos += 15;
 
-    doc.setFontSize(12);
+    doc.setFontSize(11);
     doc.text(organizationName + ' 御中', 20, yPos);
     yPos += 7;
     if (contactName) {
@@ -271,6 +271,16 @@ export async function POST(
     doc.text('〒107-0062 東京都港区南青山2丁目2番15号 WinAoyamaビル917', 20, yPos);
     yPos += 5;
     doc.text('TEL: 03-XXXX-XXXX', 20, yPos);
+
+    // 角印を追加
+    try {
+      const stampPath = path.join(process.cwd(), 'public', 'company-stamp.png');
+      const stampData = fs.readFileSync(stampPath);
+      const stampBase64 = stampData.toString('base64');
+      doc.addImage(`data:image/png;base64,${stampBase64}`, 'PNG', 160, 250, 30, 30);
+    } catch (error) {
+      console.error('[Convert to Invoice] Failed to add stamp image:', error);
+    }
 
     const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
 
