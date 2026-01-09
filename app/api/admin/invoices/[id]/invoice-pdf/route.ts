@@ -78,10 +78,13 @@ export async function GET(
 
     const pdfBuffer = await generateStripeInvoicePDF(pdfData);
 
+    const filename = `請求書_${invoice.invoice_number}.pdf`;
+    const encodedFilename = encodeURIComponent(filename);
+
     return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="請求書_${invoice.invoice_number}.pdf"`,
+        'Content-Disposition': `attachment; filename*=UTF-8''${encodedFilename}`,
       },
     });
   } catch (error: any) {
