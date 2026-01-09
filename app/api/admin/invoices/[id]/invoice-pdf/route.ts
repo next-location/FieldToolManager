@@ -78,7 +78,7 @@ export async function GET(
 
     const pdfBuffer = await generateStripeInvoicePDF(pdfData);
 
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="請求書_${invoice.invoice_number}.pdf"`,
