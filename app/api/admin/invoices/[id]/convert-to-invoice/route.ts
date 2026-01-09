@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
-import { sendInvoiceEmail } from '@/lib/email/invoice';
-import { jsPDF } from 'jspdf';
-import fs from 'fs';
-import path from 'path';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -92,13 +88,12 @@ export async function POST(
         amount: estimate.amount,
         tax_amount: estimate.tax_amount,
         total_amount: estimate.total_amount,
-        status: 'sent',
+        status: 'invoice',
         document_type: 'invoice',
         converted_from_invoice_id: estimate.id,
         due_date: estimate.due_date,
         is_initial_invoice: estimate.is_initial_invoice,
         notes: estimate.notes,
-        sent_date: new Date().toISOString(),
       })
       .select()
       .single();
@@ -131,209 +126,34 @@ export async function POST(
         .insert(itemsToInsert);
     }
 
-    // PDF生成（請求書用）
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
+    // 見積もりのステータスを更新
+    await supabase
+      .from('invoices')
+      .update({ status: 'converted' })
+      .eq('id', estimate.id);
+
+    // ログを記録
+    await supabase
+      .from('super_admin_logs')
+      .insert({
+        super_admin_id: session.id,
+        action: 'convert_estimate_to_invoice',
+        details: {
+          estimate_id: estimate.id,
+          estimate_number: estimate.invoice_number,
+          invoice_id: newInvoice.id,
+          invoice_number: newInvoice.invoice_number,
+        },
+        ip_address: request.headers.get('x-forwarded-for') || 'unknown',
+        user_agent: request.headers.get('user-agent'),
+      });
+
+    return NextResponse.json({
+      success: true,
+      message: '見積もりを請求書に変換しました',
+      invoice_id: newInvoice.id,
+      invoice_number: newInvoice.invoice_number,
     });
-
-    const fontPath = path.join(process.cwd(), 'public', 'fonts', 'NotoSansJP-Regular.ttf');
-    const fontData = fs.readFileSync(fontPath);
-    const fontBase64 = fontData.toString('base64');
-
-    doc.addFileToVFS('NotoSansJP-Regular.ttf', fontBase64);
-    doc.addFont('NotoSansJP-Regular.ttf', 'NotoSansJP', 'normal');
-    doc.setFont('NotoSansJP');
-
-    const formatDate = (dateStr: string | null) => {
-      if (!dateStr) return '';
-      const date = new Date(dateStr);
-      return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
-    };
-
-    const formatCurrency = (amount: number) => {
-      return new Intl.NumberFormat('ja-JP').format(amount);
-    };
-
-    const organizationName = estimate.organizations?.name || '';
-    const billingAddress = estimate.organizations?.billing_address || '';
-    const contactName = estimate.contracts?.billing_contact_name || '';
-
-    let yPos = 20;
-
-    doc.setFontSize(20);
-    doc.text('請 求 書', 105, yPos, { align: 'center' });
-    yPos += 15;
-
-    doc.setFontSize(10);
-    doc.text(`請求書番号: ${invoiceNumber}`, 20, yPos);
-    yPos += 6;
-    doc.text(`発行日: ${formatDate(invoiceDate)}`, 20, yPos);
-    yPos += 6;
-    doc.text(`お支払い期限: ${formatDate(newInvoice.due_date)}`, 20, yPos);
-    yPos += 15;
-
-    doc.setFontSize(11);
-    doc.text(organizationName + ' 御中', 20, yPos);
-    yPos += 7;
-    if (contactName) {
-      doc.setFontSize(10);
-      doc.text(`ご担当: ${contactName} 様`, 20, yPos);
-      yPos += 7;
-    }
-    if (billingAddress) {
-      doc.setFontSize(9);
-      const addressLines = doc.splitTextToSize(billingAddress, 80);
-      doc.text(addressLines, 20, yPos);
-      yPos += addressLines.length * 5;
-    }
-    yPos += 10;
-
-    doc.setFontSize(14);
-    doc.text('ご請求金額', 20, yPos);
-    yPos += 8;
-    doc.setFontSize(18);
-    doc.text(`¥${formatCurrency(Number(newInvoice.total_amount))}`, 20, yPos);
-    doc.setFontSize(10);
-    doc.text('（税込）', 70, yPos);
-    yPos += 15;
-
-    doc.setFontSize(11);
-    doc.text('請求期間', 20, yPos);
-    yPos += 6;
-    doc.setFontSize(10);
-    doc.text(
-      `${formatDate(newInvoice.billing_period_start)} 〜 ${formatDate(newInvoice.billing_period_end)}`,
-      20,
-      yPos
-    );
-    yPos += 15;
-
-    doc.setFontSize(11);
-    doc.text('明細', 20, yPos);
-    yPos += 7;
-
-    doc.setFontSize(9);
-    doc.setFillColor(240, 240, 240);
-    doc.rect(20, yPos - 5, 170, 7, 'F');
-    doc.text('項目', 25, yPos);
-    doc.text('金額', 160, yPos, { align: 'right' });
-    yPos += 10;
-
-    doc.setFontSize(9);
-    doc.text('サービス利用料', 25, yPos);
-    doc.text(`¥${formatCurrency(Number(newInvoice.amount))}`, 160, yPos, { align: 'right' });
-    yPos += 7;
-
-    doc.text('消費税（10%）', 25, yPos);
-    doc.text(`¥${formatCurrency(Number(newInvoice.tax_amount))}`, 160, yPos, { align: 'right' });
-    yPos += 10;
-
-    doc.setLineWidth(0.5);
-    doc.line(130, yPos - 3, 190, yPos - 3);
-
-    doc.setFontSize(11);
-    doc.text('合計金額', 25, yPos);
-    doc.text(`¥${formatCurrency(Number(newInvoice.total_amount))}`, 160, yPos, { align: 'right' });
-    yPos += 15;
-
-    if (newInvoice.notes) {
-      doc.setFontSize(10);
-      doc.text('備考', 20, yPos);
-      yPos += 6;
-      doc.setFontSize(9);
-      const notesLines = doc.splitTextToSize(newInvoice.notes, 170);
-      doc.text(notesLines, 20, yPos);
-      yPos += notesLines.length * 5 + 10;
-    }
-
-    yPos += 10;
-    doc.setFontSize(11);
-    doc.text('お振込先', 20, yPos);
-    yPos += 7;
-    doc.setFontSize(9);
-    doc.text('銀行名: ○○銀行', 25, yPos);
-    yPos += 5;
-    doc.text('支店名: ○○支店', 25, yPos);
-    yPos += 5;
-    doc.text('口座種別: 普通', 25, yPos);
-    yPos += 5;
-    doc.text('口座番号: 1234567', 25, yPos);
-    yPos += 5;
-    doc.text('口座名義: カ）ネクストロケーション', 25, yPos);
-    yPos += 15;
-
-    doc.setFontSize(10);
-    doc.text('株式会社ネクストロケーション', 20, yPos);
-    yPos += 5;
-    doc.setFontSize(9);
-    doc.text('〒107-0062 東京都港区南青山2丁目2番15号 WinAoyamaビル917', 20, yPos);
-    yPos += 5;
-    doc.text('TEL: 03-XXXX-XXXX', 20, yPos);
-
-    // 角印を追加
-    try {
-      const stampPath = path.join(process.cwd(), 'public', 'company-stamp.png');
-      const stampData = fs.readFileSync(stampPath);
-      const stampBase64 = stampData.toString('base64');
-      doc.addImage(`data:image/png;base64,${stampBase64}`, 'PNG', 160, 250, 30, 30);
-    } catch (error) {
-      console.error('[Convert to Invoice] Failed to add stamp image:', error);
-    }
-
-    const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
-
-    // メール送信
-    try {
-      await sendInvoiceEmail({
-        toEmail: estimate.contracts.billing_contact_email,
-        organizationName,
-        invoiceNumber,
-        invoiceDate,
-        dueDate: newInvoice.due_date,
-        totalAmount: Number(newInvoice.total_amount),
-        billingPeriodStart: newInvoice.billing_period_start,
-        billingPeriodEnd: newInvoice.billing_period_end,
-        pdfBuffer,
-        isEstimate: false,
-      });
-
-      // 見積もりのステータスを更新
-      await supabase
-        .from('invoices')
-        .update({ status: 'converted' })
-        .eq('id', estimate.id);
-
-      // ログを記録
-      await supabase
-        .from('super_admin_logs')
-        .insert({
-          super_admin_id: session.id,
-          action: 'convert_estimate_to_invoice',
-          details: {
-            estimate_id: estimate.id,
-            estimate_number: estimate.invoice_number,
-            invoice_id: newInvoice.id,
-            invoice_number: newInvoice.invoice_number,
-          },
-          ip_address: request.headers.get('x-forwarded-for') || 'unknown',
-          user_agent: request.headers.get('user-agent'),
-        });
-
-      return NextResponse.json({
-        success: true,
-        message: '見積もりを請求書に変換し、送信しました',
-        invoice_id: newInvoice.id,
-        invoice_number: newInvoice.invoice_number,
-      });
-    } catch (emailError: any) {
-      console.error('[Convert to Invoice] Email error:', emailError);
-      return NextResponse.json(
-        { error: 'メール送信に失敗しました: ' + emailError.message },
-        { status: 500 }
-      );
-    }
   } catch (error: any) {
     console.error('[Convert to Invoice API] Error:', error);
     return NextResponse.json(

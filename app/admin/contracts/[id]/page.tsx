@@ -14,6 +14,8 @@ import RejectEstimateButton from '@/components/admin/RejectEstimateButton';
 import ConvertToInvoiceButton from '@/components/admin/ConvertToInvoiceButton';
 import ResendInvoiceButton from '@/components/admin/ResendInvoiceButton';
 import DownloadEstimateButton from '@/components/admin/DownloadEstimateButton';
+import DownloadInvoiceButton from '@/components/admin/DownloadInvoiceButton';
+import SendInvoiceButton from '@/components/admin/SendInvoiceButton';
 import DeleteEstimateButton from '@/components/admin/DeleteEstimateButton';
 import ImpersonateButton from '@/components/admin/ImpersonateButton';
 
@@ -237,6 +239,19 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
                         contractId={contract.id}
                         contractNumber={contract.contract_number}
                       />
+                    )}
+
+                    {initialInvoice && initialInvoice.status === 'invoice' && (
+                      <>
+                        <DownloadInvoiceButton
+                          invoiceId={initialInvoice.id}
+                          invoiceNumber={initialInvoice.invoice_number}
+                        />
+                        <SendInvoiceButton
+                          invoiceId={initialInvoice.id}
+                          invoiceNumber={initialInvoice.invoice_number}
+                        />
+                      </>
                     )}
 
                     {initialInvoice && initialInvoice.status === 'sent' && (
