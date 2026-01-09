@@ -47,7 +47,7 @@ interface OrganizationDetailTabsProps {
   auditLogs: AuditLog[];
 }
 
-type TabType = 'basic' | 'contracts' | 'invoices' | 'payments';
+type TabType = 'basic' | 'contracts' | 'estimates' | 'invoices' | 'payments';
 
 interface Contract {
   id: string;
@@ -89,6 +89,7 @@ export default function OrganizationDetailTabs({
 }: OrganizationDetailTabsProps) {
   const [activeTab, setActiveTab] = useState<TabType>('basic');
   const [contracts, setContracts] = useState<Contract[]>([]);
+  const [estimates, setEstimates] = useState<Invoice[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(false);
@@ -102,6 +103,19 @@ export default function OrganizationDetailTabs({
       setContracts(data.contracts || []);
     } catch (error) {
       console.error('契約履歴の取得エラー:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchEstimates = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/estimates?organization_id=${organization.id}&limit=100`);
+      const data = await res.json();
+      setEstimates(data.estimates || []);
+    } catch (error) {
+      console.error('見積書の取得エラー:', error);
     } finally {
       setLoading(false);
     }
@@ -138,6 +152,8 @@ export default function OrganizationDetailTabs({
     setActiveTab(tab);
     if (tab === 'contracts' && contracts.length === 0) {
       fetchContracts();
+    } else if (tab === 'estimates' && estimates.length === 0) {
+      fetchEstimates();
     } else if (tab === 'invoices' && invoices.length === 0) {
       fetchInvoices();
     } else if (tab === 'payments' && payments.length === 0) {
@@ -249,6 +265,16 @@ export default function OrganizationDetailTabs({
             } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
           >
             契約履歴
+          </button>
+          <button
+            onClick={() => handleTabChange('estimates')}
+            className={`${
+              activeTab === 'estimates'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+          >
+            見積書
           </button>
           <button
             onClick={() => handleTabChange('invoices')}
@@ -620,6 +646,65 @@ export default function OrganizationDetailTabs({
                         >
                           詳細
                         </a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 見積書タブ */}
+      {activeTab === 'estimates' && (
+        <div className="bg-white rounded-lg shadow-md border border-gray-200">
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <p className="mt-2 text-gray-600">読み込み中...</p>
+            </div>
+          ) : estimates.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">見積書がありません</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">見積書番号</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">発行日</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">有効期限</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">金額</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">消費税</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">合計</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ステータス</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {estimates.map((estimate) => (
+                    <tr key={estimate.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                        {estimate.invoice_number}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatDate(estimate.invoice_date)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatDate(estimate.due_date)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatCurrency(estimate.amount)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatCurrency(estimate.tax_amount)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                        {formatCurrency(estimate.total_amount)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(estimate.status)}`}>
+                          {getStatusLabel(estimate.status)}
+                        </span>
                       </td>
                     </tr>
                   ))}

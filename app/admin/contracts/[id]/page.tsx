@@ -89,12 +89,35 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
 
   console.log('[Contract Detail] Contract packages:', contractPackages);
 
-  // 請求書データを取得（契約IDで絞り込み）
+  // 請求書データを取得（契約IDで絞り込み、document_type='invoice'のみ）
   const { data: invoices, error: invoicesError } = await supabase
     .from('invoices')
     .select('*')
     .eq('contract_id', id)
+    .eq('document_type', 'invoice')
     .order('billing_period_start', { ascending: false });
+
+  // 見積もりデータを取得
+  const { data: estimates, error: estimatesError } = await supabase
+    .from('invoices')
+    .select('*')
+    .eq('contract_id', id)
+    .eq('document_type', 'estimate')
+    .order('created_at', { ascending: false });
+
+  // 支払い履歴を取得
+  const { data: paymentRecords, error: paymentError } = await supabase
+    .from('payment_records')
+    .select(`
+      *,
+      invoices (
+        invoice_number,
+        billing_period_start,
+        billing_period_end
+      )
+    `)
+    .eq('contract_id', id)
+    .order('payment_date', { ascending: false });
 
   console.log('[Contract Detail] Invoices result:', { invoices, invoicesError });
 
@@ -297,6 +320,8 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
           <ContractDetailView
             contract={contract}
             invoices={invoices || []}
+            estimates={estimates || []}
+            paymentRecords={paymentRecords || []}
             contractPackages={contractPackages || []}
             initialInvoice={initialInvoice || null}
             latestEstimate={latestEstimate || null}

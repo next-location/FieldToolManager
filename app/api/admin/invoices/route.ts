@@ -63,6 +63,7 @@ export async function GET(request: NextRequest) {
           contract_number
         )
       `, { count: 'exact' })
+      .eq('document_type', 'invoice')
       .order('invoice_date', { ascending: false });
 
     if (organizationId) {

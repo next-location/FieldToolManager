@@ -17,7 +17,15 @@
       "Bash(curl:*)",
       "Read(//tmp/**)",
       "Bash(ls:*)",
-      "Bash(curl -s 'https://zairoku.com/api/admin/invoices/318112f3-2f85-4707-865d-519e7ba20e20/convert-to-invoice')"
+      "Bash(curl -s 'https://zairoku.com/api/admin/invoices/318112f3-2f85-4707-865d-519e7ba20e20/convert-to-invoice')",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(tree:*)",
+      "Bash(npm run dev:*)",
+      "Bash(git init:*)",
+      "Bash(vercel:*)",
+      "Bash(cat:*)",
+      "Bash(npm run build:search-index:*)"
     ],
     "deny": [],
     "ask": []

@@ -72,6 +72,35 @@ interface Invoice {
   created_at: string;
 }
 
+interface Estimate {
+  id: string;
+  invoice_number: string;
+  billing_period_start: string;
+  billing_period_end: string;
+  amount: number;
+  tax_amount: number;
+  total_amount: number;
+  due_date: string;
+  status: string;
+  sent_date: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+interface PaymentRecord {
+  id: string;
+  invoice_id: string;
+  amount: number;
+  payment_date: string;
+  payment_method: string;
+  notes: string | null;
+  invoices: {
+    invoice_number: string;
+    billing_period_start: string;
+    billing_period_end: string;
+  } | null;
+}
+
 interface ContractPackage {
   package_id: string;
   packages: {
@@ -92,12 +121,14 @@ interface InitialInvoice {
 interface ContractDetailViewProps {
   contract: Contract;
   invoices: Invoice[];
+  estimates: Estimate[];
+  paymentRecords: PaymentRecord[];
   contractPackages: ContractPackage[];
   initialInvoice: InitialInvoice | null;
   latestEstimate?: InitialInvoice | null;
 }
 
-export default function ContractDetailView({ contract, invoices, contractPackages, initialInvoice, latestEstimate }: ContractDetailViewProps) {
+export default function ContractDetailView({ contract, invoices, estimates, paymentRecords, contractPackages, initialInvoice, latestEstimate }: ContractDetailViewProps) {
   // プラン名の日本語変換
   const planLabels: Record<string, string> = {
     start: 'スタート',
@@ -458,66 +489,90 @@ export default function ContractDetailView({ contract, invoices, contractPackage
         </dl>
       </div>
 
-      {/* 見積もり詳細カード */}
-      {latestEstimate && (
+      {/* 見積もり履歴カード */}
+      {estimates.length > 0 && (
         <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">見積もり情報</h3>
-          <dl className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div className="flex">
-              <dt className="text-gray-600 w-32">見積書番号:</dt>
-              <dd className="text-gray-900 font-mono font-semibold">{latestEstimate.invoice_number}</dd>
-            </div>
-            <div className="flex">
-              <dt className="text-gray-600 w-32">ステータス:</dt>
-              <dd>
-                <span
-                  className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${
-                    latestEstimate.status === 'estimate'
-                      ? 'bg-blue-100 text-blue-800'
-                      : latestEstimate.status === 'estimate_sent'
-                      ? 'bg-green-100 text-green-800'
-                      : latestEstimate.status === 'rejected'
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}
-                >
-                  {latestEstimate.status === 'estimate'
-                    ? '見積もり（未送信）'
-                    : latestEstimate.status === 'estimate_sent'
-                    ? '見積もり送信済み'
-                    : latestEstimate.status === 'rejected'
-                    ? '却下（再見積もり必要）'
-                    : latestEstimate.status}
-                </span>
-              </dd>
-            </div>
-            <div className="flex">
-              <dt className="text-gray-600 w-32">見積金額:</dt>
-              <dd className="text-gray-900 font-bold text-lg">
-                ¥{latestEstimate.total_amount.toLocaleString()}
-                <span className="text-xs text-gray-500 font-normal ml-1">(税込)</span>
-              </dd>
-            </div>
-          </dl>
-          {latestEstimate.status === 'estimate' && (
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-900">見積もり情報</h3>
+            <span className="text-sm text-gray-500">
+              {estimates.length}件の見積もり
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            {estimates.map((estimate) => (
+              <div
+                key={estimate.id}
+                className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-1">
+                      <span className="font-mono text-sm font-semibold text-gray-900">
+                        {estimate.invoice_number}
+                      </span>
+                      <span
+                        className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${
+                          estimate.status === 'estimate'
+                            ? 'bg-blue-100 text-blue-800'
+                            : estimate.status === 'estimate_sent'
+                            ? 'bg-green-100 text-green-800'
+                            : estimate.status === 'rejected'
+                            ? 'bg-red-100 text-red-800'
+                            : estimate.status === 'converted'
+                            ? 'bg-purple-100 text-purple-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}
+                      >
+                        {estimate.status === 'estimate'
+                          ? '未送信'
+                          : estimate.status === 'estimate_sent'
+                          ? '送信済み'
+                          : estimate.status === 'rejected'
+                          ? '却下'
+                          : estimate.status === 'converted'
+                          ? '請求書に変換済み'
+                          : estimate.status}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      作成日: {formatDate(estimate.created_at)}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-gray-900">
+                      ¥{(estimate.total_amount || 0).toLocaleString()}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      (税込)
+                    </p>
+                  </div>
+                </div>
+
+                {estimate.notes && (
+                  <div className="mt-2 pt-2 border-t border-gray-100">
+                    <p className="text-xs text-gray-600">{estimate.notes}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {latestEstimate && latestEstimate.status === 'estimate' && (
             <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
               <p className="text-sm text-blue-800">
                 💡 「見積書をダウンロード」ボタンで内容を確認し、問題なければ「見積もりを送信」してください。
-                <br />
-                修正が必要な場合は「見積もりを削除」して再度作成できます。
               </p>
             </div>
           )}
-          {latestEstimate.status === 'estimate_sent' && (
+          {latestEstimate && latestEstimate.status === 'estimate_sent' && (
             <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-3">
               <p className="text-sm text-green-800">
                 ✅ 見積もりを顧客に送信しました。承認されたら「請求書に変換」してください。
-                <br />
-                却下された場合は「見積もりを却下」して再見積もりを作成できます。
               </p>
             </div>
           )}
-          {latestEstimate.status === 'rejected' && (
+          {latestEstimate && latestEstimate.status === 'rejected' && (
             <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
               <p className="text-sm text-red-800">
                 ❌ 見積もりが却下されました。新しい見積もりを作成してください。
@@ -540,118 +595,63 @@ export default function ContractDetailView({ contract, invoices, contractPackage
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-gray-900">支払い履歴</h3>
           <span className="text-sm text-gray-500">
-            {invoices.length}件の請求書
+            {paymentRecords.length}件の支払い
           </span>
         </div>
 
-        {invoices.length > 0 ? (
+        {paymentRecords.length > 0 ? (
           <div className="space-y-3">
-            {invoices.map((invoice) => (
+            {paymentRecords.map((payment) => (
               <div
-                key={invoice.id}
+                key={payment.id}
                 className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-1">
                       <span className="font-mono text-sm font-semibold text-gray-900">
-                        {invoice.invoice_number}
+                        {payment.invoices?.invoice_number || '-'}
                       </span>
-                      <span
-                        className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${
-                          invoiceStatusColors[invoice.status] || 'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        {invoiceStatusLabels[invoice.status] || invoice.status}
+                      <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                        支払済み
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500">
-                      請求期間: {formatDate(invoice.billing_period_start)} 〜 {formatDate(invoice.billing_period_end)}
-                    </p>
+                    {payment.invoices && (
+                      <p className="text-xs text-gray-500">
+                        請求期間: {formatDate(payment.invoices.billing_period_start)} 〜 {formatDate(payment.invoices.billing_period_end)}
+                      </p>
+                    )}
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-gray-900">
-                      ¥{(invoice.total_amount || 0).toLocaleString()}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      (税込)
+                    <p className="text-lg font-bold text-green-600">
+                      ¥{(payment.amount || 0).toLocaleString()}
                     </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mt-3 pt-3 border-t border-gray-100">
                   <div>
-                    <p className="text-xs text-gray-500 mb-0.5">支払期限</p>
+                    <p className="text-xs text-gray-500 mb-0.5">支払日</p>
                     <p className="text-sm font-medium text-gray-900">
-                      {formatDate(invoice.due_date)}
+                      {formatDate(payment.payment_date)}
                     </p>
                   </div>
-                  {invoice.paid_date && (
-                    <div>
-                      <p className="text-xs text-gray-500 mb-0.5">支払日</p>
-                      <p className="text-sm font-medium text-green-600">
-                        {formatDate(invoice.paid_date)}
-                      </p>
-                    </div>
-                  )}
-                  {invoice.sent_date && !invoice.paid_date && (
-                    <div>
-                      <p className="text-xs text-gray-500 mb-0.5">送付日</p>
-                      <p className="text-sm font-medium text-blue-600">
-                        {formatDate(invoice.sent_date)}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* 内訳表示 */}
-                <div className="mt-3 pt-3 border-t border-gray-100">
-                  <div className="grid grid-cols-3 gap-2 text-xs">
-                    <div>
-                      <p className="text-gray-500 mb-0.5">小計</p>
-                      <p className="font-medium text-gray-900">
-                        ¥{(invoice.amount || 0).toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500 mb-0.5">消費税</p>
-                      <p className="font-medium text-gray-900">
-                        ¥{(invoice.tax_amount || 0).toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500 mb-0.5">合計</p>
-                      <p className="font-medium text-gray-900">
-                        ¥{(invoice.total_amount || 0).toLocaleString()}
-                      </p>
-                    </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-0.5">支払方法</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {payment.payment_method === 'bank_transfer' ? '銀行振込' :
+                       payment.payment_method === 'credit_card' ? 'クレジットカード' :
+                       payment.payment_method === 'cash' ? '現金' : payment.payment_method}
+                    </p>
                   </div>
                 </div>
 
-                {/* 備考がある場合 */}
-                {invoice.notes && (
+                {payment.notes && (
                   <div className="mt-3 pt-3 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 mb-1">備考</p>
-                    <p className="text-xs text-gray-700">{invoice.notes}</p>
+                    <p className="text-xs text-gray-600">{payment.notes}</p>
                   </div>
                 )}
 
-                {/* PDF URLがある場合 */}
-                {invoice.pdf_url && (
-                  <div className="mt-3 pt-3 border-t border-gray-100">
-                    <a
-                      href={invoice.pdf_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      PDFをダウンロード
-                    </a>
-                  </div>
-                )}
               </div>
             ))}
           </div>
@@ -660,7 +660,7 @@ export default function ContractDetailView({ contract, invoices, contractPackage
             <svg className="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <p className="text-sm">請求書はまだありません</p>
+            <p className="text-sm">支払い履歴はまだありません</p>
           </div>
         )}
       </div>
