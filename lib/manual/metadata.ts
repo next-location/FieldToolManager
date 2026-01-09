@@ -1,12 +1,26 @@
 import fs from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
+import { remark } from 'remark'
+import remarkGfm from 'remark-gfm'
+import remarkHtml from 'remark-html'
 import type { ManualFrontmatter, ManualArticle } from './types'
+
+/**
+ * MarkdownをHTMLに変換
+ */
+async function markdownToHtml(markdown: string): Promise<string> {
+  const result = await remark()
+    .use(remarkGfm)
+    .use(remarkHtml, { sanitize: false })
+    .process(markdown)
+  return result.toString()
+}
 
 /**
  * MDXファイルからFrontmatterとコンテンツを抽出
  */
-export function parseMDXFile(filePath: string): ManualArticle | null {
+export async function parseMDXFile(filePath: string): Promise<ManualArticle | null> {
   try {
     const fileContents = fs.readFileSync(filePath, 'utf8')
     const { data, content } = matter(fileContents)
@@ -16,6 +30,9 @@ export function parseMDXFile(filePath: string): ManualArticle | null {
       console.warn(`Invalid frontmatter in ${filePath}`)
       return null
     }
+
+    // MarkdownをHTMLに変換
+    const htmlContent = await markdownToHtml(content)
 
     // ファイルパスからslugを生成
     const slug = filePath
@@ -27,7 +44,7 @@ export function parseMDXFile(filePath: string): ManualArticle | null {
     return {
       slug,
       frontmatter: data as ManualFrontmatter,
-      content,
+      content: htmlContent,
     }
   } catch (error) {
     console.error(`Error parsing MDX file ${filePath}:`, error)
@@ -64,7 +81,7 @@ export function getAllMDXFiles(dir: string): string[] {
 /**
  * マニュアルディレクトリから全記事を取得
  */
-export function getAllManualArticles(): ManualArticle[] {
+export async function getAllManualArticles(): Promise<ManualArticle[]> {
   const manualDir = path.join(process.cwd(), 'app', '(authenticated)', 'manual')
   const qaDir = path.join(process.cwd(), 'app', '(authenticated)', 'qa')
 
@@ -75,7 +92,7 @@ export function getAllManualArticles(): ManualArticle[] {
   const articles: ManualArticle[] = []
 
   for (const file of allFiles) {
-    const article = parseMDXFile(file)
+    const article = await parseMDXFile(file)
     if (article) {
       articles.push(article)
     }

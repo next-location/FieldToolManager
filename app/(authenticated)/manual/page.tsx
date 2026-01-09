@@ -23,7 +23,7 @@ export default async function ManualPage() {
   const mappedPlan = planMapping[packageType] || 'basic'
 
   // 全マニュアル記事を取得して権限別に分類
-  const allArticles = getAllManualArticles()
+  const allArticles = await getAllManualArticles()
   const articlesByPermission = groupArticlesByPermission(
     allArticles.filter((a) => a.frontmatter.category === 'manual')
   )

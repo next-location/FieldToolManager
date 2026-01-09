@@ -14,7 +14,7 @@ async function buildSearchIndex() {
 
   try {
     // 全記事を取得
-    const articles = getAllManualArticles()
+    const articles = await getAllManualArticles()
     console.log(`✓ Found ${articles.length} articles`)
 
     // 検索インデックスをエクスポート

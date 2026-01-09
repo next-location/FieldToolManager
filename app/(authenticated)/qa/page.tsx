@@ -22,7 +22,7 @@ export default async function QAPage() {
   const mappedPlan = planMapping[packageType] || 'basic'
 
   // 全記事を取得してQ&Aのみをフィルタ
-  const allArticles = getAllManualArticles()
+  const allArticles = await getAllManualArticles()
   const qaArticles = allArticles.filter(
     (article) =>
       article.frontmatter.category === 'qa' &&

@@ -5,7 +5,7 @@ import { getAllManualArticles } from '@/lib/manual/metadata'
 import Link from 'next/link'
 
 export async function generateStaticParams() {
-  const articles = getAllManualArticles()
+  const articles = await getAllManualArticles()
   return articles.map((article) => ({
     slug: article.slug.split('/').filter(Boolean),
   }))
@@ -27,7 +27,7 @@ export default async function ManualArticlePage({
   const slugPath = `manual/${slug.join('/')}`
 
   // 記事を取得
-  const allArticles = getAllManualArticles()
+  const allArticles = await getAllManualArticles()
   const article = allArticles.find((a) => a.slug === slugPath)
 
   if (!article) {
