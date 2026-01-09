@@ -16,7 +16,8 @@
       "Read(//Users/youichiakashi/Desktop/**)",
       "Bash(curl:*)",
       "Read(//tmp/**)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(curl -s 'https://zairoku.com/api/admin/invoices/318112f3-2f85-4707-865d-519e7ba20e20/convert-to-invoice')"
     ],
     "deny": [],
     "ask": []

@@ -241,7 +241,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
                       />
                     )}
 
-                    {initialInvoice && initialInvoice.status === 'invoice' && (
+                    {initialInvoice && initialInvoice.status === 'draft' && (
                       <>
                         <DownloadInvoiceButton
                           invoiceId={initialInvoice.id}

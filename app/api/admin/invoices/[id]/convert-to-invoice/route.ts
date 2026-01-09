@@ -88,7 +88,7 @@ export async function POST(
         amount: estimate.amount,
         tax_amount: estimate.tax_amount,
         total_amount: estimate.total_amount,
-        status: 'invoice',
+        status: 'draft',
         document_type: 'invoice',
         converted_from_invoice_id: estimate.id,
         due_date: estimate.due_date,

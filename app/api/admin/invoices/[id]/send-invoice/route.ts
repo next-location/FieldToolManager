@@ -49,7 +49,7 @@ export async function POST(
     }
 
     // ステータスチェック
-    if (invoice.status !== 'invoice') {
+    if (invoice.status !== 'draft') {
       return NextResponse.json(
         { error: '送信可能な請求書ではありません' },
         { status: 400 }
