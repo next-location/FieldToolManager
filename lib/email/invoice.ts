@@ -78,28 +78,26 @@ ${dateLabel}：{due_date}
       <p style="white-space: pre-line; margin: 0 0 20px 0;">${bodyText}</p>
 
       <div style="background-color: #f3f4f6; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-        <table style="width: 100%; border-collapse: collapse;">
-          <tr>
-            <td style="padding: 5px 0; color: #6b7280;">${documentType}番号：</td>
-            <td style="padding: 5px 0; font-weight: bold;">${invoiceNumber}</td>
-          </tr>
-          <tr>
-            <td style="padding: 5px 0; color: #6b7280;">発行日：</td>
-            <td style="padding: 5px 0;">${formatDate(invoiceDate)}</td>
-          </tr>
-          <tr>
-            <td style="padding: 5px 0; color: #6b7280;">${dateLabel}：</td>
-            <td style="padding: 5px 0; color: #dc2626; font-weight: bold;">${formatDate(dueDate)}</td>
-          </tr>
-          <tr>
-            <td style="padding: 5px 0; color: #6b7280;">期間：</td>
-            <td style="padding: 5px 0;">${formatDate(billingPeriodStart)} 〜 ${formatDate(billingPeriodEnd)}</td>
-          </tr>
-          <tr>
-            <td style="padding: 5px 0; color: #6b7280;">${documentLabel}：</td>
-            <td style="padding: 5px 0; font-size: 18px; font-weight: bold; color: #2563eb;">¥${formatCurrency(totalAmount)}</td>
-          </tr>
-        </table>
+        <div style="margin-bottom: 12px;">
+          <div style="color: #6b7280; font-size: 12px; margin-bottom: 4px;">${documentType}番号</div>
+          <div style="font-weight: bold; font-size: 14px;">${invoiceNumber}</div>
+        </div>
+        <div style="margin-bottom: 12px;">
+          <div style="color: #6b7280; font-size: 12px; margin-bottom: 4px;">発行日</div>
+          <div style="font-size: 14px;">${formatDate(invoiceDate)}</div>
+        </div>
+        <div style="margin-bottom: 12px;">
+          <div style="color: #6b7280; font-size: 12px; margin-bottom: 4px;">${dateLabel}</div>
+          <div style="color: #dc2626; font-weight: bold; font-size: 14px;">${formatDate(dueDate)}</div>
+        </div>
+        <div style="margin-bottom: 12px;">
+          <div style="color: #6b7280; font-size: 12px; margin-bottom: 4px;">期間</div>
+          <div style="font-size: 14px;">${formatDate(billingPeriodStart)} 〜 ${formatDate(billingPeriodEnd)}</div>
+        </div>
+        <div style="border-top: 1px solid #d1d5db; padding-top: 12px; margin-top: 12px;">
+          <div style="color: #6b7280; font-size: 12px; margin-bottom: 4px;">${documentLabel}</div>
+          <div style="font-size: 20px; font-weight: bold; color: #2563eb;">¥${formatCurrency(totalAmount)}</div>
+        </div>
       </div>
 
       <p style="font-size: 14px; color: #6b7280; margin: 20px 0 0 0;">
