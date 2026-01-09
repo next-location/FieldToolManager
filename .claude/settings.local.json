@@ -25,7 +25,8 @@
       "Bash(git init:*)",
       "Bash(vercel:*)",
       "Bash(cat:*)",
-      "Bash(npm run build:search-index:*)"
+      "Bash(npm run build:search-index:*)",
+      "Bash(curl -s 'https://zairoku.com/api/admin/estimates?organization_id=76ddfa0b-c9f0-4bdb-851f-3e6bb677a110&limit=10')"
     ],
     "deny": [],
     "ask": []

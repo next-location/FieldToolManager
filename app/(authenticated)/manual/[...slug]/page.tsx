@@ -14,14 +14,17 @@ export async function generateStaticParams() {
 export default async function ManualArticlePage({
   params,
 }: {
-  params: { slug: string[] }
+  params: Promise<{ slug: string[] }>
 }) {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
   const userPermission = getRolePermissionLevel(userRole)
   const { packageType } = await getOrganizationPackages(organizationId, supabase)
 
+  // paramsを解決
+  const { slug } = await params
+
   // slug配列からパスを構築
-  const slugPath = `manual/${params.slug.join('/')}`
+  const slugPath = `manual/${slug.join('/')}`
 
   // 記事を取得
   const allArticles = getAllManualArticles()
