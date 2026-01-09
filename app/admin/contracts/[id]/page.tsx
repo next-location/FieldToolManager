@@ -112,8 +112,8 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
   // 見積もりと請求書を分ける
   const estimates = invoicesForCheck?.filter(inv => inv.document_type === 'estimate') || [];
   // 最新の請求書を取得（配列を逆順にして最初のものを取得）
-  const invoices = invoicesForCheck?.filter(inv => inv.document_type === 'invoice') || [];
-  const initialInvoice = invoices.length > 0 ? invoices[invoices.length - 1] : null;
+  const initialInvoiceList = invoicesForCheck?.filter(inv => inv.document_type === 'invoice') || [];
+  const initialInvoice = initialInvoiceList.length > 0 ? initialInvoiceList[initialInvoiceList.length - 1] : null;
 
   console.log('[Contract Detail] Estimates:', estimates);
   console.log('[Contract Detail] Initial invoice:', initialInvoice);
