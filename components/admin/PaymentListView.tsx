@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import RecordPaymentModal from './RecordPaymentModal';
 
 interface Payment {
   id: string;
@@ -43,8 +42,6 @@ export default function PaymentListView({
   const [page, setPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(1);
   const [organizationId, setOrganizationId] = useState<string>(initialOrganizationId || '');
-  const [showModal, setShowModal] = useState(false);
-  const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
 
   // フィルター用のState
   const [searchQuery, setSearchQuery] = useState('');
@@ -146,14 +143,7 @@ export default function PaymentListView({
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">入金管理</h1>
-        {!isSalesRole && (
-          <button
-            onClick={() => setShowModal(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            + 入金記録
-          </button>
-        )}
+        <p className="text-sm text-gray-600">入金記録は各請求書の詳細ページから行ってください</p>
       </div>
 
       {/* フィルター */}
@@ -339,22 +329,6 @@ export default function PaymentListView({
             次へ
           </button>
         </div>
-      )}
-
-      {/* 入金記録モーダル */}
-      {showModal && (
-        <RecordPaymentModal
-          payment={editingPayment}
-          onClose={() => {
-            setShowModal(false);
-            setEditingPayment(null);
-          }}
-          onSuccess={() => {
-            setShowModal(false);
-            setEditingPayment(null);
-            fetchPayments();
-          }}
-        />
       )}
     </div>
   );
