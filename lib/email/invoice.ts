@@ -137,7 +137,7 @@ export async function sendInvoiceEmail(params: SendInvoiceEmailParams) {
   });
 
   const subject = emailSubject?.replace(/{organization_name}/g, organizationName) ||
-    `【${organizationName}】ご${documentType}のお知らせ`;
+    `【ザイロク】お${documentType}のお知らせ`;
   const html = getEmailHtml(params);
 
   // PDFを Base64 エンコード
