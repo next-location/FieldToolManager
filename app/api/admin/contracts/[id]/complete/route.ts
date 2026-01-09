@@ -77,12 +77,14 @@ export async function POST(
       }, { status: 400 });
     }
 
-    // 初回請求書の存在と支払い確認をチェック（最初に作成された請求書を初回請求書とする）
+    // 初回請求書の存在と支払い確認をチェック（is_initial_invoiceフラグがtrueの最新の請求書）
     const { data: invoices, error: invoiceError } = await supabase
       .from('invoices')
-      .select('id, invoice_number, status')
+      .select('id, invoice_number, status, document_type')
       .eq('contract_id', contractId)
-      .order('created_at', { ascending: true })
+      .eq('is_initial_invoice', true)
+      .eq('document_type', 'invoice')
+      .order('created_at', { ascending: false })
       .limit(1);
 
     if (invoiceError || !invoices || invoices.length === 0) {
