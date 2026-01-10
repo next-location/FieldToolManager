@@ -9,6 +9,8 @@ export default async function ToolSetsPage() {
   // 管理者またはマネージャーのみセット作成可能
   const canCreateSet = userRole === 'admin' || userRole === 'manager'
 
+  console.log('[DEBUG] userRole:', userRole, 'canCreateSet:', canCreateSet)
+
   const { data: toolSets, error } = await supabase
     .from('tool_sets')
     .select('id, name, description, created_at, created_by, users:created_by (name)')
