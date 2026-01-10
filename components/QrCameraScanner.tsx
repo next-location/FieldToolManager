@@ -10,13 +10,14 @@ interface QrCameraScannerProps {
 
 export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
   const scannerRef = useRef<Html5Qrcode | null>(null)
-  const lastScannedRef = useRef<string | null>(null)
-  const scanCooldownRef = useRef<boolean>(false)
+  const processingQrRef = useRef<boolean>(false)
+  const scannedQrCodesRef = useRef<Set<string>>(new Set())
   const bottomAreaRef = useRef<HTMLDivElement | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isScanning, setIsScanning] = useState(false)
   const [scanFlash, setScanFlash] = useState(false)
   const [scanCount, setScanCount] = useState(0)
+  const [lastScannedName, setLastScannedName] = useState<string | null>(null)
   const [lastErrorMessage, setLastErrorMessage] = useState<string | null>(null)
   const [bottomAreaHeight, setBottomAreaHeight] = useState(0)
 
@@ -35,44 +36,42 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
             disableFlip: true,
           },
           async (decodedText) => {
-            // クールダウン中は無視
-            if (scanCooldownRef.current) {
+            // 処理中は新しいスキャンを無視
+            if (processingQrRef.current) {
               return
             }
 
-            // 同じQRコードの連続読み取りを防止（1秒以内）
-            if (lastScannedRef.current === decodedText) {
+            // 既にスキャン済みかチェック
+            if (scannedQrCodesRef.current.has(decodedText)) {
               return
             }
 
-            // スキャン処理を実行
-            lastScannedRef.current = decodedText
-            scanCooldownRef.current = true
+            // 処理中フラグを立てる
+            processingQrRef.current = true
 
             try {
               const result = await onScan(decodedText)
 
               if (result.success) {
-                // 成功時: カウント増加 + 緑フラッシュ
+                // 成功時
+                scannedQrCodesRef.current.add(decodedText)
                 setScanFlash(true)
                 setScanCount((prev) => prev + 1)
+                setLastScannedName(result.message || 'スキャン成功')
                 setTimeout(() => setScanFlash(false), 300)
                 setLastErrorMessage(null)
               } else {
-                // 失敗時: エラーメッセージ表示
+                // 失敗時
                 setLastErrorMessage(result.message || 'エラーが発生しました')
                 setTimeout(() => setLastErrorMessage(null), 3000)
               }
             } catch (err) {
               setLastErrorMessage('エラーが発生しました')
               setTimeout(() => setLastErrorMessage(null), 3000)
+            } finally {
+              // 処理完了後、フラグを下ろす
+              processingQrRef.current = false
             }
-
-            // 1秒後にクールダウン解除（次のQRコードをスキャン可能に）
-            setTimeout(() => {
-              scanCooldownRef.current = false
-              lastScannedRef.current = null
-            }, 1000)
           },
           () => {
             // エラーは無視（スキャン失敗は正常）
@@ -112,7 +111,7 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
       window.addEventListener('resize', updateHeight)
       return () => window.removeEventListener('resize', updateHeight)
     }
-  }, [scanCount, lastErrorMessage])
+  }, [scanCount, lastScannedName, lastErrorMessage])
 
   return (
     <div className="fixed inset-0 bg-white z-50 flex flex-col" style={{ paddingBottom: `${bottomAreaHeight}px` }}>
@@ -189,22 +188,42 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
         )}
       </div>
 
-      {/* 下部情報（固定） */}
+      {/* ステータスバー + スキャン済み情報（固定表示） - QRScannerMobileのbulkモードと完全一致 */}
       <div ref={bottomAreaRef} className="fixed bottom-0 left-0 right-0 bg-white border-t flex flex-col z-40" style={{ paddingBottom: '10px' }}>
-        {scanCount > 0 && (
-          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-3 py-2 rounded mx-4 mt-3 text-center">
-            <span className="font-semibold">{scanCount}個</span>のQRコードを読み取りました
+        {/* スキャン数 + 最後にスキャンしたアイテム */}
+        <div className="bg-gray-50 px-4 pt-3 pb-3 border-b flex-shrink-0">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-medium text-gray-700">
+              スキャン済み: <span className="text-blue-600 text-lg font-bold">{scanCount}</span>個
+            </p>
           </div>
-        )}
-        {lastErrorMessage && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded mx-4 mt-3 text-center text-sm">
-            {lastErrorMessage}
-          </div>
-        )}
-        <div className="px-4 py-2">
+
+          {/* 最後にスキャンしたアイテム */}
+          {lastScannedName && (
+            <div className="bg-white border border-green-200 rounded-lg p-3 mt-2">
+              <div className="flex items-center space-x-2">
+                <span className="text-green-500 text-xl">✓</span>
+                <div className="flex-1">
+                  <p className="text-base font-medium text-gray-900">{lastScannedName}</p>
+                </div>
+                <span className="text-sm text-gray-400 font-medium">最新</span>
+              </div>
+            </div>
+          )}
+
+          {/* エラーメッセージ */}
+          {lastErrorMessage && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-2">
+              <p className="text-sm text-red-700 text-center">{lastErrorMessage}</p>
+            </div>
+          )}
+        </div>
+
+        {/* アクションボタン */}
+        <div className="px-4 py-2 flex-shrink-0">
           <button
             onClick={onClose}
-            className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-base"
+            className="w-full py-2 px-4 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700"
           >
             閉じる {scanCount > 0 && `(${scanCount}個追加済み)`}
           </button>
