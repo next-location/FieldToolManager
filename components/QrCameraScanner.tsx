@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Html5Qrcode } from 'html5-qrcode'
 
 interface QrCameraScannerProps {
@@ -20,8 +21,16 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
   const [lastScannedName, setLastScannedName] = useState<string | null>(null)
   const [lastErrorMessage, setLastErrorMessage] = useState<string | null>(null)
   const [bottomAreaHeight, setBottomAreaHeight] = useState(0)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+    return () => setMounted(false)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+
     const startScanner = async () => {
       try {
         const scanner = new Html5Qrcode('qr-reader')
@@ -98,7 +107,7 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
           })
       }
     }
-  }, [])
+  }, [mounted])
 
   // 下部エリアの高さを動的に計算
   useEffect(() => {
@@ -113,7 +122,9 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
     }
   }, [scanCount, lastScannedName, lastErrorMessage])
 
-  return (
+  if (!mounted) return null
+
+  const scannerContent = (
     <div className="fixed inset-0 bg-black z-50 flex flex-col" style={{ paddingBottom: `${bottomAreaHeight}px` }}>
       {/* html5-qrcodeの点滅するボーダーを無効化 */}
       <style jsx global>{`
@@ -231,4 +242,6 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
       </div>
     </div>
   )
+
+  return createPortal(scannerContent, document.body)
 }
