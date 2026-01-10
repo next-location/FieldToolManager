@@ -146,13 +146,14 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
   // メニュー外クリックで閉じる
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (openMenuId && menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setOpenMenuId(null)
+        setMenuPosition(null)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+  }, [openMenuId])
 
   // アカウント有効化/無効化
   const handleToggleActive = async (userId: string) => {
@@ -563,9 +564,13 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
                             )}
                             {isAdmin && user.role !== 'admin' && (
                               <button
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  console.log('[Toggle Button] Clicked for user:', user.id, user.name)
                                   handleToggleActive(user.id)
                                   setOpenMenuId(null)
+                                  setMenuPosition(null)
                                 }}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                               >
@@ -736,9 +741,13 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
                           )}
                           {isAdmin && user.role !== 'admin' && (
                             <button
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                console.log('[Toggle Button Mobile] Clicked for user:', user.id, user.name)
                                 handleToggleActive(user.id)
                                 setOpenMenuId(null)
+                                setMenuPosition(null)
                               }}
                               className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
                             >
