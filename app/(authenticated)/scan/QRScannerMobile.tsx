@@ -34,7 +34,8 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
   const supabase = createClient()
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
-  const SCAN_COOLDOWN_MS = 2000 // スキャン後のクールダウン時間（2秒）
+  // 注: bulkモードでは同じQRを複数回スキャンする必要はない
+  // 一度スキャンしたQRは scannedItems に追加され、重複チェックで弾かれる
 
   // モバイル判定
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
@@ -73,18 +74,13 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
           aspectRatio: window.innerHeight / window.innerWidth, // スマホの画面比率に合わせる
         },
         async (decodedText) => {
-          const now = Date.now()
-
           // 処理中は新しいスキャンを無視
           if (processingQrRef.current) {
             return
           }
 
-          // 同じQRコードを短時間に連続スキャンするのを防ぐ
-          if (
-            lastScannedRef.current === decodedText &&
-            now - lastScannedTimeRef.current < SCAN_COOLDOWN_MS
-          ) {
+          // 同じQRコードを連続スキャンするのを完全に防ぐ
+          if (lastScannedRef.current === decodedText) {
             return
           }
 
@@ -96,7 +92,6 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
           // 処理中フラグを立てる
           processingQrRef.current = true
           lastScannedRef.current = decodedText
-          lastScannedTimeRef.current = now
 
           // スキャン成功音（振動も可能）
           if (navigator.vibrate) {
@@ -240,6 +235,21 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
   return (
     <div className="fixed inset-0 bg-white z-50 flex flex-col">
+      {/* html5-qrcodeの点滅するボーダーを無効化 */}
+      <style jsx global>{`
+        #qr-reader-mobile video {
+          border: none !important;
+        }
+        #qr-reader-mobile__scan_region {
+          border: none !important;
+        }
+        /* QR検出時の緑枠を点灯（点滅させない） */
+        #qr-reader-mobile__scan_region video {
+          outline: none !important;
+          border: none !important;
+        }
+      `}</style>
+
       {/* ヘッダー（最小限） */}
       <div className="bg-blue-600 text-white px-4 py-3 flex items-center justify-between shadow-md">
         <button onClick={onClose || (() => router.back())} className="p-1">
