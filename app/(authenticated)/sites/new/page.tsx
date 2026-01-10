@@ -24,7 +24,7 @@ export default async function NewSitePage() {
   // 取引先一覧を取得
   const { data: clients } = await supabase
     .from('clients')
-    .select('id, name, code')
+    .select('id, name, client_code')
     .eq('organization_id', organizationId)
     .eq('is_active', true)
     .is('deleted_at', null)
@@ -77,7 +77,7 @@ export default async function NewSitePage() {
                   <option value="">選択してください</option>
                   {clients?.map((client) => (
                     <option key={client.id} value={client.id}>
-                      {client.name} ({client.code})
+                      {client.name} ({client.client_code})
                     </option>
                   ))}
                 </select>
@@ -118,7 +118,7 @@ export default async function NewSitePage() {
                 >
                   <option value="">未設定</option>
                   {organizationUsers?.map((user) => (
-                    <option key={userId} value={userId}>
+                    <option key={user.id} value={user.id}>
                       {user.name} ({user.email})
                     </option>
                   ))}
