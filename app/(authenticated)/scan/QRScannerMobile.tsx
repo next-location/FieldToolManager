@@ -252,7 +252,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
   }
 
   return (
-    <div className="fixed top-0 left-0 right-0 bottom-24 bg-white z-50 flex flex-col">
+    <div className="fixed inset-0 bg-white z-50 flex flex-col">
       {/* html5-qrcodeの点滅するボーダーを無効化 */}
       <style jsx global>{`
         /* 全ての枠線・アウトラインを無効化 */
@@ -336,9 +336,9 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
       {/* ステータスバー + スキャン済み情報（固定表示） */}
       {mode === 'bulk' ? (
-        <div className="bg-white border-t flex flex-col">
+        <div className="bg-white border-t flex flex-col pb-20">
           {/* スキャン数 + 最後にスキャンしたアイテム */}
-          <div className="bg-gray-50 px-4 pt-3 pb-4 border-b flex-shrink-0">
+          <div className="bg-gray-50 px-4 pt-3 pb-3 border-b flex-shrink-0">
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm font-medium text-gray-700">
                 スキャン済み: <span className="text-blue-600 text-lg font-bold">{scannedItems.length}</span>個
