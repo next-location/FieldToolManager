@@ -27,6 +27,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
   const [scannedItems, setScannedItems] = useState<ScannedItem[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const scannerRef = useRef<Html5Qrcode | null>(null)
+  const processingQrRef = useRef<boolean>(false) // QR処理中フラグ
   const router = useRouter()
   const supabase = createClient()
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -68,10 +69,18 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
           aspectRatio: window.innerHeight / window.innerWidth, // スマホの画面比率に合わせる
         },
         async (decodedText) => {
-          // 既にスキャン済みかチェック
-          if (scannedItems.some(item => item.qrCode === decodedText)) {
+          // 処理中は新しいスキャンを無視
+          if (processingQrRef.current) {
+            return
+          }
+
+          // 既にスキャン済みかチェック（bulkモードのみ）
+          if (mode === 'bulk' && scannedItems.some(item => item.qrCode === decodedText)) {
             return // 既にスキャン済みの場合は無視
           }
+
+          // 処理中フラグを立てる
+          processingQrRef.current = true
 
           // スキャン成功音（振動も可能）
           if (navigator.vibrate) {
@@ -79,12 +88,19 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
           }
           playBeep()
 
-          // mode === 'bulk' の場合は連続スキャン
-          if (mode === 'bulk') {
-            await addScannedItem(decodedText)
-          } else {
-            // その他のモードは即座に遷移
-            await handleSingleScan(decodedText)
+          try {
+            // mode === 'bulk' の場合は連続スキャン
+            if (mode === 'bulk') {
+              await addScannedItem(decodedText)
+              // bulkモードでは処理完了後に再スキャン可能にする
+              processingQrRef.current = false
+            } else {
+              // その他のモードは即座に遷移（処理中フラグは解除しない）
+              await handleSingleScan(decodedText)
+            }
+          } catch (error) {
+            console.error('QRスキャン処理エラー:', error)
+            processingQrRef.current = false
           }
         },
         (errorMessage) => {
