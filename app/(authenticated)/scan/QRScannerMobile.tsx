@@ -336,7 +336,12 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
       {/* ステータスバー + スキャン済み情報（固定表示） */}
       {mode === 'bulk' ? (
-        <div className="bg-white border-t flex flex-col pb-24">
+        <div
+          className="bg-white border-t flex flex-col"
+          style={{
+            paddingBottom: 'max(6rem, calc(env(safe-area-inset-bottom, 0px) + 1rem))'
+          }}
+        >
           {/* スキャン数 + 最後にスキャンしたアイテム */}
           <div className="bg-gray-50 px-4 pt-3 pb-3 border-b flex-shrink-0">
             <div className="flex items-center justify-between mb-2">
