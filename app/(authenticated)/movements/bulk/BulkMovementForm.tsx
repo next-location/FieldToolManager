@@ -325,8 +325,22 @@ export function BulkMovementForm({
     .map((id) => toolItems.find((t) => t.id === id))
     .filter(Boolean) as ToolItem[]
 
+  // デバッグ表示用
+  const debugInfo = scannedItemIds.length > 0 ? (() => {
+    const matched = toolItems.filter(t => scannedItemIds.includes(t.id))
+    if (matched.length === 0) return 'No matched tools'
+    const first = matched[0]
+    return `tools type: ${Array.isArray(first.tools) ? 'array' : typeof first.tools}, length: ${first.tools?.length || 0}, first: ${JSON.stringify(first.tools?.[0])}`
+  })() : null
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* デバッグ情報表示 */}
+      {debugInfo && (
+        <div className="bg-yellow-50 border border-yellow-200 p-3 rounded text-xs">
+          <strong>DEBUG:</strong> {debugInfo}
+        </div>
+      )}
       {/* エラー表示 */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded whitespace-pre-line">
