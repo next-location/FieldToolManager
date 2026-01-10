@@ -29,6 +29,8 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
           {
             fps: 10,
             qrbox: { width: 250, height: 250 },
+            aspectRatio: window.innerHeight / window.innerWidth,
+            disableFlip: true,
           },
           async (decodedText) => {
             // クールダウン中は無視
@@ -98,59 +100,84 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
   }, [])
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">QRコードをスキャン</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
-          >
-            ×
-          </button>
-        </div>
+    <div className="fixed inset-0 bg-white z-50 flex flex-col">
+      {/* html5-qrcodeの点滅するボーダーを無効化 */}
+      <style jsx global>{`
+        #qr-reader,
+        #qr-reader *,
+        #qr-reader video {
+          border: none !important;
+          outline: none !important;
+          box-shadow: none !important;
+          animation: none !important;
+          transition: none !important;
+        }
+      `}</style>
 
-        {/* スキャン成功フラッシュ */}
+      {/* ヘッダー */}
+      <div className="bg-blue-600 text-white px-4 py-3 flex items-center justify-between shadow-md">
+        <button onClick={onClose} className="p-1">
+          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <h1 className="text-lg font-medium">QRコードをスキャン</h1>
+        <div className="w-6" />
+      </div>
+
+      {/* カメラビュー */}
+      <div className="flex-1 relative bg-black">
+        <div id="qr-reader" className="h-full" />
+
+        {/* スキャン成功時の視覚的フィードバック */}
         {scanFlash && (
-          <div className="absolute inset-0 bg-green-400 opacity-50 animate-pulse rounded-lg pointer-events-none"></div>
-        )}
-
-        {error ? (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        ) : (
           <>
-            <div className="relative">
-              <div id="qr-reader" className="w-full rounded-lg overflow-hidden"></div>
-              {scanFlash && (
-                <div className="absolute inset-0 border-4 border-green-500 rounded-lg animate-ping"></div>
-              )}
-            </div>
-            <div className="mt-4 space-y-2">
-              <p className="text-sm text-gray-600 text-center">
-                QRコードをカメラに向けてください
-              </p>
-              {scanCount > 0 && (
-                <div className="bg-blue-50 border border-blue-200 text-blue-700 px-3 py-2 rounded text-center">
-                  <span className="font-semibold">{scanCount}個</span>のQRコードを読み取りました
-                </div>
-              )}
-              {lastErrorMessage && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-center text-sm">
-                  {lastErrorMessage}
-                </div>
-              )}
-              <p className="text-xs text-gray-500 text-center">
-                連続でスキャンできます。完了したら「閉じる」をクリック
-              </p>
+            <div className="absolute inset-0 bg-green-500 opacity-30 pointer-events-none transition-opacity duration-300" />
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="bg-green-500 rounded-full p-8 animate-ping">
+                <svg className="w-24 h-24 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
             </div>
           </>
         )}
 
+        {/* エラー表示 */}
+        {error && (
+          <div className="absolute top-4 left-4 right-4 bg-red-500 text-white p-3 rounded-lg">
+            {error}
+          </div>
+        )}
+
+        {/* QRコード枠のガイド */}
+        {isScanning && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-64 h-64 border-2 border-white rounded-lg opacity-50">
+              <div className="absolute -top-2 -left-2 w-8 h-8 border-t-4 border-l-4 border-white rounded-tl-lg"></div>
+              <div className="absolute -top-2 -right-2 w-8 h-8 border-t-4 border-r-4 border-white rounded-tr-lg"></div>
+              <div className="absolute -bottom-2 -left-2 w-8 h-8 border-b-4 border-l-4 border-white rounded-bl-lg"></div>
+              <div className="absolute -bottom-2 -right-2 w-8 h-8 border-b-4 border-r-4 border-white rounded-br-lg"></div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 下部情報 */}
+      <div className="bg-white border-t px-4 py-3" style={{ paddingBottom: '10px' }}>
+        {scanCount > 0 && (
+          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-3 py-2 rounded text-center mb-2">
+            <span className="font-semibold">{scanCount}個</span>のQRコードを読み取りました
+          </div>
+        )}
+        {lastErrorMessage && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-center text-sm mb-2">
+            {lastErrorMessage}
+          </div>
+        )}
         <button
           onClick={onClose}
-          className="mt-4 w-full px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium"
+          className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm"
         >
           閉じる {scanCount > 0 && `(${scanCount}個追加済み)`}
         </button>
