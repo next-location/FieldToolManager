@@ -28,9 +28,13 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
   const [isProcessing, setIsProcessing] = useState(false)
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const processingQrRef = useRef<boolean>(false) // QR処理中フラグ
+  const lastScannedRef = useRef<string | null>(null) // 最後にスキャンしたQRコード
+  const lastScannedTimeRef = useRef<number>(0) // 最後にスキャンした時刻
   const router = useRouter()
   const supabase = createClient()
   const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  const SCAN_COOLDOWN_MS = 2000 // スキャン後のクールダウン時間（2秒）
 
   // モバイル判定
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
@@ -69,8 +73,18 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
           aspectRatio: window.innerHeight / window.innerWidth, // スマホの画面比率に合わせる
         },
         async (decodedText) => {
+          const now = Date.now()
+
           // 処理中は新しいスキャンを無視
           if (processingQrRef.current) {
+            return
+          }
+
+          // 同じQRコードを短時間に連続スキャンするのを防ぐ
+          if (
+            lastScannedRef.current === decodedText &&
+            now - lastScannedTimeRef.current < SCAN_COOLDOWN_MS
+          ) {
             return
           }
 
@@ -81,6 +95,8 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
           // 処理中フラグを立てる
           processingQrRef.current = true
+          lastScannedRef.current = decodedText
+          lastScannedTimeRef.current = now
 
           // スキャン成功音（振動も可能）
           if (navigator.vibrate) {
