@@ -34,18 +34,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '権限がありません' }, { status: 403 })
     }
 
-    // 組織の出退勤設定を取得
-    const { data: settings, error: settingsError } = await supabase
+    // 組織の出退勤設定を取得（存在しない場合はデフォルトで作成）
+    let settings = await supabase
       .from('organization_attendance_settings')
       .select('office_qr_rotation_days')
       .eq('organization_id', userData?.organization_id)
       .single()
 
-    if (settingsError) {
-      return NextResponse.json({ error: '組織設定が見つかりません' }, { status: 404 })
+    // 設定が存在しない場合はデフォルト値で作成
+    if (settings.error && settings.error.code === 'PGRST116') {
+      const { data: newSettings, error: createError } = await supabase
+        .from('organization_attendance_settings')
+        .insert({
+          organization_id: userData?.organization_id,
+          office_qr_rotation_days: 7,
+        })
+        .select('office_qr_rotation_days')
+        .single()
+
+      if (createError) {
+        console.error('Failed to create attendance settings:', createError)
+        return NextResponse.json({ error: '組織設定の作成に失敗しました' }, { status: 500 })
+      }
+
+      settings = { data: newSettings, error: null }
+    } else if (settings.error) {
+      console.error('Failed to fetch attendance settings:', settings.error)
+      return NextResponse.json({ error: '組織設定の取得に失敗しました' }, { status: 500 })
     }
 
-    const rotationDays = settings.office_qr_rotation_days || 7
+    const rotationDays = settings.data?.office_qr_rotation_days || 7
 
     // 既存の有効なQRコードを無効化
     const now = new Date()
