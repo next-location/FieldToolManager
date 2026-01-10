@@ -77,24 +77,6 @@ export function BulkMovementForm({
   const [searchQuery, setSearchQuery] = useState('')
   const [showCamera, setShowCamera] = useState(false)
 
-  // クライアント側デバッグログ
-  useEffect(() => {
-    if (scannedItemIds.length > 0) {
-      console.log('=== CLIENT DEBUG ===')
-      console.log('scannedItemIds:', scannedItemIds)
-      console.log('toolItems count:', toolItems.length)
-      const matched = toolItems.filter(t => scannedItemIds.includes(t.id))
-      console.log('Matched tools:', matched.length)
-      if (matched.length > 0) {
-        console.log('First matched tool:', matched[0])
-        console.log('tools field:', matched[0].tools)
-        console.log('tools is array?', Array.isArray(matched[0].tools))
-        console.log('tools value:', matched[0].tools)
-      }
-      console.log('===================')
-    }
-  }, [])
-
   // 道具セット選択
   const [selectedToolSetId, setSelectedToolSetId] = useState<string>('')
 
@@ -324,22 +306,8 @@ export function BulkMovementForm({
     .map((id) => toolItems.find((t) => t.id === id))
     .filter(Boolean) as ToolItem[]
 
-  // デバッグ表示用
-  const debugInfo = scannedItemIds.length > 0 ? (() => {
-    const matched = toolItems.filter(t => scannedItemIds.includes(t.id))
-    if (matched.length === 0) return 'No matched tools'
-    const first = matched[0]
-    return `tool_id: ${first.tool_id}, tools: ${JSON.stringify(first.tools)}`
-  })() : null
-
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* デバッグ情報表示 */}
-      {debugInfo && (
-        <div className="bg-yellow-50 border border-yellow-200 p-3 rounded text-xs">
-          <strong>DEBUG:</strong> {debugInfo}
-        </div>
-      )}
       {/* エラー表示 */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded whitespace-pre-line">
