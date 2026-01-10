@@ -170,7 +170,19 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
   }
 
   const addScannedItem = async (qrCode: string) => {
-    // データベースから道具情報を取得
+    // 現在のユーザー情報を取得
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data: userData } = await supabase
+      .from('users')
+      .select('organization_id')
+      .eq('id', user.id)
+      .single()
+
+    if (!userData?.organization_id) return
+
+    // データベースから道具情報を取得（組織IDでフィルタ）
     const { data: toolItem, error: itemError } = await supabase
       .from('tool_items')
       .select(`
@@ -183,6 +195,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
         )
       `)
       .eq('qr_code', qrCode)
+      .eq('organization_id', userData.organization_id)
       .is('deleted_at', null)
       .single()
 
