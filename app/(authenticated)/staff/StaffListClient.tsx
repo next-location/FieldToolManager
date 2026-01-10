@@ -554,7 +554,7 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
                                 パスワードリセット
                               </button>
                             )}
-                            {isAdmin && (
+                            {isAdmin && user.role !== 'admin' && (
                               <button
                                 onClick={() => {
                                   handleToggleActive(user.id)
@@ -727,7 +727,7 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
                               パスワードリセット
                             </button>
                           )}
-                          {isAdmin && (
+                          {isAdmin && user.role !== 'admin' && (
                             <button
                               onClick={() => {
                                 handleToggleActive(user.id)
