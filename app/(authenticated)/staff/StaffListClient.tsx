@@ -55,7 +55,6 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
   const [deletingStaff, setDeletingStaff] = useState<User | null>(null)
   const [historyStaff, setHistoryStaff] = useState<User | null>(null)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
-  const [menuPosition, setMenuPosition] = useState<{ top: number; right: number } | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
   const isAdmin = userRole === 'admin' || userRole === 'super_admin'
@@ -148,7 +147,6 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
     function handleClickOutside(event: MouseEvent) {
       if (openMenuId && menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setOpenMenuId(null)
-        setMenuPosition(null)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -495,36 +493,20 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
                   </td>
                   {canManageStaff && (
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={(e) => {
-                          console.log('[操作ボタン] クリックされました。user:', user.id, user.name)
-                          const rect = e.currentTarget.getBoundingClientRect()
-                          const position = {
-                            top: rect.bottom + window.scrollY,
-                            right: window.innerWidth - rect.right
-                          }
-                          console.log('[操作ボタン] メニュー位置:', position)
-                          setMenuPosition(position)
-                          const newMenuId = openMenuId === user.id ? null : user.id
-                          console.log('[操作ボタン] openMenuId:', openMenuId, '→', newMenuId)
-                          setOpenMenuId(newMenuId)
-                        }}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        操作
-                        <ChevronDown className="w-4 h-4" />
-                      </button>
-
-                      {openMenuId === user.id && menuPosition && (
-                        <div
-                          ref={menuRef}
-                          className="fixed z-50 w-48 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5"
-                          style={{
-                            top: `${menuPosition.top}px`,
-                            right: `${menuPosition.right}px`
-                          }}
-                          onMouseEnter={() => console.log('[メニュー] マウスが入りました')}
+                      <div className="relative inline-block text-left">
+                        <button
+                          onClick={() => setOpenMenuId(openMenuId === user.id ? null : user.id)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
+                          操作
+                          <ChevronDown className="w-4 h-4" />
+                        </button>
+
+                        {openMenuId === user.id && (
+                          <div
+                            ref={menuRef}
+                            className="absolute right-0 z-[9999] mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5"
+                          >
                             <div className="py-1">
                             {isAdmin && (
                               <button
@@ -570,13 +552,9 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
                             )}
                             {isAdmin && user.role !== 'admin' && (
                               <button
-                                onClick={(e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                  console.log('[Toggle Button] Clicked for user:', user.id, user.name)
+                                onClick={() => {
                                   handleToggleActive(user.id)
                                   setOpenMenuId(null)
-                                  setMenuPosition(null)
                                 }}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                               >
@@ -610,6 +588,7 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
                             </div>
                           </div>
                         )}
+                      </div>
                     </td>
                   )}
                 </tr>
@@ -678,30 +657,20 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
               {/* 操作ボタン */}
               {canManageStaff && (
                 <div className="px-4 pb-4">
-                  <button
-                    onClick={(e) => {
-                      const rect = e.currentTarget.getBoundingClientRect()
-                      setMenuPosition({
-                        top: rect.bottom + window.scrollY,
-                        right: window.innerWidth - rect.right
-                      })
-                      setOpenMenuId(openMenuId === user.id ? null : user.id)
-                    }}
-                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    操作
-                    <ChevronDown className="w-4 h-4" />
-                  </button>
-
-                  {openMenuId === user.id && menuPosition && (
-                    <div
-                      ref={menuRef}
-                      className="fixed z-50 w-48 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5"
-                      style={{
-                        top: `${menuPosition.top}px`,
-                        right: `${menuPosition.right}px`
-                      }}
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenMenuId(openMenuId === user.id ? null : user.id)}
+                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
                     >
+                      操作
+                      <ChevronDown className="w-4 h-4" />
+                    </button>
+
+                    {openMenuId === user.id && (
+                      <div
+                        ref={menuRef}
+                        className="absolute left-0 right-0 z-[9999] mt-2 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5"
+                      >
                         <div className="py-1">
                           {isAdmin && (
                             <button
@@ -747,13 +716,9 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
                           )}
                           {isAdmin && user.role !== 'admin' && (
                             <button
-                              onClick={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                console.log('[Toggle Button Mobile] Clicked for user:', user.id, user.name)
+                              onClick={() => {
                                 handleToggleActive(user.id)
                                 setOpenMenuId(null)
-                                setMenuPosition(null)
                               }}
                               className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
                             >
@@ -787,6 +752,7 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
                         </div>
                       </div>
                     )}
+                  </div>
                 </div>
               )}
             </div>
