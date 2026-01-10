@@ -123,6 +123,17 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
           animation: none !important;
           transition: none !important;
         }
+
+        /* html5-qrcodeのスキャン結果テキストを完全に非表示 */
+        #qr-reader__dashboard_section_csr {
+          display: none !important;
+        }
+
+        /* その他の不要なテキスト表示も非表示 */
+        #qr-reader div:not(#qr-reader__scan_region):not(#qr-reader__camera_selection) {
+          font-size: 0 !important;
+          line-height: 0 !important;
+        }
       `}</style>
 
       {/* ヘッダー（最小限） */}
