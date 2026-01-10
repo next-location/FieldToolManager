@@ -29,6 +29,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
   const [scanSuccess, setScanSuccess] = useState(false) // スキャン成功フラグ
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const processingQrRef = useRef<boolean>(false) // QR処理中フラグ
+  const scannedQrCodesRef = useRef<Set<string>>(new Set()) // スキャン済みQRコードのSet
   const lastScannedRef = useRef<string | null>(null) // 最後にスキャンしたQRコード
   const lastScannedTimeRef = useRef<number>(0) // 最後にスキャンした時刻
   const router = useRouter()
@@ -81,19 +82,26 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
             return
           }
 
-          // 同じQRコードを連続スキャンするのを完全に防ぐ
-          if (lastScannedRef.current === decodedText) {
-            return
+          // 既にスキャン済みかチェック（Setで即座に判定）
+          if (scannedQrCodesRef.current.has(decodedText)) {
+            return // 既にスキャン済みの場合は無視
           }
 
-          // 既にスキャン済みかチェック（bulkモードのみ）
-          if (mode === 'bulk' && scannedItems.some(item => item.qrCode === decodedText)) {
-            return // 既にスキャン済みの場合は無視
+          // 単一モードでは同じQRの再スキャンを防ぐ
+          if (mode !== 'bulk' && lastScannedRef.current === decodedText) {
+            return
           }
 
           // 処理中フラグを立てる
           processingQrRef.current = true
-          lastScannedRef.current = decodedText
+          if (mode !== 'bulk') {
+            lastScannedRef.current = decodedText
+          }
+
+          // スキャン済みSetに追加（bulkモードのみ）
+          if (mode === 'bulk') {
+            scannedQrCodesRef.current.add(decodedText)
+          }
 
           // スキャン成功フィードバック
           if (navigator.vibrate) {
@@ -218,6 +226,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
   const removeScannedItem = (qrCode: string) => {
     setScannedItems(prev => prev.filter(item => item.qrCode !== qrCode))
+    scannedQrCodesRef.current.delete(qrCode) // Setからも削除
   }
 
   // クリーンアップ
@@ -274,8 +283,8 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
         <div className="w-6" /> {/* バランス用のスペーサー */}
       </div>
 
-      {/* カメラビュー（bulkモードは70%、その他は100%） */}
-      <div className={`${mode === 'bulk' ? 'flex-1' : 'flex-1'} relative bg-black`}>
+      {/* カメラビュー */}
+      <div className="flex-1 relative bg-black" style={mode === 'bulk' ? { height: '65vh' } : undefined}>
         <div id="qr-reader-mobile" className="h-full" />
 
         {/* スキャン成功時の視覚的フィードバック */}
@@ -324,16 +333,16 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
       {/* ステータスバー + スキャン済みリスト（30%） */}
       {mode === 'bulk' ? (
-        <div className="bg-white border-t">
+        <div className="bg-white border-t flex flex-col" style={{ height: '35vh' }}>
           {/* ステータスバー */}
-          <div className="bg-gray-50 px-4 py-2 border-b">
+          <div className="bg-gray-50 px-4 py-2 border-b flex-shrink-0">
             <p className="text-sm font-medium text-gray-700">
               スキャン済み: {scannedItems.length}個
             </p>
           </div>
 
           {/* スキャン済みリスト */}
-          <div className="max-h-32 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto">
             {scannedItems.length === 0 ? (
               <p className="text-center text-gray-500 py-4 text-sm">
                 QRコードをスキャンしてください
@@ -364,7 +373,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
           </div>
 
           {/* アクションボタン */}
-          <div className="p-4 border-t">
+          <div className="p-4 border-t flex-shrink-0">
             <button
               onClick={handleComplete}
               disabled={scannedItems.length === 0}
