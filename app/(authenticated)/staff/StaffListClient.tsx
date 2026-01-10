@@ -500,7 +500,7 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
                             ref={menuRef}
                             className="absolute right-0 z-50 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5"
                           >
-                          <div className="py-1">
+                            <div className="py-1">
                             {isAdmin && (
                               <button
                                 onClick={() => {
@@ -578,6 +578,7 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
                                 </button>
                               </>
                             )}
+                            </div>
                           </div>
                         )}
                       </div>
