@@ -497,12 +497,17 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
                         onClick={(e) => {
+                          console.log('[操作ボタン] クリックされました。user:', user.id, user.name)
                           const rect = e.currentTarget.getBoundingClientRect()
-                          setMenuPosition({
+                          const position = {
                             top: rect.bottom + window.scrollY,
                             right: window.innerWidth - rect.right
-                          })
-                          setOpenMenuId(openMenuId === user.id ? null : user.id)
+                          }
+                          console.log('[操作ボタン] メニュー位置:', position)
+                          setMenuPosition(position)
+                          const newMenuId = openMenuId === user.id ? null : user.id
+                          console.log('[操作ボタン] openMenuId:', openMenuId, '→', newMenuId)
+                          setOpenMenuId(newMenuId)
                         }}
                         className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
@@ -518,6 +523,7 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
                             top: `${menuPosition.top}px`,
                             right: `${menuPosition.right}px`
                           }}
+                          onMouseEnter={() => console.log('[メニュー] マウスが入りました')}
                         >
                             <div className="py-1">
                             {isAdmin && (
