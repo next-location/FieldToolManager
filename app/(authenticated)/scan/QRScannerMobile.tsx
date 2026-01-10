@@ -384,11 +384,11 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
           </div>
 
           {/* アクションボタン */}
-          <div className="p-4 flex-shrink-0">
+          <div className="px-4 py-2 flex-shrink-0">
             <button
               onClick={handleComplete}
               disabled={scannedItems.length === 0}
-              className={`w-full py-3 px-4 rounded-lg font-medium ${
+              className={`w-full py-2 px-4 rounded-lg text-sm font-medium ${
                 scannedItems.length === 0
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-blue-600 text-white hover:bg-blue-700'
