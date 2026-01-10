@@ -13,6 +13,7 @@ interface ToolItem {
   current_site_id: string | null
   warehouse_location_id: string | null
   status: string
+  tool_id: string
   tools: {
     id: string
     name: string
@@ -328,7 +329,7 @@ export function BulkMovementForm({
     const matched = toolItems.filter(t => scannedItemIds.includes(t.id))
     if (matched.length === 0) return 'No matched tools'
     const first = matched[0]
-    return `tools type: ${typeof first.tools}, value: ${JSON.stringify(first.tools)}`
+    return `tool_id: ${first.tool_id}, tools: ${JSON.stringify(first.tools)}`
   })() : null
 
   return (
