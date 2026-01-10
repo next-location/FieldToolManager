@@ -72,6 +72,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
           fps: 10,
           qrbox: { width: 250, height: 250 },
           aspectRatio: window.innerHeight / window.innerWidth, // スマホの画面比率に合わせる
+          disableFlip: true, // 反転スキャンを無効化（点滅防止）
         },
         async (decodedText) => {
           // 処理中は新しいスキャンを無視
@@ -237,16 +238,25 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
     <div className="fixed inset-0 bg-white z-50 flex flex-col">
       {/* html5-qrcodeの点滅するボーダーを無効化 */}
       <style jsx global>{`
-        #qr-reader-mobile video {
+        /* 全ての枠線・アウトラインを無効化 */
+        #qr-reader-mobile,
+        #qr-reader-mobile *,
+        #qr-reader-mobile video,
+        #qr-reader-mobile__scan_region,
+        #qr-reader-mobile__scan_region video,
+        #qr-reader-mobile__dashboard,
+        #qr-reader-mobile__dashboard_section,
+        #qr-reader-mobile__camera_selection {
           border: none !important;
-        }
-        #qr-reader-mobile__scan_region {
-          border: none !important;
-        }
-        /* QR検出時の緑枠を点灯（点滅させない） */
-        #qr-reader-mobile__scan_region video {
           outline: none !important;
-          border: none !important;
+          box-shadow: none !important;
+        }
+
+        /* アニメーションも無効化 */
+        #qr-reader-mobile *,
+        #qr-reader-mobile video {
+          animation: none !important;
+          transition: none !important;
         }
       `}</style>
 
