@@ -144,13 +144,18 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
 
   // メニュー外クリックで閉じる
   useEffect(() => {
+    if (!openMenuId) return
+
     function handleClickOutside(event: MouseEvent) {
-      if (openMenuId && menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setOpenMenuId(null)
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        // 少し遅延させてボタンのonClickが先に実行されるようにする
+        setTimeout(() => setOpenMenuId(null), 0)
       }
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+
+    // clickイベントに変更
+    document.addEventListener('click', handleClickOutside, true)
+    return () => document.removeEventListener('click', handleClickOutside, true)
   }, [openMenuId])
 
   // アカウント有効化/無効化
@@ -551,11 +556,15 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
                             )}
                             {isAdmin && user.role !== 'admin' && (
                               <button
-                                onClick={() => {
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  console.log('[有効化ボタン] クリックされました')
                                   handleToggleActive(user.id)
                                   setOpenMenuId(null)
                                 }}
-                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
+                                style={{ pointerEvents: 'auto' }}
                               >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   {user.is_active ? (
@@ -714,11 +723,15 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
                           )}
                           {isAdmin && user.role !== 'admin' && (
                             <button
-                              onClick={() => {
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                console.log('[有効化ボタン Mobile] クリックされました')
                                 handleToggleActive(user.id)
                                 setOpenMenuId(null)
                               }}
-                              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3 cursor-pointer"
+                              style={{ pointerEvents: 'auto' }}
                             >
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 {user.is_active ? (
