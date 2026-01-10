@@ -427,7 +427,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
             </div>
 
             {/* リスト */}
-            <div className="overflow-y-auto" style={{ maxHeight: 'calc(80vh - 60px)' }}>
+            <div className="overflow-y-auto" style={{ maxHeight: 'calc(80vh - 120px)' }}>
               {scannedItems.length === 0 ? (
                 <p className="text-center text-gray-500 py-8 text-sm">
                   QRコードをスキャンしてください
@@ -455,6 +455,21 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
                   ))}
                 </ul>
               )}
+            </div>
+
+            {/* 一覧画面のアクションボタン */}
+            <div className="px-4 py-3 border-t bg-white">
+              <button
+                onClick={handleComplete}
+                disabled={scannedItems.length === 0}
+                className={`w-full py-2 px-4 rounded-lg text-sm font-medium ${
+                  scannedItems.length === 0
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                完了して移動先を選ぶ
+              </button>
             </div>
           </div>
         </div>
