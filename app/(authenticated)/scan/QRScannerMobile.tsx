@@ -334,10 +334,10 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
         )}
       </div>
 
-      {/* ステータスバー + スキャン済み情報 */}
+      {/* ステータスバー + スキャン済み情報（固定表示） */}
       {mode === 'bulk' ? (
         <div className="bg-white border-t flex flex-col">
-          {/* スキャン数 + 最後にスキャンしたアイテム（固定表示） */}
+          {/* スキャン数 + 最後にスキャンしたアイテム */}
           <div className="bg-gray-50 px-4 py-3 border-b flex-shrink-0">
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm font-medium text-gray-700">
@@ -347,7 +347,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
                 onClick={() => setIsListExpanded(!isListExpanded)}
                 className="text-sm text-blue-600 hover:text-blue-800 font-medium"
               >
-                {isListExpanded ? '▼ 一覧を閉じる' : '▶ 一覧を表示'}
+                {isListExpanded ? '一覧を閉じる' : '一覧を表示'}
               </button>
             </div>
 
@@ -367,39 +367,6 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
               </div>
             )}
           </div>
-
-          {/* 展開可能なスキャン済みリスト */}
-          {isListExpanded && (
-            <div className="flex-1 overflow-y-auto border-b" style={{ maxHeight: '30vh' }}>
-              {scannedItems.length === 0 ? (
-                <p className="text-center text-gray-500 py-4 text-sm">
-                  QRコードをスキャンしてください
-                </p>
-              ) : (
-                <ul className="divide-y divide-gray-200">
-                  {scannedItems.slice().reverse().map((item) => (
-                    <li key={item.qrCode} className="px-4 py-2 flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-green-500">✓</span>
-                        <div>
-                          <p className="text-sm font-medium">{item.name}</p>
-                          {item.serialNumber && (
-                            <p className="text-xs text-gray-500">#{item.serialNumber}</p>
-                          )}
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => removeScannedItem(item.qrCode)}
-                        className="text-gray-400 hover:text-red-500"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
 
           {/* アクションボタン */}
           <div className="p-4 flex-shrink-0">
@@ -424,6 +391,57 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
             {mode === 'inventory' && '在庫確認するQRコードをスキャンしてください'}
             {mode === 'location' && '倉庫や現場のQRコードをスキャンしてください'}
           </p>
+        </div>
+      )}
+
+      {/* スキャン済み一覧（全画面オーバーレイ） */}
+      {isListExpanded && mode === 'bulk' && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end">
+          <div className="bg-white w-full rounded-t-2xl shadow-2xl" style={{ maxHeight: '80vh' }}>
+            {/* ヘッダー */}
+            <div className="bg-gray-50 px-4 py-3 border-b rounded-t-2xl flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">
+                スキャン済み一覧 ({scannedItems.length}個)
+              </h3>
+              <button
+                onClick={() => setIsListExpanded(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* リスト */}
+            <div className="overflow-y-auto" style={{ maxHeight: 'calc(80vh - 60px)' }}>
+              {scannedItems.length === 0 ? (
+                <p className="text-center text-gray-500 py-8 text-sm">
+                  QRコードをスキャンしてください
+                </p>
+              ) : (
+                <ul className="divide-y divide-gray-200">
+                  {scannedItems.slice().reverse().map((item) => (
+                    <li key={item.qrCode} className="px-4 py-3 flex items-center justify-between hover:bg-gray-50">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-green-500 text-xl">✓</span>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{item.name}</p>
+                          {item.serialNumber && (
+                            <p className="text-xs text-gray-500">シリアル: #{item.serialNumber}</p>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeScannedItem(item.qrCode)}
+                        className="text-gray-400 hover:text-red-500 p-2"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
