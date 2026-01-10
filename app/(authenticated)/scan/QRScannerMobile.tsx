@@ -29,11 +29,13 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
   const [scanSuccess, setScanSuccess] = useState(false) // スキャン成功フラグ
   const [lastScannedItem, setLastScannedItem] = useState<ScannedItem | null>(null) // 最後にスキャンしたアイテム
   const [isListExpanded, setIsListExpanded] = useState(false) // 一覧の展開状態
+  const [bottomAreaHeight, setBottomAreaHeight] = useState(0) // 下部エリアの高さ
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const processingQrRef = useRef<boolean>(false) // QR処理中フラグ
   const scannedQrCodesRef = useRef<Set<string>>(new Set()) // スキャン済みQRコードのSet
   const lastScannedRef = useRef<string | null>(null) // 最後にスキャンしたQRコード
   const lastScannedTimeRef = useRef<number>(0) // 最後にスキャンした時刻
+  const bottomAreaRef = useRef<HTMLDivElement | null>(null) // 下部エリアのref
   const router = useRouter()
   const supabase = createClient()
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -232,6 +234,19 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
     scannedQrCodesRef.current.delete(qrCode) // Setからも削除
   }
 
+  // 下部エリアの高さを測定
+  useEffect(() => {
+    if (bottomAreaRef.current && mode === 'bulk') {
+      const updateHeight = () => {
+        const height = bottomAreaRef.current?.offsetHeight || 0
+        setBottomAreaHeight(height)
+      }
+      updateHeight()
+      window.addEventListener('resize', updateHeight)
+      return () => window.removeEventListener('resize', updateHeight)
+    }
+  }, [mode, lastScannedItem])
+
   // クリーンアップ
   useEffect(() => {
     return () => {
@@ -252,7 +267,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
   }
 
   return (
-    <div className="fixed inset-0 bg-white z-50 flex flex-col" style={{ paddingBottom: mode === 'bulk' ? '200px' : '0' }}>
+    <div className="fixed inset-0 bg-white z-50 flex flex-col" style={{ paddingBottom: mode === 'bulk' ? `${bottomAreaHeight}px` : '0' }}>
       {/* html5-qrcodeの点滅するボーダーを無効化 */}
       <style jsx global>{`
         /* 全ての枠線・アウトラインを無効化 */
@@ -336,7 +351,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
       {/* ステータスバー + スキャン済み情報（固定表示） */}
       {mode === 'bulk' ? (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t flex flex-col z-40" style={{ paddingBottom: '80px' }}>
+        <div ref={bottomAreaRef} className="fixed bottom-0 left-0 right-0 bg-white border-t flex flex-col z-40" style={{ paddingBottom: '80px' }}>
           {/* スキャン数 + 最後にスキャンしたアイテム */}
           <div className="bg-gray-50 px-4 pt-3 pb-3 border-b flex-shrink-0">
             <div className="flex items-center justify-between mb-2">
