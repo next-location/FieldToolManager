@@ -5,14 +5,17 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 export async function createSite(formData: FormData) {
-  const supabase = await createClient()
+  try {
+    const supabase = await createClient()
 
-  const name = formData.get('name') as string
-  const address = formData.get('address') as string
-  const manager_id = formData.get('manager_id') as string | null
-  const client_id = formData.get('client_id') as string | null
+    const name = formData.get('name') as string
+    const address = formData.get('address') as string
+    const manager_id = formData.get('manager_id') as string | null
+    const client_id = formData.get('client_id') as string | null
 
-  // ユーザー情報と組織IDを取得
+    console.log('[CREATE SITE] Form data:', { name, address, manager_id, client_id })
+
+    // ユーザー情報と組織IDを取得
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -31,26 +34,39 @@ export async function createSite(formData: FormData) {
     throw new Error('ユーザー情報が見つかりません')
   }
 
-  // 現場を作成
-  const { error } = await supabase.from('sites').insert({
-    organization_id: userData?.organization_id,
-    name,
-    address: address || null,
-    manager_id: manager_id || null,
-    client_id: client_id || null,
-    is_active: true,
-  })
+    console.log('[CREATE SITE] User data:', userData)
 
-  if (error) {
-    // 重複エラーの場合はわかりやすいメッセージを表示
-    if (error.code === '23505' && error.message.includes('sites_organization_id_name_key')) {
-      throw new Error('同じ名前の現場がすでに登録されています。別の名前を使用してください。')
+    // 現場を作成
+    const insertData = {
+      organization_id: userData?.organization_id,
+      name,
+      address: address || null,
+      manager_id: manager_id || null,
+      client_id: client_id || null,
+      is_active: true,
     }
-    throw new Error(`現場の作成に失敗しました: ${error.message}`)
-  }
 
-  revalidatePath('/sites')
-  redirect('/sites')
+    console.log('[CREATE SITE] Insert data:', insertData)
+
+    const { data: siteData, error } = await supabase.from('sites').insert(insertData).select().single()
+
+    if (error) {
+      console.error('[CREATE SITE] Insert error:', error)
+      // 重複エラーの場合はわかりやすいメッセージを表示
+      if (error.code === '23505' && error.message.includes('sites_organization_id_name_key')) {
+        throw new Error('同じ名前の現場がすでに登録されています。別の名前を使用してください。')
+      }
+      throw new Error(`現場の作成に失敗しました: ${error.message}`)
+    }
+
+    console.log('[CREATE SITE] Site created:', siteData)
+
+    revalidatePath('/sites')
+    redirect('/sites')
+  } catch (error) {
+    console.error('[CREATE SITE] Unexpected error:', error)
+    throw error
+  }
 }
 
 export async function updateSite(id: string, formData: FormData) {
