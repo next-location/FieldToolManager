@@ -44,6 +44,7 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
           const nextNum = parseInt(match[1]) + 1
           const paddedNum = String(nextNum).padStart(3, '0')
           setStartNumber(paddedNum)
+          setSerialNumber(paddedNum) // 単一登録でも自動入力
         }
       }
     } catch (err) {
@@ -106,6 +107,19 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
 
   // 単一アイテム作成
   const createSingleItem = async (supabase: any, organizationId: string, userId: string) => {
+    // 重複チェック
+    const { data: existing } = await supabase
+      .from('tool_items')
+      .select('id')
+      .eq('tool_id', toolId)
+      .eq('serial_number', serialNumber)
+      .is('deleted_at', null)
+      .single()
+
+    if (existing) {
+      throw new Error(`シリアル番号 "${serialNumber}" は既に使用されています`)
+    }
+
     const { data: qrData } = await supabase.rpc('gen_random_uuid')
     const qrCode = qrData || crypto.randomUUID()
 
@@ -150,8 +164,27 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
 
   // 一括アイテム作成
   const createBulkItems = async (supabase: any, organizationId: string, userId: string) => {
-    const items = []
     const baseNum = parseInt(startNumber)
+    const serialNumbers = []
+
+    for (let i = 0; i < bulkCount; i++) {
+      serialNumbers.push(String(baseNum + i).padStart(3, '0'))
+    }
+
+    // 重複チェック（一括）
+    const { data: existingItems } = await supabase
+      .from('tool_items')
+      .select('serial_number')
+      .eq('tool_id', toolId)
+      .in('serial_number', serialNumbers)
+      .is('deleted_at', null)
+
+    if (existingItems && existingItems.length > 0) {
+      const duplicates = existingItems.map((item: any) => item.serial_number).join(', ')
+      throw new Error(`シリアル番号 ${duplicates} は既に使用されています`)
+    }
+
+    const items = []
 
     for (let i = 0; i < bulkCount; i++) {
       const serialNum = String(baseNum + i).padStart(3, '0')
