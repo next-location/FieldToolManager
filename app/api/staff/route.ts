@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { validatePassword, DEFAULT_PASSWORD_POLICY } from '@/lib/password-policy'
+import { sendWelcomeEmail } from '@/lib/email/welcome'
 
 // Admin client for auth operations
 function createAdminClient() {
@@ -296,6 +297,38 @@ export async function POST(request: NextRequest) {
       old_values: null,
       new_values: { name, email, role, department, employee_id, phone },
     })
+
+    // 組織情報を取得（ウェルカムメール送信用）
+    const { data: orgData } = await supabase
+      .from('organizations')
+      .select('name, subdomain')
+      .eq('id', userData?.organization_id)
+      .single()
+
+    // ウェルカムメール送信
+    if (orgData && (process.env.RESEND_API_KEY || process.env.SMTP_HOST)) {
+      try {
+        // 環境に応じたログインURLを生成
+        const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'localhost:3000'
+        const protocol = baseDomain.includes('localhost') ? 'http' : 'https'
+        const loginUrl = `${protocol}://${orgData.subdomain}.${baseDomain}/login`
+
+        await sendWelcomeEmail({
+          toEmail: email,
+          adminName: name,
+          organizationName: orgData.name,
+          subdomain: orgData.subdomain,
+          loginUrl,
+          password: password,
+        })
+        console.log('[STAFF POST] Welcome email sent successfully to:', email)
+      } catch (emailError) {
+        console.error('[STAFF POST] Failed to send welcome email:', emailError)
+        // メール送信失敗はエラーにしない（アカウントは既に作成済み）
+      }
+    } else {
+      console.warn('[STAFF POST] Skipping welcome email (no email provider configured)')
+    }
 
     return NextResponse.json({ data: newUser }, { status: 201 })
   } catch (error) {
