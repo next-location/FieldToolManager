@@ -252,7 +252,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
   }
 
   return (
-    <div className="fixed inset-0 bg-white z-50 flex flex-col">
+    <div className="fixed inset-0 bg-white z-50 flex flex-col" style={{ paddingBottom: mode === 'bulk' ? '200px' : '0' }}>
       {/* html5-qrcodeの点滅するボーダーを無効化 */}
       <style jsx global>{`
         /* 全ての枠線・アウトラインを無効化 */
