@@ -6,10 +6,8 @@ import ToolSetsPageFAB from '@/components/tool-sets/ToolSetsPageFAB'
 export default async function ToolSetsPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  // 管理者またはマネージャーのみセット作成可能
-  const canCreateSet = userRole === 'admin' || userRole === 'manager'
-
-  console.log('[DEBUG] userRole:', userRole, 'canCreateSet:', canCreateSet)
+  // リーダー以上がセット作成可能
+  const canCreateSet = userRole === 'admin' || userRole === 'manager' || userRole === 'leader'
 
   const { data: toolSets, error } = await supabase
     .from('tool_sets')
