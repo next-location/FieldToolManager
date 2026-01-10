@@ -14,7 +14,7 @@ export default async function BulkMovementPage({
   const scannedItemIds = params.items ? params.items.split(',') : []
 
   // 道具個別アイテムを取得（削除されていないもの）
-  const { data: toolItems, error: toolItemsError } = await supabase
+  const { data: toolItems } = await supabase
     .from('tool_items')
     .select(`
       id,
@@ -24,31 +24,18 @@ export default async function BulkMovementPage({
       current_site_id,
       warehouse_location_id,
       status,
-      tool_id,
-      tools (
-        id,
-        name,
-        model_number
-      )
+      tool_id
     `)
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('serial_number')
 
-  // サーバーログでデータ構造を確認
-  if (scannedItemIds.length > 0 && toolItems && toolItems.length > 0) {
-    console.log('=== DEBUG: Data Structure ===')
-    console.log('scannedItemIds:', scannedItemIds)
-    const scannedTools = toolItems.filter(t => scannedItemIds.includes(t.id))
-    console.log('Found scanned tools:', scannedTools.length)
-    console.log('First scanned tool:', JSON.stringify(scannedTools[0], null, 2))
-    console.log('tools field type:', typeof scannedTools[0]?.tools)
-    console.log('tools is array?', Array.isArray(scannedTools[0]?.tools))
-    console.log('============================')
-  }
-  if (toolItemsError) {
-    console.error('toolItemsError:', toolItemsError)
-  }
+  // 道具マスタを取得
+  const { data: tools } = await supabase
+    .from('tools')
+    .select('id, name, model_number')
+    .eq('organization_id', organizationId)
+    .is('deleted_at', null)
 
   // 現場一覧を取得
   const { data: sites } = await supabase
@@ -97,10 +84,11 @@ export default async function BulkMovementPage({
     .is('deleted_at', null)
     .order('name')
 
-  // toolItems のデータを整形（tools配列を単一オブジェクトに変換）
+  // toolItems と tools を結合
+  const toolsMap = new Map((tools || []).map(t => [t.id, t]))
   const formattedToolItems = (toolItems || []).map((item: any) => ({
     ...item,
-    tools: Array.isArray(item.tools) && item.tools.length > 0 ? item.tools[0] : null
+    tools: toolsMap.get(item.tool_id) || null
   }))
 
   // データを整形
