@@ -338,7 +338,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
       {mode === 'bulk' ? (
         <div className="bg-white border-t flex flex-col">
           {/* スキャン数 + 最後にスキャンしたアイテム */}
-          <div className="bg-gray-50 px-4 pt-3 border-b flex-shrink-0" style={{ paddingBottom: 'max(0.75rem, calc(env(safe-area-inset-bottom) + 0.75rem))' }}>
+          <div className="bg-gray-50 px-4 pt-3 pb-20 border-b flex-shrink-0">
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm font-medium text-gray-700">
                 スキャン済み: <span className="text-blue-600 text-lg font-bold">{scannedItems.length}</span>個
@@ -353,16 +353,16 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
             {/* 最後にスキャンしたアイテム */}
             {lastScannedItem && (
-              <div className="bg-white border border-green-200 rounded-lg p-2 mt-2 mb-2">
+              <div className="bg-white border border-green-200 rounded-lg p-3 mt-2">
                 <div className="flex items-center space-x-2">
-                  <span className="text-green-500 text-lg">✓</span>
+                  <span className="text-green-500 text-xl">✓</span>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{lastScannedItem.name}</p>
+                    <p className="text-base font-medium text-gray-900">{lastScannedItem.name}</p>
                     {lastScannedItem.serialNumber && (
-                      <p className="text-xs text-gray-500">#{lastScannedItem.serialNumber}</p>
+                      <p className="text-sm text-gray-500">#{lastScannedItem.serialNumber}</p>
                     )}
                   </div>
-                  <span className="text-xs text-gray-400">最新</span>
+                  <span className="text-sm text-gray-400 font-medium">最新</span>
                 </div>
               </div>
             )}
