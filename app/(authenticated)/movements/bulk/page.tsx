@@ -5,12 +5,13 @@ import { BulkMovementForm } from './BulkMovementForm'
 export default async function BulkMovementPage({
   searchParams,
 }: {
-  searchParams: { items?: string }
+  searchParams: Promise<{ items?: string }>
 }) {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // スキャンされたアイテムIDを取得
-  const scannedItemIds = searchParams.items ? searchParams.items.split(',') : []
+  const params = await searchParams
+  const scannedItemIds = params.items ? params.items.split(',') : []
 
   // 道具個別アイテムを取得（削除されていないもの）
   const { data: toolItems } = await supabase
