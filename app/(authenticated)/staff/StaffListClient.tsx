@@ -407,9 +407,8 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
       </div>
 
       {/* デスクトップ: テーブル表示 */}
-      <div className="hidden md:block bg-white shadow rounded-lg">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+      <div className="hidden md:block bg-white shadow rounded-lg" style={{ overflow: 'visible' }}>
+        <table className="min-w-full divide-y divide-gray-200" style={{ overflow: 'visible' }}>
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -492,7 +491,7 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
                       : '未ログイン'}
                   </td>
                   {canManageStaff && (
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium overflow-visible">
                       <div className="relative inline-block text-left">
                         <button
                           onClick={() => setOpenMenuId(openMenuId === user.id ? null : user.id)}
@@ -596,7 +595,6 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
             )}
           </tbody>
         </table>
-        </div>
       </div>
 
       {/* スマホ: カード表示 */}
