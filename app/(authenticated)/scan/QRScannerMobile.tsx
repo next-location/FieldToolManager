@@ -27,6 +27,8 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
   const [scannedItems, setScannedItems] = useState<ScannedItem[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const [scanSuccess, setScanSuccess] = useState(false) // スキャン成功フラグ
+  const [lastScannedItem, setLastScannedItem] = useState<ScannedItem | null>(null) // 最後にスキャンしたアイテム
+  const [isListExpanded, setIsListExpanded] = useState(false) // 一覧の展開状態
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const processingQrRef = useRef<boolean>(false) // QR処理中フラグ
   const scannedQrCodesRef = useRef<Set<string>>(new Set()) // スキャン済みQRコードのSet
@@ -196,6 +198,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
     }
 
     setScannedItems(prev => [...prev, newItem])
+    setLastScannedItem(newItem) // 最後にスキャンしたアイテムを記録
   }
 
   const handleSingleScan = async (qrCode: string) => {
@@ -284,7 +287,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
       </div>
 
       {/* カメラビュー */}
-      <div className="flex-1 relative bg-black" style={mode === 'bulk' ? { height: '65vh' } : undefined}>
+      <div className="flex-1 relative bg-black">
         <div id="qr-reader-mobile" className="h-full" />
 
         {/* スキャン成功時の視覚的フィードバック */}
@@ -331,49 +334,75 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
         )}
       </div>
 
-      {/* ステータスバー + スキャン済みリスト（30%） */}
+      {/* ステータスバー + スキャン済み情報 */}
       {mode === 'bulk' ? (
-        <div className="bg-white border-t flex flex-col" style={{ height: '35vh' }}>
-          {/* ステータスバー */}
-          <div className="bg-gray-50 px-4 py-2 border-b flex-shrink-0">
-            <p className="text-sm font-medium text-gray-700">
-              スキャン済み: {scannedItems.length}個
-            </p>
-          </div>
-
-          {/* スキャン済みリスト */}
-          <div className="flex-1 overflow-y-auto">
-            {scannedItems.length === 0 ? (
-              <p className="text-center text-gray-500 py-4 text-sm">
-                QRコードをスキャンしてください
+        <div className="bg-white border-t flex flex-col">
+          {/* スキャン数 + 最後にスキャンしたアイテム（固定表示） */}
+          <div className="bg-gray-50 px-4 py-3 border-b flex-shrink-0">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-medium text-gray-700">
+                スキャン済み: <span className="text-blue-600 text-lg font-bold">{scannedItems.length}</span>個
               </p>
-            ) : (
-              <ul className="divide-y divide-gray-200">
-                {scannedItems.map((item) => (
-                  <li key={item.qrCode} className="px-4 py-2 flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-green-500">✓</span>
-                      <div>
-                        <p className="text-sm font-medium">{item.name}</p>
-                        {item.serialNumber && (
-                          <p className="text-xs text-gray-500">#{item.serialNumber}</p>
-                        )}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => removeScannedItem(item.qrCode)}
-                      className="text-gray-400 hover:text-red-500"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              <button
+                onClick={() => setIsListExpanded(!isListExpanded)}
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >
+                {isListExpanded ? '▼ 一覧を閉じる' : '▶ 一覧を表示'}
+              </button>
+            </div>
+
+            {/* 最後にスキャンしたアイテム */}
+            {lastScannedItem && (
+              <div className="bg-white border border-green-200 rounded-lg p-2 mt-2">
+                <div className="flex items-center space-x-2">
+                  <span className="text-green-500 text-lg">✓</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">{lastScannedItem.name}</p>
+                    {lastScannedItem.serialNumber && (
+                      <p className="text-xs text-gray-500">#{lastScannedItem.serialNumber}</p>
+                    )}
+                  </div>
+                  <span className="text-xs text-gray-400">最新</span>
+                </div>
+              </div>
             )}
           </div>
 
+          {/* 展開可能なスキャン済みリスト */}
+          {isListExpanded && (
+            <div className="flex-1 overflow-y-auto border-b" style={{ maxHeight: '30vh' }}>
+              {scannedItems.length === 0 ? (
+                <p className="text-center text-gray-500 py-4 text-sm">
+                  QRコードをスキャンしてください
+                </p>
+              ) : (
+                <ul className="divide-y divide-gray-200">
+                  {scannedItems.slice().reverse().map((item) => (
+                    <li key={item.qrCode} className="px-4 py-2 flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-green-500">✓</span>
+                        <div>
+                          <p className="text-sm font-medium">{item.name}</p>
+                          {item.serialNumber && (
+                            <p className="text-xs text-gray-500">#{item.serialNumber}</p>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeScannedItem(item.qrCode)}
+                        className="text-gray-400 hover:text-red-500"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
           {/* アクションボタン */}
-          <div className="p-4 border-t flex-shrink-0">
+          <div className="p-4 flex-shrink-0">
             <button
               onClick={handleComplete}
               disabled={scannedItems.length === 0}

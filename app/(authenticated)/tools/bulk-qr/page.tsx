@@ -41,17 +41,27 @@ export default async function ToolsBulkQRPage() {
       )
     `)
     .is('deleted_at', null)
-    .order('serial_number')
 
-  const itemsWithDetails = (toolItems || []).map((item) => ({
-    id: item.id,
-    qrCode: item.qr_code,
-    name: `${(item.tool as any)?.name} #${item.serial_number}`,
-    code: `シリアル: ${item.serial_number}`,
-    toolId: item.tool_id,
-    toolName: (item.tool as any)?.name || '',
-    category: (item.tool as any)?.tool_categories?.name || '未分類',
-  }))
+  // クライアントサイドで道具名→シリアル番号順にソート
+  const itemsWithDetails = (toolItems || [])
+    .map((item) => ({
+      id: item.id,
+      qrCode: item.qr_code,
+      name: `${(item.tool as any)?.name} #${item.serial_number}`,
+      code: `シリアル: ${item.serial_number}`,
+      toolId: item.tool_id,
+      toolName: (item.tool as any)?.name || '',
+      category: (item.tool as any)?.tool_categories?.name || '未分類',
+      serialNumber: item.serial_number,
+    }))
+    .sort((a, b) => {
+      // 道具名で比較
+      if (a.toolName !== b.toolName) {
+        return a.toolName.localeCompare(b.toolName, 'ja')
+      }
+      // 同じ道具名ならシリアル番号で比較
+      return a.serialNumber.localeCompare(b.serialNumber, 'ja', { numeric: true })
+    })
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
