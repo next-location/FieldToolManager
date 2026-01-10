@@ -17,7 +17,7 @@ interface ToolItem {
     id: string
     name: string
     model_number: string
-  }[]
+  } | null
 }
 
 interface Site {
@@ -88,9 +88,7 @@ export function BulkMovementForm({
         console.log('First matched tool:', matched[0])
         console.log('tools field:', matched[0].tools)
         console.log('tools is array?', Array.isArray(matched[0].tools))
-        if (Array.isArray(matched[0].tools)) {
-          console.log('tools[0]:', matched[0].tools[0])
-        }
+        console.log('tools value:', matched[0].tools)
       }
       console.log('===================')
     }
@@ -134,7 +132,7 @@ export function BulkMovementForm({
 
     // 状態を更新
     setSelectedToolIds((prev) => [...prev, tool.id])
-    setLastScannedTool(`${tool.tools[0]?.name || '不明'} (${tool.serial_number})`)
+    setLastScannedTool(`${tool.tools?.name || '不明'} (${tool.serial_number})`)
     setScanSuccess(true)
     setTimeout(() => {
       setScanSuccess(false)
@@ -235,7 +233,7 @@ export function BulkMovementForm({
 
           // 移動履歴を登録
           const { error: movementError } = await supabase.from('tool_movements').insert({
-            tool_id: tool.tools[0]?.id,
+            tool_id: tool.tools?.id,
             tool_item_id: toolItemId,
             movement_type: movementType,
             from_location: from,
@@ -283,7 +281,7 @@ export function BulkMovementForm({
           successCount++
         } catch (err: any) {
           const tool = toolItems.find((t) => t.id === toolItemId)
-          const toolName = tool ? `${tool.tools[0]?.name || '不明'} (${tool.serial_number})` : toolItemId
+          const toolName = tool ? `${tool.tools?.name || '不明'} (${tool.serial_number})` : toolItemId
           errors.push(`${toolName}: ${err.message}`)
         }
       }
@@ -315,8 +313,8 @@ export function BulkMovementForm({
     const query = searchQuery.toLowerCase()
     return (
       item.serial_number.toLowerCase().includes(query) ||
-      (item.tools[0]?.name?.toLowerCase() || '').includes(query) ||
-      (item.tools[0]?.model_number?.toLowerCase() || '').includes(query)
+      (item.tools?.name?.toLowerCase() || '').includes(query) ||
+      (item.tools?.model_number?.toLowerCase() || '').includes(query)
     )
   })
 
@@ -330,7 +328,7 @@ export function BulkMovementForm({
     const matched = toolItems.filter(t => scannedItemIds.includes(t.id))
     if (matched.length === 0) return 'No matched tools'
     const first = matched[0]
-    return `tools type: ${Array.isArray(first.tools) ? 'array' : typeof first.tools}, length: ${first.tools?.length || 0}, first: ${JSON.stringify(first.tools?.[0])}`
+    return `tools type: ${typeof first.tools}, value: ${JSON.stringify(first.tools)}`
   })() : null
 
   return (
@@ -539,9 +537,9 @@ export function BulkMovementForm({
                             : ''
                         }`}
                       >
-                        <div className="font-medium text-sm">{tool.tools[0]?.name || '不明'}</div>
+                        <div className="font-medium text-sm">{tool.tools?.name || '不明'}</div>
                         <div className="text-xs text-gray-500">
-                          {tool.serial_number} • {tool.tools[0]?.model_number || '-'}
+                          {tool.serial_number} • {tool.tools?.model_number || '-'}
                         </div>
                         <div className="text-xs text-gray-500">
                           現在位置:{' '}
@@ -644,9 +642,9 @@ export function BulkMovementForm({
             {selectedTools.map((tool) => (
               <div key={tool.id} className="p-3 flex items-center justify-between">
                 <div className="flex-1">
-                  <div className="font-medium text-sm">{tool.tools[0]?.name || '不明'}</div>
+                  <div className="font-medium text-sm">{tool.tools?.name || '不明'}</div>
                   <div className="text-xs text-gray-500">
-                    {tool.serial_number} • {tool.tools[0]?.model_number || '-'}
+                    {tool.serial_number} • {tool.tools?.model_number || '-'}
                   </div>
                   <div className="text-xs text-gray-500">
                     現在位置:{' '}
