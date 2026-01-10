@@ -24,7 +24,8 @@ export default async function BulkMovementPage({
       current_site_id,
       warehouse_location_id,
       status,
-      tools (
+      tool_id,
+      tools!tool_items_tool_id_fkey (
         id,
         name,
         model_number
