@@ -156,19 +156,26 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
 
   // アカウント有効化/無効化
   const handleToggleActive = async (userId: string) => {
+    console.log('[handleToggleActive] Starting toggle for user:', userId)
     try {
       const response = await fetch(`/api/staff/${userId}/toggle-active`, {
         method: 'POST',
       })
 
+      console.log('[handleToggleActive] Response status:', response.status)
+
       if (response.ok) {
+        const data = await response.json()
+        console.log('[handleToggleActive] Success:', data)
+        alert('ステータスを更新しました')
         fetchStaff()
       } else {
         const data = await response.json()
+        console.error('[handleToggleActive] Error response:', data)
         alert(data.error || 'ステータスの更新に失敗しました')
       }
     } catch (error) {
-      console.error('Error toggling active status:', error)
+      console.error('[handleToggleActive] Exception:', error)
       alert('予期しないエラーが発生しました')
     }
   }
