@@ -46,6 +46,7 @@ interface BulkMovementFormProps {
   sites: Site[]
   warehouseLocations: WarehouseLocation[]
   toolSets: ToolSet[]
+  scannedItemIds: string[]
 }
 
 type DestinationType = 'warehouse' | 'site' | 'repair'
@@ -56,6 +57,7 @@ export function BulkMovementForm({
   sites,
   warehouseLocations,
   toolSets,
+  scannedItemIds,
 }: BulkMovementFormProps) {
   const router = useRouter()
   const supabase = createClient()
@@ -68,9 +70,9 @@ export function BulkMovementForm({
   // 選択モード
   const [selectionMode, setSelectionMode] = useState<SelectionMode>('individual')
 
-  // 選択された道具の状態
-  const [selectedToolIds, setSelectedToolIds] = useState<string[]>([])
-  const selectedToolIdsRef = useRef<Set<string>>(new Set())
+  // 選択された道具の状態（スキャン済みIDで初期化）
+  const [selectedToolIds, setSelectedToolIds] = useState<string[]>(scannedItemIds)
+  const selectedToolIdsRef = useRef<Set<string>>(new Set(scannedItemIds))
   const [searchQuery, setSearchQuery] = useState('')
   const [showCamera, setShowCamera] = useState(false)
 

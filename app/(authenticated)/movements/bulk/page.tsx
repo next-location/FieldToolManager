@@ -2,8 +2,15 @@ import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/page-auth'
 import { BulkMovementForm } from './BulkMovementForm'
 
-export default async function BulkMovementPage() {
+export default async function BulkMovementPage({
+  searchParams,
+}: {
+  searchParams: { items?: string }
+}) {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
+
+  // スキャンされたアイテムIDを取得
+  const scannedItemIds = searchParams.items ? searchParams.items.split(',') : []
 
   // 道具個別アイテムを取得（削除されていないもの）
   const { data: toolItems } = await supabase
@@ -100,6 +107,7 @@ export default async function BulkMovementPage() {
             sites={sites || []}
             warehouseLocations={warehouseLocations || []}
             toolSets={toolSets || []}
+            scannedItemIds={scannedItemIds}
           />
         </div>
       </div>
