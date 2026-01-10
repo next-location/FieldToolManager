@@ -26,6 +26,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
   const [error, setError] = useState<string | null>(null)
   const [scannedItems, setScannedItems] = useState<ScannedItem[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
+  const [scanSuccess, setScanSuccess] = useState(false) // スキャン成功フラグ
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const processingQrRef = useRef<boolean>(false) // QR処理中フラグ
   const lastScannedRef = useRef<string | null>(null) // 最後にスキャンしたQRコード
@@ -94,11 +95,15 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
           processingQrRef.current = true
           lastScannedRef.current = decodedText
 
-          // スキャン成功音（振動も可能）
+          // スキャン成功フィードバック
           if (navigator.vibrate) {
             navigator.vibrate(100)
           }
           playBeep()
+
+          // 視覚的フィードバック（画面全体が緑に光る）
+          setScanSuccess(true)
+          setTimeout(() => setScanSuccess(false), 300)
 
           try {
             // mode === 'bulk' の場合は連続スキャン
@@ -272,6 +277,20 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
       {/* カメラビュー（bulkモードは70%、その他は100%） */}
       <div className={`${mode === 'bulk' ? 'flex-1' : 'flex-1'} relative bg-black`}>
         <div id="qr-reader-mobile" className="h-full" />
+
+        {/* スキャン成功時の視覚的フィードバック */}
+        {scanSuccess && (
+          <>
+            <div className="absolute inset-0 bg-green-500 opacity-30 pointer-events-none transition-opacity duration-300" />
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="bg-green-500 rounded-full p-8 animate-ping">
+                <svg className="w-24 h-24 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* エラー表示 */}
         {error && (

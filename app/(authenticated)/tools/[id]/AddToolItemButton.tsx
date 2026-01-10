@@ -296,7 +296,20 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
                       type="number"
                       id="bulk_count"
                       value={bulkCount}
-                      onChange={(e) => setBulkCount(Math.max(1, parseInt(e.target.value) || 1))}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        if (val === '') {
+                          setBulkCount('' as any) // 空入力を許可
+                        } else {
+                          setBulkCount(Math.max(1, Math.min(100, parseInt(val) || 1)))
+                        }
+                      }}
+                      onBlur={(e) => {
+                        // フォーカスが外れた時に空なら1に戻す
+                        if (e.target.value === '') {
+                          setBulkCount(1)
+                        }
+                      }}
                       min="1"
                       max="100"
                       required
