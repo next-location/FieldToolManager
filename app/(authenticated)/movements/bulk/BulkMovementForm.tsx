@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { QrCameraScanner } from '@/components/QrCameraScanner'
@@ -75,6 +75,26 @@ export function BulkMovementForm({
   const selectedToolIdsRef = useRef<Set<string>>(new Set(scannedItemIds))
   const [searchQuery, setSearchQuery] = useState('')
   const [showCamera, setShowCamera] = useState(false)
+
+  // クライアント側デバッグログ
+  useEffect(() => {
+    if (scannedItemIds.length > 0) {
+      console.log('=== CLIENT DEBUG ===')
+      console.log('scannedItemIds:', scannedItemIds)
+      console.log('toolItems count:', toolItems.length)
+      const matched = toolItems.filter(t => scannedItemIds.includes(t.id))
+      console.log('Matched tools:', matched.length)
+      if (matched.length > 0) {
+        console.log('First matched tool:', matched[0])
+        console.log('tools field:', matched[0].tools)
+        console.log('tools is array?', Array.isArray(matched[0].tools))
+        if (Array.isArray(matched[0].tools)) {
+          console.log('tools[0]:', matched[0].tools[0])
+        }
+      }
+      console.log('===================')
+    }
+  }, [])
 
   // 道具セット選択
   const [selectedToolSetId, setSelectedToolSetId] = useState<string>('')

@@ -14,7 +14,7 @@ export default async function BulkMovementPage({
   const scannedItemIds = params.items ? params.items.split(',') : []
 
   // 道具個別アイテムを取得（削除されていないもの）
-  const { data: toolItems } = await supabase
+  const { data: toolItems, error: toolItemsError } = await supabase
     .from('tool_items')
     .select(`
       id,
@@ -25,7 +25,7 @@ export default async function BulkMovementPage({
       warehouse_location_id,
       status,
       tool_id,
-      tools!tool_items_tool_id_fkey (
+      tools (
         id,
         name,
         model_number
@@ -34,6 +34,21 @@ export default async function BulkMovementPage({
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('serial_number')
+
+  // サーバーログでデータ構造を確認
+  if (scannedItemIds.length > 0 && toolItems && toolItems.length > 0) {
+    console.log('=== DEBUG: Data Structure ===')
+    console.log('scannedItemIds:', scannedItemIds)
+    const scannedTools = toolItems.filter(t => scannedItemIds.includes(t.id))
+    console.log('Found scanned tools:', scannedTools.length)
+    console.log('First scanned tool:', JSON.stringify(scannedTools[0], null, 2))
+    console.log('tools field type:', typeof scannedTools[0]?.tools)
+    console.log('tools is array?', Array.isArray(scannedTools[0]?.tools))
+    console.log('============================')
+  }
+  if (toolItemsError) {
+    console.error('toolItemsError:', toolItemsError)
+  }
 
   // 現場一覧を取得
   const { data: sites } = await supabase
