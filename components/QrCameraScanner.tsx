@@ -114,7 +114,7 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
   }, [scanCount, lastScannedName, lastErrorMessage])
 
   return (
-    <div className="fixed inset-0 bg-white z-50 flex flex-col" style={{ paddingBottom: `${bottomAreaHeight}px` }}>
+    <div className="fixed inset-0 bg-black z-50 flex flex-col" style={{ paddingBottom: `${bottomAreaHeight}px` }}>
       {/* html5-qrcodeの点滅するボーダーを無効化 */}
       <style jsx global>{`
         /* 全ての枠線・アウトラインを無効化 */
@@ -140,7 +140,7 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
       `}</style>
 
       {/* ヘッダー（最小限） */}
-      <div className="bg-blue-600 text-white px-4 py-3 flex items-center justify-between">
+      <div className="bg-blue-600 text-white px-4 py-3 flex items-center justify-between shadow-md">
         <button onClick={onClose} className="p-1">
           <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
