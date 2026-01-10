@@ -97,6 +97,12 @@ export default async function BulkMovementPage({
     .is('deleted_at', null)
     .order('name')
 
+  // toolItems のデータを整形（tools配列を単一オブジェクトに変換）
+  const formattedToolItems = (toolItems || []).map((item: any) => ({
+    ...item,
+    tools: Array.isArray(item.tools) && item.tools.length > 0 ? item.tools[0] : null
+  }))
+
   // データを整形
   const toolSets = (toolSetsRaw || []).map((set: any) => ({
     id: set.id,
@@ -120,7 +126,7 @@ export default async function BulkMovementPage({
 
         <div className="bg-white rounded-lg shadow p-6">
           <BulkMovementForm
-            toolItems={toolItems || []}
+            toolItems={formattedToolItems}
             sites={sites || []}
             warehouseLocations={warehouseLocations || []}
             toolSets={toolSets || []}
