@@ -223,12 +223,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // メールアドレス重複チェック
+    // メールアドレス重複チェック（削除されていないユーザーのみ）
     console.log('[STAFF POST] Checking email duplication...')
     const { data: existingUser } = await supabase
       .from('users')
       .select('id')
       .eq('email', email)
+      .is('deleted_at', null)
       .single()
 
     console.log('[STAFF POST] Existing user check:', !!existingUser)
