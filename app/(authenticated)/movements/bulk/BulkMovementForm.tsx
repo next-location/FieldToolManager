@@ -48,6 +48,8 @@ interface BulkMovementFormProps {
   warehouseLocations: WarehouseLocation[]
   toolSets: ToolSet[]
   scannedItemIds: string[]
+  organizationId: string
+  userId: string
 }
 
 type DestinationType = 'warehouse' | 'site' | 'repair'
@@ -59,6 +61,8 @@ export function BulkMovementForm({
   warehouseLocations,
   toolSets,
   scannedItemIds,
+  organizationId,
+  userId,
 }: BulkMovementFormProps) {
   const router = useRouter()
   const supabase = createClient()
@@ -216,6 +220,8 @@ export function BulkMovementForm({
 
           // 移動履歴を登録
           const { error: movementError } = await supabase.from('tool_movements').insert({
+            organization_id: organizationId,
+            user_id: userId,
             tool_id: tool.tools?.id,
             tool_item_id: toolItemId,
             movement_type: movementType,

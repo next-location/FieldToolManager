@@ -119,6 +119,8 @@ export default async function BulkMovementPage({
             warehouseLocations={warehouseLocations || []}
             toolSets={toolSets || []}
             scannedItemIds={scannedItemIds}
+            organizationId={organizationId}
+            userId={userId}
           />
         </div>
       </div>
