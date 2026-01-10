@@ -12,11 +12,13 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const lastScannedRef = useRef<string | null>(null)
   const scanCooldownRef = useRef<boolean>(false)
+  const bottomAreaRef = useRef<HTMLDivElement | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isScanning, setIsScanning] = useState(false)
   const [scanFlash, setScanFlash] = useState(false)
   const [scanCount, setScanCount] = useState(0)
   const [lastErrorMessage, setLastErrorMessage] = useState<string | null>(null)
+  const [bottomAreaHeight, setBottomAreaHeight] = useState(0)
 
   useEffect(() => {
     const startScanner = async () => {
@@ -99,8 +101,21 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
     }
   }, [])
 
+  // 下部エリアの高さを動的に計算
+  useEffect(() => {
+    if (bottomAreaRef.current) {
+      const updateHeight = () => {
+        const height = bottomAreaRef.current?.offsetHeight || 0
+        setBottomAreaHeight(height)
+      }
+      updateHeight()
+      window.addEventListener('resize', updateHeight)
+      return () => window.removeEventListener('resize', updateHeight)
+    }
+  }, [scanCount, lastErrorMessage])
+
   return (
-    <div className="fixed inset-0 bg-white z-[100] flex flex-col">
+    <div className="fixed inset-0 bg-white z-50 flex flex-col" style={{ paddingBottom: `${bottomAreaHeight}px` }}>
       {/* html5-qrcodeの点滅するボーダーを無効化 */}
       <style jsx global>{`
         /* 全ての枠線・アウトラインを無効化 */
@@ -122,17 +137,6 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
         #qr-reader video {
           animation: none !important;
           transition: none !important;
-        }
-
-        /* html5-qrcodeのスキャン結果テキストを完全に非表示 */
-        #qr-reader__dashboard_section_csr {
-          display: none !important;
-        }
-
-        /* その他の不要なテキスト表示も非表示 */
-        #qr-reader div:not(#qr-reader__scan_region):not(#qr-reader__camera_selection) {
-          font-size: 0 !important;
-          line-height: 0 !important;
         }
       `}</style>
 
@@ -185,29 +189,26 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
         )}
       </div>
 
-      {/* 下部情報 */}
-      <div
-        className="bg-white border-t px-4 py-3"
-        style={{
-          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 120px)'
-        }}
-      >
+      {/* 下部情報（固定） */}
+      <div ref={bottomAreaRef} className="fixed bottom-0 left-0 right-0 bg-white border-t flex flex-col z-40" style={{ paddingBottom: '10px' }}>
         {scanCount > 0 && (
-          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-3 py-2 rounded text-center mb-2">
+          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-3 py-2 rounded mx-4 mt-3 text-center">
             <span className="font-semibold">{scanCount}個</span>のQRコードを読み取りました
           </div>
         )}
         {lastErrorMessage && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-center text-sm mb-2">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded mx-4 mt-3 text-center text-sm">
             {lastErrorMessage}
           </div>
         )}
-        <button
-          onClick={onClose}
-          className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm"
-        >
-          閉じる {scanCount > 0 && `(${scanCount}個追加済み)`}
-        </button>
+        <div className="px-4 py-2">
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-base"
+          >
+            閉じる {scanCount > 0 && `(${scanCount}個追加済み)`}
+          </button>
+        </div>
       </div>
     </div>
   )
