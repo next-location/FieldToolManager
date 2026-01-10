@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 // PATCH /api/staff/[id] - スタッフ編集
@@ -220,7 +220,16 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       }
     }
 
-    // 論理削除
+    // Supabase Authからユーザーを削除
+    const supabaseAdmin = createAdminClient()
+    const { error: authDeleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
+
+    if (authDeleteError) {
+      console.error('Auth user delete error:', authDeleteError)
+      return NextResponse.json({ error: '認証ユーザーの削除に失敗しました' }, { status: 500 })
+    }
+
+    // usersテーブルから論理削除
     const { error: deleteError } = await supabase
       .from('users')
       .update({ deleted_at: new Date().toISOString() })
