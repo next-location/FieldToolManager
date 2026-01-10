@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { SlidersHorizontal } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { SlidersHorizontal, ChevronDown } from 'lucide-react'
 import { AddStaffModal } from './AddStaffModal'
 import { EditStaffModal } from './EditStaffModal'
 import { DeleteConfirmModal } from './DeleteConfirmModal'
@@ -54,6 +54,8 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
   const [editingStaff, setEditingStaff] = useState<User | null>(null)
   const [deletingStaff, setDeletingStaff] = useState<User | null>(null)
   const [historyStaff, setHistoryStaff] = useState<User | null>(null)
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   const isAdmin = userRole === 'admin' || userRole === 'super_admin'
   const isManager = userRole === 'manager'
@@ -139,6 +141,17 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
   useEffect(() => {
     fetchStaff()
   }, [search, departmentFilter, roleFilter, statusFilter, page])
+
+  // メニュー外クリックで閉じる
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenMenuId(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   // アカウント有効化/無効化
   const handleToggleActive = async (userId: string) => {
@@ -471,66 +484,94 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
                       : '未ログイン'}
                   </td>
                   {canManageStaff && (
-                    <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end items-center gap-1">
-                        {isAdmin && (
-                          <button
-                            onClick={() => setHistoryStaff(user)}
-                            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all hover:shadow-sm"
-                            title="変更履歴"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                          </button>
-                        )}
-                        {canEditUser(user) && (
-                          <button
-                            onClick={() => setEditingStaff(user)}
-                            className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-all hover:shadow-sm"
-                            title="編集"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                          </button>
-                        )}
-                        {isAdmin && (
-                          <button
-                            onClick={() => handlePasswordReset(user.id, user.name)}
-                            className="p-2 text-orange-600 hover:text-orange-900 hover:bg-orange-50 rounded-lg transition-all hover:shadow-sm"
-                            title="パスワードリセット"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                            </svg>
-                          </button>
-                        )}
-                        {isAdmin && (
-                          <button
-                            onClick={() => handleToggleActive(user.id)}
-                            className={`p-2 rounded-lg transition-all hover:shadow-sm ${
-                              user.is_active
-                                ? 'text-yellow-600 hover:text-yellow-900 hover:bg-yellow-50'
-                                : 'text-green-600 hover:text-green-900 hover:bg-green-50'
-                            }`}
-                            title={user.is_active ? '無効化' : '有効化'}
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={user.is_active ? "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" : "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"} />
-                            </svg>
-                          </button>
-                        )}
-                        {canEditUser(user) && user.role !== 'admin' && (
-                          <button
-                            onClick={() => setDeletingStaff(user)}
-                            className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-all hover:shadow-sm"
-                            title="削除"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="relative inline-block text-left" ref={openMenuId === user.id ? menuRef : null}>
+                        <button
+                          onClick={() => setOpenMenuId(openMenuId === user.id ? null : user.id)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          操作
+                          <ChevronDown className="w-4 h-4" />
+                        </button>
+
+                        {openMenuId === user.id && (
+                          <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                            <div className="py-1">
+                              {isAdmin && (
+                                <button
+                                  onClick={() => {
+                                    setHistoryStaff(user)
+                                    setOpenMenuId(null)
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  変更履歴
+                                </button>
+                              )}
+                              {canEditUser(user) && (
+                                <button
+                                  onClick={() => {
+                                    setEditingStaff(user)
+                                    setOpenMenuId(null)
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                  編集
+                                </button>
+                              )}
+                              {isAdmin && (
+                                <button
+                                  onClick={() => {
+                                    handlePasswordReset(user.id, user.name)
+                                    setOpenMenuId(null)
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                  </svg>
+                                  パスワードリセット
+                                </button>
+                              )}
+                              {isAdmin && (
+                                <button
+                                  onClick={() => {
+                                    handleToggleActive(user.id)
+                                    setOpenMenuId(null)
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={user.is_active ? "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" : "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"} />
+                                  </svg>
+                                  {user.is_active ? '無効化' : '有効化'}
+                                </button>
+                              )}
+                              {canEditUser(user) && user.role !== 'admin' && (
+                                <>
+                                  <div className="border-t border-gray-100"></div>
+                                  <button
+                                    onClick={() => {
+                                      setDeletingStaff(user)
+                                      setOpenMenuId(null)
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50 flex items-center gap-2"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                    削除
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </div>
                         )}
                       </div>
                     </td>
@@ -600,67 +641,95 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
               {/* 操作ボタン */}
               {canManageStaff && (
                 <div className="px-4 pb-4">
-                  <div className="grid grid-cols-2 gap-2">
-                    {isAdmin && (
-                      <button
-                        onClick={() => setHistoryStaff(user)}
-                        className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span>履歴</span>
-                      </button>
-                    )}
-                    {canEditUser(user) && (
-                      <button
-                        onClick={() => setEditingStaff(user)}
-                        className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        <span>編集</span>
-                      </button>
-                    )}
-                    {isAdmin && (
-                      <button
-                        onClick={() => handlePasswordReset(user.id, user.name)}
-                        className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-orange-700 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                        </svg>
-                        <span>リセット</span>
-                      </button>
-                    )}
-                    {isAdmin && (
-                      <button
-                        onClick={() => handleToggleActive(user.id)}
-                        className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
-                          user.is_active
-                            ? 'text-yellow-700 bg-yellow-50 hover:bg-yellow-100'
-                            : 'text-green-700 bg-green-50 hover:bg-green-100'
-                        }`}
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={user.is_active ? "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" : "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"} />
-                        </svg>
-                        <span>{user.is_active ? '無効化' : '有効化'}</span>
-                      </button>
+                  <div className="relative" ref={openMenuId === user.id ? menuRef : null}>
+                    <button
+                      onClick={() => setOpenMenuId(openMenuId === user.id ? null : user.id)}
+                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                    >
+                      操作
+                      <ChevronDown className="w-4 h-4" />
+                    </button>
+
+                    {openMenuId === user.id && (
+                      <div className="absolute left-0 right-0 z-10 mt-2 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                        <div className="py-1">
+                          {isAdmin && (
+                            <button
+                              onClick={() => {
+                                setHistoryStaff(user)
+                                setOpenMenuId(null)
+                              }}
+                              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              変更履歴
+                            </button>
+                          )}
+                          {canEditUser(user) && (
+                            <button
+                              onClick={() => {
+                                setEditingStaff(user)
+                                setOpenMenuId(null)
+                              }}
+                              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                              編集
+                            </button>
+                          )}
+                          {isAdmin && (
+                            <button
+                              onClick={() => {
+                                handlePasswordReset(user.id, user.name)
+                                setOpenMenuId(null)
+                              }}
+                              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                              </svg>
+                              パスワードリセット
+                            </button>
+                          )}
+                          {isAdmin && (
+                            <button
+                              onClick={() => {
+                                handleToggleActive(user.id)
+                                setOpenMenuId(null)
+                              }}
+                              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={user.is_active ? "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 15.636 5.636m12.728 12.728L5.636 5.636" : "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"} />
+                              </svg>
+                              {user.is_active ? '無効化' : '有効化'}
+                            </button>
+                          )}
+                          {canEditUser(user) && user.role !== 'admin' && (
+                            <>
+                              <div className="border-t border-gray-100"></div>
+                              <button
+                                onClick={() => {
+                                  setDeletingStaff(user)
+                                  setOpenMenuId(null)
+                                }}
+                                className="w-full text-left px-4 py-3 text-sm text-red-700 hover:bg-red-50 flex items-center gap-3"
+                              >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                削除
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
                     )}
                   </div>
-                  {canEditUser(user) && user.role !== 'admin' && (
-                    <button
-                      onClick={() => setDeletingStaff(user)}
-                      className="w-full mt-2 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                      <span>削除</span>
-                    </button>
-                  )}
                 </div>
               )}
             </div>
