@@ -186,7 +186,12 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
       </div>
 
       {/* 下部情報 */}
-      <div className="bg-white border-t px-4 py-3" style={{ paddingBottom: '10px' }}>
+      <div
+        className="bg-white border-t px-4 py-3"
+        style={{
+          paddingBottom: 'calc(env(safe-area-inset-bottom) + 10px)'
+        }}
+      >
         {scanCount > 0 && (
           <div className="bg-blue-50 border border-blue-200 text-blue-700 px-3 py-2 rounded text-center mb-2">
             <span className="font-semibold">{scanCount}個</span>のQRコードを読み取りました
