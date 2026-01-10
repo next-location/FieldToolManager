@@ -336,9 +336,9 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
       {/* ステータスバー + スキャン済み情報（固定表示） */}
       {mode === 'bulk' ? (
-        <div className="bg-white border-t flex flex-col">
+        <div className="bg-white border-t flex flex-col pb-safe">
           {/* スキャン数 + 最後にスキャンしたアイテム */}
-          <div className="bg-gray-50 px-4 py-3 border-b flex-shrink-0">
+          <div className="bg-gray-50 px-4 py-3 border-b flex-shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm font-medium text-gray-700">
                 スキャン済み: <span className="text-blue-600 text-lg font-bold">{scannedItems.length}</span>個
@@ -353,7 +353,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
             {/* 最後にスキャンしたアイテム */}
             {lastScannedItem && (
-              <div className="bg-white border border-green-200 rounded-lg p-2 mt-2">
+              <div className="bg-white border border-green-200 rounded-lg p-2 mt-2 mb-2">
                 <div className="flex items-center space-x-2">
                   <span className="text-green-500 text-lg">✓</span>
                   <div className="flex-1">
@@ -369,7 +369,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
           </div>
 
           {/* アクションボタン */}
-          <div className="p-4 flex-shrink-0">
+          <div className="p-4 flex-shrink-0" style={{ paddingBottom: 'max(1rem, calc(env(safe-area-inset-bottom) + 1rem))' }}>
             <button
               onClick={handleComplete}
               disabled={scannedItems.length === 0}

@@ -12,6 +12,9 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      spacing: {
+        'safe': 'env(safe-area-inset-bottom)',
+      },
       keyframes: {
         slideUp: {
           '0%': { transform: 'translateY(100%)' },
