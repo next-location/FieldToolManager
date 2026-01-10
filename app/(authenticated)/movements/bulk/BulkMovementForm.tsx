@@ -73,6 +73,11 @@ export function BulkMovementForm({
   // 選択された道具の状態（スキャン済みIDで初期化）
   const [selectedToolIds, setSelectedToolIds] = useState<string[]>(scannedItemIds)
   const selectedToolIdsRef = useRef<Set<string>>(new Set(scannedItemIds))
+
+  // デバッグ：スキャンされたIDと実際のtoolItemsのIDを確認
+  console.log('scannedItemIds:', scannedItemIds)
+  console.log('toolItems IDs:', toolItems.map(t => t.id))
+  console.log('selectedTools after filter:', selectedToolIds.map((id) => toolItems.find((t) => t.id === id)))
   const [searchQuery, setSearchQuery] = useState('')
   const [showCamera, setShowCamera] = useState(false)
 
