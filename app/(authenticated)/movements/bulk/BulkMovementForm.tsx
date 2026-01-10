@@ -540,7 +540,7 @@ export function BulkMovementForm({
                       >
                         <div className="font-medium text-sm">{tool.tools?.name || '不明'}</div>
                         <div className="text-xs text-gray-500">
-                          {tool.serial_number} • {tool.tools?.model_number || '-'}
+                          {tool.serial_number}{tool.tools?.model_number ? ` • ${tool.tools.model_number}` : ''}
                         </div>
                         <div className="text-xs text-gray-500">
                           現在位置:{' '}
@@ -645,7 +645,7 @@ export function BulkMovementForm({
                 <div className="flex-1">
                   <div className="font-medium text-sm">{tool.tools?.name || '不明'}</div>
                   <div className="text-xs text-gray-500">
-                    {tool.serial_number} • {tool.tools?.model_number || '-'}
+                    {tool.serial_number}{tool.tools?.model_number ? ` • ${tool.tools.model_number}` : ''}
                   </div>
                   <div className="text-xs text-gray-500">
                     現在位置:{' '}

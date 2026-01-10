@@ -103,18 +103,29 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
     <div className="fixed inset-0 bg-white z-50 flex flex-col">
       {/* html5-qrcodeの点滅するボーダーを無効化 */}
       <style jsx global>{`
+        /* 全ての枠線・アウトラインを無効化 */
         #qr-reader,
         #qr-reader *,
-        #qr-reader video {
+        #qr-reader video,
+        #qr-reader__scan_region,
+        #qr-reader__scan_region video,
+        #qr-reader__dashboard,
+        #qr-reader__dashboard_section,
+        #qr-reader__camera_selection {
           border: none !important;
           outline: none !important;
           box-shadow: none !important;
+        }
+
+        /* アニメーションも無効化 */
+        #qr-reader *,
+        #qr-reader video {
           animation: none !important;
           transition: none !important;
         }
       `}</style>
 
-      {/* ヘッダー */}
+      {/* ヘッダー（最小限） */}
       <div className="bg-blue-600 text-white px-4 py-3 flex items-center justify-between shadow-md">
         <button onClick={onClose} className="p-1">
           <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,7 +133,7 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
           </svg>
         </button>
         <h1 className="text-lg font-medium">QRコードをスキャン</h1>
-        <div className="w-6" />
+        <div className="w-6" /> {/* バランス用のスペーサー */}
       </div>
 
       {/* カメラビュー */}
