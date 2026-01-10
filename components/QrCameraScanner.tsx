@@ -100,7 +100,7 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
   }, [])
 
   return (
-    <div className="fixed inset-0 bg-white z-50 flex flex-col">
+    <div className="fixed inset-0 bg-white z-[100] flex flex-col">
       {/* html5-qrcodeの点滅するボーダーを無効化 */}
       <style jsx global>{`
         /* 全ての枠線・アウトラインを無効化 */
@@ -189,7 +189,7 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
       <div
         className="bg-white border-t px-4 py-3"
         style={{
-          paddingBottom: 'calc(env(safe-area-inset-bottom) + 80px)'
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 120px)'
         }}
       >
         {scanCount > 0 && (
