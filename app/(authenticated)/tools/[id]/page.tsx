@@ -125,12 +125,17 @@ export default async function ToolDetailPage({
           </div>
         </div>
         <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
-            <div>
-              <h3 className="text-lg leading-6 font-medium text-gray-900">個別アイテム一覧（全{toolItems?.length || 0}台）</h3>
-              <p className="mt-1 max-w-2xl text-sm text-gray-500">各物理的な道具の詳細情報</p>
+          {/* スマホ: 縦並び、PC: 横並び */}
+          <div className="px-4 py-5 sm:px-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+              <div className="flex-1">
+                <h3 className="text-base sm:text-lg leading-6 font-medium text-gray-900">個別アイテム一覧（全{toolItems?.length || 0}台）</h3>
+                <p className="mt-1 text-xs sm:text-sm text-gray-500">各物理的な道具の詳細情報</p>
+              </div>
+              <div className="sm:flex-shrink-0">
+                <AddToolItemButton toolId={tool.id} toolName={tool.name} />
+              </div>
             </div>
-            <AddToolItemButton toolId={tool.id} toolName={tool.name} />
           </div>
           <div className="border-t border-gray-200">
             <ToolItemQRCodeList

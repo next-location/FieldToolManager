@@ -84,30 +84,36 @@ export function ToolItemQRCodeList({
               id={`item-${item.id}`}
               className={`px-4 py-4 sm:px-6 ${item_id === item.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''}`}
             >
-              <div className="flex items-center justify-between">
+              {/* スマホ: 縦並び、PC: 横並び */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex-1">
                   <div className="flex items-center">
-                    <p className="text-sm font-medium text-gray-900">#{item.serial_number}</p>
+                    <Link
+                      href={`/tool-items/${item.id}`}
+                      className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline"
+                    >
+                      #{item.serial_number}
+                    </Link>
                     <span className={`ml-3 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}`}>
                       {statusText}
                     </span>
                   </div>
                   <div className="mt-2 flex flex-col gap-1 text-sm text-gray-500">
                     <div className="flex items-center">
-                      <span className="text-xs text-gray-400 w-24">現在地:</span>
-                      <span>📍 {locationText}</span>
+                      <span className="text-xs text-gray-400 w-20 sm:w-24">現在地:</span>
+                      <span className="text-xs sm:text-sm">📍 {locationText}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 w-24">QRコード:</span>
+                      <span className="text-xs text-gray-400 w-20 sm:w-24">QRコード:</span>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleQRClick(item)}
-                          className="hover:opacity-75 transition-opacity cursor-pointer"
+                          className="hover:opacity-75 transition-opacity cursor-pointer flex-shrink-0"
                           title="クリックしてQRコードを印刷"
                         >
-                          <QRCodeDisplay value={item.qr_code} size={60} />
+                          <QRCodeDisplay value={item.qr_code} size={50} />
                         </button>
-                        <span className="text-xs font-mono text-gray-400">
+                        <span className="text-xs font-mono text-gray-400 hidden sm:inline">
                           {item.qr_code.substring(0, 8)}...
                         </span>
                         <button
@@ -121,10 +127,17 @@ export function ToolItemQRCodeList({
                   </div>
                   {item.notes && <p className="mt-1 text-xs text-gray-500">📝 {item.notes}</p>}
                 </div>
-                <div className="flex items-center space-x-2">
+                {/* スマホ: ボタンを横並びで表示 */}
+                <div className="flex items-center gap-2 sm:flex-col sm:space-y-2 sm:gap-0">
+                  <Link
+                    href={`/tool-items/${item.id}`}
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center px-3 py-2 border border-gray-300 rounded text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 whitespace-nowrap"
+                  >
+                    📄 詳細
+                  </Link>
                   <Link
                     href={`/movements/new?tool_item_id=${item.id}`}
-                    className="inline-flex items-center px-3 py-1 border border-blue-600 rounded text-xs font-medium text-blue-600 bg-white hover:bg-blue-50"
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center px-3 py-2 border border-blue-600 rounded text-xs font-medium text-blue-600 bg-white hover:bg-blue-50 whitespace-nowrap"
                   >
                     📦 移動
                   </Link>

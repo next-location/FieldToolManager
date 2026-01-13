@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { QRScanner } from './QRScanner'
 import { QRScannerMobile } from './QRScannerMobile'
 
-type TabType = 'bulk' | 'info' | 'inventory' | 'location'
+type TabType = 'bulk' | 'info' | 'location'
 
 interface QRScanTabsProps {
   showTabs?: boolean
@@ -29,12 +29,7 @@ export function QRScanTabs({ showTabs = true }: QRScanTabsProps) {
     {
       id: 'info' as TabType,
       name: '道具確認',
-      description: '道具の詳細情報・状態・履歴を確認',
-    },
-    {
-      id: 'inventory' as TabType,
-      name: '在庫確認',
-      description: '現在の在庫状況と場所を確認',
+      description: '道具の詳細情報・現在地・状態・履歴を確認',
     },
     {
       id: 'location' as TabType,
@@ -117,18 +112,9 @@ export function QRScanTabs({ showTabs = true }: QRScanTabsProps) {
               {activeTab === 'info' && (
                 <div>
                   <p className="text-gray-600 mb-4">
-                    道具のQRコードをスキャンすると、詳細情報が表示されます
+                    道具のQRコードをスキャンすると、詳細情報・現在地・履歴が表示されます
                   </p>
                   <QRScanner mode="info" />
-                </div>
-              )}
-
-              {activeTab === 'inventory' && (
-                <div>
-                  <p className="text-gray-600 mb-4">
-                    道具をスキャンして現在の在庫状況を確認できます
-                  </p>
-                  <QRScanner mode="inventory" />
                 </div>
               )}
 

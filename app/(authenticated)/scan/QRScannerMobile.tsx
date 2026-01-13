@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ChevronLeft, X } from 'lucide-react'
 
-type ScanMode = 'bulk' | 'info' | 'inventory' | 'location'
+type ScanMode = 'bulk' | 'info' | 'location'
 
 interface QRScannerMobileProps {
   mode: ScanMode
@@ -318,7 +318,6 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
     switch (mode) {
       case 'bulk': return '道具を移動'
       case 'info': return '道具確認'
-      case 'inventory': return '在庫確認'
       case 'location': return '倉庫/現場確認'
       default: return 'QRスキャン'
     }
@@ -483,11 +482,10 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
           </div>
         </div>
       ) : (
-        // その他のモード（info、inventory、location）用の下部UI
+        // その他のモード（info、location）用の下部UI
         <div className="bg-white border-t p-4">
           <p className="text-center text-gray-600 text-sm">
             {mode === 'info' && '道具のQRコードをスキャンしてください'}
-            {mode === 'inventory' && '在庫確認するQRコードをスキャンしてください'}
             {mode === 'location' && '倉庫や現場のQRコードをスキャンしてください'}
           </p>
         </div>

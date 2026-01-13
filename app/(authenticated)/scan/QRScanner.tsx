@@ -5,7 +5,7 @@ import { Html5Qrcode, CameraDevice } from 'html5-qrcode'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-type ScanMode = 'single' | 'bulk' | 'info' | 'inventory' | 'location'
+type ScanMode = 'single' | 'bulk' | 'info' | 'location'
 
 interface QRScannerProps {
   mode?: ScanMode
