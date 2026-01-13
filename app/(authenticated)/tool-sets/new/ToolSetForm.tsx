@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
+import { QrCameraScanner } from '@/components/QrCameraScanner'
 
 type ToolItem = {
   id: string
   serial_number: string
+  qr_code: string
   current_location: string
   current_site_id: string | null
   status: string
@@ -30,8 +32,13 @@ type ToolSetFormProps = {
 
 export function ToolSetForm({ toolItems, action }: ToolSetFormProps) {
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([])
+  const selectedItemIdsRef = useRef<Set<string>>(new Set())
   const [searchTerm, setSearchTerm] = useState('')
   const [isScrolled, setIsScrolled] = useState(false)
+  const [showCamera, setShowCamera] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [scanSuccess, setScanSuccess] = useState(false)
+  const [lastScannedTool, setLastScannedTool] = useState<string | null>(null)
 
   useEffect(() => {
     let lastScrollY = window.scrollY
@@ -58,10 +65,57 @@ export function ToolSetForm({ toolItems, action }: ToolSetFormProps) {
 
   const toggleItem = (itemId: string) => {
     if (selectedItemIds.includes(itemId)) {
+      selectedItemIdsRef.current.delete(itemId)
       setSelectedItemIds(selectedItemIds.filter((id) => id !== itemId))
     } else {
+      selectedItemIdsRef.current.add(itemId)
       setSelectedItemIds([...selectedItemIds, itemId])
     }
+  }
+
+  // QRコードスキャン処理
+  const handleQrScan = async (qrCode: string): Promise<{ success: boolean; message?: string }> => {
+    const trimmedQr = qrCode.trim()
+    if (!trimmedQr) {
+      return { success: false, message: 'QRコードが空です' }
+    }
+
+    // QRコードで道具を検索
+    const tool = toolItems.find((item) => item.qr_code === trimmedQr)
+
+    if (!tool) {
+      setError('QRコードが見つかりません')
+      setTimeout(() => setError(null), 3000)
+      return { success: false, message: 'QRコードが見つかりません' }
+    }
+
+    // 他のセットに登録済みチェック
+    if (tool.isRegistered) {
+      setError(`この道具は既に「${tool.registeredSetName}」に登録されています`)
+      setTimeout(() => setError(null), 3000)
+      return { success: false, message: `既に「${tool.registeredSetName}」に登録済み` }
+    }
+
+    // Setを使って重複チェック（即座に反映）
+    if (selectedItemIdsRef.current.has(tool.id)) {
+      setError('この道具は既に選択されています')
+      setTimeout(() => setError(null), 3000)
+      return { success: false, message: 'この道具は既に選択されています' }
+    }
+
+    // Setに追加（即座に反映）
+    selectedItemIdsRef.current.add(tool.id)
+
+    // 状態を更新
+    setSelectedItemIds((prev) => [...prev, tool.id])
+    setLastScannedTool(`${tool.tools?.name || '不明'} (${tool.serial_number})`)
+    setScanSuccess(true)
+    setTimeout(() => {
+      setScanSuccess(false)
+      setLastScannedTool(null)
+    }, 2000)
+
+    return { success: true }
   }
 
   const filteredItems = toolItems.filter((item) => {
@@ -137,6 +191,36 @@ export function ToolSetForm({ toolItems, action }: ToolSetFormProps) {
               </span>
             </label>
           </div>
+
+          {/* QRスキャンボタン */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <p className="text-sm text-gray-600">QRスキャンまたは検索して道具を選択</p>
+            <button
+              type="button"
+              onClick={() => setShowCamera(true)}
+              className="w-full sm:w-auto px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+            >
+              📷 QRコードをスキャン
+            </button>
+          </div>
+
+          {/* 成功メッセージ */}
+          {scanSuccess && lastScannedTool && (
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded flex items-center gap-2 animate-pulse mb-4">
+              <span className="text-2xl">✓</span>
+              <div>
+                <div className="font-semibold">読み取り成功！</div>
+                <div className="text-sm">{lastScannedTool}</div>
+              </div>
+            </div>
+          )}
+
+          {/* エラー表示 */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+              {error}
+            </div>
+          )}
 
           {/* 検索ボックス */}
           <div className="mb-4">
@@ -282,6 +366,14 @@ export function ToolSetForm({ toolItems, action }: ToolSetFormProps) {
           <Plus className={`${isScrolled ? 'h-5 w-5' : 'h-6 w-6'}`} />
         </button>
       </div>
+
+      {/* QRカメラスキャナー */}
+      {showCamera && (
+        <QrCameraScanner
+          onScan={handleQrScan}
+          onClose={() => setShowCamera(false)}
+        />
+      )}
     </form>
   )
 }
