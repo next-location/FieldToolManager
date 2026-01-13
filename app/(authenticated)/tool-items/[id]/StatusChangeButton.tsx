@@ -41,7 +41,7 @@ export function StatusChangeButton({ toolItemId, currentStatus }: StatusChangeBu
     setError(null)
 
     try {
-      const result = await updateToolItemStatus(toolItemId, changeType, notes)
+      const result = await updateToolItemStatus(toolItemId, changeType, notes.trim() || undefined)
 
       if (result.success) {
         closeModal()
