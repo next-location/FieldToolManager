@@ -3,6 +3,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { CompleteSiteButton } from './CompleteSiteButton'
 import { DeleteSiteButton } from './DeleteSiteButton'
+import { QRCodeDisplay } from './QRCodeDisplay'
 
 export default async function SiteDetailPage({
   params,
@@ -72,6 +73,7 @@ export default async function SiteDetailPage({
       `
       *,
       tool:tools (name, model_number),
+      tool_item:tool_items (serial_number),
       user:users!tool_movements_performed_by_fkey (name)
     `
     )
@@ -165,6 +167,14 @@ export default async function SiteDetailPage({
                 </p>
               </div>
             </div>
+
+            {/* QRコード表示 */}
+            {site.qr_code && (
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">現場QRコード</h3>
+                <QRCodeDisplay value={site.qr_code} size={200} label={site.name} />
+              </div>
+            )}
           </div>
 
           {/* 現場にある道具 */}
@@ -256,7 +266,9 @@ export default async function SiteDetailPage({
             </h2>
             {movements && movements.length > 0 ? (
               <div className="space-y-4">
-                {movements.map((movement) => (
+                {movements.map((movement) => {
+                  const toolItem = Array.isArray(movement.tool_item) ? movement.tool_item[0] : movement.tool_item
+                  return (
                   <div
                     key={movement.id}
                     className="border-l-4 border-blue-500 pl-4 py-2"
@@ -265,6 +277,11 @@ export default async function SiteDetailPage({
                       <div>
                         <p className="font-medium text-gray-900">
                           {movement.tool?.name || '不明な道具'}
+                          {toolItem?.serial_number && (
+                            <span className="ml-2 text-sm text-gray-600 font-normal">
+                              (#{toolItem.serial_number})
+                            </span>
+                          )}
                         </p>
                         <p className="text-sm text-gray-600">
                           {movement.movement_type === 'check_out'
@@ -285,7 +302,8 @@ export default async function SiteDetailPage({
                       </p>
                     </div>
                   </div>
-                ))}
+                  )
+                })}
               </div>
             ) : (
               <p className="text-gray-500 text-center py-8">
