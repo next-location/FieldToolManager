@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import ToolSetsPageFAB from '@/components/tool-sets/ToolSetsPageFAB'
+import ToolSetsList from '@/components/tool-sets/ToolSetsList'
 
 export default async function ToolSetsPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
@@ -52,45 +53,7 @@ export default async function ToolSetsPage() {
         )}
 
         {toolSetsWithCounts && toolSetsWithCounts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {toolSetsWithCounts.map((set) => (
-              <div
-                key={set.id}
-                className="bg-white rounded-lg shadow hover:shadow-md transition-shadow"
-              >
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900">{set.name}</h3>
-                      {set.description && (
-                        <p className="mt-1 text-sm text-gray-600">{set.description}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                    <span>🔧 {set.itemCount}個の道具</span>
-                    <span>{new Date(set.created_at).toLocaleDateString('ja-JP')}</span>
-                  </div>
-
-                  <div className="flex space-x-2">
-                    <Link
-                      href={`/tool-sets/${set.id}`}
-                      className="flex-1 text-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                    >
-                      詳細
-                    </Link>
-                    <Link
-                      href={`/movements/new?tool_set_id=${set.id}`}
-                      className="flex-1 text-center px-3 py-2 border border-blue-600 rounded-md text-sm font-medium text-blue-600 bg-white hover:bg-blue-50"
-                    >
-                      📦 セット移動
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <ToolSetsList initialToolSets={toolSetsWithCounts} />
         ) : (
           <div className="bg-white shadow sm:rounded-lg">
             <div className="px-4 py-12 text-center">
