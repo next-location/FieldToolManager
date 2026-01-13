@@ -28,15 +28,46 @@ lastUpdated: "2025-01-13"
     font-size: 0.95rem;
     line-height: 1.7;
   }
-  .manual-image {
+  .manual-image-wrapper {
+    position: relative;
+    display: inline-block;
     width: 180px;
     max-width: 100%;
+    margin: 1rem 0;
+  }
+  .manual-image {
+    width: 100%;
     height: auto;
     display: block;
-    margin: 1rem 0;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.12);
     border: 1px solid #e5e7eb;
+  }
+  .marker {
+    position: absolute;
+    border: 3px solid #ef4444;
+    pointer-events: none;
+    box-sizing: border-box;
+  }
+  .marker-circle {
+    border-radius: 50%;
+  }
+  .marker-rect {
+    border-radius: 6px;
+  }
+  .marker-badge {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background-color: #ef4444;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    pointer-events: none;
   }
   .note-box {
     padding: 0.875rem 1rem;
@@ -130,9 +161,17 @@ lastUpdated: "2025-01-13"
 
 ### 1. QRボタンをタップ
 
-スマートフォン下部のナビゲーションバーにある「**QR**」ボタン（赤丸の位置）をタップします。
+スマートフォン下部のナビゲーションバーにある「**QR**」ボタンをタップします。
 
-<img src="/images/manual/qr-step1-tap-qr-button.png" className="manual-image" alt="QRボタンをタップ" />
+<div className="manual-image-wrapper">
+  <img src="/images/manual/qr-step1-tap-qr-button.png" className="manual-image" alt="QRボタンをタップ" />
+  <div className="marker marker-circle" style={{
+    bottom: '2.8%',
+    left: 'calc(50% - 8px)',
+    width: '16px',
+    height: '16px'
+  }}></div>
+</div>
 
 </div>
 
@@ -142,7 +181,29 @@ lastUpdated: "2025-01-13"
 
 上部のタブで「**道具を移動**」が選択されていることを確認し（①）、「**スキャン開始**」ボタンをタップします（②）。
 
-<img src="/images/manual/qr-step2-3-check-tab-and-scan.png" className="manual-image" alt="タブとスキャン開始" />
+<div className="manual-image-wrapper">
+  <img src="/images/manual/qr-step2-3-check-tab-and-scan.png" className="manual-image" alt="タブとスキャン開始" />
+  <div className="marker marker-rect" style={{
+    top: '10.6%',
+    left: '5.2%',
+    width: '34.2%',
+    height: '3.5%'
+  }}></div>
+  <div className="marker-badge" style={{
+    top: '9.5%',
+    left: '2%'
+  }}>①</div>
+  <div className="marker marker-rect" style={{
+    top: '72%',
+    left: '12.6%',
+    width: '86.3%',
+    height: '7.1%'
+  }}></div>
+  <div className="marker-badge" style={{
+    top: '70.5%',
+    left: '7%'
+  }}>②</div>
+</div>
 
 </div>
 
@@ -152,7 +213,9 @@ lastUpdated: "2025-01-13"
 
 移動させたい道具のQRコードをカメラでスキャンします（複数スキャン可能）。
 
-<img src="/images/manual/qr-step4-scan-qr-code.png" className="manual-image" alt="QRコードをスキャン" />
+<div className="manual-image-wrapper">
+  <img src="/images/manual/qr-step4-scan-qr-code.png" className="manual-image" alt="QRコードをスキャン" />
+</div>
 
 <div className="note-box">
 <strong>⚠️ 注意</strong>
@@ -167,7 +230,15 @@ lastUpdated: "2025-01-13"
 
 スキャンが完了したら、「**完了して移動先を選ぶ**」ボタンをタップします。
 
-<img src="/images/manual/qr-step6-tap-complete.png" className="manual-image" alt="完了して移動先を選ぶ" />
+<div className="manual-image-wrapper">
+  <img src="/images/manual/qr-step6-tap-complete.png" className="manual-image" alt="完了して移動先を選ぶ" />
+  <div className="marker marker-rect" style={{
+    bottom: '3.5%',
+    left: '5.2%',
+    width: '86.3%',
+    height: '5.6%'
+  }}></div>
+</div>
 
 </div>
 
@@ -177,7 +248,15 @@ lastUpdated: "2025-01-13"
 
 移動先の種類（倉庫/現場/修理）を選択します。
 
-<img src="/images/manual/qr-step7-select-destination-type.png" className="manual-image" alt="移動先選択" />
+<div className="manual-image-wrapper">
+  <img src="/images/manual/qr-step7-select-destination-type.png" className="manual-image" alt="移動先選択" />
+  <div className="marker marker-rect" style={{
+    top: '32.5%',
+    left: '12.6%',
+    width: '83.3%',
+    height: '19.7%'
+  }}></div>
+</div>
 
 </div>
 
@@ -187,7 +266,9 @@ lastUpdated: "2025-01-13"
 
 移動先で「現場」を選んだ場合、現場のリストから選択します。
 
-<img src="/images/manual/qr-step8-select-site.png" className="manual-image" alt="現場選択" />
+<div className="manual-image-wrapper">
+  <img src="/images/manual/qr-step8-select-site.png" className="manual-image" alt="現場選択" />
+</div>
 
 </div>
 
@@ -197,7 +278,15 @@ lastUpdated: "2025-01-13"
 
 「**移動を実行**」ボタンをタップします。
 
-<img src="/images/manual/qr-step9-tap-execute.png" className="manual-image" alt="移動を実行" />
+<div className="manual-image-wrapper">
+  <img src="/images/manual/qr-step9-tap-execute.png" className="manual-image" alt="移動を実行" />
+  <div className="marker marker-rect" style={{
+    bottom: '2%',
+    left: '32.7%',
+    width: '61%',
+    height: '4.6%'
+  }}></div>
+</div>
 
 </div>
 
@@ -207,7 +296,9 @@ lastUpdated: "2025-01-13"
 
 移動完了メッセージが表示されたら成功です。
 
-<img src="/images/manual/qr-step10-success.png" className="manual-image" alt="移動完了" />
+<div className="manual-image-wrapper">
+  <img src="/images/manual/qr-step10-success.png" className="manual-image" alt="移動完了" />
+</div>
 
 </div>
 
@@ -219,9 +310,17 @@ lastUpdated: "2025-01-13"
 
 ### 1. メニューボタンをタップ
 
-スマートフォン下部のナビゲーションバーにある「**メニュー**」ボタン（赤丸の位置）をタップします。
+スマートフォン下部のナビゲーションバーにある「**メニュー**」ボタンをタップします。
 
-<img src="/images/manual/set-step1-tap-menu-button.png" className="manual-image" alt="メニューボタンをタップ" />
+<div className="manual-image-wrapper">
+  <img src="/images/manual/set-step1-tap-menu-button.png" className="manual-image" alt="メニューボタンをタップ" />
+  <div className="marker marker-circle" style={{
+    bottom: '2.8%',
+    right: '6%',
+    width: '16px',
+    height: '16px'
+  }}></div>
+</div>
 
 </div>
 
@@ -231,7 +330,15 @@ lastUpdated: "2025-01-13"
 
 サイドメニューから「**移動管理 > 道具移動**」をタップします。
 
-<img src="/images/manual/set-step2-tap-tool-move.png" className="manual-image" alt="道具移動を選択" />
+<div className="manual-image-wrapper">
+  <img src="/images/manual/set-step2-tap-tool-move.png" className="manual-image" alt="道具移動を選択" />
+  <div className="marker marker-rect" style={{
+    top: '27%',
+    left: '7.4%',
+    width: '66.7%',
+    height: '4.2%'
+  }}></div>
+</div>
 
 </div>
 
@@ -241,7 +348,15 @@ lastUpdated: "2025-01-13"
 
 移動先を選択します（手順は「パターン1」の手順5-6と同じ）。
 
-<img src="/images/manual/set-step3-select-destination.png" className="manual-image" alt="移動先選択" />
+<div className="manual-image-wrapper">
+  <img src="/images/manual/set-step3-select-destination.png" className="manual-image" alt="移動先選択" />
+  <div className="marker marker-rect" style={{
+    top: '32.5%',
+    left: '12.6%',
+    width: '83.3%',
+    height: '19.7%'
+  }}></div>
+</div>
 
 </div>
 
@@ -251,7 +366,15 @@ lastUpdated: "2025-01-13"
 
 「移動する道具の選択方法」で「**道具セット**」タブを選択します。
 
-<img src="/images/manual/set-step4-select-set-tab.png" className="manual-image" alt="道具セットタブを選択" />
+<div className="manual-image-wrapper">
+  <img src="/images/manual/set-step4-select-set-tab.png" className="manual-image" alt="道具セットタブを選択" />
+  <div className="marker marker-rect" style={{
+    top: '58%',
+    left: '47.4%',
+    width: '29.7%',
+    height: '4.2%'
+  }}></div>
+</div>
 
 </div>
 
@@ -261,7 +384,15 @@ lastUpdated: "2025-01-13"
 
 移動したい道具セットを選択します。
 
-<img src="/images/manual/set-step5-select-tool-set.png" className="manual-image" alt="道具セットを選択" />
+<div className="manual-image-wrapper">
+  <img src="/images/manual/set-step5-select-tool-set.png" className="manual-image" alt="道具セットを選択" />
+  <div className="marker marker-rect" style={{
+    top: '24%',
+    left: '7.4%',
+    width: '89.1%',
+    height: '5.6%'
+  }}></div>
+</div>
 
 </div>
 
@@ -271,7 +402,15 @@ lastUpdated: "2025-01-13"
 
 「**移動を実行**」ボタンをタップします（パターン1の手順7の画像と同じ）。
 
-<img src="/images/manual/qr-step9-tap-execute.png" className="manual-image" alt="移動を実行" />
+<div className="manual-image-wrapper">
+  <img src="/images/manual/qr-step9-tap-execute.png" className="manual-image" alt="移動を実行" />
+  <div className="marker marker-rect" style={{
+    bottom: '2%',
+    left: '32.7%',
+    width: '61%',
+    height: '4.6%'
+  }}></div>
+</div>
 
 </div>
 
@@ -281,7 +420,9 @@ lastUpdated: "2025-01-13"
 
 移動完了メッセージが表示されたら成功です（パターン1の手順8の画像と同じ）。
 
-<img src="/images/manual/qr-step10-success.png" className="manual-image" alt="移動完了" />
+<div className="manual-image-wrapper">
+  <img src="/images/manual/qr-step10-success.png" className="manual-image" alt="移動完了" />
+</div>
 
 </div>
 
