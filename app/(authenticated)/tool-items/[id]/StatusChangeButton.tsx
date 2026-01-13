@@ -41,17 +41,9 @@ export function StatusChangeButton({ toolItemId, currentStatus }: StatusChangeBu
     setError(null)
 
     try {
-      const formData = new FormData()
-      formData.append('tool_item_id', toolItemId)
-      formData.append('status', changeType)
-      formData.append('movement_type', changeType) // loss, disposal, maintenance
-      formData.append('notes', notes)
+      const result = await updateToolItemStatus(toolItemId, changeType, notes)
 
-      const result = await updateToolItemStatus(formData)
-
-      if (result.error) {
-        setError(result.error)
-      } else {
+      if (result.success) {
         closeModal()
         router.refresh()
       }
