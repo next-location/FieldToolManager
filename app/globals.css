@@ -135,11 +135,11 @@ body {
   color: #6b7280;
 }
 
-@media (max-width: 640px) {
+@media screen and (max-width: 640px) {
   .prose .manual-step {
-    padding: 1rem;
+    padding: 1rem !important;
   }
   .prose .manual-image-wrapper {
-    width: 160px;
+    width: 160px !important;
   }
 }
