@@ -258,53 +258,6 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
       }
     }
 
-    // 現在地の一貫性チェック
-    if (scannedItems.length > 0) {
-      const firstItem = scannedItems[0]
-      const firstItemLocation = firstItem.currentLocation
-
-      console.log('[BULK] Location check:', {
-        firstItemLocation,
-        currentLocation: toolItem.current_location,
-        firstItemSiteId: firstItem.siteId,
-        currentSiteId: toolItem.current_site_id
-      })
-
-      // 現在地が異なる場合はエラー
-      if (toolItem.current_location !== firstItemLocation) {
-        const locationNames: Record<string, string> = {
-          warehouse: '倉庫',
-          site: '現場',
-          lost: '紛失'
-        }
-        const firstLocationName = locationNames[firstItemLocation] || firstItemLocation
-        const currentLocationName = locationNames[toolItem.current_location] || toolItem.current_location
-
-        setError(
-          `[DEBUG] 現在地が異なる道具は同時に選択できません。\n\n` +
-          `選択済み: ${firstLocationName} (${firstItemLocation})\n` +
-          `スキャンした道具: ${currentLocationName} (${toolItem.current_location})\n\n` +
-          `同じ場所にある道具のみスキャンしてください。`
-        )
-        setTimeout(() => setError(null), 8000)
-        return
-      }
-
-      // 現場の場合、同じ現場かチェック
-      if (toolItem.current_location === 'site') {
-        if (toolItem.current_site_id !== firstItem.siteId) {
-          setError(
-            `[DEBUG] 異なる現場の道具は同時に選択できません。\n\n` +
-            `1つ目の現場ID: ${firstItem.siteId}\n` +
-            `今回の現場ID: ${toolItem.current_site_id}\n\n` +
-            `同じ現場にある道具のみスキャンしてください。`
-          )
-          setTimeout(() => setError(null), 8000)
-          return
-        }
-      }
-    }
-
     const newItem: ScannedItem = {
       id: toolItem.id,
       qrCode,
@@ -315,7 +268,58 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
       timestamp: new Date()
     }
 
-    setScannedItems(prev => [...prev, newItem])
+    // 現在地の一貫性チェック（setStateのコールバックで最新の値を使用）
+    setScannedItems(prev => {
+      if (prev.length > 0) {
+        const firstItem = prev[0]
+        const firstItemLocation = firstItem.currentLocation
+
+        console.log('[BULK] Location check:', {
+          firstItemLocation,
+          currentLocation: newItem.currentLocation,
+          firstItemSiteId: firstItem.siteId,
+          currentSiteId: newItem.siteId
+        })
+
+        // 現在地が異なる場合はエラー
+        if (newItem.currentLocation !== firstItemLocation) {
+          const locationNames: Record<string, string> = {
+            warehouse: '倉庫',
+            site: '現場',
+            lost: '紛失'
+          }
+          const firstLocationName = locationNames[firstItemLocation] || firstItemLocation
+          const currentLocationName = locationNames[newItem.currentLocation] || newItem.currentLocation
+
+          setError(
+            `[DEBUG] 現在地が異なる道具は同時に選択できません。\n\n` +
+            `選択済み: ${firstLocationName} (${firstItemLocation})\n` +
+            `スキャンした道具: ${currentLocationName} (${newItem.currentLocation})\n\n` +
+            `同じ場所にある道具のみスキャンしてください。`
+          )
+          setTimeout(() => setError(null), 8000)
+          return prev // 追加せずに現在の配列を返す
+        }
+
+        // 現場の場合、同じ現場かチェック
+        if (newItem.currentLocation === 'site') {
+          if (newItem.siteId !== firstItem.siteId) {
+            setError(
+              `[DEBUG] 異なる現場の道具は同時に選択できません。\n\n` +
+              `1つ目の現場ID: ${firstItem.siteId}\n` +
+              `今回の現場ID: ${newItem.siteId}\n\n` +
+              `同じ現場にある道具のみスキャンしてください。`
+            )
+            setTimeout(() => setError(null), 8000)
+            return prev // 追加せずに現在の配列を返す
+          }
+        }
+      }
+
+      // チェックOK: 新しいアイテムを追加
+      return [...prev, newItem]
+    })
+
     setLastScannedItem(newItem) // 最後にスキャンしたアイテムを記録
   }
 
