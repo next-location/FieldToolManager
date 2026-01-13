@@ -758,14 +758,16 @@ export function BulkMovementForm({
                       : '修理中'}
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveTool(tool.id)}
-                  disabled={isSubmitting}
-                  className="ml-4 text-red-600 hover:text-red-700 text-sm"
-                >
-                  削除
-                </button>
+                {selectionMode === 'individual' && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTool(tool.id)}
+                    disabled={isSubmitting}
+                    className="ml-4 text-red-600 hover:text-red-700 text-sm"
+                  >
+                    削除
+                  </button>
+                )}
               </div>
             ))}
           </div>
