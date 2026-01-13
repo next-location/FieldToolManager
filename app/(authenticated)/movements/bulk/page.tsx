@@ -70,14 +70,24 @@ export default async function BulkMovementPage({
   // 道具セットアイテムを取得
   const { data: toolSetItems } = await supabase
     .from('tool_set_items')
-    .select('tool_set_id, tool_item_id')
+    .select('tool_set_id, tool_item_id, tool_sets!inner(id, name)')
     .in('tool_set_id', (toolSetsRaw || []).map(s => s.id))
 
-  // toolItems と tools を結合
+  // セット登録済み道具のマップを作成（tool_item_id -> セット名）
+  const toolItemToSetMap = new Map<string, string>()
+  ;(toolSetItems || []).forEach(item => {
+    if (item.tool_sets) {
+      toolItemToSetMap.set(item.tool_item_id, (item.tool_sets as any).name)
+    }
+  })
+
+  // toolItems と tools を結合し、セット登録情報を追加
   const toolsMap = new Map((tools || []).map(t => [t.id, t]))
   const formattedToolItems = (toolItems || []).map((item: any) => ({
     ...item,
-    tools: toolsMap.get(item.tool_id) || null
+    tools: toolsMap.get(item.tool_id) || null,
+    inToolSet: toolItemToSetMap.has(item.id),
+    toolSetName: toolItemToSetMap.get(item.id) || null
   }))
 
   // 道具セットとアイテムを結合
@@ -114,6 +124,7 @@ export default async function BulkMovementPage({
             scannedItemIds={scannedItemIds}
             organizationId={organizationId}
             userId={userId}
+            userRole={userRole}
           />
         </div>
       </div>

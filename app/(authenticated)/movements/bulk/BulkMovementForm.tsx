@@ -19,6 +19,8 @@ interface ToolItem {
     name: string
     model_number: string
   } | null
+  inToolSet?: boolean
+  toolSetName?: string | null
 }
 
 interface Site {
@@ -49,6 +51,7 @@ interface BulkMovementFormProps {
   scannedItemIds: string[]
   organizationId: string
   userId: string
+  userRole: string
 }
 
 type DestinationType = 'warehouse' | 'site' | 'repair'
@@ -62,9 +65,13 @@ export function BulkMovementForm({
   scannedItemIds,
   organizationId,
   userId,
+  userRole,
 }: BulkMovementFormProps) {
   const router = useRouter()
   const supabase = createClient()
+
+  // リーダー以上かどうか
+  const canRemoveFromSet = userRole === 'admin' || userRole === 'manager' || userRole === 'leader'
 
   // 移動先の状態
   const [destinationType, setDestinationType] = useState<DestinationType>('warehouse')
@@ -113,6 +120,45 @@ export function BulkMovementForm({
       return { success: false, message: 'この道具は既に選択されています' }
     }
 
+    // セット登録済み道具のチェック
+    if (tool.inToolSet) {
+      if (!canRemoveFromSet) {
+        // 一般スタッフ：選択不可
+        setError(`この道具はセット「${tool.toolSetName}」に登録されています。個別移動はできません。`)
+        setTimeout(() => setError(null), 5000)
+        return {
+          success: false,
+          message: `この道具はセット「${tool.toolSetName}」に登録されています。個別移動はできません。`
+        }
+      } else {
+        // リーダー以上：確認ダイアログ
+        const confirmed = window.confirm(
+          `この道具はセット「${tool.toolSetName}」に登録されています。\n\nセットから解除して個別移動しますか？`
+        )
+        if (!confirmed) {
+          return { success: false, message: 'キャンセルしました' }
+        }
+
+        // セットから解除
+        try {
+          const { error: removeError } = await supabase
+            .from('tool_set_items')
+            .delete()
+            .eq('tool_item_id', tool.id)
+
+          if (removeError) {
+            setError(`セット解除に失敗: ${removeError.message}`)
+            setTimeout(() => setError(null), 5000)
+            return { success: false, message: `セット解除に失敗: ${removeError.message}` }
+          }
+        } catch (err) {
+          setError('セット解除中にエラーが発生しました')
+          setTimeout(() => setError(null), 5000)
+          return { success: false, message: 'セット解除中にエラーが発生しました' }
+        }
+      }
+    }
+
     // Setに追加（即座に反映）
     selectedToolIdsRef.current.add(tool.id)
 
@@ -129,8 +175,43 @@ export function BulkMovementForm({
   }
 
   // 検索して手動で道具を追加
-  const handleAddTool = (toolId: string) => {
+  const handleAddTool = async (toolId: string) => {
     if (selectedToolIds.includes(toolId)) return
+
+    const tool = toolItems.find(t => t.id === toolId)
+    if (!tool) return
+
+    // セット登録済み道具のチェック
+    if (tool.inToolSet) {
+      if (!canRemoveFromSet) {
+        // 一般スタッフ：選択不可
+        setError(`この道具はセット「${tool.toolSetName}」に登録されています。個別移動はできません。`)
+        return
+      } else {
+        // リーダー以上：確認ダイアログ
+        const confirmed = window.confirm(
+          `この道具はセット「${tool.toolSetName}」に登録されています。\n\nセットから解除して個別移動しますか？`
+        )
+        if (!confirmed) return
+
+        // セットから解除
+        try {
+          const { error: removeError } = await supabase
+            .from('tool_set_items')
+            .delete()
+            .eq('tool_item_id', toolId)
+
+          if (removeError) {
+            setError(`セット解除に失敗しました: ${removeError.message}`)
+            return
+          }
+        } catch (err) {
+          setError('セット解除中にエラーが発生しました')
+          return
+        }
+      }
+    }
+
     selectedToolIdsRef.current.add(toolId)
     setSelectedToolIds((prev) => [...prev, toolId])
     setSearchQuery('')
@@ -508,32 +589,50 @@ export function BulkMovementForm({
                   <div className="p-4 text-center text-gray-500">該当する道具がありません</div>
                 ) : (
                   <div className="divide-y divide-gray-200">
-                    {filteredTools.slice(0, 20).map((tool) => (
-                      <button
-                        key={tool.id}
-                        type="button"
-                        onClick={() => handleAddTool(tool.id)}
-                        disabled={selectedToolIds.includes(tool.id) || isSubmitting}
-                        className={`w-full text-left p-3 hover:bg-gray-50 transition-colors ${
-                          selectedToolIds.includes(tool.id)
-                            ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                            : ''
-                        }`}
-                      >
-                        <div className="font-medium text-sm">{tool.tools?.name || '不明'}</div>
-                        <div className="text-xs text-gray-500">
-                          {tool.serial_number}{tool.tools?.model_number ? ` • ${tool.tools.model_number}` : ''}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          現在位置:{' '}
-                          {tool.current_location === 'warehouse'
-                            ? '倉庫'
-                            : tool.current_location === 'site'
-                            ? '現場'
-                            : '修理中'}
-                        </div>
-                      </button>
-                    ))}
+                    {filteredTools.slice(0, 20).map((tool) => {
+                      const isSelected = selectedToolIds.includes(tool.id)
+                      const inSet = tool.inToolSet
+                      const isDisabled = isSelected || isSubmitting || (inSet && !canRemoveFromSet)
+
+                      return (
+                        <button
+                          key={tool.id}
+                          type="button"
+                          onClick={() => handleAddTool(tool.id)}
+                          disabled={isDisabled}
+                          className={`w-full text-left p-3 transition-colors ${
+                            isDisabled
+                              ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                              : 'hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="font-medium text-sm">{tool.tools?.name || '不明'}</div>
+                            {inSet && (
+                              <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
+                                セット: {tool.toolSetName}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {tool.serial_number}{tool.tools?.model_number ? ` • ${tool.tools.model_number}` : ''}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            現在位置:{' '}
+                            {tool.current_location === 'warehouse'
+                              ? '倉庫'
+                              : tool.current_location === 'site'
+                              ? '現場'
+                              : '修理中'}
+                          </div>
+                          {inSet && !canRemoveFromSet && (
+                            <div className="text-xs text-red-600 mt-1">
+                              ⚠️ セット登録済みのため選択できません
+                            </div>
+                          )}
+                        </button>
+                      )
+                    })}
                   </div>
                 )}
               </div>
