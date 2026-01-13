@@ -13,11 +13,7 @@ export default async function WarehouseLocationDetailPage({
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // ユーザー情報を取得
-
-  // 管理者権限チェック
-  if (!['admin', 'super_admin'].includes(userRole)) {
-    redirect('/')
-  }
+  // 全ユーザーが閲覧可能（編集・削除は管理者のみ）
 
   // 倉庫位置情報を取得
   const { data: location, error } = await supabase
@@ -90,20 +86,22 @@ export default async function WarehouseLocationDetailPage({
                 ID: {location.id.substring(0, 8)}...
               </p>
             </div>
-            <div className="flex gap-3">
-              <Link
-                href={`/warehouse-locations/${location.id}/edit`}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                編集
-              </Link>
-              <DeleteWarehouseLocationButton
-                locationId={location.id}
-                locationName={location.display_name}
-                hasTools={toolCount > 0}
-                hasConsumables={consumableCount > 0}
-              />
-            </div>
+            {['admin', 'super_admin'].includes(userRole) && (
+              <div className="flex gap-3">
+                <Link
+                  href={`/warehouse-locations/${location.id}/edit`}
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  編集
+                </Link>
+                <DeleteWarehouseLocationButton
+                  locationId={location.id}
+                  locationName={location.display_name}
+                  hasTools={toolCount > 0}
+                  hasConsumables={consumableCount > 0}
+                />
+              </div>
+            )}
           </div>
 
           <div className="border-t border-gray-200">
