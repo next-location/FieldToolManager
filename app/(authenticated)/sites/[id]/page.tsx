@@ -31,10 +31,12 @@ export default async function SiteDetailPage({
     `
     )
     .eq('id', id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .single()
 
   if (error || !site) {
+    console.error('[Site Detail] Error fetching site:', { id, organizationId, error })
     notFound()
   }
 
@@ -43,6 +45,7 @@ export default async function SiteDetailPage({
     .from('tools')
     .select('id, name, model_number, status, quantity')
     .eq('current_site_id', id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
 
@@ -56,6 +59,7 @@ export default async function SiteDetailPage({
       user:users!tool_movements_performed_by_fkey (name)
     `
     )
+    .eq('organization_id', organizationId)
     .or(`from_site_id.eq.${id},to_site_id.eq.${id}`)
     .order('created_at', { ascending: false })
     .limit(10)

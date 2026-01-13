@@ -16,10 +16,12 @@ export default async function EditSitePage({
     .from('sites')
     .select('*')
     .eq('id', id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .single()
 
   if (error || !site) {
+    console.error('[Site Edit] Error fetching site:', { id, organizationId, error })
     notFound()
   }
 
