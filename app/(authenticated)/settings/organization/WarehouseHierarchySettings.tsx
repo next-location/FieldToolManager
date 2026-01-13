@@ -30,14 +30,25 @@ export function WarehouseHierarchySettings({
 }) {
   const router = useRouter()
   const [templates, setTemplates] = useState<TemplateInput[]>(() => {
+    // 常に5階層分のテンプレートを用意
+    const allLevels = [1, 2, 3, 4, 5]
+
     if (initialTemplates.length > 0) {
-      return initialTemplates.map((t) => ({
-        level: t.level,
-        label: t.label,
-        is_active: t.is_active,
-      }))
+      // 既存のテンプレートをマージ
+      return allLevels.map((level) => {
+        const existing = initialTemplates.find((t) => t.level === level)
+        if (existing) {
+          return {
+            level: existing.level,
+            label: existing.label,
+            is_active: existing.is_active,
+          }
+        }
+        return { level, label: '', is_active: false }
+      })
     }
-    // デフォルト: 3階層
+
+    // デフォルト: 3階層（残り2階層は無効）
     return [
       { level: 1, label: 'エリア', is_active: true },
       { level: 2, label: '棚', is_active: true },

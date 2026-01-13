@@ -95,30 +95,31 @@ export default async function SiteDetailPage({
           </div>
 
           {/* 現場情報 */}
-          <div className="bg-white shadow rounded-lg p-6 mb-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                  {site.name}
-                </h1>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`px-3 py-1 text-sm font-semibold rounded-full ${
-                      site.is_active
-                        ? 'bg-green-100 text-green-800'
-                        : site.completed_at
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}
-                  >
-                    {site.is_active ? '稼働中' : site.completed_at ? '完了' : '停止中'}
-                  </span>
-                </div>
+          <div className="bg-white shadow rounded-lg p-4 sm:p-6 mb-6">
+            {/* ヘッダー部分 - モバイル対応 */}
+            <div className="mb-4">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+                {site.name}
+              </h1>
+              <div className="flex items-center gap-2 mb-3">
+                <span
+                  className={`px-3 py-1 text-sm font-semibold rounded-full ${
+                    site.is_active
+                      ? 'bg-green-100 text-green-800'
+                      : site.completed_at
+                      ? 'bg-blue-100 text-blue-800'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}
+                >
+                  {site.is_active ? '稼働中' : site.completed_at ? '完了' : '停止中'}
+                </span>
               </div>
-              <div className="flex gap-2">
+
+              {/* ボタンエリア - モバイルでは縦並び */}
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Link
                   href={`/sites/${id}/edit`}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm font-medium"
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm font-medium text-center"
                 >
                   編集
                 </Link>
@@ -177,80 +178,66 @@ export default async function SiteDetailPage({
             )}
           </div>
 
-          {/* 現場にある道具 */}
-          <div className="bg-white shadow rounded-lg p-6 mb-6">
+          {/* 現場にある道具 - モバイル対応カード形式 */}
+          <div className="bg-white shadow rounded-lg p-4 sm:p-6 mb-6">
             <h2 className="text-lg font-bold text-gray-900 mb-4">
               この現場にある道具 ({toolItems?.length || 0}個)
             </h2>
             {toolItems && toolItems.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        道具名
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        型番
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        個別番号
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        状態
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {toolItems.map((item) => {
-                      const tool = Array.isArray(item.tool) ? item.tool[0] : item.tool
-                      return (
-                      <tr key={item.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
+              <div className="space-y-3">
+                {toolItems.map((item) => {
+                  const tool = Array.isArray(item.tool) ? item.tool[0] : item.tool
+                  return (
+                    <div key={item.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
                           <Link
                             href={`/tools/${tool?.id}`}
-                            className="text-blue-600 hover:text-blue-800"
+                            className="text-base font-medium text-blue-600 hover:text-blue-800"
                           >
                             {tool?.name}
                           </Link>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {tool?.model_number || '-'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          <Link
-                            href={`/tool-items/${item.id}`}
-                            className="text-blue-600 hover:text-blue-800"
-                          >
-                            #{item.serial_number}
-                          </Link>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                              item.status === 'available'
-                                ? 'bg-green-100 text-green-800'
-                                : item.status === 'in_use'
-                                ? 'bg-blue-100 text-blue-800'
-                                : item.status === 'maintenance'
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-gray-100 text-gray-800'
-                            }`}
-                          >
-                            {item.status === 'available'
-                              ? '利用可能'
+                          {tool?.model_number && (
+                            <p className="text-sm text-gray-500 mt-1">型番: {tool.model_number}</p>
+                          )}
+                        </div>
+                        <span
+                          className={`px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap ml-2 ${
+                            item.status === 'available'
+                              ? 'bg-green-100 text-green-800'
                               : item.status === 'in_use'
-                              ? '使用中'
+                              ? 'bg-blue-100 text-blue-800'
                               : item.status === 'maintenance'
-                              ? 'メンテナンス中'
-                              : item.status}
-                          </span>
-                        </td>
-                      </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}
+                        >
+                          {item.status === 'available'
+                            ? '利用可能'
+                            : item.status === 'in_use'
+                            ? '使用中'
+                            : item.status === 'maintenance'
+                            ? 'メンテナンス中'
+                            : item.status}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Link
+                          href={`/tool-items/${item.id}`}
+                          className="text-sm text-blue-600 hover:text-blue-800"
+                        >
+                          個別番号: #{item.serial_number}
+                        </Link>
+                        <Link
+                          href={`/tool-items/${item.id}`}
+                          className="text-sm text-gray-600 hover:text-gray-900"
+                        >
+                          詳細 →
+                        </Link>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             ) : (
               <p className="text-gray-500 text-center py-8">
@@ -259,48 +246,69 @@ export default async function SiteDetailPage({
             )}
           </div>
 
-          {/* 移動履歴 */}
-          <div className="bg-white shadow rounded-lg p-6">
+          {/* 移動履歴 - モバイル対応 */}
+          <div className="bg-white shadow rounded-lg p-4 sm:p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-4">
               最近の移動履歴
             </h2>
             {movements && movements.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {movements.map((movement) => {
                   const toolItem = Array.isArray(movement.tool_item) ? movement.tool_item[0] : movement.tool_item
                   return (
                   <div
                     key={movement.id}
-                    className="border-l-4 border-blue-500 pl-4 py-2"
+                    className="border border-gray-200 rounded-lg p-4"
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-gray-900">
+                    {/* 上部：道具名とタイプ */}
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900 text-base">
                           {movement.tool?.name || '不明な道具'}
-                          {toolItem?.serial_number && (
-                            <span className="ml-2 text-sm text-gray-600 font-normal">
-                              (#{toolItem.serial_number})
-                            </span>
-                          )}
                         </p>
-                        <p className="text-sm text-gray-600">
-                          {movement.movement_type === 'check_out'
-                            ? '🔵 持ち出し'
-                            : movement.movement_type === 'check_in'
-                            ? '🟢 返却'
-                            : '🔄 移動'}{' '}
-                          | 実施者: {movement.user?.name || '不明'}
-                        </p>
-                        {movement.notes && (
-                          <p className="text-sm text-gray-500 mt-1">
-                            メモ: {movement.notes}
+                        {toolItem?.serial_number && (
+                          <p className="text-sm text-gray-600 mt-1">
+                            個別番号: #{toolItem.serial_number}
                           </p>
                         )}
                       </div>
-                      <p className="text-sm text-gray-500">
-                        {new Date(movement.created_at).toLocaleString('ja-JP')}
-                      </p>
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap ml-2 ${
+                        movement.movement_type === 'check_out'
+                          ? 'bg-blue-100 text-blue-800'
+                          : movement.movement_type === 'check_in'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-purple-100 text-purple-800'
+                      }`}>
+                        {movement.movement_type === 'check_out'
+                          ? '持ち出し'
+                          : movement.movement_type === 'check_in'
+                          ? '返却'
+                          : '移動'}
+                      </span>
                     </div>
+
+                    {/* 中部：実施者 */}
+                    <p className="text-sm text-gray-600 mb-2">
+                      実施者: {movement.user?.name || '不明'}
+                    </p>
+
+                    {/* メモ */}
+                    {movement.notes && (
+                      <p className="text-sm text-gray-500 bg-gray-50 p-2 rounded mb-2">
+                        メモ: {movement.notes}
+                      </p>
+                    )}
+
+                    {/* 下部：日時 */}
+                    <p className="text-xs text-gray-500">
+                      {new Date(movement.created_at).toLocaleString('ja-JP', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
                   </div>
                   )
                 })}
