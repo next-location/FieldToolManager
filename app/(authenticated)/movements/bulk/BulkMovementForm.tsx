@@ -299,6 +299,7 @@ export function BulkMovementForm({
           else if (from === 'site' && to === 'site') movementType = 'transfer'
 
           // 移動履歴を登録
+          console.log('[MOVEMENT INSERT START]', toolItemId, 'from', from, 'to', to)
           const { error: movementError } = await supabase.from('tool_movements').insert({
             organization_id: organizationId,
             performed_by: userId,
@@ -315,7 +316,11 @@ export function BulkMovementForm({
               : null,
           })
 
-          if (movementError) throw movementError
+          if (movementError) {
+            console.error('[MOVEMENT INSERT ERROR]', movementError)
+            throw movementError
+          }
+          console.log('[MOVEMENT INSERT SUCCESS]', toolItemId)
 
           // 道具の現在地を更新
           let updateData: any = {}
@@ -340,6 +345,8 @@ export function BulkMovementForm({
             updateData.warehouse_location_id = null
           }
 
+          console.log('[TOOL UPDATE START]', toolItemId, 'updateData:', updateData)
+
           const { error: updateError } = await supabase
             .from('tool_items')
             .update(updateData)
@@ -354,6 +361,7 @@ export function BulkMovementForm({
 
           successCount++
         } catch (err: any) {
+          console.error('[MOVEMENT ERROR]', toolItemId, err)
           const tool = toolItems.find((t) => t.id === toolItemId)
           const toolName = tool ? `${tool.tools?.name || '不明'} (${tool.serial_number})` : toolItemId
           errors.push(`${toolName}: ${err.message}`)
