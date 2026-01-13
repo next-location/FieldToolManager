@@ -120,13 +120,16 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
           setTimeout(() => setScanSuccess(false), 300)
 
           try {
+            console.log('[QR Scanner] Mode:', mode, 'QR Code:', decodedText)
             // mode === 'bulk' の場合は連続スキャン
             if (mode === 'bulk') {
+              console.log('[QR Scanner] Calling addScannedItem')
               await addScannedItem(decodedText)
               // bulkモードでは処理完了後に再スキャン可能にする
               processingQrRef.current = false
             } else {
               // その他のモードは即座に遷移（処理中フラグは解除しない）
+              console.log('[QR Scanner] Calling handleSingleScan')
               await handleSingleScan(decodedText)
             }
           } catch (error) {
