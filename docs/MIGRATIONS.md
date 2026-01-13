@@ -113,6 +113,71 @@ npm run health-check
 
 ## 3. マイグレーション履歴
 
+### 🔒 RLSポリシー修正: tool_items UPDATE権限を全ユーザーに拡大（2026-01-13）
+
+#### 20260113000001_fix_tool_items_update_policy.sql ✨CRITICAL FIX
+
+**適用日**: 2026-01-13
+**適用環境**: 本番環境（即座に適用済み）
+**影響範囲**: `tool_items`テーブルのUPDATEポリシー
+
+**問題の症状**:
+- 道具移動履歴（`tool_movements`）には記録されるが、道具の現在地（`tool_items.current_location`）が更新されない
+- 移動履歴では「現場」と表示されるのに、道具詳細や移動ページでは「倉庫」のまま
+- 一般ユーザー（leader、staff）が道具を移動できない
+
+**根本原因**:
+既存のRLSポリシー「Admins and managers can update tool items」が`admin`と`manager`のみにUPDATE権限を制限していたため、一般ユーザーによる`tool_items`テーブルの更新が拒否されていた。
+
+**修正内容**:
+```sql
+-- 古い制限的なポリシーを削除
+DROP POLICY IF EXISTS "Admins and managers can update tool items" ON tool_items;
+
+-- 全ユーザーが自組織の道具を更新可能な新ポリシーを作成
+CREATE POLICY "Users can update their organization's tool items"
+ON tool_items
+FOR UPDATE
+USING (
+  organization_id IN (
+    SELECT organization_id FROM users WHERE id = auth.uid()
+  )
+)
+WITH CHECK (
+  organization_id IN (
+    SELECT organization_id FROM users WHERE id = auth.uid()
+  )
+);
+```
+
+**検証方法**:
+```sql
+-- 移動履歴と道具の現在地の整合性を確認
+SELECT
+  tm.created_at as 移動日時,
+  tm.from_location as 移動元,
+  tm.to_location as 移動先,
+  ti.serial_number as シリアル番号,
+  ti.current_location as 道具の現在地,
+  CASE
+    WHEN tm.to_location = ti.current_location THEN '✓ 一致'
+    ELSE '✗ 不一致'
+  END as 状態
+FROM tool_movements tm
+LEFT JOIN tool_items ti ON tm.tool_item_id = ti.id
+ORDER BY tm.created_at DESC
+LIMIT 10;
+```
+
+修正後は全て「✓ 一致」と表示されることを確認済み。
+
+**影響**:
+- ✅ 全てのユーザー（admin, manager, leader, staff）が道具移動可能に
+- ✅ 組織間のデータ分離は維持（`organization_id`チェック）
+- ✅ セキュリティレベルは適切に維持
+
+---
+
 ### 📄 見積もり機能: invoicesテーブルにステータス追加（2025-01-06）
 
 #### 20250106000001_add_estimate_status_to_invoices.sql ✨NEW
