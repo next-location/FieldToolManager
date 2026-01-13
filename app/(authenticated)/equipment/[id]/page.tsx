@@ -67,9 +67,11 @@ export default async function EquipmentDetailPage({
   // 組織設定を取得
   const { data: orgData } = await supabase
     .from('organizations')
-    .select('heavy_equipment_settings')
+    .select('heavy_equipment_settings, qr_print_size')
     .eq('id', organizationId)
     .single()
+
+  const qrSize = orgData?.qr_print_size || 25
 
   const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userRole || '')
 
@@ -98,6 +100,7 @@ export default async function EquipmentDetailPage({
           maintenanceRecords={maintenanceRecords || []}
           organizationSettings={orgData?.heavy_equipment_settings || {}}
           isLeaderOrAdmin={isManagerOrAdmin}
+          qrSize={qrSize}
         />
       </div>
     </div>

@@ -16,6 +16,15 @@ export default async function SiteDetailPage({
   const { userId, organizationId, userRole, supabase } = await requireAuth()
   console.log('[Site Detail] Auth OK - userId:', userId, 'organizationId:', organizationId)
 
+  // 組織のQR印刷サイズ設定を取得
+  const { data: organization } = await supabase
+    .from('organizations')
+    .select('qr_print_size')
+    .eq('id', organizationId)
+    .single()
+
+  const qrSize = organization?.qr_print_size || 25
+
   // 現場詳細を取得
   const { data: site, error } = await supabase
     .from('sites')
@@ -173,7 +182,7 @@ export default async function SiteDetailPage({
             {site.qr_code && (
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">現場QRコード</h3>
-                <QRCodeDisplay value={site.qr_code} size={200} label={site.name} />
+                <QRCodeDisplay value={site.qr_code} size={200} label={site.name} qrSize={qrSize} />
               </div>
             )}
           </div>

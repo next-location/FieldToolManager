@@ -8,9 +8,10 @@ interface QRCodeDisplayProps {
   equipmentName: string
   equipmentCode: string
   size?: number
+  qrSize?: number // 印刷サイズ(mm)
 }
 
-export function QRCodeDisplay({ value, equipmentName, equipmentCode, size = 200 }: QRCodeDisplayProps) {
+export function QRCodeDisplay({ value, equipmentName, equipmentCode, size = 200, qrSize = 25 }: QRCodeDisplayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -90,8 +91,8 @@ export function QRCodeDisplay({ value, equipmentName, equipmentCode, size = 200 
               color: #666;
             }
             img {
-              width: 300px;
-              height: 300px;
+              width: ${qrSize}mm;
+              height: ${qrSize}mm;
               margin: 20px 0;
             }
             .instructions {

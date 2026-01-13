@@ -7,9 +7,10 @@ interface QRCodeDisplayProps {
   value: string
   size?: number
   label?: string
+  qrSize?: number // 印刷サイズ(mm)
 }
 
-export function QRCodeDisplay({ value, size = 200, label }: QRCodeDisplayProps) {
+export function QRCodeDisplay({ value, size = 200, label, qrSize = 25 }: QRCodeDisplayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -61,7 +62,8 @@ export function QRCodeDisplay({ value, size = 200, label }: QRCodeDisplayProps) 
               font-family: sans-serif;
             }
             img {
-              max-width: 400px;
+              width: ${qrSize}mm;
+              height: ${qrSize}mm;
               border: 2px solid #000;
               padding: 20px;
             }
@@ -72,6 +74,7 @@ export function QRCodeDisplay({ value, size = 200, label }: QRCodeDisplayProps) 
             }
             @media print {
               @page {
+                size: A4;
                 margin: 1cm;
               }
             }

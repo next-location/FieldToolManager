@@ -43,6 +43,7 @@ interface EquipmentDetailTabsProps {
   maintenanceRecords: HeavyEquipmentMaintenance[]
   organizationSettings: any
   isLeaderOrAdmin: boolean
+  qrSize?: number
 }
 
 export default function EquipmentDetailTabs({
@@ -51,6 +52,7 @@ export default function EquipmentDetailTabs({
   maintenanceRecords,
   organizationSettings,
   isLeaderOrAdmin,
+  qrSize = 25,
 }: EquipmentDetailTabsProps) {
   const [activeTab, setActiveTab] = useState<'basic' | 'usage' | 'maintenance' | 'cost' | 'qr'>('basic')
 
@@ -757,6 +759,7 @@ export default function EquipmentDetailTabs({
                   equipmentName={equipment.name}
                   equipmentCode={equipment.equipment_code}
                   size={256}
+                  qrSize={qrSize}
                 />
                 <div className="mt-6 p-4 bg-blue-50 rounded-md">
                   <div className="flex">
