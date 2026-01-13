@@ -379,6 +379,16 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
           </div>
         )}
 
+        {/* 右上に閉じるボタン（カメラビュー内の上部に配置） */}
+        {isScanning && (
+          <button
+            onClick={onClose || (() => router.back())}
+            className="absolute top-4 right-4 z-20 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
+          >
+            <X className="w-6 h-6 text-white" />
+          </button>
+        )}
+
         {/* スキャン成功時の視覚的フィードバック */}
         {scanSuccess && (
           <>
@@ -395,7 +405,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
         {/* エラー表示 */}
         {error && (
-          <div className="absolute top-4 left-4 right-4 bg-red-500 text-white p-3 rounded-lg z-30">
+          <div className="absolute top-16 left-4 right-4 bg-red-500 text-white p-3 rounded-lg z-30">
             {error}
           </div>
         )}

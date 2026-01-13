@@ -183,6 +183,18 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
           </div>
         )}
 
+        {/* 右上に閉じるボタン（ヘッダーの下に配置） */}
+        {isScanning && (
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 z-20 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
+          >
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+
         {/* スキャン成功時の視覚的フィードバック */}
         {scanFlash && (
           <>
@@ -199,7 +211,7 @@ export function QrCameraScanner({ onScan, onClose }: QrCameraScannerProps) {
 
         {/* エラー表示 */}
         {error && (
-          <div className="absolute top-4 left-4 right-4 bg-red-500 text-white p-3 rounded-lg z-10">
+          <div className="absolute top-16 left-4 right-4 bg-red-500 text-white p-3 rounded-lg z-10">
             {error}
           </div>
         )}
