@@ -13,7 +13,7 @@ body {
   font-family: system-ui, -apple-system, sans-serif;
 }
 
-/* Manual Page Styles */
+/* Manual Page Styles - Scoped to avoid conflicts with Tailwind Typography */
 .prose .manual-step {
   margin-bottom: 2rem;
   padding: 1.5rem;
@@ -21,14 +21,14 @@ body {
   border-radius: 8px;
   border: 1px solid #e5e7eb;
 }
-.prose .manual-step h3 {
-  margin: 0 0 0.75rem 0;
+.prose .manual-step > h3 {
+  margin: 0 0 0.75rem 0 !important;
   color: #1f2937;
-  font-size: 1.125rem;
+  font-size: 1.125rem !important;
   font-weight: 600;
 }
-.prose .manual-step p {
-  margin: 0.5rem 0;
+.prose .manual-step > p {
+  margin: 0.5rem 0 !important;
   color: #4b5563;
   font-size: 0.95rem;
   line-height: 1.7;
@@ -85,9 +85,10 @@ body {
 .prose .note-box strong {
   color: #92400e;
 }
-.prose .note-box p {
-  margin: 0.25rem 0;
+.prose .note-box > p {
+  margin: 0.25rem 0 !important;
   color: #78350f;
+  font-size: 0.9rem;
 }
 .prose .hint-box {
   padding: 0.875rem 1rem;
@@ -100,9 +101,10 @@ body {
 .prose .hint-box strong {
   color: #1e40af;
 }
-.prose .hint-box p {
-  margin: 0.25rem 0;
+.prose .hint-box > p {
+  margin: 0.25rem 0 !important;
   color: #1e3a8a;
+  font-size: 0.9rem;
 }
 .prose .faq-section {
   margin-top: 2rem;
@@ -111,20 +113,20 @@ body {
   border-radius: 8px;
   border: 1px solid #e5e7eb;
 }
-.prose .faq-section h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1rem;
+.prose .faq-section > h3 {
+  margin: 0 0 0.5rem 0 !important;
+  font-size: 1rem !important;
   font-weight: 600;
   color: #1f2937;
 }
-.prose .faq-section p {
-  margin: 0.5rem 0 0 0;
+.prose .faq-section > p {
+  margin: 0.5rem 0 0 0 !important;
   font-size: 0.9rem;
   color: #6b7280;
 }
-.prose .faq-section ol,
-.prose .faq-section ul {
-  margin: 0.5rem 0 0 0;
+.prose .faq-section > ol,
+.prose .faq-section > ul {
+  margin: 0.5rem 0 0 0 !important;
   padding-left: 1.25rem;
 }
 .prose .faq-section li {
