@@ -92,7 +92,8 @@ export default async function BulkMovementPage({
     ...item,
     tools: toolsMap.get(item.tool_id) || null,
     inToolSet: toolItemToSetMap.has(item.id),
-    toolSetName: toolItemToSetMap.get(item.id) || null
+    toolSetName: toolItemToSetMap.get(item.id) || null,
+    current_site: item.current_site ? [item.current_site] : null
   }))
 
   // 道具セットとアイテムを結合
