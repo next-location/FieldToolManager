@@ -40,6 +40,29 @@ export function ToolSetForm({ toolItems, action }: ToolSetFormProps) {
   const [scanSuccess, setScanSuccess] = useState(false)
   const [lastScannedTool, setLastScannedTool] = useState<string | null>(null)
 
+  // ひらがな・カタカナ変換ヘルパー
+  const toHiragana = (str: string): string => {
+    return str.replace(/[\u30a1-\u30f6]/g, (match) => {
+      const chr = match.charCodeAt(0) - 0x60
+      return String.fromCharCode(chr)
+    })
+  }
+
+  const toKatakana = (str: string): string => {
+    return str.replace(/[\u3041-\u3096]/g, (match) => {
+      const chr = match.charCodeAt(0) + 0x60
+      return String.fromCharCode(chr)
+    })
+  }
+
+  // 検索時にひらがな・カタカナ両方でマッチさせる
+  const normalizeForSearch = (text: string): string => {
+    const lower = text.toLowerCase()
+    const hiragana = toHiragana(lower)
+    const katakana = toKatakana(lower)
+    return `${lower}|${hiragana}|${katakana}`
+  }
+
   useEffect(() => {
     let lastScrollY = window.scrollY
 
@@ -120,12 +143,19 @@ export function ToolSetForm({ toolItems, action }: ToolSetFormProps) {
 
   const filteredItems = toolItems.filter((item) => {
     const tool = item.tools
-    const searchLower = searchTerm.toLowerCase()
-    return (
-      tool?.name?.toLowerCase().includes(searchLower) ||
-      item.serial_number.includes(searchLower) ||
-      tool?.model_number?.toLowerCase().includes(searchLower) ||
-      false
+    const searchNormalized = normalizeForSearch(searchTerm)
+
+    const toolNameNormalized = tool?.name ? normalizeForSearch(tool.name) : ''
+    const serialNumberNormalized = normalizeForSearch(item.serial_number)
+    const modelNumberNormalized = tool?.model_number ? normalizeForSearch(tool.model_number) : ''
+
+    // 検索語の各バリエーション（ひらがな/カタカナ/元の文字）でマッチング
+    const searchVariations = searchNormalized.split('|')
+
+    return searchVariations.some(searchVariation =>
+      toolNameNormalized.includes(searchVariation) ||
+      serialNumberNormalized.includes(searchVariation) ||
+      modelNumberNormalized.includes(searchVariation)
     )
   })
 
