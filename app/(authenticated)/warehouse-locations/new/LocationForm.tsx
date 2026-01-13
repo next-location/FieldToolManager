@@ -6,10 +6,8 @@ import Link from 'next/link'
 type Template = {
   id: string
   level: number
-  level_name: string
-  prefix: string
-  separator: string
-  digit_length: number
+  label: string
+  is_active: boolean
 }
 
 type LocationFormProps = {
@@ -30,20 +28,19 @@ export function LocationForm({ templates, action }: LocationFormProps) {
 
     templates.forEach((template) => {
       const value = levelValues[template.level] || ''
-      if (value) {
-        const paddedValue = value.padStart(template.digit_length, '0')
-        parts.push(`${template.prefix}${paddedValue}`)
+      if (value.trim()) {
+        parts.push(value.trim())
       }
     })
 
-    const code = parts.join(templates[0]?.separator || '-')
+    const code = parts.join('-')
     setGeneratedCode(code)
 
     // 表示名も自動生成
     const names = templates
       .map((template) => {
         const value = levelValues[template.level]
-        return value ? `${template.level_name}${value}` : ''
+        return value?.trim() ? `${template.label}${value.trim()}` : ''
       })
       .filter(Boolean)
 
@@ -78,6 +75,9 @@ export function LocationForm({ templates, action }: LocationFormProps) {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               階層別コード入力
             </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              各階層の値を入力してください。入力した値が自動的にハイフン（-）でつながれて位置コードになります。
+            </p>
             <div className="space-y-4">
               {templates.map((template) => (
                 <div key={template.id}>
@@ -85,10 +85,7 @@ export function LocationForm({ templates, action }: LocationFormProps) {
                     htmlFor={`level-${template.level}`}
                     className="block text-sm font-medium text-gray-700 mb-2"
                   >
-                    {template.level_name} <span className="text-red-500">*</span>
-                    <span className="ml-2 text-xs text-gray-500">
-                      (プレフィックス: {template.prefix}, {template.digit_length}桁)
-                    </span>
+                    {template.label} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -96,10 +93,8 @@ export function LocationForm({ templates, action }: LocationFormProps) {
                     value={levelValues[template.level] || ''}
                     onChange={(e) => handleLevelChange(template.level, e.target.value)}
                     required
-                    maxLength={template.digit_length}
-                    pattern="[0-9]*"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder={`例: ${'1'.padStart(template.digit_length, '0')}`}
+                    placeholder={`例: ${template.level === 1 ? 'A' : template.level === 2 ? '1' : '上'}`}
                   />
                 </div>
               ))}
@@ -124,7 +119,7 @@ export function LocationForm({ templates, action }: LocationFormProps) {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
             />
             <p className="mt-1 text-xs text-gray-500">
-              上記の階層入力から自動的に生成されます
+              上記の階層入力から自動的に生成されます（例: A-1-上）
             </p>
           </div>
 
@@ -144,7 +139,7 @@ export function LocationForm({ templates, action }: LocationFormProps) {
               onChange={(e) => setDisplayName(e.target.value)}
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="例: 1階 A列 1番"
+              placeholder="例: エリアA 棚1 上段"
             />
             <p className="mt-1 text-xs text-gray-500">
               位置を識別しやすい名前を入力してください（自動入力を編集可能）

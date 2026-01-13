@@ -113,6 +113,89 @@ npm run health-check
 
 ## 3. マイグレーション履歴
 
+### 🏗️ 倉庫階層管理システムの型定義修正（2026-01-14）
+
+#### 変更内容
+
+**適用日**: 2026-01-14
+**影響範囲**: フロントエンド型定義のみ（データベースは変更なし）
+**目的**: 倉庫位置登録フォームで階層設定の名前を正しく表示する
+
+**背景**:
+- `warehouse_location_templates`テーブルは既に5階層（level 1-5）に対応済み
+- `WarehouseHierarchySettings`コンポーネントも5階層対応済み
+- しかし、`LocationForm`コンポーネントの型定義が古く、存在しないカラム（`level_name`, `prefix`, `separator`, `digit_length`）を参照していた
+- 実際のテーブルには`label`カラムのみ存在
+
+**修正箇所**:
+`app/(authenticated)/warehouse-locations/new/LocationForm.tsx`
+
+**変更前の型定義**:
+```typescript
+type Template = {
+  id: string
+  level: number
+  level_name: string  // ❌ 存在しないカラム
+  prefix: string      // ❌ 存在しないカラム
+  separator: string   // ❌ 存在しないカラム
+  digit_length: number // ❌ 存在しないカラム
+}
+```
+
+**変更後の型定義**:
+```typescript
+type Template = {
+  id: string
+  level: number
+  label: string       // ✅ 実際のカラム名
+  is_active: boolean  // ✅ 実際のカラム名
+}
+```
+
+**コード生成ロジックの変更**:
+```typescript
+// 変更前: プレフィックスと桁数でコード生成
+const paddedValue = value.padStart(template.digit_length, '0')
+parts.push(`${template.prefix}${paddedValue}`)
+const code = parts.join(templates[0]?.separator || '-')
+
+// 変更後: シンプルにハイフン区切りで連結
+parts.push(value.trim())
+const code = parts.join('-')
+```
+
+**例**:
+- 階層設定: レベル1「エリア」、レベル2「棚」、レベル3「段」
+- 入力: 「A」「1」「上」
+- 生成コード: `A-1-上`
+- 表示名: `エリアA 棚1 段上`
+
+**データベーススキーマ（変更なし）**:
+```sql
+-- warehouse_location_templates テーブルは既に5階層対応済み
+CREATE TABLE warehouse_location_templates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  level INTEGER NOT NULL CHECK (level >= 1 AND level <= 5), -- ✅ 既に5階層対応
+  label TEXT NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  display_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(organization_id, level)
+);
+```
+
+**利用可能な機能**:
+- ✅ 階層設定で1〜5階層を自由に設定可能
+- ✅ 使わない階層は無効化できる（3階層だけ使うなど）
+- ✅ 階層名（label）が倉庫位置登録フォームに反映される
+- ✅ 入力値がハイフン区切りで位置コード化される
+
+**ロールバック**: 型定義の修正のみなので、ロールバック不要
+
+---
+
 ### ✨ 現場QRコード自動生成機能追加（2026-01-14）
 
 #### 20260114_add_qr_code_to_sites.sql
