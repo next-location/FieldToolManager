@@ -76,7 +76,7 @@ export async function deleteWarehouseLocation(id: string) {
 
   const { data: userData } = await supabase
     .from('users')
-    .select('role')
+    .select('organization_id, role')
     .eq('id', user.id)
     .single()
 
@@ -91,10 +91,61 @@ export async function deleteWarehouseLocation(id: string) {
       deleted_at: new Date().toISOString(),
     })
     .eq('id', id)
+    .eq('organization_id', userData.organization_id)
 
   if (error) {
     throw new Error(`削除に失敗しました: ${error.message}`)
   }
 
   revalidatePath('/warehouse-locations')
+}
+
+export async function updateWarehouseLocation(formData: FormData) {
+  const supabase = await createClient()
+
+  const id = formData.get('id') as string
+  const displayName = formData.get('display_name') as string
+  const description = formData.get('description') as string
+
+  // ユーザー情報を取得
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  const { data: userData } = await supabase
+    .from('users')
+    .select('organization_id, role')
+    .eq('id', user.id)
+    .single()
+
+  if (!userData) {
+    throw new Error('ユーザー情報が見つかりません')
+  }
+
+  // 管理者権限チェック
+  if (!['admin', 'super_admin'].includes(userData.role)) {
+    throw new Error('権限がありません')
+  }
+
+  // 更新処理
+  const { error } = await supabase
+    .from('warehouse_locations')
+    .update({
+      display_name: displayName,
+      description: description || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .eq('organization_id', userData.organization_id)
+
+  if (error) {
+    throw new Error(`更新に失敗しました: ${error.message}`)
+  }
+
+  revalidatePath('/warehouse-locations')
+  revalidatePath(`/warehouse-locations/${id}`)
 }

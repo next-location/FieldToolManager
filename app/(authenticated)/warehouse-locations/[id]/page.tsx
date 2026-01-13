@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { QRCodePrint } from '@/components/qr/QRCodePrint'
+import { DeleteWarehouseLocationButton } from '@/components/warehouse-locations/DeleteWarehouseLocationButton'
 
 export default async function WarehouseLocationDetailPage({
   params,
@@ -80,7 +81,7 @@ export default async function WarehouseLocationDetailPage({
 
         {/* 基本情報 */}
         <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+          <div className="px-4 py-5 sm:px-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 倉庫位置詳細
@@ -88,6 +89,20 @@ export default async function WarehouseLocationDetailPage({
               <p className="mt-1 max-w-2xl text-sm text-gray-500">
                 ID: {location.id.substring(0, 8)}...
               </p>
+            </div>
+            <div className="flex gap-3">
+              <Link
+                href={`/warehouse-locations/${location.id}/edit`}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              >
+                編集
+              </Link>
+              <DeleteWarehouseLocationButton
+                locationId={location.id}
+                locationName={location.display_name}
+                hasTools={toolCount > 0}
+                hasConsumables={consumableCount > 0}
+              />
             </div>
           </div>
 
