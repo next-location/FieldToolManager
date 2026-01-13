@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 type TabType = 'tool' | 'consumable' | 'equipment'
 
@@ -70,6 +71,19 @@ export function MovementTabs({
   heavyEquipmentEnabled
 }: MovementTabsProps) {
   const [activeTab, setActiveTab] = useState<TabType>('tool')
+  const searchParams = useSearchParams()
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+
+  // URLパラメータから成功メッセージを取得
+  useEffect(() => {
+    const success = searchParams.get('success')
+    if (success) {
+      setSuccessMessage(decodeURIComponent(success))
+      // 5秒後にメッセージを消す
+      const timer = setTimeout(() => setSuccessMessage(null), 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [searchParams])
 
   // セット移動をグルーピング
   const groupedToolMovements = toolMovements.reduce((acc, movement) => {
@@ -103,6 +117,13 @@ export function MovementTabs({
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 pb-6 sm:px-0 sm:py-6">
         <h1 className="text-lg sm:text-2xl font-bold text-gray-900 mb-6">移動履歴</h1>
+
+        {/* 成功メッセージ */}
+        {successMessage && (
+          <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+            ✓ {successMessage}
+          </div>
+        )}
 
         {/* タブナビゲーション */}
         <div className="mb-6">

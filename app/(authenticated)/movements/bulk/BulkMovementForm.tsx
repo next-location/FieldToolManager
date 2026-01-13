@@ -100,7 +100,6 @@ export function BulkMovementForm({
   // UI状態
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null)
   const [scanSuccess, setScanSuccess] = useState(false)
   const [lastScannedTool, setLastScannedTool] = useState<string | null>(null)
@@ -419,13 +418,7 @@ export function BulkMovementForm({
 
       if (successCount === selectedToolIds.length) {
         // すべて成功
-        setSuccess(`${successCount}件の道具移動が完了しました`)
-        setSelectedToolIds([])
-        selectedToolIdsRef.current.clear()
-        setTimeout(() => {
-          router.push('/movements')
-          router.refresh()
-        }, 2000)
+        router.push(`/movements?success=${encodeURIComponent(`${successCount}件の道具移動が完了しました`)}`)
       } else if (successCount > 0) {
         // 一部成功
         setError(
@@ -474,13 +467,6 @@ export function BulkMovementForm({
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded whitespace-pre-line">
           {error}
-        </div>
-      )}
-
-      {/* 成功メッセージ */}
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
-          ✓ {success}
         </div>
       )}
 
