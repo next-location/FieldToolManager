@@ -28,8 +28,7 @@ export default async function SiteDetailPage({
       ),
       client:clients (
         id,
-        name,
-        code
+        name
       )
     `
     )
@@ -120,7 +119,7 @@ export default async function SiteDetailPage({
                   <p className="text-sm text-gray-600">取引先</p>
                   <p className="text-gray-900">
                     <Link href={`/clients/${site.client.id}`} className="text-blue-600 hover:text-blue-800">
-                      🏢 {site.client.name} ({site.client.code})
+                      🏢 {site.client.name}
                     </Link>
                   </p>
                 </div>
