@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { Plus } from 'lucide-react'
 import { QrCameraScanner } from '@/components/QrCameraScanner'
 
 type ToolItem = {
@@ -34,7 +33,6 @@ export function ToolSetForm({ toolItems, action }: ToolSetFormProps) {
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([])
   const selectedItemIdsRef = useRef<Set<string>>(new Set())
   const [searchTerm, setSearchTerm] = useState('')
-  const [isScrolled, setIsScrolled] = useState(false)
   const [showCamera, setShowCamera] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [scanSuccess, setScanSuccess] = useState(false)
@@ -64,28 +62,6 @@ export function ToolSetForm({ toolItems, action }: ToolSetFormProps) {
     return `${lower}|${hiragana}|${katakana}`
   }
 
-  useEffect(() => {
-    let lastScrollY = window.scrollY
-
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY
-
-      // スクロールダウン時に縮小
-      if (currentScrollY > lastScrollY && currentScrollY > 50) {
-        setIsScrolled(true)
-      } else if (currentScrollY < lastScrollY) {
-        setIsScrolled(false)
-      }
-
-      lastScrollY = currentScrollY
-    }
-
-    window.addEventListener('scroll', handleScroll, { passive: true })
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
-    }
-  }, [])
 
   const toggleItem = (itemId: string) => {
     const item = toolItems.find(t => t.id === itemId)
@@ -420,35 +396,22 @@ export function ToolSetForm({ toolItems, action }: ToolSetFormProps) {
           </p>
         </div>
 
-        {/* ボタン - PCのみ表示 */}
-        <div className="hidden sm:flex justify-end space-x-3 pt-4">
+        {/* ボタン */}
+        <div className="flex justify-end space-x-3 pt-4">
           <Link
             href="/tool-sets"
-            className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             キャンセル
           </Link>
           <button
             type="submit"
             disabled={selectedItemIds.length === 0}
-            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             セットを作成 ({selectedItemIds.length}個)
           </button>
         </div>
-
-        {/* FABボタン - スマホのみ表示 */}
-        <button
-          type="submit"
-          disabled={selectedItemIds.length === 0}
-          className={`sm:hidden fixed right-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-all duration-300 flex items-center justify-center z-40 disabled:opacity-50 disabled:cursor-not-allowed ${
-            isScrolled ? 'w-10 h-10 bottom-20' : 'w-14 h-14 bottom-24'
-          }`}
-          style={{ bottom: isScrolled ? '5rem' : '6rem' }}
-          aria-label="セットを作成"
-        >
-          <Plus className={`${isScrolled ? 'h-5 w-5' : 'h-6 w-6'}`} />
-        </button>
       </div>
 
       {/* QRカメラスキャナー */}

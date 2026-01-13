@@ -300,7 +300,7 @@ export function MovementForm({
                 </label>
                 <div className="space-y-3">
                   {/* 倉庫オプション */}
-                  {selectedItem && selectedItem.current_location !== 'warehouse' && (
+                  {(isToolSetMode || (selectedItem && selectedItem.current_location !== 'warehouse')) && (
                     <div>
                       <button
                         type="button"
@@ -338,7 +338,7 @@ export function MovementForm({
                   )}
 
                   {/* 現場オプション */}
-                  {selectedItem && selectedItem.current_location !== 'repair' && (
+                  {(isToolSetMode || (selectedItem && selectedItem.current_location !== 'repair')) && (
                     <div>
                       <button
                         type="button"
@@ -374,7 +374,7 @@ export function MovementForm({
                   )}
 
                   {/* 修理オプション */}
-                  {selectedItem && selectedItem.current_location !== 'repair' && (
+                  {(isToolSetMode || (selectedItem && selectedItem.current_location !== 'repair')) && (
                     <button
                       type="button"
                       onClick={() => {
@@ -518,7 +518,13 @@ export function MovementForm({
       )}
 
       {/* ボタン */}
-      <div className="flex gap-4 pt-4">
+      <div className="flex justify-end space-x-3 pt-4">
+        <Link
+          href="/movements"
+          className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          キャンセル
+        </Link>
         <button
           type="submit"
           disabled={
@@ -526,20 +532,14 @@ export function MovementForm({
             (!isToolSetMode && !toolItemId) ||
             (destination === 'site' && !toSiteId)
           }
-          className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading
             ? '登録中...'
             : isToolSetMode
-            ? `セット一括移動 (${toolSetItems.length}個)`
-            : '登録する'}
+            ? `一括移動 (${toolSetItems.length}個)`
+            : '登録'}
         </button>
-        <Link
-          href="/movements"
-          className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 font-medium text-center"
-        >
-          キャンセル
-        </Link>
       </div>
     </form>
   )
