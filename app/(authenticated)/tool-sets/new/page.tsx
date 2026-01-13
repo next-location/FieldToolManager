@@ -8,6 +8,11 @@ export default async function NewToolSetPage() {
 
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
+  // リーダー以上のみアクセス可能
+  if (userRole !== 'admin' && userRole !== 'manager' && userRole !== 'leader') {
+    redirect('/tool-sets')
+  }
+
     // 組織のユーザー情報を取得
   const { data: userData } = await supabase
     .from('users')
