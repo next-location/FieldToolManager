@@ -452,7 +452,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
       `}</style>
 
       {/* ヘッダー（最小限） */}
-      <div className="bg-blue-600 text-white px-4 py-3 flex items-center justify-between shadow-md">
+      <div className="bg-blue-600 text-white px-4 py-3 flex items-center justify-between shadow-md flex-shrink-0">
         <button onClick={onClose || (() => router.back())} className="p-1">
           <ChevronLeft className="h-6 w-6" />
         </button>
@@ -466,8 +466,8 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
       </div>
 
       {/* カメラビュー */}
-      <div className="flex-1 relative bg-black">
-        <div id="qr-reader-mobile" className="h-full" />
+      <div className="flex-1 relative bg-black overflow-hidden">
+        <div id="qr-reader-mobile" className="w-full h-full" />
 
         {/* 半透明黒オーバーレイ（QR枠以外を覆う） */}
         {isScanning && (
