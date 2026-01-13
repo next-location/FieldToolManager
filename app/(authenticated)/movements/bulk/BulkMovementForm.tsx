@@ -36,7 +36,6 @@ interface ToolSet {
   id: string
   name: string
   description: string | null
-  status: string
   tool_set_items: {
     tool_item: ToolItem | null
   }[]
