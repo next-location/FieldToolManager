@@ -12,10 +12,6 @@ export default async function SiteDetailPage({
   const { id } = await params
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  const {
-  } = await supabase.auth.getUser()
-
-
   // 現場詳細を取得
   const { data: site, error } = await supabase
     .from('sites')
