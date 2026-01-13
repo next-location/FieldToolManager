@@ -54,6 +54,7 @@ export async function updateOrganizationSettings(
       enable_site_closure_checklist: settings.enable_site_closure_checklist,
       consumable_movement_tracking: settings.consumable_movement_tracking,
       heavy_equipment_enabled: settings.heavy_equipment_enabled,
+      qr_print_size: settings.qr_print_size,
       updated_at: new Date().toISOString(),
     })
     .eq('id', organizationId)
