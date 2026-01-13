@@ -439,6 +439,8 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
           border: none !important;
           outline: none !important;
           box-shadow: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
         }
 
         /* アニメーションも無効化 */
