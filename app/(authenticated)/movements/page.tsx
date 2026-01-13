@@ -6,7 +6,7 @@ export default async function MovementsPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 道具移動履歴を取得
-  const { data: toolMovements, error: movementsError } = await supabase
+  const { data: toolMovements } = await supabase
     .from('tool_movements')
     .select(
       `
@@ -14,7 +14,7 @@ export default async function MovementsPage() {
       tool_items (
         id,
         serial_number,
-        tools (name, model_number)
+        tool_id
       ),
       from_site:sites!tool_movements_from_site_id_fkey (name),
       to_site:sites!tool_movements_to_site_id_fkey (name),
@@ -25,9 +25,22 @@ export default async function MovementsPage() {
     .order('created_at', { ascending: false })
     .limit(100)
 
-  if (movementsError) {
-    console.error('[MOVEMENTS PAGE] Error fetching tool movements:', movementsError)
-  }
+  // 道具マスタを取得
+  const { data: tools } = await supabase
+    .from('tools')
+    .select('id, name, model_number')
+    .eq('organization_id', organizationId)
+    .is('deleted_at', null)
+
+  // toolItemsとtoolsを結合
+  const toolsMap = new Map((tools || []).map(t => [t.id, t]))
+  const formattedToolMovements = (toolMovements || []).map((movement: any) => ({
+    ...movement,
+    tool_items: movement.tool_items ? {
+      ...movement.tool_items,
+      tools: toolsMap.get(movement.tool_items.tool_id) || null
+    } : null
+  }))
 
   // 消耗品移動履歴を取得
   const { data: consumableMovements } = await supabase
@@ -90,7 +103,7 @@ export default async function MovementsPage() {
 
   return (
     <MovementTabs
-      toolMovements={toolMovements || []}
+      toolMovements={formattedToolMovements}
       consumableMovements={consumableMovements || []}
       equipmentMovements={equipmentMovements}
       heavyEquipmentEnabled={orgData?.heavy_equipment_enabled || false}
