@@ -24,7 +24,8 @@ export default async function NewToolSetPage() {
     .eq('id', userId)
     .single()
 
-  // 個別アイテム一覧を取得
+  // 個別アイテム一覧を取得（キャッシュを無効化するため現在時刻を使用）
+  const timestamp = new Date().getTime()
   const { data: toolItems } = await supabase
     .from('tool_items')
     .select(`
@@ -40,6 +41,7 @@ export default async function NewToolSetPage() {
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('serial_number')
+    .limit(1000) // タイムスタンプ: ${timestamp}
 
   // 道具マスタを取得
   const { data: tools } = await supabase
@@ -76,6 +78,17 @@ export default async function NewToolSetPage() {
     isRegistered: registeredItemIds.has(item.id),
     registeredSetName: itemToSetMap.get(item.id) || null
   }))
+
+  // デバッグ：インパクトドライバの現在地を確認
+  const impactDrivers = formattedToolItems.filter((item: any) =>
+    item.tools?.name?.includes('インパクトドライバ') &&
+    ['001', '002', '003'].includes(item.serial_number)
+  )
+  console.log('[DEBUG] インパクトドライバ 001,002,003の現在地:', impactDrivers.map((item: any) => ({
+    serial: item.serial_number,
+    location: item.current_location,
+    site_id: item.current_site_id
+  })))
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
