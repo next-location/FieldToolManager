@@ -306,10 +306,19 @@ export function BulkMovementForm({
     )
   })
 
-  // 選択された道具の情報
+  // 選択された道具の情報（道具名でソート）
   const selectedTools = selectedToolIds
     .map((id) => toolItems.find((t) => t.id === id))
-    .filter(Boolean) as ToolItem[]
+    .filter(Boolean)
+    .sort((a, b) => {
+      const nameA = a?.tools?.name || ''
+      const nameB = b?.tools?.name || ''
+      if (nameA !== nameB) {
+        return nameA.localeCompare(nameB, 'ja')
+      }
+      // 同じ道具名の場合はシリアル番号でソート
+      return (a?.serial_number || '').localeCompare(b?.serial_number || '', 'ja')
+    }) as ToolItem[]
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">

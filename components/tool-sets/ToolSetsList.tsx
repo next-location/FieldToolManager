@@ -102,7 +102,8 @@ export default function ToolSetsList({ initialToolSets }: ToolSetsListProps) {
             {filteredToolSets.map((set) => (
               <li key={set.id}>
                 <div className="px-4 py-4 sm:px-6">
-                  <div className="flex items-center justify-between">
+                  {/* PC: 横並び、スマホ: 縦並び */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-blue-600 truncate">
                         {set.name}
@@ -120,16 +121,17 @@ export default function ToolSetsList({ initialToolSets }: ToolSetsListProps) {
                         )}
                       </div>
                     </div>
-                    <div className="ml-4 flex items-center space-x-2 flex-shrink-0">
+                    {/* スマホ: 情報の下、PC: 右側 */}
+                    <div className="mt-3 flex items-center space-x-2 sm:mt-0 sm:ml-4 sm:flex-shrink-0">
                       <Link
                         href={`/tool-sets/${set.id}`}
-                        className="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                        className="flex-1 sm:flex-none text-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                       >
                         詳細
                       </Link>
                       <Link
                         href={`/movements/new?tool_set_id=${set.id}`}
-                        className="px-3 py-2 border border-blue-600 rounded-md text-sm font-medium text-blue-600 bg-white hover:bg-blue-50"
+                        className="flex-1 sm:flex-none text-center px-3 py-2 border border-blue-600 rounded-md text-sm font-medium text-blue-600 bg-white hover:bg-blue-50"
                       >
                         📦 セット移動
                       </Link>
