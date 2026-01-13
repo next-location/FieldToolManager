@@ -292,9 +292,9 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
           const currentLocationName = locationNames[newItem.currentLocation] || newItem.currentLocation
 
           setError(
-            `[DEBUG] 現在地が異なる道具は同時に選択できません。\n\n` +
-            `選択済み: ${firstLocationName} (${firstItemLocation})\n` +
-            `スキャンした道具: ${currentLocationName} (${newItem.currentLocation})\n\n` +
+            `現在地が異なる道具は同時に選択できません。\n\n` +
+            `選択済み: ${firstLocationName}\n` +
+            `スキャンした道具: ${currentLocationName}\n\n` +
             `同じ場所にある道具のみスキャンしてください。`
           )
           setTimeout(() => setError(null), 8000)
@@ -305,9 +305,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
         if (newItem.currentLocation === 'site') {
           if (newItem.siteId !== firstItem.siteId) {
             setError(
-              `[DEBUG] 異なる現場の道具は同時に選択できません。\n\n` +
-              `1つ目の現場ID: ${firstItem.siteId}\n` +
-              `今回の現場ID: ${newItem.siteId}\n\n` +
+              `異なる現場の道具は同時に選択できません。\n\n` +
               `同じ現場にある道具のみスキャンしてください。`
             )
             setTimeout(() => setError(null), 8000)
@@ -564,10 +562,6 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
                     {lastScannedItem.serialNumber && (
                       <p className="text-sm text-gray-500">#{lastScannedItem.serialNumber}</p>
                     )}
-                    <p className="text-xs text-blue-600 mt-1">
-                      [DEBUG] 現在地: {lastScannedItem.currentLocation}
-                      {lastScannedItem.siteId && ` (現場ID: ${lastScannedItem.siteId.substring(0, 8)}...)`}
-                    </p>
                   </div>
                   <span className="text-sm text-gray-400 font-medium">最新</span>
                 </div>
@@ -634,10 +628,6 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
                           {item.serialNumber && (
                             <p className="text-xs text-gray-500">シリアル: #{item.serialNumber}</p>
                           )}
-                          <p className="text-xs text-blue-600 mt-1">
-                            [DEBUG] 現在地: {item.currentLocation}
-                            {item.siteId && ` (現場ID: ${item.siteId.substring(0, 8)}...)`}
-                          </p>
                         </div>
                       </div>
                       <button
