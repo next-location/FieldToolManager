@@ -104,8 +104,8 @@ export function ToolItemQRCodeList({
                       <span className="text-xs sm:text-sm">📍 {locationText}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 w-20 sm:w-24">QRコード:</span>
-                      <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-400 w-20 sm:w-24 flex-shrink-0">QRコード:</span>
+                      <div className="flex items-center gap-1 flex-wrap">
                         <button
                           onClick={() => handleQRClick(item)}
                           className="hover:opacity-75 transition-opacity cursor-pointer flex-shrink-0"
@@ -113,15 +113,15 @@ export function ToolItemQRCodeList({
                         >
                           <QRCodeDisplay value={item.qr_code} size={50} />
                         </button>
-                        <span className="text-xs font-mono text-gray-400 hidden sm:inline">
-                          {item.qr_code.substring(0, 8)}...
-                        </span>
                         <button
                           onClick={() => handleQRClick(item)}
-                          className="text-xs text-blue-600 hover:text-blue-700 underline"
+                          className="text-xs text-blue-600 hover:text-blue-700 underline flex-shrink-0 whitespace-nowrap"
                         >
                           印刷
                         </button>
+                        <span className="text-xs font-mono text-gray-400 hidden sm:inline">
+                          {item.qr_code.substring(0, 8)}...
+                        </span>
                       </div>
                     </div>
                   </div>
