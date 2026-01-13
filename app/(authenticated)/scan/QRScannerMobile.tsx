@@ -208,8 +208,8 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
     if (itemError || !toolItem) {
       console.error('道具アイテムが見つかりません:', itemError)
-      setError('道具が見つかりませんでした。QRコードを確認してください。')
-      setTimeout(() => setError(null), 5000)
+      setError(`[BULK MODE] 道具が見つかりませんでした。\nQRコード: ${qrCode.substring(0, 8)}...\nエラー: ${itemError?.message || '不明'}`)
+      setTimeout(() => setError(null), 8000)
       return
     }
 
@@ -345,8 +345,8 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
       }
 
       // 現場・倉庫が見つからない場合はエラー
-      setError('現場または倉庫位置のQRコードではありません。\n「倉庫/現場確認」タブでは現場・倉庫位置のQRコードのみスキャンできます。')
-      setTimeout(() => setError(null), 5000)
+      setError(`[LOCATION MODE] 現場または倉庫位置のQRコードではありません。\n「倉庫/現場確認」タブでは現場・倉庫位置のQRコードのみスキャンできます。\nQRコード: ${qrCode.substring(0, 8)}...`)
+      setTimeout(() => setError(null), 8000)
       return
     }
 
@@ -361,8 +361,8 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
     if (toolItem) {
       router.push(`/tool-items/${toolItem.id}`)
     } else {
-      setError('道具が見つかりませんでした')
-      setTimeout(() => setError(null), 3000)
+      setError(`[INFO MODE] 道具が見つかりませんでした。\nQRコード: ${qrCode.substring(0, 8)}...`)
+      setTimeout(() => setError(null), 5000)
     }
   }
 
@@ -443,7 +443,10 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
         <button onClick={onClose || (() => router.back())} className="p-1">
           <ChevronLeft className="h-6 w-6" />
         </button>
-        <h1 className="text-lg font-medium">{getModeTitle()}</h1>
+        <div className="flex flex-col items-center">
+          <h1 className="text-lg font-medium">{getModeTitle()}</h1>
+          <span className="text-xs opacity-75">[MODE: {mode.toUpperCase()}]</span>
+        </div>
         <button onClick={onClose || (() => router.back())} className="p-1 hover:bg-blue-700 rounded-full transition-colors">
           <X className="h-6 w-6" />
         </button>
