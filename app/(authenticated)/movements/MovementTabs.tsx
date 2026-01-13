@@ -16,7 +16,7 @@ interface ToolMovement {
     tools: {
       name: string
       model_number: string
-    }[]
+    } | null
   } | null
   from_site: { name: string } | null
   to_site: { name: string } | null
@@ -266,7 +266,7 @@ export function MovementTabs({
                               href={`/tool-items/${movement.tool_items.id}`}
                               className="text-blue-600 hover:text-blue-800"
                             >
-                              {movement.tool_items.tools[0]?.name || '不明'} #{movement.tool_items.serial_number}
+                              {movement.tool_items.tools?.name || '不明'} #{movement.tool_items.serial_number}
                             </Link>
                           ) : (
                             <span className="text-gray-500">削除済み</span>
@@ -312,7 +312,7 @@ export function MovementTabs({
                           href={`/tool-items/${movement.tool_items.id}`}
                           className="text-sm font-medium text-blue-600"
                         >
-                          {movement.tool_items.tools[0]?.name || '不明'} #{movement.tool_items.serial_number}
+                          {movement.tool_items.tools?.name || '不明'} #{movement.tool_items.serial_number}
                         </Link>
                       ) : (
                         <span className="text-sm font-medium text-gray-500">削除済み</span>
