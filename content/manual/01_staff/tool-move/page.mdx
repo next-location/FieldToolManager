@@ -1,128 +1,345 @@
 ---
 title: "道具の移動方法"
-description: "道具を別の拠点に移動する2つの方法を解説"
+description: "QRコードまたは道具セットを使った道具移動の手順"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["道具移動", "QRコード", "基本操作"]
-lastUpdated: "2025-01-10"
+tags: ["道具移動", "QRコード", "道具セット", "基本操作"]
+lastUpdated: "2025-01-13"
 ---
 
 道具を別の拠点に移動する方法を説明します。移動方法は2パターンあります。
 
 ## 移動方法の選び方
 
-### パターン1: QRスキャンから移動（推奨）
+### パターン1: QRコードから道具を移動する（推奨📱）
 
 **おすすめのシーン:**
 - 道具が目の前にある
 - 現場で素早く移動登録したい
-- 道具のQRコードが貼られている
+- 複数の道具を連続でスキャンしたい
 
-### パターン2: 道具移動ページから移動
+### パターン2: 道具セットを移動する
 
 **おすすめのシーン:**
-- 複数の道具をまとめて移動したい
-- 道具名で検索して移動したい
-- QRコードが読み取れない
+- セット登録されている道具をまとめて移動したい
+- リーダー以上の権限が必要な道具を移動したい
 
 ---
 
-## パターン1: QRスキャンから移動
+## パターン1: QRコードから道具を移動する
 
-### 1. QRスキャン画面を開く
+### 1. QRボタンをタップ
 
-画面下部の「**QR**」ボタンをタップします。
+スマートフォン下部のナビゲーションバーにある「**QR**」ボタンをタップします。
 
-<img src="/images/manual/qr-button.png" width="300" alt="QRボタン" />
+<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
+  <img src="/images/manual/qr-step1-tap-qr-button.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="QRボタンをタップ" />
+  <div style={{
+    position: 'absolute',
+    bottom: '2.8%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    width: '8.5%',
+    height: '4.2%',
+    border: '3px solid #ef4444',
+    borderRadius: '50%',
+    pointerEvents: 'none'
+  }}></div>
+</div>
 
-### 2. QRコードをスキャン
+### 2. タブとスキャン開始を確認
 
-カメラが起動したら、道具に貼られたQRコードを枠内に収めます。
+上部のタブで「**道具を移動**」が選択されていることを確認し、「**スキャン開始**」ボタンをタップします。
 
-<img src="/images/manual/qr-scan-camera.png" width="300" alt="QRスキャン中" />
+<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
+  <img src="/images/manual/qr-step2-3-check-tab-and-scan.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="タブとスキャン開始" />
+  <div style={{
+    position: 'absolute',
+    top: '10.6%',
+    left: '5.2%',
+    width: '34.2%',
+    height: '3.5%',
+    border: '3px solid #ef4444',
+    borderRadius: '8px',
+    pointerEvents: 'none'
+  }}></div>
+  <div style={{
+    position: 'absolute',
+    top: '72%',
+    left: '12.6%',
+    width: '86.3%',
+    height: '7.1%',
+    border: '3px solid #ef4444',
+    borderRadius: '8px',
+    pointerEvents: 'none'
+  }}></div>
+  <div style={{
+    position: 'absolute',
+    top: '9.9%',
+    left: '3%',
+    width: '3%',
+    height: '1.4%',
+    backgroundColor: '#ef4444',
+    color: 'white',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '10px',
+    fontWeight: 'bold'
+  }}>①</div>
+  <div style={{
+    position: 'absolute',
+    top: '71.3%',
+    left: '8.9%',
+    width: '3%',
+    height: '1.4%',
+    backgroundColor: '#ef4444',
+    color: 'white',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '10px',
+    fontWeight: 'bold'
+  }}>②</div>
+</div>
 
-**ポイント:**
-- 明るい場所でスキャンしてください
-- QRコードに汚れがある場合は拭き取ってください
-- 距離は10cm〜30cm程度が最適です
+### 3. QRコードをスキャン
 
-### 3. 道具詳細画面で「移動」をタップ
+移動させたい道具のQRコードをカメラでスキャンします（複数スキャン可能）。
 
-スキャンが成功すると道具の詳細情報が表示されます。画面下部の「**移動**」ボタンをタップします。
+<div style={{ width: '300px', maxWidth: '100%' }}>
+  <img src="/images/manual/qr-step4-scan-qr-code.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="QRコードをスキャン" />
+</div>
 
-<img src="/images/manual/qr-scan-tool-detail.png" width="300" alt="道具詳細画面" />
+> **⚠️ 注意**
+>
+> 道具セットに登録されている道具はスキャンできません。道具セット登録されている道具の移動は「パターン2: 道具セットを移動する」をご参照ください。
 
-### 4. 移動先拠点を選択
+### 4. 完了して移動先を選ぶ
 
-移動先の拠点をリストから選択します。
+スキャンが完了したら、「**完了して移動先を選ぶ**」ボタンをタップします。
 
-<img src="/images/manual/move-location-select.png" width="300" alt="移動先拠点選択" />
+<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
+  <img src="/images/manual/qr-step6-tap-complete.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="完了して移動先を選ぶ" />
+  <div style={{
+    position: 'absolute',
+    bottom: '3.5%',
+    left: '5.2%',
+    width: '86.3%',
+    height: '5.6%',
+    border: '3px solid #ef4444',
+    borderRadius: '8px',
+    pointerEvents: 'none'
+  }}></div>
+</div>
 
-**ポイント:**
-- 現在地と同じ拠点は選択できません
-- 拠点が表示されない場合は、リーダーに連絡してください
+### 5. 移動先を選択
 
-### 5. 移動を確認して実行
+移動先の種類（倉庫/現場/修理）を選択します。
 
-選択した拠点が正しいか確認し、「**移動を実行**」をタップします。
+<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
+  <img src="/images/manual/qr-step7-select-destination-type.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="移動先選択" />
+  <div style={{
+    position: 'absolute',
+    top: '32.5%',
+    left: '12.6%',
+    width: '83.3%',
+    height: '19.7%',
+    border: '3px solid #ef4444',
+    borderRadius: '8px',
+    pointerEvents: 'none'
+  }}></div>
+</div>
 
-<img src="/images/manual/move-confirm.png" width="300" alt="移動確認画面" />
+### 6. （現場の場合）現場を選択
 
-### 6. 完了
+移動先で「現場」を選んだ場合、現場のリストから選択します。
 
-「移動が完了しました」と表示されたら成功です。
+<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
+  <img src="/images/manual/qr-step8-select-site.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="現場選択" />
+  <div style={{
+    position: 'absolute',
+    top: '48%',
+    left: '12.6%',
+    width: '86.3%',
+    height: '4.9%',
+    border: '3px solid #ef4444',
+    borderRadius: '8px',
+    pointerEvents: 'none'
+  }}></div>
+</div>
 
-<img src="/images/manual/move-success.png" width="300" alt="移動完了" />
+### 7. 移動を実行
+
+「**移動を実行**」ボタンをタップします。
+
+<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
+  <img src="/images/manual/qr-step9-tap-execute.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="移動を実行" />
+  <div style={{
+    position: 'absolute',
+    bottom: '2%',
+    left: '32.7%',
+    width: '61%',
+    height: '4.6%',
+    border: '3px solid #ef4444',
+    borderRadius: '8px',
+    pointerEvents: 'none'
+  }}></div>
+</div>
+
+### 8. 移動完了
+
+移動完了メッセージが表示されたら成功です。
+
+<div style={{ width: '300px', maxWidth: '100%' }}>
+  <img src="/images/manual/qr-step10-success.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="移動完了" />
+</div>
 
 ---
 
-## パターン2: 道具移動ページから移動
+## パターン2: 道具セットを移動する
 
-### 1. 移動ページを開く
+### 1. メニューボタンをタップ
 
-画面下部の「**移動**」ボタンをタップします。
+スマートフォン下部のナビゲーションバーにある「**メニュー**」ボタンをタップします。
 
-<img src="/images/manual/bottom-nav-move.png" width="300" alt="移動ボタン" />
+<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
+  <img src="/images/manual/set-step1-tap-menu-button.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="メニューボタンをタップ" />
+  <div style={{
+    position: 'absolute',
+    bottom: '2.8%',
+    right: '5.9%',
+    width: '8.9%',
+    height: '4.2%',
+    border: '3px solid #ef4444',
+    borderRadius: '50%',
+    pointerEvents: 'none'
+  }}></div>
+</div>
 
-### 2. 移動する道具を選択
+### 2. 道具移動を選択
 
-検索バーで道具名を入力するか、リストから選択します。
+サイドメニューから「**移動管理 > 道具移動**」をタップします。
 
-<img src="/images/manual/move-page-tool-select.png" width="300" alt="道具選択画面" />
+<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
+  <img src="/images/manual/set-step2-tap-tool-move.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="道具移動を選択" />
+  <div style={{
+    position: 'absolute',
+    top: '27%',
+    left: '7.4%',
+    width: '66.7%',
+    height: '4.2%',
+    border: '3px solid #ef4444',
+    borderRadius: '8px',
+    pointerEvents: 'none'
+  }}></div>
+</div>
 
-**検索のコツ:**
-- 道具名の一部でも検索可能
-- カテゴリで絞り込むと見つけやすい
+### 3. 移動先を選択
 
-### 3. 移動先拠点を選択
+移動先を選択します（手順は「パターン1」の手順5-6と同じ）。
 
-移動先の拠点をリストから選択します。
+<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
+  <img src="/images/manual/set-step3-select-destination.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="移動先選択" />
+  <div style={{
+    position: 'absolute',
+    top: '32.5%',
+    left: '12.6%',
+    width: '83.3%',
+    height: '19.7%',
+    border: '3px solid #ef4444',
+    borderRadius: '8px',
+    pointerEvents: 'none'
+  }}></div>
+</div>
 
-<img src="/images/manual/move-page-location-select.png" width="300" alt="移動先拠点選択" />
+### 4. 道具セットタブを選択
 
-### 4. 移動を実行
+「移動する道具の選択方法」で「**道具セット**」タブを選択します。
 
-「**移動を実行**」をタップして完了です。
+<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
+  <img src="/images/manual/set-step4-select-set-tab.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="道具セットタブを選択" />
+  <div style={{
+    position: 'absolute',
+    top: '58%',
+    left: '47.4%',
+    width: '29.7%',
+    height: '4.2%',
+    border: '3px solid #ef4444',
+    borderRadius: '8px',
+    pointerEvents: 'none'
+  }}></div>
+</div>
 
-<img src="/images/manual/move-success.png" width="300" alt="移動完了" />
+### 5. 道具セットを選択
+
+移動したい道具セットを選択します。
+
+<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
+  <img src="/images/manual/set-step5-select-tool-set.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="道具セットを選択" />
+  <div style={{
+    position: 'absolute',
+    top: '24%',
+    left: '7.4%',
+    width: '89.1%',
+    height: '5.6%',
+    border: '3px solid #ef4444',
+    borderRadius: '8px',
+    pointerEvents: 'none'
+  }}></div>
+</div>
+
+### 6. 移動を実行
+
+「**移動を実行**」ボタンをタップします（パターン1の手順7の画像と同じ）。
+
+<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
+  <img src="/images/manual/qr-step9-tap-execute.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="移動を実行" />
+  <div style={{
+    position: 'absolute',
+    bottom: '2%',
+    left: '32.7%',
+    width: '61%',
+    height: '4.6%',
+    border: '3px solid #ef4444',
+    borderRadius: '8px',
+    pointerEvents: 'none'
+  }}></div>
+</div>
+
+### 7. 移動完了
+
+移動完了メッセージが表示されたら成功です（パターン1の手順8の画像と同じ）。
+
+<div style={{ width: '300px', maxWidth: '100%' }}>
+  <img src="/images/manual/qr-step10-success.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="移動完了" />
+</div>
+
+---
+
+## 道具セット登録について
+
+> **💡 ヒント**
+>
+> 道具セット登録は**リーダー以上の権限**が必要です。道具セット登録が必要な場合は、リーダー以上の権限の方にセット登録を依頼してください。
 
 ---
 
 ## よくある質問
 
-### 移動先に自分の拠点が表示されない
+### QRコードがスキャンできない
 
-現在地と同じ拠点には移動できません。別の拠点を選択してください。
+- 明るい場所でスキャンしてください
+- QRコードに汚れがある場合は拭き取ってください
+- カメラと道具の距離を調整してください（10cm〜30cm程度）
+
+### 道具セットに登録されている道具をスキャンしたい
+
+道具セットに登録されている道具は個別にスキャンできません。「パターン2: 道具セットを移動する」の手順で移動してください。
 
 ### 移動履歴を確認したい
 
-道具詳細画面の「履歴」タブから確認できます。詳しくは[道具履歴の確認](/manual/01_staff/tool-history)を参照してください。
-
-### 間違った拠点に移動してしまった
-
-再度移動操作を行って正しい拠点に移動してください。履歴は残ります。
-
-### 複数の道具を一度に移動したい
-
-[一括移動操作](/manual/01_staff/bulk-move)を参照してください。
+移動履歴ページから確認できます。詳しくは[移動履歴の確認](/manual/01_staff/movement-history)を参照してください。
