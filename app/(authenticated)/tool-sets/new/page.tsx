@@ -4,6 +4,10 @@ import { createToolSet } from '../actions'
 import Link from 'next/link'
 import { ToolSetForm } from './ToolSetForm'
 
+// 道具の最新状態を常に取得するためキャッシュを無効化
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function NewToolSetPage() {
 
   const { userId, organizationId, userRole, supabase } = await requireAuth()
