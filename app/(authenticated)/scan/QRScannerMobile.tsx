@@ -205,6 +205,8 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
     if (itemError || !toolItem) {
       console.error('道具アイテムが見つかりません:', itemError)
+      setError('道具が見つかりませんでした。QRコードを確認してください。')
+      setTimeout(() => setError(null), 5000)
       return
     }
 
@@ -311,7 +313,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
     const supabase = createClient()
 
-    // locationモードの場合は現場または倉庫を優先して検索
+    // locationモードの場合は現場または倉庫のみ検索
     if (mode === 'location') {
       // 現場を検索
       const { data: site } = await supabase
@@ -339,22 +341,9 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
         return
       }
 
-      // 現場・倉庫が見つからない場合、道具QRかチェック
-      const { data: toolItem } = await supabase
-        .from('tool_items')
-        .select('id')
-        .eq('qr_code', qrCode)
-        .is('deleted_at', null)
-        .single()
-
-      if (toolItem) {
-        router.push(`/tool-items/${toolItem.id}`)
-        return
-      }
-
-      // 何も見つからない
-      setError('QRコードが見つかりませんでした')
-      setTimeout(() => setError(null), 3000)
+      // 現場・倉庫が見つからない場合はエラー
+      setError('現場または倉庫位置のQRコードではありません。\n「倉庫/現場確認」タブでは現場・倉庫位置のQRコードのみスキャンできます。')
+      setTimeout(() => setError(null), 5000)
       return
     }
 
