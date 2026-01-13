@@ -44,14 +44,26 @@ export default async function SiteDetailPage({
     notFound()
   }
 
-  // この現場にある道具を取得
-  const { data: tools } = await supabase
-    .from('tools')
-    .select('id, name, model_number, status, quantity')
+  // この現場にある道具（個別アイテム）を取得
+  const { data: toolItems, error: toolItemsError } = await supabase
+    .from('tool_items')
+    .select(`
+      id,
+      serial_number,
+      status,
+      current_location,
+      tool:tools!tool_items_tool_id_fkey (
+        id,
+        name,
+        model_number
+      )
+    `)
     .eq('current_site_id', id)
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
-    .order('name')
+    .order('tool_id')
+
+  console.log('[Site Detail] Tool items:', toolItems?.length || 0, 'error:', toolItemsError)
 
   // 移動履歴を取得
   const { data: movements } = await supabase
@@ -158,9 +170,9 @@ export default async function SiteDetailPage({
           {/* 現場にある道具 */}
           <div className="bg-white shadow rounded-lg p-6 mb-6">
             <h2 className="text-lg font-bold text-gray-900 mb-4">
-              この現場にある道具 ({tools?.length || 0}件)
+              この現場にある道具 ({toolItems?.length || 0}個)
             </h2>
-            {tools && tools.length > 0 ? (
+            {toolItems && toolItems.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -172,7 +184,7 @@ export default async function SiteDetailPage({
                         型番
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        数量
+                        個別番号
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                         状態
@@ -180,41 +192,53 @@ export default async function SiteDetailPage({
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {tools.map((tool) => (
-                      <tr key={tool.id} className="hover:bg-gray-50">
+                    {toolItems.map((item) => {
+                      const tool = Array.isArray(item.tool) ? item.tool[0] : item.tool
+                      return (
+                      <tr key={item.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <Link
-                            href={`/tools/${tool.id}`}
+                            href={`/tools/${tool?.id}`}
                             className="text-blue-600 hover:text-blue-800"
                           >
-                            {tool.name}
+                            {tool?.name}
                           </Link>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {tool.model_number || '-'}
+                          {tool?.model_number || '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {tool.quantity}
+                          <Link
+                            href={`/tool-items/${item.id}`}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            #{item.serial_number}
+                          </Link>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                              tool.status === 'available'
+                              item.status === 'available'
                                 ? 'bg-green-100 text-green-800'
-                                : tool.status === 'in_use'
+                                : item.status === 'in_use'
                                 ? 'bg-blue-100 text-blue-800'
+                                : item.status === 'maintenance'
+                                ? 'bg-yellow-100 text-yellow-800'
                                 : 'bg-gray-100 text-gray-800'
                             }`}
                           >
-                            {tool.status === 'available'
+                            {item.status === 'available'
                               ? '利用可能'
-                              : tool.status === 'in_use'
+                              : item.status === 'in_use'
                               ? '使用中'
-                              : tool.status}
+                              : item.status === 'maintenance'
+                              ? 'メンテナンス中'
+                              : item.status}
                           </span>
                         </td>
                       </tr>
-                    ))}
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
