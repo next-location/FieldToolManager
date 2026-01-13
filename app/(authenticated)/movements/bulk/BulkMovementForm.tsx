@@ -94,9 +94,13 @@ export function BulkMovementForm({
   // 道具セット選択
   const [selectedToolSetId, setSelectedToolSetId] = useState<string>('')
 
+  // 同じ場所制限（一括移動は同じ場所の道具のみ）
+  const [requiredLocation, setRequiredLocation] = useState<string | null>(null)
+
   // UI状態
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null)
   const [scanSuccess, setScanSuccess] = useState(false)
   const [lastScannedTool, setLastScannedTool] = useState<string | null>(null)
@@ -163,6 +167,20 @@ export function BulkMovementForm({
       }
     }
 
+    // 場所チェック（個別選択モードのみ）
+    if (selectionMode === 'individual') {
+      if (requiredLocation === null) {
+        // 最初の1個：場所を記録
+        setRequiredLocation(tool.current_location)
+      } else if (tool.current_location !== requiredLocation) {
+        // 異なる場所の道具
+        const locationName = requiredLocation === 'warehouse' ? '倉庫' : requiredLocation === 'site' ? '現場' : '修理中'
+        setError(`現在地が異なるため選択できません（選択中は全て${locationName}にある道具のみ）`)
+        setTimeout(() => setError(null), 5000)
+        return { success: false, message: `現在地が異なるため選択できません（選択中は全て${locationName}にある道具のみ）` }
+      }
+    }
+
     // Setに追加（即座に反映）
     selectedToolIdsRef.current.add(tool.id)
 
@@ -216,6 +234,19 @@ export function BulkMovementForm({
       }
     }
 
+    // 場所チェック（個別選択モードのみ）
+    if (selectionMode === 'individual') {
+      if (requiredLocation === null) {
+        // 最初の1個：場所を記録
+        setRequiredLocation(tool.current_location)
+      } else if (tool.current_location !== requiredLocation) {
+        // 異なる場所の道具
+        const locationName = requiredLocation === 'warehouse' ? '倉庫' : requiredLocation === 'site' ? '現場' : '修理中'
+        setError(`現在地が異なるため選択できません（選択中は全て${locationName}にある道具のみ）`)
+        return
+      }
+    }
+
     selectedToolIdsRef.current.add(toolId)
     setSelectedToolIds((prev) => [...prev, toolId])
     setSearchQuery('')
@@ -224,7 +255,13 @@ export function BulkMovementForm({
   // 道具を削除
   const handleRemoveTool = (toolId: string) => {
     selectedToolIdsRef.current.delete(toolId)
-    setSelectedToolIds((prev) => prev.filter((id) => id !== toolId))
+    const newSelected = selectedToolIds.filter((id) => id !== toolId)
+    setSelectedToolIds(newSelected)
+
+    // 全て削除された場合は場所制限をリセット
+    if (newSelected.length === 0) {
+      setRequiredLocation(null)
+    }
   }
 
   // すべてクリア
@@ -232,6 +269,7 @@ export function BulkMovementForm({
     setSelectedToolIds([])
     selectedToolIdsRef.current.clear()
     setSelectedToolSetId('')
+    setRequiredLocation(null)
   }
 
   // タブ切り替え
@@ -242,6 +280,7 @@ export function BulkMovementForm({
     selectedToolIdsRef.current.clear()
     setSearchQuery('')
     setError(null)
+    setRequiredLocation(null)
   }
 
   // 道具セット選択
@@ -256,6 +295,12 @@ export function BulkMovementForm({
 
       setSelectedToolIds(itemIds)
       selectedToolIdsRef.current = new Set(itemIds)
+
+      // セット内の最初の道具の場所を取得して設定
+      const firstItem = toolSet.tool_set_items[0]?.tool_item
+      if (firstItem) {
+        setRequiredLocation(firstItem.current_location)
+      }
     }
   }
 
@@ -374,8 +419,13 @@ export function BulkMovementForm({
 
       if (successCount === selectedToolIds.length) {
         // すべて成功
-        router.push('/movements')
-        router.refresh()
+        setSuccess(`${successCount}件の道具移動が完了しました`)
+        setSelectedToolIds([])
+        selectedToolIdsRef.current.clear()
+        setTimeout(() => {
+          router.push('/movements')
+          router.refresh()
+        }, 2000)
       } else if (successCount > 0) {
         // 一部成功
         setError(
@@ -424,6 +474,13 @@ export function BulkMovementForm({
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded whitespace-pre-line">
           {error}
+        </div>
+      )}
+
+      {/* 成功メッセージ */}
+      {success && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+          ✓ {success}
         </div>
       )}
 
@@ -609,7 +666,8 @@ export function BulkMovementForm({
                     {filteredTools.slice(0, 20).map((tool) => {
                       const isSelected = selectedToolIds.includes(tool.id)
                       const inSet = tool.inToolSet
-                      const isDisabled = isSelected || isSubmitting || (inSet && !canRemoveFromSet)
+                      const wrongLocation = requiredLocation !== null && tool.current_location !== requiredLocation
+                      const isDisabled = isSelected || isSubmitting || (inSet && !canRemoveFromSet) || wrongLocation
 
                       return (
                         <button
@@ -645,6 +703,11 @@ export function BulkMovementForm({
                           {inSet && !canRemoveFromSet && (
                             <div className="text-xs text-red-600 mt-1">
                               ⚠️ セット登録済みのため選択できません
+                            </div>
+                          )}
+                          {wrongLocation && (
+                            <div className="text-xs text-red-600 mt-1">
+                              ⚠️ 現在地が異なるため選択できません
                             </div>
                           )}
                         </button>
@@ -719,9 +782,16 @@ export function BulkMovementForm({
       {/* 3. 選択済み道具リスト */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold text-gray-900">
-            3. 選択中の道具（{selectedTools.length}件）
-          </h3>
+          <div className="flex items-center gap-3">
+            <h3 className="text-base font-semibold text-gray-900">
+              3. 選択中の道具（{selectedTools.length}件）
+            </h3>
+            {requiredLocation && selectionMode === 'individual' && (
+              <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                📍 {requiredLocation === 'warehouse' ? '倉庫' : requiredLocation === 'site' ? '現場' : '修理中'}のみ
+              </span>
+            )}
+          </div>
           {selectedTools.length > 0 && (
             <button
               type="button"
