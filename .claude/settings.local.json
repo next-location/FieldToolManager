@@ -34,7 +34,8 @@
       "Bash(echo:*)",
       "Bash(find:*)",
       "Bash(npx tsx:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []
