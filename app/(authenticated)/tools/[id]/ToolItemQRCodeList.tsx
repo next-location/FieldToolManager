@@ -91,6 +91,7 @@ export function ToolItemQRCodeList({
                     <Link
                       href={`/tool-items/${item.id}`}
                       className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline"
+                      scroll={true}
                     >
                       #{item.serial_number}
                     </Link>
