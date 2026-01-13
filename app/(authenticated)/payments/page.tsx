@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { PaymentListClient } from '@/components/payments/PaymentListClient'
 import { requireAuth } from '@/lib/auth/page-auth'
 import PaymentPageFAB from '@/components/payments/PaymentPageFAB'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
 
 async function PaymentList() {
   const { organizationId, supabase } = await requireAuth()
@@ -56,13 +57,7 @@ export default async function PaymentsPage() {
           </div>
         </div>
 
-        <Suspense
-          fallback={
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-            </div>
-          }
-        >
+        <Suspense fallback={<LoadingSpinner inline />}>
           <PaymentList />
         </Suspense>
 

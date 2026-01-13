@@ -6,6 +6,7 @@ import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
 import { PackageRequired } from '@/components/PackageRequired'
 import { InvoiceListClient } from '@/components/invoices/InvoiceListClient'
 import InvoicePageFAB from '@/components/invoices/InvoicePageFAB'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
 
 async function InvoiceList() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
@@ -55,13 +56,7 @@ export default async function InvoicesPage() {
           </Link>
         </div>
 
-        <Suspense
-          fallback={
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-            </div>
-          }
-        >
+        <Suspense fallback={<LoadingSpinner inline />}>
           <InvoiceList />
         </Suspense>
 

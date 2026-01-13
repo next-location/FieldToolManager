@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
 
 async function ReceivablesList() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
@@ -256,13 +257,7 @@ export default async function ReceivablesPage() {
         </p>
       </div>
 
-      <Suspense
-        fallback={
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-          </div>
-        }
-      >
+      <Suspense fallback={<LoadingSpinner inline />}>
         <ReceivablesList />
       </Suspense>
       </div>

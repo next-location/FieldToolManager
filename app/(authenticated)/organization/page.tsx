@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { SealFontStyle } from '@/lib/company-seal/generate-seal'
 import { ContractManagement } from '@/components/ContractManagement'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
 
 interface OrganizationData {
   id: string
@@ -198,11 +199,7 @@ export default function OrganizationPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    )
+    return <LoadingSpinner />
   }
 
   if (userRole !== 'admin' && userRole !== 'super_admin') {

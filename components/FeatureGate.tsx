@@ -21,7 +21,7 @@ export function FeatureGate({ feature, children, fallback, showUpgrade = true }:
   if (features.isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent"></div>
       </div>
     );
   }
@@ -153,7 +153,7 @@ export function PackageGate({ packageType, children, fallback }: PackageGateProp
   if (features.isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent"></div>
       </div>
     );
   }

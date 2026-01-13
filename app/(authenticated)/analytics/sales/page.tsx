@@ -4,6 +4,7 @@ import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
 import { PackageRequired } from '@/components/PackageRequired'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
 
 async function SalesAnalyticsContent() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
@@ -357,13 +358,7 @@ export default async function SalesAnalyticsPage() {
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
-      <Suspense
-        fallback={
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-          </div>
-        }
-      >
+      <Suspense fallback={<LoadingSpinner inline />}>
         <SalesAnalyticsContent />
       </Suspense>
       </div>

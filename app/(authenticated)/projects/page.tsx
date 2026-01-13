@@ -4,6 +4,7 @@ import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { ProjectListClient } from '@/components/projects/ProjectListClient'
 import ProjectPageFAB from '@/components/projects/ProjectPageFAB'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
 
 async function ProjectList() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
@@ -42,13 +43,7 @@ export default async function ProjectsPage() {
           </Link>
         </div>
 
-        <Suspense
-          fallback={
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-            </div>
-          }
-        >
+        <Suspense fallback={<LoadingSpinner inline />}>
           <ProjectList />
         </Suspense>
 

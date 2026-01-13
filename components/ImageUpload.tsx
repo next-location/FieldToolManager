@@ -165,7 +165,7 @@ export function ImageUpload({
 
       {uploading && (
         <div className="flex items-center justify-center py-2">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-6 w-6 border-4 border-blue-600 border-t-transparent"></div>
           <span className="ml-2 text-sm text-gray-600">アップロード中...</span>
         </div>
       )}

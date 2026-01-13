@@ -343,7 +343,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
         {isProcessing && (
           <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
             <div className="text-white text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent mx-auto mb-4"></div>
               <p>カメラを起動中...</p>
             </div>
           </div>

@@ -4,6 +4,7 @@ import { useState, useEffect, memo, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Client, ClientType, PaymentMethod, BankAccountType } from '@/types/clients'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
 
 interface ClientFormProps {
   client?: Client
@@ -300,7 +301,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
                   />
                   {postalCodeLoading && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 mt-0.5">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-4 border-blue-600 border-t-transparent"></div>
                     </div>
                   )}
                 </div>

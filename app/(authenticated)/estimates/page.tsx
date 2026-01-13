@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { EstimateListClient } from '@/components/estimates/EstimateListClient'
 import { checkAndUpdateExpiredEstimates } from '@/lib/estimate-expiry'
 import EstimatePageFAB from '@/components/estimates/EstimatePageFAB'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
 
 // キャッシュを無効化
 export const dynamic = 'force-dynamic'
@@ -86,13 +87,7 @@ export default async function EstimatesPage() {
           </Link>
         </div>
 
-        <Suspense
-          fallback={
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-            </div>
-          }
-        >
+        <Suspense fallback={<LoadingSpinner inline />}>
           <EstimateList />
         </Suspense>
 

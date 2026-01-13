@@ -279,7 +279,7 @@ export default function InvoiceListView({
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {loading ? (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent"></div>
             <p className="mt-2 text-gray-600">読み込み中...</p>
           </div>
         ) : invoices.length === 0 ? (

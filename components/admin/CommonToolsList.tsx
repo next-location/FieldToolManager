@@ -140,7 +140,7 @@ export default function CommonToolsList() {
       {/* 道具一覧 */}
       {loading ? (
         <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent"></div>
           <p className="text-gray-600 mt-3">読み込み中...</p>
         </div>
       ) : tools.length === 0 ? (
