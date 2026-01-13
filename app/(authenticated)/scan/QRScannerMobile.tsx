@@ -176,7 +176,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
     const { data: userData } = await supabase
       .from('users')
-      .select('organization_id')
+      .select('organization_id, role')
       .eq('id', user.id)
       .single()
 
@@ -202,6 +202,51 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
     if (itemError || !toolItem) {
       console.error('道具アイテムが見つかりません:', itemError)
       return
+    }
+
+    // セット登録チェック
+    const { data: toolSetItem } = await supabase
+      .from('tool_set_items')
+      .select(`
+        tool_set_id,
+        tool_sets!inner (
+          id,
+          name
+        )
+      `)
+      .eq('tool_item_id', toolItem.id)
+      .single()
+
+    if (toolSetItem) {
+      const toolSetName = (toolSetItem as any).tool_sets?.name || '不明'
+      const canRemoveFromSet = userData.role === 'admin' || userData.role === 'manager' || userData.role === 'leader'
+
+      if (!canRemoveFromSet) {
+        // 一般スタッフ：選択不可
+        setError(`この道具はセット「${toolSetName}」に登録されています。個別移動はできません。`)
+        setTimeout(() => setError(null), 5000)
+        return
+      } else {
+        // リーダー以上：確認ダイアログ
+        const confirmed = window.confirm(
+          `この道具はセット「${toolSetName}」に登録されています。\n\nセットから解除して個別移動しますか？`
+        )
+        if (!confirmed) {
+          return
+        }
+
+        // セットから解除
+        const { error: removeError } = await supabase
+          .from('tool_set_items')
+          .delete()
+          .eq('tool_item_id', toolItem.id)
+
+        if (removeError) {
+          setError(`セット解除に失敗しました: ${removeError.message}`)
+          setTimeout(() => setError(null), 5000)
+          return
+        }
+      }
     }
 
     const newItem: ScannedItem = {
