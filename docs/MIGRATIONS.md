@@ -113,6 +113,49 @@ npm run health-check
 
 ## 3. マイグレーション履歴
 
+### ✨ 現場QRコード自動生成機能追加（2026-01-14）
+
+#### 20260114_add_qr_code_to_sites.sql
+
+**適用日**: 2026-01-14
+**適用環境**: 本番環境
+**影響範囲**: `sites`テーブル
+
+**目的**:
+現場にQRコードを自動生成し、現場識別・チェックイン等の機能で使用できるようにする。
+
+**変更内容**:
+```sql
+-- qr_code カラムを追加（UUID型、自動生成）
+ALTER TABLE sites
+  ADD COLUMN IF NOT EXISTS qr_code UUID DEFAULT uuid_generate_v4();
+
+-- 既存レコードにQRコードを追加
+UPDATE sites
+SET qr_code = uuid_generate_v4()
+WHERE qr_code IS NULL;
+
+-- NOT NULL制約を追加
+ALTER TABLE sites
+  ALTER COLUMN qr_code SET NOT NULL;
+
+-- ユニークインデックスを作成
+CREATE UNIQUE INDEX idx_sites_qr_code ON sites(qr_code);
+```
+
+**適用方法**:
+1. Supabase Dashboard > SQL Editor
+2. `supabase/migrations/20260114_add_qr_code_to_sites.sql` の内容をコピペ
+3. "Run" をクリック
+
+**ロールバック**:
+```sql
+DROP INDEX IF EXISTS idx_sites_qr_code;
+ALTER TABLE sites DROP COLUMN IF EXISTS qr_code;
+```
+
+---
+
 ### 🔒 RLSポリシー修正: tool_items UPDATE権限を全ユーザーに拡大（2026-01-13）
 
 #### 20260113000001_fix_tool_items_update_policy.sql ✨CRITICAL FIX
