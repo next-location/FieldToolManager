@@ -10,6 +10,7 @@ interface ToolMovement {
   created_at: string
   from_location: string
   to_location: string
+  notes: string | null
   tool_items: {
     id: string
     serial_number: string
@@ -69,6 +70,34 @@ export function MovementTabs({
   heavyEquipmentEnabled
 }: MovementTabsProps) {
   const [activeTab, setActiveTab] = useState<TabType>('tool')
+
+  // セット移動をグルーピング
+  const groupedToolMovements = toolMovements.reduce((acc, movement) => {
+    const setMatch = movement.notes?.match(/\[セット:\s*(.+?)\]/)
+    if (setMatch) {
+      const setName = setMatch[1]
+      const key = `${movement.created_at}_${setName}_${movement.from_location}_${movement.to_location}`
+      if (!acc[key]) {
+        acc[key] = {
+          setName,
+          created_at: movement.created_at,
+          from_location: movement.from_location,
+          to_location: movement.to_location,
+          from_site: movement.from_site,
+          to_site: movement.to_site,
+          users: movement.users,
+          movements: []
+        }
+      }
+      acc[key].movements.push(movement)
+      return acc
+    }
+    // 個別移動
+    acc[movement.id] = { movements: [movement] }
+    return acc
+  }, {} as Record<string, any>)
+
+  const displayMovements = Object.values(groupedToolMovements)
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -249,44 +278,64 @@ export function MovementTabs({
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {toolMovements && toolMovements.length > 0 ? (
-                    toolMovements.map((movement) => (
-                      <tr key={movement.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {new Date(movement.created_at).toLocaleString('ja-JP')}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          {movement.to_location === 'site' ? '🏗️ 現場へ' :
-                           movement.to_location === 'warehouse' ? '🏢 倉庫へ' :
-                           movement.to_location === 'repair' ? '🔧 修理へ' : movement.to_location}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          {movement.tool_items ? (
-                            <Link
-                              href={`/tool-items/${movement.tool_items.id}`}
-                              className="text-blue-600 hover:text-blue-800"
-                            >
-                              {movement.tool_items.tools?.name || '不明'} #{movement.tool_items.serial_number}
-                            </Link>
-                          ) : (
-                            <span className="text-gray-500">削除済み</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {movement.from_location === 'warehouse' ? '倉庫' :
-                           movement.from_location === 'site' ? (movement.from_site?.name || '現場') :
-                           movement.from_location === 'repair' ? '修理中' : movement.from_location}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {movement.to_location === 'site' ? (movement.to_site?.name || '現場') :
-                           movement.to_location === 'warehouse' ? '倉庫' :
-                           movement.to_location === 'repair' ? '修理中' : '-'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {movement.users?.name || '-'}
-                        </td>
-                      </tr>
-                    ))
+                  {displayMovements && displayMovements.length > 0 ? (
+                    displayMovements.map((group: any, idx: number) => {
+                      const isSet = group.setName
+                      const firstMovement = group.movements[0]
+
+                      return (
+                        <tr key={idx} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {new Date(group.created_at || firstMovement.created_at).toLocaleString('ja-JP')}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            {isSet && '📦 '}
+                            {(group.to_location || firstMovement.to_location) === 'site' ? '🏗️ 現場へ' :
+                             (group.to_location || firstMovement.to_location) === 'warehouse' ? '🏢 倉庫へ' :
+                             (group.to_location || firstMovement.to_location) === 'repair' ? '🔧 修理へ' : (group.to_location || firstMovement.to_location)}
+                          </td>
+                          <td className="px-6 py-4 text-sm">
+                            {isSet ? (
+                              <div>
+                                <div className="font-medium text-blue-600">📦 {group.setName}</div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {group.movements.map((m: ToolMovement, i: number) => (
+                                    <span key={m.id}>
+                                      {m.tool_items?.tools?.name || '不明'} #{m.tool_items?.serial_number}
+                                      {i < group.movements.length - 1 && ', '}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : (
+                              firstMovement.tool_items ? (
+                                <Link
+                                  href={`/tool-items/${firstMovement.tool_items.id}`}
+                                  className="text-blue-600 hover:text-blue-800"
+                                >
+                                  {firstMovement.tool_items.tools?.name || '不明'} #{firstMovement.tool_items.serial_number}
+                                </Link>
+                              ) : (
+                                <span className="text-gray-500">削除済み</span>
+                              )
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {(group.from_location || firstMovement.from_location) === 'warehouse' ? '倉庫' :
+                             (group.from_location || firstMovement.from_location) === 'site' ? ((group.from_site || firstMovement.from_site)?.name || '現場') :
+                             (group.from_location || firstMovement.from_location) === 'repair' ? '修理中' : (group.from_location || firstMovement.from_location)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {(group.to_location || firstMovement.to_location) === 'site' ? ((group.to_site || firstMovement.to_site)?.name || '現場') :
+                             (group.to_location || firstMovement.to_location) === 'warehouse' ? '倉庫' :
+                             (group.to_location || firstMovement.to_location) === 'repair' ? '修理中' : '-'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {(group.users || firstMovement.users)?.name || '-'}
+                          </td>
+                        </tr>
+                      )
+                    })
                   ) : (
                     <tr>
                       <td
@@ -303,37 +352,57 @@ export function MovementTabs({
 
             {/* Mobile: Card view */}
             <div className="sm:hidden divide-y divide-gray-200">
-              {toolMovements && toolMovements.length > 0 ? (
-                toolMovements.map((movement) => (
-                  <div key={movement.id} className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      {movement.tool_items ? (
-                        <Link
-                          href={`/tool-items/${movement.tool_items.id}`}
-                          className="text-sm font-medium text-blue-600"
-                        >
-                          {movement.tool_items.tools?.name || '不明'} #{movement.tool_items.serial_number}
-                        </Link>
-                      ) : (
-                        <span className="text-sm font-medium text-gray-500">削除済み</span>
-                      )}
-                      <span className="text-xs text-gray-500">
-                        {new Date(movement.created_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                    <div className="space-y-1 text-sm text-gray-600">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
-                          {movement.to_location === 'site' ? '現場へ' : movement.to_location === 'warehouse' ? '倉庫へ' : '修理へ'}
-                        </span>
-                        <span>
-                          {movement.from_location === 'warehouse' ? '倉庫' : movement.from_location === 'site' ? (movement.from_site?.name || '現場') : '修理中'} → {movement.to_location === 'site' ? (movement.to_site?.name || '現場') : movement.to_location === 'warehouse' ? '倉庫' : '修理中'}
+              {displayMovements && displayMovements.length > 0 ? (
+                displayMovements.map((group: any, idx: number) => {
+                  const isSet = group.setName
+                  const firstMovement = group.movements[0]
+
+                  return (
+                    <div key={idx} className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        {isSet ? (
+                          <div className="text-sm font-medium text-blue-600">
+                            📦 {group.setName}
+                            <div className="text-xs text-gray-500 font-normal mt-1">
+                              {group.movements.map((m: ToolMovement, i: number) => (
+                                <span key={m.id}>
+                                  {m.tool_items?.tools?.name || '不明'} #{m.tool_items?.serial_number}
+                                  {i < group.movements.length - 1 && ', '}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          firstMovement.tool_items ? (
+                            <Link
+                              href={`/tool-items/${firstMovement.tool_items.id}`}
+                              className="text-sm font-medium text-blue-600"
+                            >
+                              {firstMovement.tool_items.tools?.name || '不明'} #{firstMovement.tool_items.serial_number}
+                            </Link>
+                          ) : (
+                            <span className="text-sm font-medium text-gray-500">削除済み</span>
+                          )
+                        )}
+                        <span className="text-xs text-gray-500">
+                          {new Date(group.created_at || firstMovement.created_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
-                      <div className="text-xs text-gray-500">実施者: {movement.users?.name || '-'}</div>
+                      <div className="space-y-1 text-sm text-gray-600">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                            {isSet && '📦 '}
+                            {(group.to_location || firstMovement.to_location) === 'site' ? '現場へ' : (group.to_location || firstMovement.to_location) === 'warehouse' ? '倉庫へ' : '修理へ'}
+                          </span>
+                          <span>
+                            {(group.from_location || firstMovement.from_location) === 'warehouse' ? '倉庫' : (group.from_location || firstMovement.from_location) === 'site' ? ((group.from_site || firstMovement.from_site)?.name || '現場') : '修理中'} → {(group.to_location || firstMovement.to_location) === 'site' ? ((group.to_site || firstMovement.to_site)?.name || '現場') : (group.to_location || firstMovement.to_location) === 'warehouse' ? '倉庫' : '修理中'}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500">実施者: {(group.users || firstMovement.users)?.name || '-'}</div>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  )
+                })
               ) : (
                 <div className="px-4 py-12 text-center text-gray-500">
                   道具の移動履歴がありません
