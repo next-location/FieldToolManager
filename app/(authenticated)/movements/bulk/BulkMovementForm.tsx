@@ -221,7 +221,7 @@ export function BulkMovementForm({
           // 移動履歴を登録
           const { error: movementError } = await supabase.from('tool_movements').insert({
             organization_id: organizationId,
-            user_id: userId,
+            performed_by: userId,
             tool_id: tool.tools?.id,
             tool_item_id: toolItemId,
             movement_type: movementType,
