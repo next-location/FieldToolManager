@@ -345,7 +345,12 @@ export function BulkMovementForm({
             .update(updateData)
             .eq('id', toolItemId)
 
-          if (updateError) throw updateError
+          if (updateError) {
+            console.error('[TOOL UPDATE ERROR]', toolItemId, updateError)
+            throw updateError
+          }
+
+          console.log('[TOOL UPDATED]', toolItemId, 'to', destinationType)
 
           successCount++
         } catch (err: any) {
