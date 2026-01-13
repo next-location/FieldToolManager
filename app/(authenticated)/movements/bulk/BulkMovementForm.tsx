@@ -19,6 +19,10 @@ interface ToolItem {
     name: string
     model_number: string
   } | null
+  current_site?: {
+    id: string
+    name: string
+  }[] | null
   inToolSet?: boolean
   toolSetName?: string | null
 }
@@ -635,7 +639,7 @@ export function BulkMovementForm({
                             {tool.current_location === 'warehouse'
                               ? '倉庫'
                               : tool.current_location === 'site'
-                              ? '現場'
+                              ? (tool.current_site?.[0]?.name || '現場')
                               : '修理中'}
                           </div>
                           {inSet && !canRemoveFromSet && (
@@ -750,7 +754,7 @@ export function BulkMovementForm({
                     {tool.current_location === 'warehouse'
                       ? '倉庫'
                       : tool.current_location === 'site'
-                      ? '現場'
+                      ? (tool.current_site?.[0]?.name || '現場')
                       : '修理中'}
                   </div>
                 </div>

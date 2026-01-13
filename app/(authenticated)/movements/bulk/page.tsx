@@ -2,6 +2,10 @@ import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/page-auth'
 import { BulkMovementForm } from './BulkMovementForm'
 
+// 道具の最新状態を常に取得するためキャッシュを無効化
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function BulkMovementPage({
   searchParams,
 }: {
@@ -24,7 +28,8 @@ export default async function BulkMovementPage({
       current_site_id,
       warehouse_location_id,
       status,
-      tool_id
+      tool_id,
+      current_site:sites!tool_items_current_site_id_fkey (id, name)
     `)
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
