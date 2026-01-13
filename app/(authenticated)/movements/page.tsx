@@ -18,7 +18,7 @@ export default async function MovementsPage() {
       ),
       from_site:sites!tool_movements_from_site_id_fkey (name),
       to_site:sites!tool_movements_to_site_id_fkey (name),
-      users!inner (name)
+      users!tool_movements_performed_by_fkey (name)
     `
     )
     .eq('organization_id', organizationId)
