@@ -166,8 +166,10 @@ export function MovementForm({
 
         if (failureCount > 0) {
           setError(`${successCount}個成功、${failureCount}個失敗しました。\n${errors.join('\n')}`)
+          setLoading(false)
         } else {
           router.push('/movements')
+          return
         }
       } else {
         // 個別移動
@@ -196,10 +198,10 @@ export function MovementForm({
 
         await createMovement(formData)
         // 成功時は自動的にリダイレクトされる
+        return
       }
     } catch (err: any) {
       setError(err.message || '登録に失敗しました')
-    } finally {
       setLoading(false)
     }
   }

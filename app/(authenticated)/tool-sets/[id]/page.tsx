@@ -87,26 +87,22 @@ export default async function ToolSetDetailPage({
 
         {/* セット基本情報 */}
         <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
-            <div>
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                基本情報
-              </h3>
-              <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                ID: {toolSet.id}
-              </p>
-            </div>
-            {canEdit && (
-              <div className="flex space-x-3">
-                <Link
-                  href={`/tool-sets/${toolSet.id}/edit`}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                >
-                  編集
-                </Link>
-                <DeleteToolSetButton toolSetId={toolSet.id} toolSetName={toolSet.name} />
+          <div className="px-4 py-5 sm:px-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+              <div>
+                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                  基本情報
+                </h3>
+                <p className="mt-1 max-w-2xl text-sm text-gray-500">
+                  ID: {toolSet.id}
+                </p>
               </div>
-            )}
+              {canEdit && (
+                <div className="flex gap-2 sm:gap-3">
+                  <DeleteToolSetButton toolSetId={toolSet.id} toolSetName={toolSet.name} />
+                </div>
+              )}
+            </div>
           </div>
           <div className="border-t border-gray-200">
             <dl>
@@ -148,21 +144,23 @@ export default async function ToolSetDetailPage({
 
         {/* セット内の道具一覧 */}
         <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
-            <div>
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                セット内の道具（全{toolItems.length}個）
-              </h3>
-              <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                このセットに含まれる個別アイテム
-              </p>
+          <div className="px-4 py-5 sm:px-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+              <div>
+                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                  セット内の道具（全{toolItems.length}個）
+                </h3>
+                <p className="mt-1 max-w-2xl text-sm text-gray-500">
+                  このセットに含まれる個別アイテム
+                </p>
+              </div>
+              <Link
+                href={`/movements/new?tool_set_id=${toolSet.id}`}
+                className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-blue-600 rounded-md shadow-sm text-sm font-medium text-blue-600 bg-white hover:bg-blue-50"
+              >
+                📦 セット移動
+              </Link>
             </div>
-            <Link
-              href={`/movements/new?tool_set_id=${toolSet.id}`}
-              className="inline-flex items-center px-4 py-2 border border-blue-600 rounded-md shadow-sm text-sm font-medium text-blue-600 bg-white hover:bg-blue-50"
-            >
-              📦 セット移動
-            </Link>
           </div>
           <div className="border-t border-gray-200">
             {toolItems && toolItems.length > 0 ? (
