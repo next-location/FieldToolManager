@@ -263,6 +263,13 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
       const firstItem = scannedItems[0]
       const firstItemLocation = firstItem.currentLocation
 
+      console.log('[BULK] Location check:', {
+        firstItemLocation,
+        currentLocation: toolItem.current_location,
+        firstItemSiteId: firstItem.siteId,
+        currentSiteId: toolItem.current_site_id
+      })
+
       // 現在地が異なる場合はエラー
       if (toolItem.current_location !== firstItemLocation) {
         const locationNames: Record<string, string> = {
@@ -274,12 +281,12 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
         const currentLocationName = locationNames[toolItem.current_location] || toolItem.current_location
 
         setError(
-          `現在地が異なる道具は同時に選択できません。\n\n` +
-          `選択済み: ${firstLocationName}\n` +
-          `スキャンした道具: ${currentLocationName}\n\n` +
+          `[DEBUG] 現在地が異なる道具は同時に選択できません。\n\n` +
+          `選択済み: ${firstLocationName} (${firstItemLocation})\n` +
+          `スキャンした道具: ${currentLocationName} (${toolItem.current_location})\n\n` +
           `同じ場所にある道具のみスキャンしてください。`
         )
-        setTimeout(() => setError(null), 7000)
+        setTimeout(() => setError(null), 8000)
         return
       }
 
@@ -287,10 +294,12 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
       if (toolItem.current_location === 'site') {
         if (toolItem.current_site_id !== firstItem.siteId) {
           setError(
-            `異なる現場の道具は同時に選択できません。\n\n` +
+            `[DEBUG] 異なる現場の道具は同時に選択できません。\n\n` +
+            `1つ目の現場ID: ${firstItem.siteId}\n` +
+            `今回の現場ID: ${toolItem.current_site_id}\n\n` +
             `同じ現場にある道具のみスキャンしてください。`
           )
-          setTimeout(() => setError(null), 7000)
+          setTimeout(() => setError(null), 8000)
           return
         }
       }
