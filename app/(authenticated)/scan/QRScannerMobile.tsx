@@ -190,6 +190,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
         id,
         serial_number,
         tool_id,
+        current_location,
         tools!inner (
           id,
           name

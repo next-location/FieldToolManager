@@ -42,6 +42,7 @@ export default async function WarehouseLocationDetailPage({
     .eq('warehouse_location_id', id)
     .eq('current_location', 'warehouse')
     .is('deleted_at', null)
+    .order('tool_id')
     .order('serial_number')
 
   // この位置に保管されている消耗品を取得
@@ -169,7 +170,7 @@ export default async function WarehouseLocationDetailPage({
           </div>
         </div>
 
-        {/* 保管中の道具 */}
+        {/* 保管中の道具 - モバイル対応カード形式 */}
         <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
           <div className="px-4 py-5 sm:px-6">
             <h3 className="text-lg leading-6 font-medium text-gray-900">
@@ -179,54 +180,64 @@ export default async function WarehouseLocationDetailPage({
               この位置に保管されている個別管理道具
             </p>
           </div>
-          <div className="border-t border-gray-200">
+          <div className="px-4 pb-4">
             {toolItems && toolItems.length > 0 ? (
-              <ul className="divide-y divide-gray-200">
+              <div className="space-y-3">
                 {toolItems.map((item) => {
                   const tool = item.tool as any
                   return (
-                    <li key={item.id} className="px-4 py-4 sm:px-6">
-                      <div className="flex items-center justify-between">
+                    <div key={item.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                      <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
-                          <div className="flex items-center">
-                            <p className="text-sm font-medium text-gray-900">
-                              {tool?.name} #{item.serial_number}
-                            </p>
-                            <span className="ml-3 text-xs text-gray-500">
-                              カテゴリ: {tool?.tool_categories?.name || '未設定'}
-                            </span>
-                          </div>
-                          <div className="mt-1 text-xs text-gray-500">
-                            ステータス: {
-                              item.status === 'available' ? '利用可能' :
-                              item.status === 'in_use' ? '使用中' :
-                              item.status === 'maintenance' ? 'メンテナンス中' :
-                              item.status === 'lost' ? '紛失' : item.status
-                            }
-                          </div>
-                        </div>
-                        <div>
                           <Link
                             href={`/tools/${tool?.id}`}
-                            className="text-sm text-blue-600 hover:text-blue-700"
+                            className="text-base font-medium text-blue-600 hover:text-blue-800"
                           >
-                            詳細 →
+                            {tool?.name}
                           </Link>
+                          <p className="text-sm text-gray-600 mt-1">
+                            個別番号: #{item.serial_number}
+                          </p>
                         </div>
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap ml-2 ${
+                          item.status === 'available'
+                            ? 'bg-green-100 text-green-800'
+                            : item.status === 'in_use'
+                            ? 'bg-blue-100 text-blue-800'
+                            : item.status === 'maintenance'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {item.status === 'available' ? '利用可能' :
+                           item.status === 'in_use' ? '使用中' :
+                           item.status === 'maintenance' ? 'メンテナンス中' :
+                           item.status === 'lost' ? '紛失' : item.status}
+                        </span>
                       </div>
-                    </li>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-gray-500">
+                          カテゴリ: {tool?.tool_categories?.name || '未設定'}
+                        </p>
+                        <Link
+                          href={`/tool-items/${item.id}`}
+                          className="text-sm text-gray-600 hover:text-gray-900"
+                        >
+                          詳細 →
+                        </Link>
+                      </div>
+                    </div>
                   )
                 })}
-              </ul>
+              </div>
             ) : (
-              <div className="px-4 py-6 text-center text-sm text-gray-500">
+              <div className="py-8 text-center text-sm text-gray-500">
                 保管中の道具がありません
               </div>
             )}
           </div>
         </div>
 
-        {/* 保管中の消耗品 */}
+        {/* 保管中の消耗品 - モバイル対応カード形式 */}
         <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
           <div className="px-4 py-5 sm:px-6">
             <h3 className="text-lg leading-6 font-medium text-gray-900">
@@ -236,50 +247,51 @@ export default async function WarehouseLocationDetailPage({
               この位置に保管されている消耗品
             </p>
           </div>
-          <div className="border-t border-gray-200">
+          <div className="px-4 pb-4">
             {consumableInventory && consumableInventory.length > 0 ? (
-              <ul className="divide-y divide-gray-200">
+              <div className="space-y-3">
                 {consumableInventory.map((inv) => {
                   const tool = inv.tool as any
                   return (
-                    <li key={inv.id} className="px-4 py-4 sm:px-6">
-                      <div className="flex items-center justify-between">
+                    <div key={inv.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                      <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
-                          <div className="flex items-center">
-                            <p className="text-sm font-medium text-gray-900">
-                              {tool?.name}
-                            </p>
-                            <span className="ml-3 text-xs text-gray-500">
-                              カテゴリ: {tool?.tool_categories?.name || '未設定'}
-                            </span>
-                          </div>
-                          <div className="mt-1 text-xs text-gray-500">
-                            最終更新: {new Date(inv.updated_at).toLocaleString('ja-JP')}
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-gray-900">
-                              {inv.quantity}
-                              <span className="ml-1 text-sm font-normal text-gray-500">
-                                {tool?.unit}
-                              </span>
-                            </div>
-                          </div>
                           <Link
                             href={`/consumables/${tool?.id}`}
-                            className="text-sm text-blue-600 hover:text-blue-700"
+                            className="text-base font-medium text-blue-600 hover:text-blue-800"
                           >
-                            詳細 →
+                            {tool?.name}
                           </Link>
+                          <p className="text-sm text-gray-500 mt-1">
+                            カテゴリ: {tool?.tool_categories?.name || '未設定'}
+                          </p>
+                        </div>
+                        <div className="text-right ml-2">
+                          <div className="text-lg font-bold text-gray-900">
+                            {inv.quantity}
+                            <span className="ml-1 text-sm font-normal text-gray-500">
+                              {tool?.unit}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </li>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-gray-500">
+                          最終更新: {new Date(inv.updated_at).toLocaleDateString('ja-JP')}
+                        </p>
+                        <Link
+                          href={`/consumables/${tool?.id}`}
+                          className="text-sm text-gray-600 hover:text-gray-900"
+                        >
+                          詳細 →
+                        </Link>
+                      </div>
+                    </div>
                   )
                 })}
-              </ul>
+              </div>
             ) : (
-              <div className="px-4 py-6 text-center text-sm text-gray-500">
+              <div className="py-8 text-center text-sm text-gray-500">
                 保管中の消耗品がありません
               </div>
             )}
