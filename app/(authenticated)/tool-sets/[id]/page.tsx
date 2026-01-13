@@ -11,6 +11,9 @@ export default async function ToolSetDetailPage({
   const { id } = await params
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
+  // リーダー以上のみ編集・削除可能
+  const canEdit = userRole === 'admin' || userRole === 'manager' || userRole === 'leader'
+
   // 道具セットの詳細を取得
   const { data: toolSet, error } = await supabase
     .from('tool_sets')
@@ -93,15 +96,17 @@ export default async function ToolSetDetailPage({
                 ID: {toolSet.id}
               </p>
             </div>
-            <div className="flex space-x-3">
-              <Link
-                href={`/tool-sets/${toolSet.id}/edit`}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                編集
-              </Link>
-              <DeleteToolSetButton toolSetId={toolSet.id} toolSetName={toolSet.name} />
-            </div>
+            {canEdit && (
+              <div className="flex space-x-3">
+                <Link
+                  href={`/tool-sets/${toolSet.id}/edit`}
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  編集
+                </Link>
+                <DeleteToolSetButton toolSetId={toolSet.id} toolSetName={toolSet.name} />
+              </div>
+            )}
           </div>
           <div className="border-t border-gray-200">
             <dl>
@@ -169,9 +174,11 @@ export default async function ToolSetDetailPage({
 
                   return (
                     <li key={item.id} className="px-4 py-4 sm:px-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3">
+                      {/* スマホ: 縦並び、PC: 横並び */}
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          {/* 道具名 */}
+                          <div className="flex items-center gap-2 flex-wrap">
                             <p className="text-sm font-medium text-gray-900">
                               {tool?.name || '不明な道具'}
                             </p>
@@ -181,39 +188,45 @@ export default async function ToolSetDetailPage({
                               </span>
                             )}
                           </div>
-                          <div className="mt-2 flex flex-col gap-1 text-sm">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-400 w-20">シリアル:</span>
-                              <span className="font-mono text-gray-700">
-                                #{item.serial_number}
-                              </span>
-                              <span
-                                className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                  item.status === 'available'
-                                    ? 'bg-green-100 text-green-800'
+
+                          {/* シリアル番号とステータス */}
+                          <div className="mt-2 flex flex-col gap-2 text-sm">
+                            <div className="flex items-start gap-2 flex-wrap">
+                              <span className="text-xs text-gray-400 min-w-[4rem]">シリアル:</span>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-mono text-gray-700">
+                                  #{item.serial_number}
+                                </span>
+                                <span
+                                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                    item.status === 'available'
+                                      ? 'bg-green-100 text-green-800'
+                                      : item.status === 'in_use'
+                                      ? 'bg-blue-100 text-blue-800'
+                                      : item.status === 'maintenance'
+                                      ? 'bg-yellow-100 text-yellow-800'
+                                      : item.status === 'lost'
+                                      ? 'bg-red-100 text-red-800'
+                                      : 'bg-gray-100 text-gray-800'
+                                  }`}
+                                >
+                                  {item.status === 'available'
+                                    ? '利用可能'
                                     : item.status === 'in_use'
-                                    ? 'bg-blue-100 text-blue-800'
+                                    ? '使用中'
                                     : item.status === 'maintenance'
-                                    ? 'bg-yellow-100 text-yellow-800'
+                                    ? 'メンテナンス中'
                                     : item.status === 'lost'
-                                    ? 'bg-red-100 text-red-800'
-                                    : 'bg-gray-100 text-gray-800'
-                                }`}
-                              >
-                                {item.status === 'available'
-                                  ? '利用可能'
-                                  : item.status === 'in_use'
-                                  ? '使用中'
-                                  : item.status === 'maintenance'
-                                  ? 'メンテナンス中'
-                                  : item.status === 'lost'
-                                  ? '紛失'
-                                  : item.status}
-                              </span>
+                                    ? '紛失'
+                                    : item.status}
+                                </span>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-400 w-20">現在地:</span>
-                              <span className="text-gray-600">
+
+                            {/* 現在地 */}
+                            <div className="flex items-start gap-2">
+                              <span className="text-xs text-gray-400 min-w-[4rem]">現在地:</span>
+                              <span className="text-gray-600 text-xs sm:text-sm">
                                 📍{' '}
                                 {item.current_location === 'warehouse'
                                   ? warehouseLocation
@@ -228,31 +241,31 @@ export default async function ToolSetDetailPage({
                                   : item.current_location}
                               </span>
                             </div>
+
+                            {/* メーカー */}
                             {tool?.manufacturer && (
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs text-gray-400 w-20">メーカー:</span>
-                                <span className="text-gray-600">{tool.manufacturer}</span>
+                              <div className="flex items-start gap-2">
+                                <span className="text-xs text-gray-400 min-w-[4rem]">メーカー:</span>
+                                <span className="text-gray-600 text-xs sm:text-sm">{tool.manufacturer}</span>
                               </div>
                             )}
                           </div>
+
+                          {/* 備考 */}
                           {item.notes && (
-                            <p className="mt-1 text-xs text-gray-500">
+                            <p className="mt-2 text-xs text-gray-500">
                               📝 {item.notes}
                             </p>
                           )}
                         </div>
-                        <div className="flex items-center space-x-2">
+
+                        {/* 詳細ボタンのみ（個別移動削除） */}
+                        <div className="flex items-center sm:flex-shrink-0">
                           <Link
                             href={`/tool-items/${item.id}`}
-                            className="inline-flex items-center px-3 py-1 border border-gray-300 rounded text-xs font-medium text-gray-700 bg-white hover:bg-gray-50"
+                            className="flex-1 sm:flex-none text-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                           >
                             詳細
-                          </Link>
-                          <Link
-                            href={`/movements/new?tool_item_id=${item.id}`}
-                            className="inline-flex items-center px-3 py-1 border border-blue-600 rounded text-xs font-medium text-blue-600 bg-white hover:bg-blue-50"
-                          >
-                            📦 移動
                           </Link>
                         </div>
                       </div>
