@@ -356,18 +356,34 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
           <ChevronLeft className="h-6 w-6" />
         </button>
         <h1 className="text-lg font-medium">{getModeTitle()}</h1>
-        <div className="w-6" /> {/* バランス用のスペーサー */}
+        <button onClick={onClose || (() => router.back())} className="p-1 hover:bg-blue-700 rounded-full transition-colors">
+          <X className="h-6 w-6" />
+        </button>
       </div>
 
       {/* カメラビュー */}
       <div className="flex-1 relative bg-black">
         <div id="qr-reader-mobile" className="h-full" />
 
+        {/* 半透明黒オーバーレイ（QR枠以外を覆う） */}
+        {isScanning && (
+          <div className="absolute inset-0 pointer-events-none">
+            {/* 上部 */}
+            <div className="absolute top-0 left-0 right-0 bg-black/60" style={{ height: 'calc(50% - 128px)' }} />
+            {/* 左側 */}
+            <div className="absolute left-0 bg-black/60" style={{ top: 'calc(50% - 128px)', width: 'calc(50% - 128px)', height: '256px' }} />
+            {/* 右側 */}
+            <div className="absolute right-0 bg-black/60" style={{ top: 'calc(50% - 128px)', width: 'calc(50% - 128px)', height: '256px' }} />
+            {/* 下部 */}
+            <div className="absolute bottom-0 left-0 right-0 bg-black/60" style={{ height: 'calc(50% - 128px)' }} />
+          </div>
+        )}
+
         {/* スキャン成功時の視覚的フィードバック */}
         {scanSuccess && (
           <>
-            <div className="absolute inset-0 bg-green-500 opacity-30 pointer-events-none transition-opacity duration-300" />
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="absolute inset-0 bg-green-500 opacity-30 pointer-events-none transition-opacity duration-300 z-20" />
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
               <div className="bg-green-500 rounded-full p-8 animate-ping">
                 <svg className="w-24 h-24 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -379,14 +395,14 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
         {/* エラー表示 */}
         {error && (
-          <div className="absolute top-4 left-4 right-4 bg-red-500 text-white p-3 rounded-lg">
+          <div className="absolute top-4 left-4 right-4 bg-red-500 text-white p-3 rounded-lg z-30">
             {error}
           </div>
         )}
 
         {/* 読み込み中 */}
         {isProcessing && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-30">
             <div className="text-white text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent mx-auto mb-4"></div>
               <p>カメラを起動中...</p>
@@ -396,8 +412,8 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
         {/* QRコード枠のガイド */}
         {isScanning && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-64 h-64 border-2 border-white rounded-lg opacity-50">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+            <div className="w-64 h-64 border-2 border-white rounded-lg">
               <div className="absolute -top-2 -left-2 w-8 h-8 border-t-4 border-l-4 border-white rounded-tl-lg"></div>
               <div className="absolute -top-2 -right-2 w-8 h-8 border-t-4 border-r-4 border-white rounded-tr-lg"></div>
               <div className="absolute -bottom-2 -left-2 w-8 h-8 border-b-4 border-l-4 border-white rounded-bl-lg"></div>

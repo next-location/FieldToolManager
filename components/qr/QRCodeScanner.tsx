@@ -144,7 +144,41 @@ export default function QRCodeScanner({
             </div>
           </div>
         ) : (
-          <div id={elementId.current} />
+          <>
+            <div id={elementId.current} />
+
+            {/* 半透明黒オーバーレイ（QR枠以外を覆う） */}
+            <div className="absolute inset-0 pointer-events-none">
+              {/* 上部 */}
+              <div className="absolute top-0 left-0 right-0 bg-black/60" style={{ height: 'calc(50% - 128px)' }} />
+              {/* 左側 */}
+              <div className="absolute left-0 bg-black/60" style={{ top: 'calc(50% - 128px)', width: 'calc(50% - 128px)', height: '256px' }} />
+              {/* 右側 */}
+              <div className="absolute right-0 bg-black/60" style={{ top: 'calc(50% - 128px)', width: 'calc(50% - 128px)', height: '256px' }} />
+              {/* 下部 */}
+              <div className="absolute bottom-0 left-0 right-0 bg-black/60" style={{ height: 'calc(50% - 128px)' }} />
+            </div>
+
+            {/* QRコード枠のガイド */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+              <div className="w-64 h-64 border-2 border-white rounded-lg">
+                <div className="absolute -top-2 -left-2 w-8 h-8 border-t-4 border-l-4 border-white rounded-tl-lg"></div>
+                <div className="absolute -top-2 -right-2 w-8 h-8 border-t-4 border-r-4 border-white rounded-tr-lg"></div>
+                <div className="absolute -bottom-2 -left-2 w-8 h-8 border-b-4 border-l-4 border-white rounded-bl-lg"></div>
+                <div className="absolute -bottom-2 -right-2 w-8 h-8 border-b-4 border-r-4 border-white rounded-br-lg"></div>
+              </div>
+            </div>
+
+            {/* 右上に閉じるボタン */}
+            <button
+              onClick={stopScanning}
+              className="absolute top-4 right-4 z-20 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
+            >
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </>
         )}
       </div>
 
