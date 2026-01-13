@@ -39,6 +39,7 @@ export function ToolSetForm({ toolItems, action }: ToolSetFormProps) {
   const [error, setError] = useState<string | null>(null)
   const [scanSuccess, setScanSuccess] = useState(false)
   const [lastScannedTool, setLastScannedTool] = useState<string | null>(null)
+  const [requiredLocation, setRequiredLocation] = useState<string | null>(null)
 
   // ひらがな・カタカナ変換ヘルパー
   const toHiragana = (str: string): string => {
@@ -87,12 +88,36 @@ export function ToolSetForm({ toolItems, action }: ToolSetFormProps) {
   }, [])
 
   const toggleItem = (itemId: string) => {
+    const item = toolItems.find(t => t.id === itemId)
+    if (!item) return
+
     if (selectedItemIds.includes(itemId)) {
+      // 削除時
       selectedItemIdsRef.current.delete(itemId)
-      setSelectedItemIds(selectedItemIds.filter((id) => id !== itemId))
+      const newSelected = selectedItemIds.filter((id) => id !== itemId)
+      setSelectedItemIds(newSelected)
+
+      // 全て削除された場合は場所制限をリセット
+      if (newSelected.length === 0) {
+        setRequiredLocation(null)
+      }
     } else {
-      selectedItemIdsRef.current.add(itemId)
-      setSelectedItemIds([...selectedItemIds, itemId])
+      // 追加時：場所チェック
+      if (requiredLocation === null) {
+        // 最初の1個：場所を記録
+        setRequiredLocation(item.current_location)
+        selectedItemIdsRef.current.add(itemId)
+        setSelectedItemIds([...selectedItemIds, itemId])
+      } else if (item.current_location === requiredLocation) {
+        // 2個目以降：同じ場所のみ許可
+        selectedItemIdsRef.current.add(itemId)
+        setSelectedItemIds([...selectedItemIds, itemId])
+      } else {
+        // 違う場所：エラー
+        const locationName = requiredLocation === 'warehouse' ? '倉庫' : requiredLocation === 'site' ? '現場' : '修理中'
+        setError(`現在地が異なるため選択できません（セット内は全て${locationName}にある道具のみ）`)
+        setTimeout(() => setError(null), 5000)
+      }
     }
   }
 
@@ -124,6 +149,18 @@ export function ToolSetForm({ toolItems, action }: ToolSetFormProps) {
       setError('この道具は既に選択されています')
       setTimeout(() => setError(null), 3000)
       return { success: false, message: 'この道具は既に選択されています' }
+    }
+
+    // 場所チェック
+    if (requiredLocation === null) {
+      // 最初の1個：場所を記録
+      setRequiredLocation(tool.current_location)
+    } else if (tool.current_location !== requiredLocation) {
+      // 違う場所：エラー
+      const locationName = requiredLocation === 'warehouse' ? '倉庫' : requiredLocation === 'site' ? '現場' : '修理中'
+      setError(`現在地が異なるため追加できません（セット内は全て${locationName}にある道具のみ）`)
+      setTimeout(() => setError(null), 5000)
+      return { success: false, message: `現在地が異なるため追加できません` }
     }
 
     // Setに追加（即座に反映）
@@ -219,6 +256,11 @@ export function ToolSetForm({ toolItems, action }: ToolSetFormProps) {
               <span className="ml-2 text-sm font-normal text-gray-500">
                 （{selectedItemIds.length}個選択中）
               </span>
+              {requiredLocation && (
+                <span className="ml-2 px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                  📍 {requiredLocation === 'warehouse' ? '倉庫' : requiredLocation === 'site' ? '現場' : '修理中'}のみ
+                </span>
+              )}
             </label>
           </div>
 
@@ -295,7 +337,9 @@ export function ToolSetForm({ toolItems, action }: ToolSetFormProps) {
                           ? 'bg-red-100 text-red-800'
                           : 'bg-gray-100 text-gray-800'
 
-                      const isDisabled = item.isRegistered
+                      // 場所チェック：最初に選択した場所と異なる場合は無効化
+                      const isWrongLocation = requiredLocation !== null && item.current_location !== requiredLocation
+                      const isDisabled = item.isRegistered || isWrongLocation
 
                       return (
                         <label
@@ -331,15 +375,25 @@ export function ToolSetForm({ toolItems, action }: ToolSetFormProps) {
                                   ? '紛失'
                                   : item.status}
                               </span>
-                              {isDisabled && item.registeredSetName && (
+                              {item.registeredSetName && (
                                 <span className="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800">
                                   「{item.registeredSetName}」に登録済み
+                                </span>
+                              )}
+                              {isWrongLocation && (
+                                <span className="px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-700">
+                                  異なる場所
                                 </span>
                               )}
                             </div>
                             <div className="text-xs text-gray-500 mt-1">
                               📍 {locationText}
                             </div>
+                            {isWrongLocation && requiredLocation && (
+                              <div className="text-xs text-red-600 mt-1">
+                                ⚠️ セット内は全て{requiredLocation === 'warehouse' ? '倉庫' : requiredLocation === 'site' ? '現場' : '修理中'}にある道具のみ選択可能
+                              </div>
+                            )}
                           </div>
                         </label>
                       )
