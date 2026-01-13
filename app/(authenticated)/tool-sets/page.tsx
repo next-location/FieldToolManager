@@ -12,10 +12,20 @@ export default async function ToolSetsPage() {
 
   const { data: toolSets, error } = await supabase
     .from('tool_sets')
-    .select('id, name, description, created_at, created_by, users:created_by (name)')
+    .select('id, name, description, created_at, created_by')
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
+
+  // ユーザー情報を取得
+  const userIds = [...new Set((toolSets || []).map(set => set.created_by))]
+  const { data: users } = await supabase
+    .from('users')
+    .select('id, name')
+    .in('id', userIds)
+
+  // ユーザー情報をマップに変換
+  const usersMap = new Map((users || []).map(u => [u.id, u]))
 
   const toolSetsWithCounts = await Promise.all(
     (toolSets || []).map(async (set) => {
@@ -23,7 +33,11 @@ export default async function ToolSetsPage() {
         .from('tool_set_items')
         .select('*', { count: 'exact', head: true })
         .eq('tool_set_id', set.id)
-      return { ...set, itemCount: count || 0 }
+      return {
+        ...set,
+        itemCount: count || 0,
+        users: usersMap.get(set.created_by) || null
+      }
     })
   )
 
