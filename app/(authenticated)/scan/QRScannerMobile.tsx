@@ -18,6 +18,7 @@ interface ScannedItem {
   qrCode: string
   name: string
   serialNumber?: string
+  currentLocation: string // 道具の現在地（warehouse, site, lost）
   timestamp: Date
 }
 
@@ -249,11 +250,35 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
       }
     }
 
+    // 現在地の一貫性チェック
+    if (scannedItems.length > 0) {
+      const firstItemLocation = scannedItems[0].currentLocation
+      if (toolItem.current_location !== firstItemLocation) {
+        const locationNames: Record<string, string> = {
+          warehouse: '倉庫',
+          site: '現場',
+          lost: '紛失'
+        }
+        const firstLocationName = locationNames[firstItemLocation] || firstItemLocation
+        const currentLocationName = locationNames[toolItem.current_location] || toolItem.current_location
+
+        setError(
+          `現在地が異なる道具は同時に選択できません。\n\n` +
+          `選択済み: ${firstLocationName}\n` +
+          `スキャンした道具: ${currentLocationName}\n\n` +
+          `同じ場所にある道具のみスキャンしてください。`
+        )
+        setTimeout(() => setError(null), 7000)
+        return
+      }
+    }
+
     const newItem: ScannedItem = {
       id: toolItem.id,
       qrCode,
       name: (toolItem as any).tools?.name || '不明な道具',
       serialNumber: toolItem.serial_number,
+      currentLocation: toolItem.current_location,
       timestamp: new Date()
     }
 
