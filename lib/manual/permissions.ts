@@ -26,6 +26,7 @@ export function getRolePermissionLevel(role: string | null): number {
     case 'leader':
       return PERMISSION_LEVELS.LEADER
     case 'staff':
+    case 'user': // userロールもstaffと同じ権限レベル
       return PERMISSION_LEVELS.STAFF
     default:
       return PERMISSION_LEVELS.PUBLIC

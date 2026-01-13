@@ -8,6 +8,103 @@ tags: ["道具移動", "QRコード", "道具セット", "基本操作"]
 lastUpdated: "2025-01-13"
 ---
 
+<style>{`
+  .manual-step {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+  }
+  .manual-step h3 {
+    margin: 0 0 0.75rem 0;
+    color: #1f2937;
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+  .manual-step p {
+    margin: 0.5rem 0;
+    color: #4b5563;
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+  .manual-image {
+    width: 180px;
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1rem 0;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    border: 1px solid #e5e7eb;
+  }
+  .note-box {
+    padding: 0.875rem 1rem;
+    margin: 1rem 0;
+    border-left: 4px solid #f59e0b;
+    background: #fffbeb;
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+  .note-box strong {
+    color: #92400e;
+  }
+  .note-box p {
+    margin: 0.25rem 0;
+    color: #78350f;
+  }
+  .hint-box {
+    padding: 0.875rem 1rem;
+    margin: 1rem 0;
+    border-left: 4px solid #3b82f6;
+    background: #eff6ff;
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+  .hint-box strong {
+    color: #1e40af;
+  }
+  .hint-box p {
+    margin: 0.25rem 0;
+    color: #1e3a8a;
+  }
+  .faq-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+  }
+  .faq-section h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+  }
+  .faq-section p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #6b7280;
+  }
+  .faq-section ul {
+    margin: 0.5rem 0 0 0;
+    padding-left: 1.25rem;
+  }
+  .faq-section li {
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+    color: #6b7280;
+  }
+  @media (max-width: 640px) {
+    .manual-step {
+      padding: 1rem;
+    }
+    .manual-image {
+      width: 160px;
+    }
+  }
+`}</style>
+
 道具を別の拠点に移動する方法を説明します。移動方法は2パターンあります。
 
 ## 移動方法の選び方
@@ -29,306 +126,179 @@ lastUpdated: "2025-01-13"
 
 ## パターン1: QRコードから道具を移動する
 
+<div className="manual-step">
+
 ### 1. QRボタンをタップ
 
-スマートフォン下部のナビゲーションバーにある「**QR**」ボタンをタップします。
+スマートフォン下部のナビゲーションバーにある「**QR**」ボタン（赤丸の位置）をタップします。
 
-<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
-  <img src="/images/manual/qr-step1-tap-qr-button.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="QRボタンをタップ" />
-  <div style={{
-    position: 'absolute',
-    bottom: '2.8%',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    width: '8.5%',
-    height: '4.2%',
-    border: '3px solid #ef4444',
-    borderRadius: '50%',
-    pointerEvents: 'none'
-  }}></div>
+<img src="/images/manual/qr-step1-tap-qr-button.png" className="manual-image" alt="QRボタンをタップ" />
+
 </div>
+
+<div className="manual-step">
 
 ### 2. タブとスキャン開始を確認
 
-上部のタブで「**道具を移動**」が選択されていることを確認し、「**スキャン開始**」ボタンをタップします。
+上部のタブで「**道具を移動**」が選択されていることを確認し（①）、「**スキャン開始**」ボタンをタップします（②）。
 
-<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
-  <img src="/images/manual/qr-step2-3-check-tab-and-scan.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="タブとスキャン開始" />
-  <div style={{
-    position: 'absolute',
-    top: '10.6%',
-    left: '5.2%',
-    width: '34.2%',
-    height: '3.5%',
-    border: '3px solid #ef4444',
-    borderRadius: '8px',
-    pointerEvents: 'none'
-  }}></div>
-  <div style={{
-    position: 'absolute',
-    top: '72%',
-    left: '12.6%',
-    width: '86.3%',
-    height: '7.1%',
-    border: '3px solid #ef4444',
-    borderRadius: '8px',
-    pointerEvents: 'none'
-  }}></div>
-  <div style={{
-    position: 'absolute',
-    top: '9.9%',
-    left: '3%',
-    width: '3%',
-    height: '1.4%',
-    backgroundColor: '#ef4444',
-    color: 'white',
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '10px',
-    fontWeight: 'bold'
-  }}>①</div>
-  <div style={{
-    position: 'absolute',
-    top: '71.3%',
-    left: '8.9%',
-    width: '3%',
-    height: '1.4%',
-    backgroundColor: '#ef4444',
-    color: 'white',
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '10px',
-    fontWeight: 'bold'
-  }}>②</div>
+<img src="/images/manual/qr-step2-3-check-tab-and-scan.png" className="manual-image" alt="タブとスキャン開始" />
+
 </div>
+
+<div className="manual-step">
 
 ### 3. QRコードをスキャン
 
 移動させたい道具のQRコードをカメラでスキャンします（複数スキャン可能）。
 
-<div style={{ width: '300px', maxWidth: '100%' }}>
-  <img src="/images/manual/qr-step4-scan-qr-code.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="QRコードをスキャン" />
+<img src="/images/manual/qr-step4-scan-qr-code.png" className="manual-image" alt="QRコードをスキャン" />
+
+<div className="note-box">
+<strong>⚠️ 注意</strong>
+<p>道具セットに登録されている道具はスキャンできません。道具セット登録されている道具の移動は「パターン2: 道具セットを移動する」をご参照ください。</p>
 </div>
 
-> **⚠️ 注意**
->
-> 道具セットに登録されている道具はスキャンできません。道具セット登録されている道具の移動は「パターン2: 道具セットを移動する」をご参照ください。
+</div>
+
+<div className="manual-step">
 
 ### 4. 完了して移動先を選ぶ
 
 スキャンが完了したら、「**完了して移動先を選ぶ**」ボタンをタップします。
 
-<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
-  <img src="/images/manual/qr-step6-tap-complete.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="完了して移動先を選ぶ" />
-  <div style={{
-    position: 'absolute',
-    bottom: '3.5%',
-    left: '5.2%',
-    width: '86.3%',
-    height: '5.6%',
-    border: '3px solid #ef4444',
-    borderRadius: '8px',
-    pointerEvents: 'none'
-  }}></div>
+<img src="/images/manual/qr-step6-tap-complete.png" className="manual-image" alt="完了して移動先を選ぶ" />
+
 </div>
+
+<div className="manual-step">
 
 ### 5. 移動先を選択
 
 移動先の種類（倉庫/現場/修理）を選択します。
 
-<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
-  <img src="/images/manual/qr-step7-select-destination-type.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="移動先選択" />
-  <div style={{
-    position: 'absolute',
-    top: '32.5%',
-    left: '12.6%',
-    width: '83.3%',
-    height: '19.7%',
-    border: '3px solid #ef4444',
-    borderRadius: '8px',
-    pointerEvents: 'none'
-  }}></div>
+<img src="/images/manual/qr-step7-select-destination-type.png" className="manual-image" alt="移動先選択" />
+
 </div>
+
+<div className="manual-step">
 
 ### 6. （現場の場合）現場を選択
 
 移動先で「現場」を選んだ場合、現場のリストから選択します。
 
-<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
-  <img src="/images/manual/qr-step8-select-site.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="現場選択" />
-  <div style={{
-    position: 'absolute',
-    top: '48%',
-    left: '12.6%',
-    width: '86.3%',
-    height: '4.9%',
-    border: '3px solid #ef4444',
-    borderRadius: '8px',
-    pointerEvents: 'none'
-  }}></div>
+<img src="/images/manual/qr-step8-select-site.png" className="manual-image" alt="現場選択" />
+
 </div>
+
+<div className="manual-step">
 
 ### 7. 移動を実行
 
 「**移動を実行**」ボタンをタップします。
 
-<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
-  <img src="/images/manual/qr-step9-tap-execute.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="移動を実行" />
-  <div style={{
-    position: 'absolute',
-    bottom: '2%',
-    left: '32.7%',
-    width: '61%',
-    height: '4.6%',
-    border: '3px solid #ef4444',
-    borderRadius: '8px',
-    pointerEvents: 'none'
-  }}></div>
+<img src="/images/manual/qr-step9-tap-execute.png" className="manual-image" alt="移動を実行" />
+
 </div>
+
+<div className="manual-step">
 
 ### 8. 移動完了
 
 移動完了メッセージが表示されたら成功です。
 
-<div style={{ width: '300px', maxWidth: '100%' }}>
-  <img src="/images/manual/qr-step10-success.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="移動完了" />
+<img src="/images/manual/qr-step10-success.png" className="manual-image" alt="移動完了" />
+
 </div>
 
 ---
 
 ## パターン2: 道具セットを移動する
 
+<div className="manual-step">
+
 ### 1. メニューボタンをタップ
 
-スマートフォン下部のナビゲーションバーにある「**メニュー**」ボタンをタップします。
+スマートフォン下部のナビゲーションバーにある「**メニュー**」ボタン（赤丸の位置）をタップします。
 
-<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
-  <img src="/images/manual/set-step1-tap-menu-button.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="メニューボタンをタップ" />
-  <div style={{
-    position: 'absolute',
-    bottom: '2.8%',
-    right: '5.9%',
-    width: '8.9%',
-    height: '4.2%',
-    border: '3px solid #ef4444',
-    borderRadius: '50%',
-    pointerEvents: 'none'
-  }}></div>
+<img src="/images/manual/set-step1-tap-menu-button.png" className="manual-image" alt="メニューボタンをタップ" />
+
 </div>
+
+<div className="manual-step">
 
 ### 2. 道具移動を選択
 
 サイドメニューから「**移動管理 > 道具移動**」をタップします。
 
-<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
-  <img src="/images/manual/set-step2-tap-tool-move.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="道具移動を選択" />
-  <div style={{
-    position: 'absolute',
-    top: '27%',
-    left: '7.4%',
-    width: '66.7%',
-    height: '4.2%',
-    border: '3px solid #ef4444',
-    borderRadius: '8px',
-    pointerEvents: 'none'
-  }}></div>
+<img src="/images/manual/set-step2-tap-tool-move.png" className="manual-image" alt="道具移動を選択" />
+
 </div>
+
+<div className="manual-step">
 
 ### 3. 移動先を選択
 
 移動先を選択します（手順は「パターン1」の手順5-6と同じ）。
 
-<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
-  <img src="/images/manual/set-step3-select-destination.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="移動先選択" />
-  <div style={{
-    position: 'absolute',
-    top: '32.5%',
-    left: '12.6%',
-    width: '83.3%',
-    height: '19.7%',
-    border: '3px solid #ef4444',
-    borderRadius: '8px',
-    pointerEvents: 'none'
-  }}></div>
+<img src="/images/manual/set-step3-select-destination.png" className="manual-image" alt="移動先選択" />
+
 </div>
+
+<div className="manual-step">
 
 ### 4. 道具セットタブを選択
 
 「移動する道具の選択方法」で「**道具セット**」タブを選択します。
 
-<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
-  <img src="/images/manual/set-step4-select-set-tab.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="道具セットタブを選択" />
-  <div style={{
-    position: 'absolute',
-    top: '58%',
-    left: '47.4%',
-    width: '29.7%',
-    height: '4.2%',
-    border: '3px solid #ef4444',
-    borderRadius: '8px',
-    pointerEvents: 'none'
-  }}></div>
+<img src="/images/manual/set-step4-select-set-tab.png" className="manual-image" alt="道具セットタブを選択" />
+
 </div>
+
+<div className="manual-step">
 
 ### 5. 道具セットを選択
 
 移動したい道具セットを選択します。
 
-<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
-  <img src="/images/manual/set-step5-select-tool-set.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="道具セットを選択" />
-  <div style={{
-    position: 'absolute',
-    top: '24%',
-    left: '7.4%',
-    width: '89.1%',
-    height: '5.6%',
-    border: '3px solid #ef4444',
-    borderRadius: '8px',
-    pointerEvents: 'none'
-  }}></div>
+<img src="/images/manual/set-step5-select-tool-set.png" className="manual-image" alt="道具セットを選択" />
+
 </div>
+
+<div className="manual-step">
 
 ### 6. 移動を実行
 
 「**移動を実行**」ボタンをタップします（パターン1の手順7の画像と同じ）。
 
-<div style={{ position: 'relative', display: 'inline-block', width: '300px', maxWidth: '100%' }}>
-  <img src="/images/manual/qr-step9-tap-execute.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="移動を実行" />
-  <div style={{
-    position: 'absolute',
-    bottom: '2%',
-    left: '32.7%',
-    width: '61%',
-    height: '4.6%',
-    border: '3px solid #ef4444',
-    borderRadius: '8px',
-    pointerEvents: 'none'
-  }}></div>
+<img src="/images/manual/qr-step9-tap-execute.png" className="manual-image" alt="移動を実行" />
+
 </div>
+
+<div className="manual-step">
 
 ### 7. 移動完了
 
 移動完了メッセージが表示されたら成功です（パターン1の手順8の画像と同じ）。
 
-<div style={{ width: '300px', maxWidth: '100%' }}>
-  <img src="/images/manual/qr-step10-success.png" style={{ width: '100%', height: 'auto', display: 'block' }} alt="移動完了" />
+<img src="/images/manual/qr-step10-success.png" className="manual-image" alt="移動完了" />
+
 </div>
 
 ---
 
 ## 道具セット登録について
 
-> **💡 ヒント**
->
-> 道具セット登録は**リーダー以上の権限**が必要です。道具セット登録が必要な場合は、リーダー以上の権限の方にセット登録を依頼してください。
+<div className="hint-box">
+<strong>💡 ヒント</strong>
+<p>道具セット登録は<strong>リーダー以上の権限</strong>が必要です。道具セット登録が必要な場合は、リーダー以上の権限の方にセット登録を依頼してください。</p>
+</div>
 
 ---
 
 ## よくある質問
+
+<div className="faq-section">
 
 ### QRコードがスキャンできない
 
@@ -336,10 +306,20 @@ lastUpdated: "2025-01-13"
 - QRコードに汚れがある場合は拭き取ってください
 - カメラと道具の距離を調整してください（10cm〜30cm程度）
 
+</div>
+
+<div className="faq-section">
+
 ### 道具セットに登録されている道具をスキャンしたい
 
 道具セットに登録されている道具は個別にスキャンできません。「パターン2: 道具セットを移動する」の手順で移動してください。
 
+</div>
+
+<div className="faq-section">
+
 ### 移動履歴を確認したい
 
 移動履歴ページから確認できます。詳しくは[移動履歴の確認](/manual/01_staff/movement-history)を参照してください。
+
+</div>
