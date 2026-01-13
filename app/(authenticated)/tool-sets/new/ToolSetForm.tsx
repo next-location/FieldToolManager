@@ -15,10 +15,12 @@ type ToolItem = {
     name: string
     model_number: string | null
     manufacturer: string | null
-  }[]
+  } | null
   current_site?: {
     name: string
   }[]
+  isRegistered?: boolean
+  registeredSetName?: string | null
 }
 
 type ToolSetFormProps = {
@@ -63,20 +65,20 @@ export function ToolSetForm({ toolItems, action }: ToolSetFormProps) {
   }
 
   const filteredItems = toolItems.filter((item) => {
-    const tool = (item.tools[0] || {}) as any
+    const tool = item.tools
     const searchLower = searchTerm.toLowerCase()
     return (
-      tool.name?.toLowerCase().includes(searchLower) ||
+      tool?.name?.toLowerCase().includes(searchLower) ||
       item.serial_number.includes(searchLower) ||
-      tool.model_number?.toLowerCase().includes(searchLower) ||
+      tool?.model_number?.toLowerCase().includes(searchLower) ||
       false
     )
   })
 
   // 道具マスタごとにグループ化
   const groupedItems = filteredItems.reduce((acc, item) => {
-    const tool = (item.tools[0] || {}) as any
-    const key = tool.id
+    const tool = item.tools
+    const key = tool?.id || 'unknown'
     if (!acc[key]) {
       acc[key] = {
         tool: tool,
@@ -179,19 +181,26 @@ export function ToolSetForm({ toolItems, action }: ToolSetFormProps) {
                           ? 'bg-red-100 text-red-800'
                           : 'bg-gray-100 text-gray-800'
 
+                      const isDisabled = item.isRegistered
+
                       return (
                         <label
                           key={item.id}
-                          className="flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer"
+                          className={`flex items-center px-4 py-3 ${
+                            isDisabled
+                              ? 'bg-gray-50 cursor-not-allowed opacity-60'
+                              : 'hover:bg-gray-50 cursor-pointer'
+                          }`}
                         >
                           <input
                             type="checkbox"
                             checked={selectedItemIds.includes(item.id)}
                             onChange={() => toggleItem(item.id)}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            disabled={isDisabled}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50"
                           />
                           <div className="ml-3 flex-1">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-mono text-sm font-medium text-gray-900">
                                 #{item.serial_number}
                               </span>
@@ -208,6 +217,11 @@ export function ToolSetForm({ toolItems, action }: ToolSetFormProps) {
                                   ? '紛失'
                                   : item.status}
                               </span>
+                              {isDisabled && item.registeredSetName && (
+                                <span className="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800">
+                                  「{item.registeredSetName}」に登録済み
+                                </span>
+                              )}
                             </div>
                             <div className="text-xs text-gray-500 mt-1">
                               📍 {locationText}

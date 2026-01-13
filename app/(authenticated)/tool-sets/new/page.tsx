@@ -24,17 +24,48 @@ export default async function NewToolSetPage() {
       current_location,
       current_site_id,
       status,
-      tools (
-        id,
-        name,
-        model_number,
-        manufacturer
-      ),
+      tool_id,
       current_site:sites!tool_items_current_site_id_fkey (name)
     `)
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('serial_number')
+
+  // 道具マスタを取得
+  const { data: tools } = await supabase
+    .from('tools')
+    .select('id, name, model_number, manufacturer')
+    .eq('organization_id', organizationId)
+    .is('deleted_at', null)
+
+  // 既存のセットに登録されている道具アイテムIDを取得
+  const { data: existingSetItems } = await supabase
+    .from('tool_set_items')
+    .select('tool_item_id, tool_sets!inner(id, name)')
+    .eq('tool_sets.organization_id', organizationId)
+    .is('tool_sets.deleted_at', null)
+
+  // 既存セットに登録済みのアイテムIDのSetを作成
+  const registeredItemIds = new Set(
+    (existingSetItems || []).map(item => item.tool_item_id)
+  )
+
+  // セット登録情報をマップに変換（アイテムID -> セット名）
+  const itemToSetMap = new Map<string, string>()
+  ;(existingSetItems || []).forEach(item => {
+    if (item.tool_sets) {
+      itemToSetMap.set(item.tool_item_id, (item.tool_sets as any).name)
+    }
+  })
+
+  // toolItemsとtoolsを結合
+  const toolsMap = new Map((tools || []).map(t => [t.id, t]))
+  const formattedToolItems = (toolItems || []).map((item: any) => ({
+    ...item,
+    tools: toolsMap.get(item.tool_id) || null,
+    isRegistered: registeredItemIds.has(item.id),
+    registeredSetName: itemToSetMap.get(item.id) || null
+  }))
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -48,7 +79,7 @@ export default async function NewToolSetPage() {
 
         <div className="bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
-            <ToolSetForm toolItems={toolItems || []} action={createToolSet} />
+            <ToolSetForm toolItems={formattedToolItems} action={createToolSet} />
           </div>
         </div>
       </div>
