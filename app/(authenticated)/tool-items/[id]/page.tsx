@@ -1,5 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect, notFound } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/page-auth'
+import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { QRCodeDisplay } from '@/app/(authenticated)/tools/[id]/QRCodeDisplay'
 import { StatusChangeButton } from './StatusChangeButton'
@@ -10,27 +10,7 @@ export default async function ToolItemDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
-
-  // 認証チェック
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // ユーザー情報取得
-  const { data: userData } = await supabase
-    .from('users')
-    .select('organization_id')
-    .eq('id', user.id)
-    .single()
-
-  if (!userData) {
-    redirect('/login')
-  }
+  const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 個別アイテムの詳細情報を取得
   const { data: toolItem, error } = await supabase
@@ -60,7 +40,7 @@ export default async function ToolItemDetailPage({
     `
     )
     .eq('id', id)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .single()
 
@@ -94,7 +74,7 @@ export default async function ToolItemDetailPage({
     `
     )
     .eq('tool_item_id', id)
-    .eq('organization_id', userData?.organization_id)
+    .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
     .limit(20)

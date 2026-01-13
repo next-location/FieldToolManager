@@ -560,6 +560,10 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
                     {lastScannedItem.serialNumber && (
                       <p className="text-sm text-gray-500">#{lastScannedItem.serialNumber}</p>
                     )}
+                    <p className="text-xs text-blue-600 mt-1">
+                      [DEBUG] 現在地: {lastScannedItem.currentLocation}
+                      {lastScannedItem.siteId && ` (現場ID: ${lastScannedItem.siteId.substring(0, 8)}...)`}
+                    </p>
                   </div>
                   <span className="text-sm text-gray-400 font-medium">最新</span>
                 </div>
@@ -619,13 +623,17 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
                 <ul className="divide-y divide-gray-200">
                   {scannedItems.slice().reverse().map((item) => (
                     <li key={item.qrCode} className="px-4 py-3 flex items-center justify-between hover:bg-gray-50">
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-3 flex-1">
                         <span className="text-green-500 text-xl">✓</span>
-                        <div>
+                        <div className="flex-1">
                           <p className="text-sm font-medium text-gray-900">{item.name}</p>
                           {item.serialNumber && (
                             <p className="text-xs text-gray-500">シリアル: #{item.serialNumber}</p>
                           )}
+                          <p className="text-xs text-blue-600 mt-1">
+                            [DEBUG] 現在地: {item.currentLocation}
+                            {item.siteId && ` (現場ID: ${item.siteId.substring(0, 8)}...)`}
+                          </p>
                         </div>
                       </div>
                       <button
