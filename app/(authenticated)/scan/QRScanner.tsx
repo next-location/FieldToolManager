@@ -104,12 +104,47 @@ export function QRScanner({ mode = 'single' }: QRScannerProps) {
         },
         async (decodedText) => {
           // QRコードをスキャン成功
-          console.log('QRコード検出:', decodedText)
+          console.log('QRコード検出:', decodedText, 'モード:', mode)
 
           // スキャンを停止
           await stopScanning()
 
-          // QRコードから個別アイテムを検索
+          // locationモードの場合は現場または倉庫を検索
+          if (mode === 'location') {
+            // 現場を検索
+            const { data: site } = await supabase
+              .from('sites')
+              .select('id, name')
+              .eq('qr_code', decodedText)
+              .is('deleted_at', null)
+              .single()
+
+            if (site) {
+              console.log('現場発見:', site)
+              router.push(`/sites/${site.id}`)
+              return
+            }
+
+            // 倉庫位置を検索
+            const { data: location } = await supabase
+              .from('warehouse_locations')
+              .select('id, display_name')
+              .eq('qr_code', decodedText)
+              .is('deleted_at', null)
+              .single()
+
+            if (location) {
+              console.log('倉庫位置発見:', location)
+              router.push(`/warehouse-locations/${location.id}`)
+              return
+            }
+
+            // どちらも見つからない
+            setError('現場または倉庫位置のQRコードが見つかりませんでした')
+            return
+          }
+
+          // 道具モードの場合は個別アイテムを検索
           const { data: toolItem, error: itemError } = await supabase
             .from('tool_items')
             .select(
