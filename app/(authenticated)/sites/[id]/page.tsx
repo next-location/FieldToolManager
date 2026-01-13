@@ -10,7 +10,10 @@ export default async function SiteDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
+  console.log('[Site Detail] START - id:', id)
+
   const { userId, organizationId, userRole, supabase } = await requireAuth()
+  console.log('[Site Detail] Auth OK - userId:', userId, 'organizationId:', organizationId)
 
   // 現場詳細を取得
   const { data: site, error } = await supabase
@@ -34,6 +37,8 @@ export default async function SiteDetailPage({
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .single()
+
+  console.log('[Site Detail] Query result - site:', !!site, 'error:', error)
 
   if (error || !site) {
     console.error('[Site Detail] Error fetching site:', { id, organizationId, error })
