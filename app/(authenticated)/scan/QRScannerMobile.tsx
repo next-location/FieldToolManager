@@ -195,7 +195,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
         serial_number,
         tool_id,
         current_location,
-        site_id,
+        current_site_id,
         tools!inner (
           id,
           name
@@ -285,7 +285,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
       // 現場の場合、同じ現場かチェック
       if (toolItem.current_location === 'site') {
-        if (toolItem.site_id !== firstItem.siteId) {
+        if (toolItem.current_site_id !== firstItem.siteId) {
           setError(
             `異なる現場の道具は同時に選択できません。\n\n` +
             `同じ現場にある道具のみスキャンしてください。`
@@ -302,7 +302,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
       name: (toolItem as any).tools?.name || '不明な道具',
       serialNumber: toolItem.serial_number,
       currentLocation: toolItem.current_location,
-      siteId: toolItem.site_id || undefined,
+      siteId: toolItem.current_site_id || undefined,
       timestamp: new Date()
     }
 
