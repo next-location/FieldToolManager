@@ -44,9 +44,7 @@ export function LocationForm({ templates, action }: LocationFormProps) {
       })
       .filter(Boolean)
 
-    if (names.length > 0) {
-      setDisplayName(names.join(' '))
-    }
+    setDisplayName(names.length > 0 ? names.join(' ') : '')
   }, [levelValues, templates])
 
   const handleLevelChange = (level: number, value: string) => {
