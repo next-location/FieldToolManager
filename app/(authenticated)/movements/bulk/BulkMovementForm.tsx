@@ -648,10 +648,14 @@ export function BulkMovementForm({
             {toolSets.length === 0 ? (
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center text-gray-500">
                 道具セットが登録されていません
-                <br />
-                <a href="/tool-sets/new" className="text-blue-600 hover:text-blue-700 underline">
-                  道具セットを登録する
-                </a>
+                {canRemoveFromSet && (
+                  <>
+                    <br />
+                    <a href="/tool-sets/new" className="text-blue-600 hover:text-blue-700 underline">
+                      道具セットを登録する
+                    </a>
+                  </>
+                )}
               </div>
             ) : (
               <div className="space-y-3">
