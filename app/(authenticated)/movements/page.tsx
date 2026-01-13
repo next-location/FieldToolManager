@@ -6,15 +6,15 @@ export default async function MovementsPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 道具移動履歴を取得
-  const { data: toolMovements } = await supabase
+  const { data: toolMovements, error: movementsError } = await supabase
     .from('tool_movements')
     .select(
       `
       *,
-      tool_items!inner (
+      tool_items (
         id,
         serial_number,
-        tools!inner (name, model_number)
+        tools (name, model_number)
       ),
       from_site:sites!tool_movements_from_site_id_fkey (name),
       to_site:sites!tool_movements_to_site_id_fkey (name),
@@ -24,6 +24,10 @@ export default async function MovementsPage() {
     .eq('organization_id', organizationId)
     .order('created_at', { ascending: false })
     .limit(100)
+
+  if (movementsError) {
+    console.error('[MOVEMENTS PAGE] Error fetching tool movements:', movementsError)
+  }
 
   // 消耗品移動履歴を取得
   const { data: consumableMovements } = await supabase
