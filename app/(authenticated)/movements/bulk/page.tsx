@@ -61,28 +61,17 @@ export default async function BulkMovementPage({
     .select(`
       id,
       name,
-      description,
-      status,
-      tool_set_items (
-        tool_item_id,
-        tool_items (
-          id,
-          serial_number,
-          current_location,
-          current_site_id,
-          status,
-          qr_code,
-          tools (
-            id,
-            name,
-            model_number
-          )
-        )
-      )
+      description
     `)
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
+
+  // 道具セットアイテムを取得
+  const { data: toolSetItems } = await supabase
+    .from('tool_set_items')
+    .select('tool_set_id, tool_item_id')
+    .in('tool_set_id', (toolSetsRaw || []).map(s => s.id))
 
   // toolItems と tools を結合
   const toolsMap = new Map((tools || []).map(t => [t.id, t]))
@@ -91,16 +80,20 @@ export default async function BulkMovementPage({
     tools: toolsMap.get(item.tool_id) || null
   }))
 
-  // データを整形
-  const toolSets = (toolSetsRaw || []).map((set: any) => ({
-    id: set.id,
-    name: set.name,
-    description: set.description,
-    status: set.status,
-    tool_set_items: (set.tool_set_items || []).map((item: any) => ({
-      tool_item: item.tool_items
-    }))
-  }))
+  // 道具セットとアイテムを結合
+  const toolSets = (toolSetsRaw || []).map((set: any) => {
+    const items = (toolSetItems || []).filter(item => item.tool_set_id === set.id)
+    const itemsWithDetails = items.map(item => {
+      const toolItem = formattedToolItems.find(ti => ti.id === item.tool_item_id)
+      return { tool_item: toolItem || null }
+    })
+    return {
+      id: set.id,
+      name: set.name,
+      description: set.description,
+      tool_set_items: itemsWithDetails
+    }
+  })
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
