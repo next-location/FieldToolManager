@@ -69,9 +69,10 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
   const [error, setError] = useState('')
 
   // 統一フォームスタイル（PC・スマホ対応）
-  const inputClassName = "w-full px-3 py-2.5 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm"
-  const selectClassName = "w-full px-3 py-2.5 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm"
-  const textareaClassName = "w-full px-3 py-2.5 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm"
+  const inputClassName = "w-full px-3 py-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm"
+  const selectClassName = "w-full px-3 py-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm h-[46px] md:h-auto"
+  const textareaClassName = "w-full px-3 py-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm"
+  const dateTimeClassName = "w-auto md:w-full px-3 py-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm"
 
   // フォームステート
   const [siteId, setSiteId] = useState('')
@@ -281,7 +282,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                   value={reportDate}
                   onChange={(e) => setReportDate(e.target.value)}
                   required
-                  className={inputClassName}
+                  className={dateTimeClassName}
                 />
               </div>
 
@@ -319,7 +320,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                   id="work_start_time"
                   value={workStartTime}
                   onChange={(e) => setWorkStartTime(e.target.value)}
-                  className={inputClassName}
+                  className={dateTimeClassName}
                 />
               </div>
 
@@ -332,7 +333,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                   id="work_end_time"
                   value={workEndTime}
                   onChange={(e) => setWorkEndTime(e.target.value)}
-                  className={inputClassName}
+                  className={dateTimeClassName}
                 />
               </div>
 
@@ -946,7 +947,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                           setCustomFieldValues({ ...customFieldValues, [field.name]: e.target.value })
                         }
                         required={field.required}
-                        className={inputClassName}
+                        className={dateTimeClassName}
                       />
                     )}
 
@@ -959,7 +960,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                           setCustomFieldValues({ ...customFieldValues, [field.name]: e.target.value })
                         }
                         required={field.required}
-                        className={inputClassName}
+                        className={dateTimeClassName}
                       />
                     )}
                   </div>

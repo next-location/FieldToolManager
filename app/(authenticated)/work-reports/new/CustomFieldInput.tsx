@@ -21,9 +21,10 @@ export function CustomFieldInput({ field, value, onChange }: CustomFieldInputPro
   }
 
   // 統一フォームスタイル（PC・スマホ対応）
-  const inputClassName = "mt-1 block w-full px-3 py-2.5 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm"
-  const selectClassName = "mt-1 block w-full px-3 py-2.5 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm"
-  const textareaClassName = "mt-1 block w-full px-3 py-2.5 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm"
+  const inputClassName = "mt-1 block w-full px-3 py-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm"
+  const selectClassName = "mt-1 block w-full px-3 py-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm h-[46px] md:h-auto"
+  const textareaClassName = "mt-1 block w-full px-3 py-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm"
+  const dateTimeClassName = "mt-1 block w-auto md:w-full px-3 py-3 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm"
 
   return (
     <div>
@@ -75,7 +76,7 @@ export function CustomFieldInput({ field, value, onChange }: CustomFieldInputPro
           value={value || ''}
           onChange={(e) => handleChange(e.target.value)}
           required={field.is_required}
-          className={inputClassName}
+          className={dateTimeClassName}
         />
       )}
 
