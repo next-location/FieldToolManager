@@ -22,7 +22,7 @@ export function ConsumableRegistrationForm({
   const [manufacturer, setManufacturer] = useState('')
   const [unit, setUnit] = useState('個')
   const [minimumStock, setMinimumStock] = useState(10)
-  const [initialQuantity, setInitialQuantity] = useState(0)
+  const [initialQuantity, setInitialQuantity] = useState<number | ''>('')
   const [description, setDescription] = useState('')
 
   // UI状態
@@ -44,7 +44,8 @@ export function ConsumableRegistrationForm({
       return
     }
 
-    if (initialQuantity < 0) {
+    const initialQty = initialQuantity === '' ? 0 : initialQuantity
+    if (initialQty < 0) {
       setError('初期在庫数は0以上で入力してください')
       return
     }
@@ -84,7 +85,7 @@ export function ConsumableRegistrationForm({
       }
 
       // 初期在庫がある場合は在庫レコードを作成
-      if (initialQuantity > 0) {
+      if (initialQty > 0) {
         const { error: inventoryError } = await supabase
           .from('consumable_inventory')
           .insert({
@@ -93,7 +94,7 @@ export function ConsumableRegistrationForm({
             location_type: 'warehouse',
             site_id: null,
             warehouse_location_id: null,
-            quantity: initialQuantity,
+            quantity: initialQty,
           })
 
         if (inventoryError) {
@@ -114,7 +115,7 @@ export function ConsumableRegistrationForm({
               from_site_id: null,
               to_location_type: 'warehouse',
               to_site_id: null,
-              quantity: initialQuantity,
+              quantity: initialQty,
               performed_by: user.id,
               notes: `[初期在庫] 新規登録時の初期在庫`,
             })
@@ -264,10 +265,13 @@ export function ConsumableRegistrationForm({
           type="number"
           id="initialQuantity"
           value={initialQuantity}
-          onChange={(e) => setInitialQuantity(parseInt(e.target.value) || 0)}
+          onChange={(e) =>
+            setInitialQuantity(e.target.value === '' ? '' : parseInt(e.target.value))
+          }
           className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
           min="0"
           disabled={isSubmitting}
+          placeholder="例: 100"
         />
         <p className="mt-1 text-[10px] sm:text-xs text-gray-500">
           登録時に倉庫に保管する初期在庫数を設定できます（0の場合は在庫レコードは作成されません）
