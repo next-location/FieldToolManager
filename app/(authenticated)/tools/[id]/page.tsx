@@ -63,7 +63,7 @@ export default async function ToolDetailPage({
           <Link href="/tools" className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-4 inline-block">
             ← 道具一覧に戻る
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">道具詳細</h1>
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">道具詳細</h1>
           <p className="mt-1 text-sm text-gray-500">ID: {tool.id}</p>
         </div>
         <div className="bg-white shadow overflow-hidden sm:rounded-lg">

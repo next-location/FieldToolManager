@@ -97,19 +97,21 @@ export default async function NewMovementPage({
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">移動を登録</h1>
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-900">移動を登録</h1>
               {toolSetName && (
                 <p className="text-sm text-gray-600 mt-1">
                   道具セット: {toolSetName}
                 </p>
               )}
             </div>
-            <Link
-              href="/movements"
-              className="text-sm text-gray-600 hover:text-gray-900"
-            >
-              ← 一覧に戻る
-            </Link>
+            {!params.tool_set_id && (
+              <Link
+                href="/movements"
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
+                ← 一覧に戻る
+              </Link>
+            )}
           </div>
 
           <MovementForm

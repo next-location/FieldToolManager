@@ -82,7 +82,7 @@ export default async function ToolSetDetailPage({
         </div>
 
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">道具セット詳細</h1>
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">道具セット詳細</h1>
         </div>
 
         {/* セット基本情報 */}

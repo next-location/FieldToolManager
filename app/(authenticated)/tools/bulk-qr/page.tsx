@@ -76,7 +76,7 @@ export default async function ToolsBulkQRPage() {
         </div>
 
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">
             道具QRコード一括印刷
           </h1>
           <p className="mt-1 text-sm text-gray-600">
