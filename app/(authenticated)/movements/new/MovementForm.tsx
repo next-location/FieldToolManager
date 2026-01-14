@@ -411,11 +411,13 @@ export function MovementForm({
                 </div>
               </div>
 
-              {/* 自動判定された移動種別を表示 */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="text-sm font-medium text-blue-900">移動種別（自動設定）</div>
-                <div className="text-lg font-bold text-blue-700 mt-1">{movementTypeLabel()}</div>
-              </div>
+              {/* 自動判定された移動種別を表示（個別移動モードのみ） */}
+              {!isToolSetMode && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="text-sm font-medium text-blue-900">移動種別（自動設定）</div>
+                  <div className="text-lg font-bold text-blue-700 mt-1">{movementTypeLabel()}</div>
+                </div>
+              )}
             </>
           ) : (
             <>
