@@ -115,6 +115,7 @@ export default function ContactPage() {
                 id="company"
                 name="company"
                 required
+                maxLength={100}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="例：株式会社サンプル"
               />
@@ -130,6 +131,7 @@ export default function ContactPage() {
                 id="name"
                 name="name"
                 required
+                maxLength={50}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="例：山田 太郎"
               />
@@ -145,6 +147,7 @@ export default function ContactPage() {
                 id="email"
                 name="email"
                 required
+                maxLength={100}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="例：sample@example.com"
               />
@@ -159,6 +162,7 @@ export default function ContactPage() {
                 type="tel"
                 id="phone"
                 name="phone"
+                maxLength={20}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="例：03-1234-5678"
               />
@@ -212,6 +216,7 @@ export default function ContactPage() {
                 name="message"
                 required
                 rows={6}
+                maxLength={2000}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
                 placeholder="お問い合わせ内容をご記入ください"
               />
