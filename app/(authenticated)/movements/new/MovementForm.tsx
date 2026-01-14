@@ -323,8 +323,13 @@ export function MovementForm({
                       >
                         <div className="font-medium">🏢 倉庫に戻す</div>
                         <div className="text-sm text-gray-600 mt-1">
-                          {selectedItem?.current_location === 'site' && '返却'}
-                          {selectedItem?.current_location === 'repair' && '修理完了'}
+                          {isToolSetMode
+                            ? '現場から倉庫へ'
+                            : selectedItem?.current_location === 'site'
+                              ? '返却'
+                              : selectedItem?.current_location === 'repair'
+                                ? '修理完了'
+                                : ''}
                         </div>
                       </button>
                       {destination === 'warehouse' && warehouseLocations.length > 0 && (
@@ -358,8 +363,13 @@ export function MovementForm({
                       >
                         <div className="font-medium">🏗️ 現場に移動</div>
                         <div className="text-sm text-gray-600 mt-1">
-                          {selectedItem?.current_location === 'warehouse' && '持ち出し'}
-                          {selectedItem?.current_location === 'site' && '現場間移動'}
+                          {isToolSetMode
+                            ? '倉庫または他の現場へ'
+                            : selectedItem?.current_location === 'warehouse'
+                              ? '持ち出し'
+                              : selectedItem?.current_location === 'site'
+                                ? '現場間移動'
+                                : ''}
                         </div>
                       </button>
                       {destination === 'site' && (
