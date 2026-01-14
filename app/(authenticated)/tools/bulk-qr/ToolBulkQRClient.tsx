@@ -32,17 +32,28 @@ export function ToolBulkQRClient({ items, qrSize }: ToolBulkQRClientProps) {
     return Array.from(categorySet).sort()
   }, [items])
 
+  // ひらがな・カタカナ正規化関数
+  const normalizeText = (text: string): string => {
+    return text
+      .toLowerCase()
+      // カタカナをひらがなに変換
+      .replace(/[\u30a1-\u30f6]/g, (match) => {
+        const chr = match.charCodeAt(0) - 0x60
+        return String.fromCharCode(chr)
+      })
+  }
+
   // フィルタリング
   const filteredItems = useMemo(() => {
     let result = items
 
     if (searchQuery) {
-      const query = searchQuery.toLowerCase()
+      const query = normalizeText(searchQuery)
       result = result.filter(
         (item) =>
-          item.name.toLowerCase().includes(query) ||
-          item.toolName.toLowerCase().includes(query) ||
-          item.code.toLowerCase().includes(query)
+          normalizeText(item.name).includes(query) ||
+          normalizeText(item.toolName).includes(query) ||
+          normalizeText(item.code).includes(query)
       )
     }
 
@@ -80,25 +91,42 @@ export function ToolBulkQRClient({ items, qrSize }: ToolBulkQRClientProps) {
 
   return (
     <>
-      <div className="bg-white shadow sm:rounded-lg mb-6">
-        <div className="px-4 py-5 sm:p-6">
-          <div className="flex flex-col sm:flex-row gap-4 mb-4">
-            <div className="flex-1">
+      <div className="bg-white shadow rounded-lg mb-6">
+        <div className="p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            検索・フィルター
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label
+                htmlFor="search"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                道具名
+              </label>
               <input
                 type="text"
-                placeholder="道具名、シリアル番号で検索..."
+                id="search"
+                placeholder="道具名で検索..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
               />
             </div>
-            <div className="sm:w-48">
+            <div>
+              <label
+                htmlFor="category"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                カテゴリー
+              </label>
               <select
+                id="category"
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
               >
-                <option value="">すべてのカテゴリ</option>
+                <option value="">すべて</option>
                 {categories.map((category) => (
                   <option key={category} value={category}>
                     {category}
