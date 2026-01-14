@@ -94,7 +94,7 @@ export default async function NewMovementPage({
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-lg sm:text-2xl font-bold text-gray-900">移動を登録</h1>
