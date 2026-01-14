@@ -10,6 +10,7 @@ type ToolItem = {
   serial_number: string
   current_location: string
   current_site_id: string | null
+  warehouse_location_id: string | null
   tools: {
     id: string
     name: string
@@ -135,7 +136,21 @@ export function MovementForm({
 
             if (to === 'repair') movementType = 'repair'
             else if (from === 'repair' && to === 'warehouse') movementType = 'return_from_repair'
-            else if (from === 'warehouse' && to === 'warehouse') movementType = 'warehouse_move'
+            else if (from === 'warehouse' && to === 'warehouse') {
+              movementType = 'warehouse_move'
+              // 倉庫内移動で倉庫位置が指定されていない場合はスキップ
+              if (!warehouseLocationId) {
+                errors.push(`${item.serial_number}: 倉庫位置を選択してください`)
+                failureCount++
+                continue
+              }
+              // 同じ倉庫位置への移動はスキップ
+              if (item.warehouse_location_id === warehouseLocationId) {
+                errors.push(`${item.serial_number}: 既に同じ倉庫位置にあります`)
+                failureCount++
+                continue
+              }
+            }
             else if (from === 'warehouse' && to === 'site') movementType = 'check_out'
             else if (from === 'site' && to === 'warehouse') movementType = 'check_in'
             else if (from === 'site' && to === 'site') movementType = 'transfer'
@@ -178,6 +193,20 @@ export function MovementForm({
         }
       } else {
         // 個別移動
+        // 倉庫内移動で同じ倉庫位置への移動をチェック
+        if (getMovementType() === 'warehouse_move') {
+          if (!warehouseLocationId) {
+            setError('倉庫位置を選択してください')
+            setLoading(false)
+            return
+          }
+          if (selectedItem?.warehouse_location_id === warehouseLocationId) {
+            setError('既に同じ倉庫位置にあります')
+            setLoading(false)
+            return
+          }
+        }
+
         const formData = new FormData()
         formData.append('tool_item_id', toolItemId)
         formData.append('movement_type', getMovementType())

@@ -39,6 +39,7 @@ export default async function NewMovementPage({
           serial_number,
           current_location,
           current_site_id,
+          warehouse_location_id,
           status,
           tools (
             id,
@@ -62,6 +63,7 @@ export default async function NewMovementPage({
       serial_number,
       current_location,
       current_site_id,
+      warehouse_location_id,
       status,
       tools (
         id,
