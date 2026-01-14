@@ -76,7 +76,7 @@ export function BulkQRCodePrint({
     }
 
     // QRコードサイズに応じて列数を決定
-    const columns = qrSize <= 20 ? 4 : qrSize <= 30 ? 3 : 2
+    const columns = qrSize <= 12 ? 6 : qrSize <= 20 ? 4 : qrSize <= 30 ? 3 : 2
     const qrCodesPerPage = 9
     const qrCodesHTML = selectedItems
       .map((item, index) => {

@@ -315,6 +315,29 @@ export function OrganizationSettingsForm({
             <div className="flex items-start">
               <div className="flex items-center h-5">
                 <input
+                  id="qr_size_12"
+                  name="qr_print_size"
+                  type="radio"
+                  checked={settings.qr_print_size === 12}
+                  onChange={() =>
+                    setSettings({ ...settings, qr_print_size: 12 })
+                  }
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label htmlFor="qr_size_12" className="font-medium text-gray-700">
+                  1.2cm × 1.2cm（極小）
+                </label>
+                <p className="text-gray-500">
+                  極小スペース用。読み取り距離が短くなります。
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
                   id="qr_size_20"
                   name="qr_print_size"
                   type="radio"
@@ -330,7 +353,7 @@ export function OrganizationSettingsForm({
                   2cm × 2cm（小）
                 </label>
                 <p className="text-gray-500">
-                  小型の道具や限られたスペースに最適。最小推奨サイズ。
+                  小型の道具や限られたスペースに最適。
                 </p>
               </div>
             </div>
