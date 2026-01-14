@@ -51,7 +51,7 @@ export default async function ClientDetailPage({
           </div>
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{typedClient.name}</h1>
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-900">{typedClient.name}</h1>
               <div className="mt-2 flex items-center space-x-2">
                 <span className="text-sm text-gray-500">{typedClient.code}</span>
                 <span

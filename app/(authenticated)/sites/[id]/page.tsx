@@ -104,10 +104,10 @@ export default async function SiteDetailPage({
           </div>
 
           {/* 現場情報 */}
-          <div className="bg-white shadow rounded-lg p-4 sm:p-6 mb-6">
+          <div className="mb-6">
             {/* ヘッダー部分 - モバイル対応 */}
             <div className="mb-4">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2">
                 {site.name}
               </h1>
               <div className="flex items-center gap-2 mb-3">
