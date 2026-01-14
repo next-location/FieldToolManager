@@ -3,7 +3,9 @@
 import { useState, useMemo } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { Fragment } from 'react'
+import { SlidersHorizontal } from 'lucide-react'
 import { BulkQRCodePrint, QRCodeItem } from '@/components/qr/BulkQRCodePrint'
+import BulkQRFiltersModal from './BulkQRFiltersModal'
 
 interface ToolItem {
   id: string
@@ -25,6 +27,7 @@ export function ToolBulkQRClient({ items, qrSize }: ToolBulkQRClientProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false)
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
 
   // カテゴリ一覧を取得
   const categories = useMemo(() => {
@@ -89,9 +92,39 @@ export function ToolBulkQRClient({ items, qrSize }: ToolBulkQRClientProps) {
     code: item.code,
   }))
 
+  const filterCount = selectedCategory ? 1 : 0
+
   return (
     <>
-      <div className="bg-white shadow rounded-lg mb-6">
+      {/* モバイル表示: 検索ボックスとフィルターボタンを1行に */}
+      <div className="sm:hidden mb-6">
+        <div className="flex items-center gap-2">
+          <div className="flex-1">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="道具名で検索..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+            />
+          </div>
+          <button
+            onClick={() => setIsFilterModalOpen(true)}
+            className="relative p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50"
+            aria-label="フィルター"
+          >
+            <SlidersHorizontal className="h-5 w-5 text-gray-600" />
+            {filterCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {filterCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* PC表示: 従来通りのフィルター */}
+      <div className="hidden sm:block bg-white shadow rounded-lg mb-6">
         <div className="p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             検索・フィルター
@@ -290,6 +323,16 @@ export function ToolBulkQRClient({ items, qrSize }: ToolBulkQRClientProps) {
           </div>
         </Dialog>
       </Transition>
+
+      {/* モバイル用フィルターモーダル */}
+      <BulkQRFiltersModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        selectedCategory={selectedCategory}
+        categories={categories}
+        onCategoryChange={setSelectedCategory}
+        onReset={() => setSelectedCategory('')}
+      />
     </>
   )
 }
