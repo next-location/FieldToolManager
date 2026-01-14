@@ -31,6 +31,26 @@ export function BulkQRCodePrint({
 
   const selectedItems = items.filter(item => selectedIds.has(item.id))
 
+  // レイアウト情報を計算（handlePrintと同じロジック）
+  let columns = 3
+  let rows = 3
+
+  if (qrSize <= 12) {
+    columns = 4
+    rows = 8
+  } else if (qrSize <= 20) {
+    columns = 4
+    rows = 5
+  } else if (qrSize <= 30) {
+    columns = 3
+    rows = 4
+  } else {
+    columns = 2
+    rows = 3
+  }
+
+  const qrCodesPerPage = columns * rows
+
   useEffect(() => {
     const generateQRCodes = async () => {
       setIsGenerating(true)
@@ -336,12 +356,15 @@ export function BulkQRCodePrint({
           選択中: {selectedItems.length}個
         </h3>
         <p className="text-xs text-blue-700">
-          A4サイズに3×3のグリッドで印刷されます。印刷後、切り取ってご使用ください。
+          A4サイズに{columns}×{rows}のグリッドで印刷されます（1ページあたり{qrCodesPerPage}個）。印刷後、切り取ってご使用ください。
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 max-h-96 overflow-y-auto p-4 bg-gray-50 rounded border">
-        {selectedItems.slice(0, 9).map((item) => {
+      <div
+        className="grid gap-4 max-h-96 overflow-y-auto p-4 bg-gray-50 rounded border"
+        style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+      >
+        {selectedItems.slice(0, qrCodesPerPage).map((item) => {
           const dataUrl = qrDataUrls.get(item.id)
           return (
             <div key={item.id} className="bg-white border border-gray-200 rounded p-2 text-center">
