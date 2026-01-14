@@ -75,28 +75,41 @@ export function BulkQRCodePrint({
       return
     }
 
-    // A4用紙サイズ計算（印刷可能領域: 190mm × 277mm, マージン10mm）
+    // A4用紙サイズ計算
+    // A4: 210mm × 297mm
+    // プリンター余白（非印刷領域）: 上下左右各6mm
+    // コンテンツマージン: 上下左右各10mm
+    // 実際の印刷可能領域: 178mm × 265mm (210-32, 297-32)
+
     // QRコードサイズに応じて列数と行数を計算
     let columns = 3
     let rows = 3
     let gap = 5 // mm
 
     if (qrSize <= 12) {
-      columns = 5
-      rows = 10
-      gap = 3
-    } else if (qrSize <= 20) {
+      // 1.2cm: 計算 = (12mm × 4列) + (4mm × 3gap) = 48 + 12 = 60mm < 178mm OK
+      //       高さ = (12mm × 8行) + (4mm × 7gap) + テキスト(約8mm × 8) = 96 + 28 + 64 = 188mm < 265mm OK
       columns = 4
-      rows = 6
+      rows = 8
       gap = 4
+    } else if (qrSize <= 20) {
+      // 2cm: 計算 = (20mm × 4列) + (5mm × 3gap) = 80 + 15 = 95mm < 178mm OK
+      //      高さ = (20mm × 5行) + (5mm × 4gap) + テキスト(約10mm × 5) = 100 + 20 + 50 = 170mm < 265mm OK
+      columns = 4
+      rows = 5
+      gap = 5
     } else if (qrSize <= 30) {
+      // 2.5-3cm: 計算 = (30mm × 3列) + (6mm × 2gap) = 90 + 12 = 102mm < 178mm OK
+      //          高さ = (30mm × 4行) + (6mm × 3gap) + テキスト(約12mm × 4) = 120 + 18 + 48 = 186mm < 265mm OK
       columns = 3
       rows = 4
-      gap = 5
+      gap = 6
     } else {
+      // 5cm: 計算 = (50mm × 2列) + (8mm × 1gap) = 100 + 8 = 108mm < 178mm OK
+      //      高さ = (50mm × 3行) + (8mm × 2gap) + テキスト(約15mm × 3) = 150 + 16 + 45 = 211mm < 265mm OK
       columns = 2
       rows = 3
-      gap = 6
+      gap = 8
     }
 
     const qrCodesPerPage = columns * rows
@@ -143,7 +156,7 @@ export function BulkQRCodePrint({
             @media print {
               @page {
                 size: A4;
-                margin: 10mm;
+                margin: 16mm;
               }
               body {
                 margin: 0;
@@ -171,7 +184,7 @@ export function BulkQRCodePrint({
               grid-template-columns: repeat(${columns}, 1fr);
               gap: ${gap}mm;
               width: 100%;
-              max-width: 190mm;
+              max-width: 178mm;
               margin: 0 auto;
             }
 
