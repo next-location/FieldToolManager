@@ -75,26 +75,63 @@ export function BulkQRCodePrint({
       return
     }
 
-    // QRコードサイズに応じて列数を決定
-    const columns = qrSize <= 12 ? 6 : qrSize <= 20 ? 4 : qrSize <= 30 ? 3 : 2
-    const qrCodesPerPage = 9
-    const qrCodesHTML = selectedItems
-      .map((item, index) => {
-        const dataUrl = qrDataUrls.get(item.id)
-        if (!dataUrl) return ''
+    // A4用紙サイズ計算（印刷可能領域: 190mm × 277mm, マージン10mm）
+    // QRコードサイズに応じて列数と行数を計算
+    let columns = 3
+    let rows = 3
+    let gap = 5 // mm
 
-        return `
-          <div class="qr-item">
-            <div class="qr-container">
-              <div class="qr-type">${itemType}</div>
-              <div class="qr-name">${item.name}</div>
-              <div class="qr-code-text">${item.code}</div>
-              <img src="${dataUrl}" alt="QRコード" class="qr-image" />
+    if (qrSize <= 12) {
+      columns = 5
+      rows = 10
+      gap = 3
+    } else if (qrSize <= 20) {
+      columns = 4
+      rows = 6
+      gap = 4
+    } else if (qrSize <= 30) {
+      columns = 3
+      rows = 4
+      gap = 5
+    } else {
+      columns = 2
+      rows = 3
+      gap = 6
+    }
+
+    const qrCodesPerPage = columns * rows
+
+    // ページごとにQRコードを分割
+    const pages: string[] = []
+    for (let i = 0; i < selectedItems.length; i += qrCodesPerPage) {
+      const pageItems = selectedItems.slice(i, i + qrCodesPerPage)
+      const pageHTML = pageItems
+        .map((item) => {
+          const dataUrl = qrDataUrls.get(item.id)
+          if (!dataUrl) return ''
+
+          return `
+            <div class="qr-item">
+              <div class="qr-container">
+                <div class="qr-type">${itemType}</div>
+                <div class="qr-name">${item.name}</div>
+                <div class="qr-code-text">${item.code}</div>
+                <img src="${dataUrl}" alt="QRコード" class="qr-image" />
+              </div>
             </div>
-          </div>
-        `
-      })
-      .join('')
+          `
+        })
+        .join('')
+
+      pages.push(`
+        <div class="qr-grid">
+          ${pageHTML}
+        </div>
+        ${i + qrCodesPerPage < selectedItems.length ? '<div class="page-break"></div>' : ''}
+      `)
+    }
+
+    const qrCodesHTML = pages.join('')
 
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -132,7 +169,7 @@ export function BulkQRCodePrint({
             .qr-grid {
               display: grid;
               grid-template-columns: repeat(${columns}, 1fr);
-              gap: 8mm;
+              gap: ${gap}mm;
               width: 100%;
               max-width: 190mm;
               margin: 0 auto;
@@ -246,10 +283,10 @@ export function BulkQRCodePrint({
         <body>
           <div class="print-info">
             <p style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">
-              QRコード ${selectedItems.length}個を印刷
+              QRコード ${selectedItems.length}個を印刷（${Math.ceil(selectedItems.length / qrCodesPerPage)}ページ）
             </p>
             <p style="font-size: 14px;">
-              印刷後、点線に沿って切り取ってご使用ください
+              サイズ: ${qrSize}mm × ${qrSize}mm（1ページあたり${qrCodesPerPage}個）
             </p>
             <div style="margin-top: 16px;">
               <button class="print-button" onclick="window.print()">🖨️ 印刷</button>
@@ -257,9 +294,7 @@ export function BulkQRCodePrint({
             </div>
           </div>
 
-          <div class="qr-grid">
-            ${qrCodesHTML}
-          </div>
+          ${qrCodesHTML}
         </body>
       </html>
     `)
