@@ -123,6 +123,77 @@ export function ToolBulkQRClient({ items, qrSize }: ToolBulkQRClientProps) {
         </div>
       </div>
 
+      {/* モバイル表示: カード形式の一覧 */}
+      <div className="sm:hidden space-y-4">
+        {/* 選択状態とアクションボタン */}
+        <div className="bg-white rounded-lg shadow p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={handleSelectAll}
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            >
+              {selectedIds.size === filteredItems.length
+                ? 'すべての選択を解除'
+                : 'すべて選択'}
+            </button>
+            <span className="text-sm text-gray-600">
+              {selectedIds.size}個選択中 / {filteredItems.length}個表示中
+            </span>
+          </div>
+          <button
+            onClick={() => setIsPrintModalOpen(true)}
+            disabled={selectedIds.size === 0}
+            className="w-full inline-flex items-center justify-center px-4 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            🖨️ QRコード印刷 ({selectedIds.size})
+          </button>
+        </div>
+
+        {/* 道具カード一覧 */}
+        {filteredItems.length > 0 ? (
+          filteredItems.map((item) => (
+            <div
+              key={item.id}
+              onClick={() => handleToggle(item.id)}
+              className={`bg-white rounded-lg shadow p-4 cursor-pointer ${
+                selectedIds.has(item.id) ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.has(item.id)}
+                  onChange={() => handleToggle(item.id)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-gray-900">
+                    {item.toolName}
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    シリアル番号: {item.code}
+                  </p>
+                  <div className="mt-2">
+                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                      {item.category}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="bg-white rounded-lg shadow p-12 text-center">
+            <p className="text-sm text-gray-500">
+              {items.length === 0
+                ? '個別管理道具がありません'
+                : '検索条件に一致する道具がありません'}
+            </p>
+          </div>
+        )}
+      </div>
+
       {/* PC表示: 従来通りのフィルター */}
       <div className="hidden sm:block bg-white shadow rounded-lg mb-6">
         <div className="p-6">
