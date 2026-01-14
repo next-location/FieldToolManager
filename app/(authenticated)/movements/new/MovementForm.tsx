@@ -297,9 +297,14 @@ export function MovementForm({
             <>
               {/* 通常モード: 移動先選択 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  移動先 <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  1. 移動先を選択 <span className="text-red-500">*</span>
                 </label>
+                {isToolSetMode && (
+                  <p className="text-sm text-gray-600 mb-3">
+                    セット内の全ての道具を以下の移動先に移動します
+                  </p>
+                )}
                 <div className="space-y-3">
                   {/* 倉庫オプション */}
                   {(isToolSetMode || (selectedItem && selectedItem.current_location !== 'warehouse')) && (
