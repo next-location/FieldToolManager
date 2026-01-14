@@ -45,6 +45,14 @@ export async function createMovement(formData: FormData) {
     throw new Error('道具アイテムが見つかりません')
   }
 
+  // to_locationを判定
+  let to_location = 'warehouse'
+  if (to_site_id) {
+    to_location = 'site'
+  } else if (movement_type === 'repair') {
+    to_location = 'repair'
+  }
+
   // 移動を登録
   const { error } = await supabase.from('tool_movements').insert({
     organization_id: userData?.organization_id,
@@ -52,7 +60,7 @@ export async function createMovement(formData: FormData) {
     tool_item_id, // 個別アイテムID
     movement_type,
     from_location: from_site_id ? 'site' : 'warehouse',
-    to_location: to_site_id ? 'site' : 'warehouse',
+    to_location,
     from_site_id: from_site_id || null,
     to_site_id: to_site_id || null,
     quantity,
@@ -89,6 +97,7 @@ export async function createMovement(formData: FormData) {
   } else if (movement_type === 'repair') {
     updateData = {
       current_location: 'repair',
+      current_site_id: null,
       status: 'maintenance',
     }
   } else if (movement_type === 'return_from_repair') {
@@ -97,6 +106,26 @@ export async function createMovement(formData: FormData) {
       current_site_id: null,
       warehouse_location_id: warehouse_location_id || null,
       status: 'available',
+    }
+  } else if (movement_type === 'warehouse_move') {
+    // 倉庫内移動：倉庫位置のみ更新
+    updateData = {
+      warehouse_location_id: warehouse_location_id || null,
+    }
+  } else if (movement_type === 'correction') {
+    // 位置修正：現在地を更新
+    if (to_site_id) {
+      updateData = {
+        current_location: 'site',
+        current_site_id: to_site_id,
+        warehouse_location_id: null,
+      }
+    } else {
+      updateData = {
+        current_location: 'warehouse',
+        current_site_id: null,
+        warehouse_location_id: warehouse_location_id || null,
+      }
     }
   }
 

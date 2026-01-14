@@ -83,6 +83,9 @@ export function MovementForm({
     if (to === 'repair') return 'repair'
     if (from === 'repair' && to === 'warehouse') return 'return_from_repair'
 
+    // 倉庫 → 倉庫（倉庫内移動）
+    if (from === 'warehouse' && to === 'warehouse') return 'warehouse_move'
+
     // 倉庫 → 現場
     if (from === 'warehouse' && to === 'site') return 'check_out'
 
@@ -99,6 +102,7 @@ export function MovementForm({
   const movementTypeLabel = () => {
     const type = getMovementType()
     if (correctionMode) return '🔧 位置修正'
+    if (type === 'warehouse_move') return '📦 倉庫内移動'
     if (type === 'check_out') return '🔵 持ち出し（倉庫→現場）'
     if (type === 'check_in') return '🟢 返却（現場→倉庫）'
     if (type === 'transfer') return '🔄 移動（現場→現場）'
@@ -131,6 +135,7 @@ export function MovementForm({
 
             if (to === 'repair') movementType = 'repair'
             else if (from === 'repair' && to === 'warehouse') movementType = 'return_from_repair'
+            else if (from === 'warehouse' && to === 'warehouse') movementType = 'warehouse_move'
             else if (from === 'warehouse' && to === 'site') movementType = 'check_out'
             else if (from === 'site' && to === 'warehouse') movementType = 'check_in'
             else if (from === 'site' && to === 'site') movementType = 'transfer'
