@@ -296,128 +296,99 @@ export function MovementForm({
           {!correctionMode ? (
             <>
               {/* 通常モード: 移動先選択 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  1. 移動先を選択 <span className="text-red-500">*</span>
-                </label>
-                {isToolSetMode && (
-                  <p className="text-sm text-gray-600 mb-3">
-                    セット内の全ての道具を以下の移動先に移動します
-                  </p>
-                )}
-                <div className="space-y-3">
-                  {/* 倉庫オプション */}
-                  {(isToolSetMode || (selectedItem && selectedItem.current_location !== 'warehouse')) && (
-                    <div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setDestination('warehouse')
-                          setToSiteId('')
-                        }}
-                        className={`w-full px-4 py-3 border-2 rounded-lg text-left ${
-                          destination === 'warehouse'
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <div className="font-medium">🏢 倉庫に戻す</div>
-                        <div className="text-sm text-gray-600 mt-1">
-                          {isToolSetMode
-                            ? '現場から倉庫へ'
-                            : selectedItem?.current_location === 'site'
-                              ? '返却'
-                              : selectedItem?.current_location === 'repair'
-                                ? '修理完了'
-                                : ''}
-                        </div>
-                      </button>
-                      {destination === 'warehouse' && warehouseLocations.length > 0 && (
-                        <select
-                          value={warehouseLocationId}
-                          onChange={(e) => setWarehouseLocationId(e.target.value)}
-                          className="w-full mt-2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option value="">倉庫位置を選択（任意）...</option>
-                          {warehouseLocations.map((location) => (
-                            <option key={location.id} value={location.id}>
-                              {location.code} - {location.display_name}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                    </div>
-                  )}
+              <div className="space-y-4">
+                <h3 className="text-base font-semibold text-gray-900">1. 移動先を選択</h3>
 
-                  {/* 現場オプション */}
-                  {(isToolSetMode || (selectedItem && selectedItem.current_location !== 'repair')) && (
-                    <div>
-                      <button
-                        type="button"
-                        onClick={() => setDestination('site')}
-                        className={`w-full px-4 py-3 border-2 rounded-lg text-left ${
-                          destination === 'site'
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <div className="font-medium">🏗️ 現場に移動</div>
-                        <div className="text-sm text-gray-600 mt-1">
-                          {isToolSetMode
-                            ? '倉庫または他の現場へ'
-                            : selectedItem?.current_location === 'warehouse'
-                              ? '持ち出し'
-                              : selectedItem?.current_location === 'site'
-                                ? '現場間移動'
-                                : ''}
-                        </div>
-                      </button>
-                      {destination === 'site' && (
-                        <select
-                          value={toSiteId}
-                          onChange={(e) => setToSiteId(e.target.value)}
-                          required
-                          className="w-full mt-2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option value="">現場を選択...</option>
-                          {sites.map((site) => (
-                            <option key={site.id} value={site.id}>
-                              {site.name}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                    </div>
-                  )}
+                <div className="grid grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDestination('warehouse')
+                      setToSiteId('')
+                    }}
+                    className={`p-4 border-2 rounded-lg text-center transition-colors ${
+                      destination === 'warehouse'
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    <div className="text-2xl mb-1">🏢</div>
+                    <div className="font-medium">倉庫</div>
+                  </button>
 
-                  {/* 修理オプション */}
-                  {(isToolSetMode || (selectedItem && selectedItem.current_location !== 'repair')) && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setDestination('repair')
-                        setToSiteId('')
-                      }}
-                      className={`w-full px-4 py-3 border-2 rounded-lg text-left ${
-                        destination === 'repair'
-                          ? 'border-yellow-500 bg-yellow-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                  <button
+                    type="button"
+                    onClick={() => setDestination('site')}
+                    className={`p-4 border-2 rounded-lg text-center transition-colors ${
+                      destination === 'site'
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    <div className="text-2xl mb-1">🏗️</div>
+                    <div className="font-medium">現場</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDestination('repair')
+                      setToSiteId('')
+                    }}
+                    className={`p-4 border-2 rounded-lg text-center transition-colors ${
+                      destination === 'repair'
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    <div className="text-2xl mb-1">🔧</div>
+                    <div className="font-medium">修理</div>
+                  </button>
+                </div>
+
+                {/* 現場選択 */}
+                {destination === 'site' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      現場 <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={toSiteId}
+                      onChange={(e) => setToSiteId(e.target.value)}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <div className="font-medium">🔧 修理に出す</div>
-                      <div className="text-sm text-gray-600 mt-1">メンテナンス・修理</div>
-                    </button>
-                  )}
-                </div>
-              </div>
+                      <option value="">現場を選択してください</option>
+                      {sites.map((site) => (
+                        <option key={site.id} value={site.id}>
+                          {site.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
-              {/* 自動判定された移動種別を表示（個別移動モードのみ） */}
-              {!isToolSetMode && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="text-sm font-medium text-blue-900">移動種別（自動設定）</div>
-                  <div className="text-lg font-bold text-blue-700 mt-1">{movementTypeLabel()}</div>
-                </div>
-              )}
+                {/* 倉庫位置選択（オプション） */}
+                {destination === 'warehouse' && warehouseLocations.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      倉庫位置（オプション）
+                    </label>
+                    <select
+                      value={warehouseLocationId}
+                      onChange={(e) => setWarehouseLocationId(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">倉庫位置を選択（任意）</option>
+                      {warehouseLocations.map((location) => (
+                        <option key={location.id} value={location.id}>
+                          {location.code} - {location.display_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
             </>
           ) : (
             <>
