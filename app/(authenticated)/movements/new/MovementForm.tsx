@@ -157,6 +157,7 @@ export function MovementForm({
 
             formData.append('movement_type', movementType)
             formData.append('quantity', '1')
+            formData.append('skipRedirect', 'true') // リダイレクトをスキップ
 
             if (item.current_site_id) {
               formData.append('from_site_id', item.current_site_id)
@@ -231,7 +232,7 @@ export function MovementForm({
         }
 
         await createMovement(formData)
-        // 成功時は自動的にリダイレクトされる
+        // 成功時は自動的にリダイレクトされる（エラーをthrowしない）
         return
       }
     } catch (err: any) {

@@ -14,6 +14,7 @@ export async function createMovement(formData: FormData) {
   const warehouse_location_id = formData.get('warehouse_location_id') as string | null
   const quantity = parseInt(formData.get('quantity') as string) || 1
   const notes = formData.get('notes') as string
+  const skipRedirect = formData.get('skipRedirect') === 'true'
 
   // ユーザー情報と組織IDを取得
   const {
@@ -143,5 +144,8 @@ export async function createMovement(formData: FormData) {
   revalidatePath('/movements')
   revalidatePath('/tools')
   revalidatePath(`/tools/${toolItem.tool_id}`)
-  redirect('/movements')
+
+  if (!skipRedirect) {
+    redirect('/movements')
+  }
 }
