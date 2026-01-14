@@ -68,6 +68,11 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // 統一フォームスタイル（PC・スマホ対応）
+  const inputClassName = "w-full px-3 py-2.5 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm"
+  const selectClassName = "w-full px-3 py-2.5 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm"
+  const textareaClassName = "w-full px-3 py-2.5 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm"
+
   // フォームステート
   const [siteId, setSiteId] = useState('')
   const [reportDate, setReportDate] = useState(new Date().toISOString().split('T')[0])
@@ -254,7 +259,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                   value={siteId}
                   onChange={(e) => setSiteId(e.target.value)}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className={selectClassName}
                 >
                   <option value="">現場を選択してください</option>
                   {sites.map((site) => (
@@ -276,7 +281,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                   value={reportDate}
                   onChange={(e) => setReportDate(e.target.value)}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className={inputClassName}
                 />
               </div>
 
@@ -289,7 +294,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                   id="weather"
                   value={weather}
                   onChange={(e) => setWeather(e.target.value as any)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className={selectClassName}
                 >
                   <option value="">選択なし</option>
                   <option value="sunny">☀️ 晴れ</option>
@@ -314,7 +319,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                   id="work_start_time"
                   value={workStartTime}
                   onChange={(e) => setWorkStartTime(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className={inputClassName}
                 />
               </div>
 
@@ -327,7 +332,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                   id="work_end_time"
                   value={workEndTime}
                   onChange={(e) => setWorkEndTime(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className={inputClassName}
                 />
               </div>
 
@@ -342,7 +347,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                   onChange={(e) => setBreakTime(Number(e.target.value))}
                   min="0"
                   step="15"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className={inputClassName}
                 />
               </div>
             </div>
@@ -367,7 +372,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                 min="0"
                 step="0.5"
                 placeholder="0"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className={inputClassName}
               />
               <p className="mt-1 text-xs text-gray-500">残業時間を時間単位で入力してください（例: 2、1.5）</p>
             </div>
@@ -558,7 +563,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                 required
                 rows={5}
                 placeholder="実施した作業の内容を詳しく記入してください"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className={textareaClassName}
               />
               <div className="text-right -mt-[7px]">
                 <span className={`text-xs ${description.length > 5000 ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
@@ -585,7 +590,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                       value={workLocation}
                       onChange={(e) => setWorkLocation(e.target.value)}
                       placeholder="例: 1階 西側エリア"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      className={inputClassName}
                     />
                   </div>
                 )}
@@ -604,7 +609,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                       min="0"
                       max="100"
                       placeholder="0〜100"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      className={inputClassName}
                     />
                   </div>
                 )}
@@ -626,7 +631,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                         }}
                         rows={3}
                         placeholder="例: コンクリート 5m³、鉄筋 D13 100本"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className={textareaClassName}
                       />
                       <div className="text-right -mt-[7px]">
                         <span className={`text-xs ${materials.length > 2000 ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
@@ -798,7 +803,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                     }}
                     rows={3}
                     placeholder="特別な注意事項や重要な情報を記載してください"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className={textareaClassName}
                   />
                   <div className="text-right -mt-[7px]">
                     <span className={`text-xs ${specialNotes.length > 2000 ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
@@ -824,7 +829,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                     }}
                     rows={3}
                     placeholder="その他補足事項があれば記載してください"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className={textareaClassName}
                   />
                   <div className="text-right -mt-[7px]">
                     <span className={`text-xs ${remarks.length > 2000 ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
@@ -878,7 +883,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                           setCustomFieldValues({ ...customFieldValues, [field.name]: e.target.value })
                         }
                         required={field.required}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className={inputClassName}
                       />
                     )}
 
@@ -894,7 +899,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                           })
                         }
                         required={field.required}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className={inputClassName}
                       />
                     )}
 
@@ -906,7 +911,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                           setCustomFieldValues({ ...customFieldValues, [field.name]: e.target.value })
                         }
                         required={field.required}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className={selectClassName}
                       >
                         <option value="">選択してください</option>
                         {field.options.map((option, optIdx) => (
@@ -941,7 +946,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                           setCustomFieldValues({ ...customFieldValues, [field.name]: e.target.value })
                         }
                         required={field.required}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className={inputClassName}
                       />
                     )}
 
@@ -954,7 +959,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                           setCustomFieldValues({ ...customFieldValues, [field.name]: e.target.value })
                         }
                         required={field.required}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className={inputClassName}
                       />
                     )}
                   </div>

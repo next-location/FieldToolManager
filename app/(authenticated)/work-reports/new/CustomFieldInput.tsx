@@ -20,8 +20,10 @@ export function CustomFieldInput({ field, value, onChange }: CustomFieldInputPro
     onChange(field.field_key, newValue)
   }
 
-  const commonClasses =
-    'mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500'
+  // 統一フォームスタイル（PC・スマホ対応）
+  const inputClassName = "mt-1 block w-full px-3 py-2.5 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm"
+  const selectClassName = "mt-1 block w-full px-3 py-2.5 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm"
+  const textareaClassName = "mt-1 block w-full px-3 py-2.5 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm"
 
   return (
     <div>
@@ -38,7 +40,7 @@ export function CustomFieldInput({ field, value, onChange }: CustomFieldInputPro
           onChange={(e) => handleChange(e.target.value)}
           required={field.is_required}
           placeholder={field.placeholder}
-          className={commonClasses}
+          className={inputClassName}
         />
       )}
 
@@ -50,7 +52,7 @@ export function CustomFieldInput({ field, value, onChange }: CustomFieldInputPro
           required={field.is_required}
           placeholder={field.placeholder}
           rows={3}
-          className={commonClasses}
+          className={textareaClassName}
         />
       )}
 
@@ -62,7 +64,7 @@ export function CustomFieldInput({ field, value, onChange }: CustomFieldInputPro
           onChange={(e) => handleChange(e.target.value ? Number(e.target.value) : '')}
           required={field.is_required}
           placeholder={field.placeholder}
-          className={commonClasses}
+          className={inputClassName}
         />
       )}
 
@@ -73,7 +75,7 @@ export function CustomFieldInput({ field, value, onChange }: CustomFieldInputPro
           value={value || ''}
           onChange={(e) => handleChange(e.target.value)}
           required={field.is_required}
-          className={commonClasses}
+          className={inputClassName}
         />
       )}
 
@@ -83,7 +85,7 @@ export function CustomFieldInput({ field, value, onChange }: CustomFieldInputPro
           value={value || ''}
           onChange={(e) => handleChange(e.target.value)}
           required={field.is_required}
-          className={commonClasses}
+          className={selectClassName}
         >
           <option value="">{field.placeholder || '選択してください'}</option>
           {field.field_options.map((option) => (
