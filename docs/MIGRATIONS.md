@@ -239,6 +239,49 @@ ALTER TABLE sites DROP COLUMN IF EXISTS qr_code;
 
 ---
 
+### ✨ QRコード印刷サイズ設定をorganizationsテーブルに追加（2026-01-14）
+
+#### 20260114_add_qr_print_size_to_organizations.sql
+
+**適用日**: 2026-01-14
+**適用環境**: 本番環境
+**影響範囲**: `organizations`テーブル
+
+**目的**:
+QRコード印刷サイズ設定を`organizations`テーブルに追加し、各ページから直接参照できるようにする。
+
+**背景**:
+- `qr_print_size`は`organization_settings`テーブルに保存されていた
+- しかし各ページでは`organizations`テーブルから読み込んでいた
+- この不整合により、設定変更が反映されない問題が発生
+
+**変更内容**:
+```sql
+-- qr_print_size カラムを追加
+ALTER TABLE organizations
+  ADD COLUMN IF NOT EXISTS qr_print_size INTEGER DEFAULT 25;
+
+-- 既存データを organization_settings から移行
+UPDATE organizations o
+SET qr_print_size = COALESCE(
+  (SELECT qr_print_size FROM organization_settings WHERE organization_id = o.id),
+  25
+)
+WHERE qr_print_size IS NULL OR qr_print_size = 25;
+```
+
+**適用方法**:
+1. Supabase Dashboard > SQL Editor
+2. `supabase/migrations/20260114_add_qr_print_size_to_organizations.sql` の内容をコピペ
+3. "Run" をクリック
+
+**ロールバック**:
+```sql
+ALTER TABLE organizations DROP COLUMN IF EXISTS qr_print_size;
+```
+
+---
+
 ### 🔒 RLSポリシー修正: tool_items UPDATE権限を全ユーザーに拡大（2026-01-13）
 
 #### 20260113000001_fix_tool_items_update_policy.sql ✨CRITICAL FIX

@@ -72,12 +72,18 @@ export function OrganizationSettingsForm({
 
       if (result.error) {
         setMessage({ type: 'error', text: result.error })
+        // エラー時はページトップにスクロール
+        window.scrollTo({ top: 0, behavior: 'smooth' })
       } else {
         setMessage({ type: 'success', text: '設定を更新しました' })
+        // 成功時もページトップにスクロール
+        window.scrollTo({ top: 0, behavior: 'smooth' })
         router.refresh()
       }
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message || '更新に失敗しました' })
+      // エラー時はページトップにスクロール
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } finally {
       setLoading(false)
     }

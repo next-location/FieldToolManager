@@ -75,7 +75,8 @@ export function BulkQRCodePrint({
       return
     }
 
-    // A4サイズに最大9個(3x3)のQRコードを配置
+    // QRコードサイズに応じて列数を決定
+    const columns = qrSize <= 20 ? 4 : qrSize <= 30 ? 3 : 2
     const qrCodesPerPage = 9
     const qrCodesHTML = selectedItems
       .map((item, index) => {
@@ -130,7 +131,7 @@ export function BulkQRCodePrint({
 
             .qr-grid {
               display: grid;
-              grid-template-columns: repeat(3, 1fr);
+              grid-template-columns: repeat(${columns}, 1fr);
               gap: 8mm;
               width: 100%;
               max-width: 190mm;
