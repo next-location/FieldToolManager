@@ -15,7 +15,7 @@ body {
 
 /* 統一フォームスタイル（PC・スマホ対応） */
 @layer components {
-  /* 通常のinput, select（PC: 46px高さ統一） */
+  /* 通常のinput, select（PC: 40px高さ統一） */
   input[type="text"],
   input[type="email"],
   input[type="password"],
@@ -23,7 +23,7 @@ body {
   input[type="tel"],
   input[type="url"],
   select {
-    @apply h-[46px] bg-white;
+    @apply h-[40px] bg-white;
   }
 
   /* 日付・時刻input（スマホ: 小さめ、PC: 通常） */
@@ -31,14 +31,14 @@ body {
   input[type="time"],
   input[type="datetime-local"] {
     @apply bg-white;
-    height: 38px;
+    height: 36px;
   }
 
   @media (min-width: 768px) {
     input[type="date"],
     input[type="time"],
     input[type="datetime-local"] {
-      @apply h-[46px];
+      @apply h-[40px];
     }
   }
 }
