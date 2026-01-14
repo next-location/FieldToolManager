@@ -77,14 +77,14 @@ export default async function WarehouseLocationDetailPage({
         </div>
 
         {/* 基本情報 */}
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
             <div>
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                倉庫位置詳細
-              </h3>
-              <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                ID: {location.id.substring(0, 8)}...
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-900">
+                {location.display_name}
+              </h1>
+              <p className="mt-1 text-sm text-gray-500">
+                位置コード: {location.code}
               </p>
             </div>
             {['admin', 'super_admin'].includes(userRole) && (
@@ -105,69 +105,47 @@ export default async function WarehouseLocationDetailPage({
             )}
           </div>
 
-          <div className="border-t border-gray-200">
-            <dl>
-              <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">位置コード</dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  {location.code}
-                </dd>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div>
+              <p className="text-sm font-medium text-gray-600 mb-1">階層レベル</p>
+              <p className="text-base text-gray-900">{location.level}</p>
+            </div>
+
+            <div>
+              <p className="text-sm font-medium text-gray-600 mb-1">ステータス</p>
+              <div>
+                {location.is_active ? (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                    有効
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                    無効
+                  </span>
+                )}
               </div>
+            </div>
 
-              <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">表示名</dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  {location.display_name}
-                </dd>
+            {location.description && (
+              <div className="sm:col-span-2">
+                <p className="text-sm font-medium text-gray-600 mb-1">説明</p>
+                <p className="text-base text-gray-900">{location.description}</p>
               </div>
-
-              <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">階層レベル</dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  {location.level}
-                </dd>
-              </div>
-
-              {location.description && (
-                <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">説明</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {location.description}
-                  </dd>
-                </div>
-              )}
-
-              <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">ステータス</dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  {location.is_active ? (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      有効
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                      無効
-                    </span>
-                  )}
-                </dd>
-              </div>
-
-              {location.qr_code && (
-                <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">QRコード</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    <QRCodePrint
-                      value={location.qr_code}
-                      itemName={location.display_name}
-                      itemCode={`倉庫位置: ${location.code}`}
-                      itemType="倉庫位置"
-                      size={200}
-                    />
-                  </dd>
-                </div>
-              )}
-            </dl>
+            )}
           </div>
+
+          {location.qr_code && (
+            <div className="border-t pt-6">
+              <h3 className="text-base font-semibold text-gray-900 mb-4">QRコード</h3>
+              <QRCodePrint
+                value={location.qr_code}
+                itemName={location.display_name}
+                itemCode={`倉庫位置: ${location.code}`}
+                itemType="倉庫位置"
+                size={200}
+              />
+            </div>
+          )}
         </div>
 
         {/* 保管中の道具 - モバイル対応カード形式 */}
