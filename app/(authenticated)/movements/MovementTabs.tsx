@@ -328,8 +328,9 @@ export function MovementTabs({
                         </div>
                         <div className="text-xs text-gray-500 ml-4 whitespace-nowrap">
                           {new Date(group.created_at || firstMovement.created_at).toLocaleString('ja-JP', {
-                            month: '2-digit',
-                            day: '2-digit',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit'
                           })}
