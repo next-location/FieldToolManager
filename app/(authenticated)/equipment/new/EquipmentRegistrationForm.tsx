@@ -188,6 +188,7 @@ export function EquipmentRegistrationForm({
             value={formData.equipment_code}
             onChange={handleChange}
             required
+            maxLength={50}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             placeholder="例: BH-001"
           />
@@ -204,6 +205,7 @@ export function EquipmentRegistrationForm({
             value={formData.name}
             onChange={handleChange}
             required
+            maxLength={100}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             placeholder="例: コマツ PC200-10"
           />
@@ -240,6 +242,7 @@ export function EquipmentRegistrationForm({
               name="manufacturer"
               value={formData.manufacturer}
               onChange={handleChange}
+              maxLength={50}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder="例: コマツ"
             />
@@ -257,6 +260,7 @@ export function EquipmentRegistrationForm({
               name="model_number"
               value={formData.model_number}
               onChange={handleChange}
+              maxLength={50}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder="例: PC200-10"
             />
@@ -272,6 +276,7 @@ export function EquipmentRegistrationForm({
               name="serial_number"
               value={formData.serial_number}
               onChange={handleChange}
+              maxLength={50}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -288,6 +293,7 @@ export function EquipmentRegistrationForm({
               name="registration_number"
               value={formData.registration_number}
               onChange={handleChange}
+              maxLength={50}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder="例: 建 12-34"
             />
@@ -391,6 +397,7 @@ export function EquipmentRegistrationForm({
                   name="supplier_company"
                   value={formData.supplier_company}
                   onChange={handleChange}
+                  maxLength={100}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   placeholder="例: ○○リース株式会社"
                 />
@@ -405,6 +412,7 @@ export function EquipmentRegistrationForm({
                   name="contract_number"
                   value={formData.contract_number}
                   onChange={handleChange}
+                  maxLength={50}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -534,6 +542,7 @@ export function EquipmentRegistrationForm({
               name="insurance_company"
               value={formData.insurance_company}
               onChange={handleChange}
+              maxLength={100}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -547,6 +556,7 @@ export function EquipmentRegistrationForm({
               name="insurance_policy_number"
               value={formData.insurance_policy_number}
               onChange={handleChange}
+              maxLength={50}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -656,6 +666,7 @@ export function EquipmentRegistrationForm({
             rows={3}
             value={formData.notes}
             onChange={handleChange}
+            maxLength={2000}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             placeholder="その他特記事項があれば入力してください"
           />

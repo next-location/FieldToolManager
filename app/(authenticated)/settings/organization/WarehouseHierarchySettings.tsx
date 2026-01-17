@@ -192,6 +192,7 @@ export function WarehouseHierarchySettings({
             </div>
             <input
               type="text"
+              maxLength={50}
               value={template.label}
               onChange={(e) =>
                 handleLabelChange(template.level, e.target.value)

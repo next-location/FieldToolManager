@@ -85,30 +85,32 @@ export default function ConsumablesList({ initialConsumables }: ConsumablesListP
             {filteredConsumables.map((consumable) => (
               <li key={consumable.id}>
                 <div className="px-4 py-4 sm:px-6">
-                  <div className="flex items-center justify-between">
+                  {/* スマホ: 縦並び、PC: 横並び */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    {/* 左側: 消耗品情報 */}
                     <Link
                       href={`/consumables/${consumable.id}`}
-                      className="flex-1 hover:text-blue-700"
+                      className="flex-1 hover:text-blue-700 min-w-0"
                     >
-                      <div className="flex items-center">
-                        <p className="text-sm font-medium text-blue-600 truncate">
+                      <div className="flex items-center flex-wrap gap-2">
+                        <p className="text-base sm:text-sm font-medium text-blue-600">
                           {consumable.name}
                         </p>
                         {consumable.is_low_stock && (
-                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
                             在庫不足
                           </span>
                         )}
                       </div>
-                      <div className="mt-2 flex items-center text-sm text-gray-500 flex-wrap gap-x-4 gap-y-1">
+                      <div className="mt-2 flex flex-col sm:flex-row sm:items-center text-sm text-gray-500 gap-y-1 sm:gap-x-4">
                         {consumable.model_number && (
                           <span>型番: {consumable.model_number}</span>
                         )}
                         <span>単位: {consumable.unit}</span>
                         <span>最小在庫: {consumable.minimum_stock}{consumable.unit}</span>
                       </div>
-                      <div className="mt-2 flex items-center text-sm text-gray-700 flex-wrap gap-x-4 gap-y-1">
-                        <span className="font-medium">
+                      <div className="mt-2 flex flex-col sm:flex-row sm:items-center text-sm text-gray-700 gap-y-1 sm:gap-x-4">
+                        <span className="font-medium text-base sm:text-sm">
                           合計在庫: {consumable.total_quantity}{consumable.unit}
                         </span>
                         <span>
@@ -119,17 +121,19 @@ export default function ConsumablesList({ initialConsumables }: ConsumablesListP
                         </span>
                       </div>
                     </Link>
-                    <div className="ml-4 flex space-x-2">
+
+                    {/* 右側: アクションボタン */}
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 sm:ml-4 shrink-0">
                       <Link
                         href={`/consumables/${consumable.id}/adjust`}
-                        className="inline-flex items-center px-3 py-1 border border-blue-600 rounded text-xs font-medium text-blue-600 bg-white hover:bg-blue-50"
+                        className="inline-flex items-center justify-center px-4 py-2.5 sm:px-4 sm:py-2 border border-blue-600 rounded-md text-sm font-medium text-blue-600 bg-white hover:bg-blue-50 whitespace-nowrap"
                         onClick={(e) => e.stopPropagation()}
                       >
                         📦 在庫調整
                       </Link>
                       <Link
                         href={`/consumables/${consumable.id}/move`}
-                        className="inline-flex items-center px-3 py-1 border border-green-600 rounded text-xs font-medium text-green-600 bg-white hover:bg-green-50"
+                        className="inline-flex items-center justify-center px-4 py-2.5 sm:px-4 sm:py-2 border border-green-600 rounded-md text-sm font-medium text-green-600 bg-white hover:bg-green-50 whitespace-nowrap"
                         onClick={(e) => e.stopPropagation()}
                       >
                         🚚 移動

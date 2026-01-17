@@ -119,6 +119,7 @@ export function ToolMasterForm({
             name="name"
             id="name"
             required
+            maxLength={100}
             value={formData.name}
             onChange={handleChange}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -135,6 +136,7 @@ export function ToolMasterForm({
             name="manufacturer"
             id="manufacturer"
             list="manufacturers-list"
+            maxLength={50}
             value={formData.manufacturer}
             onChange={handleChange}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -161,6 +163,7 @@ export function ToolMasterForm({
             type="text"
             name="model_number"
             id="model_number"
+            maxLength={50}
             value={formData.model_number}
             onChange={handleChange}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -199,6 +202,7 @@ export function ToolMasterForm({
               name="unit"
               id="unit"
               required
+              maxLength={20}
               value={formData.unit}
               onChange={handleChange}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -243,6 +247,7 @@ export function ToolMasterForm({
             name="notes"
             id="notes"
             rows={3}
+            maxLength={2000}
             value={formData.notes}
             onChange={handleChange}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"

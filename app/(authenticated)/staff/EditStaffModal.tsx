@@ -100,6 +100,7 @@ export function EditStaffModal({ isOpen, onClose, onSuccess, staff, departments 
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              maxLength={50}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -113,6 +114,7 @@ export function EditStaffModal({ isOpen, onClose, onSuccess, staff, departments 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              maxLength={100}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -124,6 +126,7 @@ export function EditStaffModal({ isOpen, onClose, onSuccess, staff, departments 
               value={department}
               onChange={(e) => setDepartment(e.target.value)}
               list="departments-edit"
+              maxLength={50}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
             <datalist id="departments-edit">
@@ -142,6 +145,7 @@ export function EditStaffModal({ isOpen, onClose, onSuccess, staff, departments 
               type="text"
               value={employeeId}
               onChange={(e) => setEmployeeId(e.target.value)}
+              maxLength={20}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -152,6 +156,7 @@ export function EditStaffModal({ isOpen, onClose, onSuccess, staff, departments 
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
+              maxLength={20}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>

@@ -9,6 +9,7 @@ type TabType = 'tool' | 'consumable' | 'equipment'
 interface ToolMovement {
   id: string
   created_at: string
+  movement_type: string
   from_location: string
   to_location: string
   notes: string | null
@@ -311,7 +312,9 @@ export function MovementTabs({
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm">
                             {isSet && '📦 '}
-                            {(group.to_location || firstMovement.to_location) === 'site' ? '🏗️ 現場へ' :
+                            {firstMovement.movement_type === 'adjustment' ? '📝 在庫調整' :
+                             firstMovement.movement_type === 'correction' ? '🔄 修正' :
+                             (group.to_location || firstMovement.to_location) === 'site' ? '🏗️ 現場へ' :
                              (group.to_location || firstMovement.to_location) === 'warehouse' ? '🏢 倉庫へ' :
                              (group.to_location || firstMovement.to_location) === 'repair' ? '🔧 修理へ' : (group.to_location || firstMovement.to_location)}
                           </td>
@@ -413,7 +416,10 @@ export function MovementTabs({
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
                             {isSet && '📦 '}
-                            {(group.to_location || firstMovement.to_location) === 'site' ? '現場へ' : (group.to_location || firstMovement.to_location) === 'warehouse' ? '倉庫へ' : '修理へ'}
+                            {firstMovement.movement_type === 'adjustment' ? '在庫調整' :
+                             firstMovement.movement_type === 'correction' ? '修正' :
+                             (group.to_location || firstMovement.to_location) === 'site' ? '現場へ' :
+                             (group.to_location || firstMovement.to_location) === 'warehouse' ? '倉庫へ' : '修理へ'}
                           </span>
                           <span>
                             {(group.from_location || firstMovement.from_location) === 'warehouse' ? '倉庫' : (group.from_location || firstMovement.from_location) === 'site' ? ((group.from_site || firstMovement.from_site)?.name || '現場') : '修理中'} → {(group.to_location || firstMovement.to_location) === 'site' ? ((group.to_site || firstMovement.to_site)?.name || '現場') : (group.to_location || firstMovement.to_location) === 'warehouse' ? '倉庫' : '修理中'}

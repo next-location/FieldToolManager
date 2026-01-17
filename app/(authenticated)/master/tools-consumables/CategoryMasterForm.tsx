@@ -82,6 +82,7 @@ export function CategoryMasterForm({
             name="name"
             id="name"
             required
+            maxLength={50}
             value={formData.name}
             onChange={handleChange}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -98,6 +99,7 @@ export function CategoryMasterForm({
             name="description"
             id="description"
             rows={3}
+            maxLength={500}
             value={formData.description}
             onChange={handleChange}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"

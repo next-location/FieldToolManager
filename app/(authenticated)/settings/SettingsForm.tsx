@@ -154,6 +154,7 @@ export function SettingsForm({ userId, currentName, currentEmail, currentDepartm
         <input
           type="text"
           id="name"
+          maxLength={50}
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
@@ -170,6 +171,7 @@ export function SettingsForm({ userId, currentName, currentEmail, currentDepartm
         <input
           type="text"
           id="department"
+          maxLength={50}
           value={department}
           onChange={(e) => setDepartment(e.target.value)}
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"

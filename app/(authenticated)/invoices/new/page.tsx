@@ -413,6 +413,7 @@ export default function NewInvoicePage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 required
                 placeholder="〇〇工事 請求書"
+                maxLength={200}
               />
             </div>
 
@@ -476,6 +477,7 @@ export default function NewInvoicePage() {
                         onChange={(e) => handleItemChange(index, 'custom_type', e.target.value)}
                         placeholder="種別を入力..."
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                        maxLength={50}
                       />
                     </div>
                   )}
@@ -491,6 +493,7 @@ export default function NewInvoicePage() {
                       onChange={(e) => handleItemChange(index, 'item_name', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                       required
+                      maxLength={100}
                     />
                   </div>
 
@@ -502,6 +505,7 @@ export default function NewInvoicePage() {
                       value={item.description || ''}
                       onChange={(e) => handleItemChange(index, 'description', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      maxLength={200}
                     />
                   </div>
 
@@ -561,6 +565,7 @@ export default function NewInvoicePage() {
                         onChange={(e) => handleItemChange(index, 'custom_unit', e.target.value)}
                         placeholder="単位を入力..."
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                        maxLength={20}
                       />
                     </div>
                   )}
@@ -650,6 +655,7 @@ export default function NewInvoicePage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 rows={3}
                 placeholder="お振込手数料はお客様ご負担でお願いいたします。"
+                maxLength={2000}
               />
             </div>
             <div>
@@ -662,6 +668,7 @@ export default function NewInvoicePage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 rows={3}
                 placeholder="社内用のメモ（請求書には記載されません）"
+                maxLength={2000}
               />
             </div>
           </div>

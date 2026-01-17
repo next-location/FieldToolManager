@@ -158,6 +158,7 @@ export function ConsumableRegistrationForm({
           id="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          maxLength={100}
           className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
           required
           disabled={isSubmitting}
@@ -178,6 +179,7 @@ export function ConsumableRegistrationForm({
           id="modelNumber"
           value={modelNumber}
           onChange={(e) => setModelNumber(e.target.value)}
+          maxLength={50}
           className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
           disabled={isSubmitting}
           placeholder="例: ABC-123"
@@ -197,6 +199,7 @@ export function ConsumableRegistrationForm({
           id="manufacturer"
           value={manufacturer}
           onChange={(e) => setManufacturer(e.target.value)}
+          maxLength={50}
           className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
           disabled={isSubmitting}
           placeholder="例: ○○工業"
@@ -215,6 +218,7 @@ export function ConsumableRegistrationForm({
           id="unit"
           value={unit}
           onChange={(e) => setUnit(e.target.value)}
+          maxLength={20}
           className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
           required
           disabled={isSubmitting}
@@ -291,6 +295,7 @@ export function ConsumableRegistrationForm({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
+          maxLength={2000}
           className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
           disabled={isSubmitting}
           placeholder="例: サイズ、用途、注意事項など"

@@ -184,6 +184,7 @@ export function EquipmentEditForm({
               value={formData.equipment_code}
               onChange={handleChange}
               required
+              maxLength={50}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             />
           </div>
@@ -199,6 +200,7 @@ export function EquipmentEditForm({
               value={formData.name}
               onChange={handleChange}
               required
+              maxLength={100}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             />
           </div>
@@ -251,6 +253,7 @@ export function EquipmentEditForm({
               name="manufacturer"
               value={formData.manufacturer}
               onChange={handleChange}
+              maxLength={50}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             />
           </div>
@@ -265,6 +268,7 @@ export function EquipmentEditForm({
               name="model_number"
               value={formData.model_number}
               onChange={handleChange}
+              maxLength={50}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             />
           </div>
@@ -279,6 +283,7 @@ export function EquipmentEditForm({
               name="serial_number"
               value={formData.serial_number}
               onChange={handleChange}
+              maxLength={50}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             />
           </div>
@@ -293,6 +298,7 @@ export function EquipmentEditForm({
               name="registration_number"
               value={formData.registration_number}
               onChange={handleChange}
+              maxLength={50}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             />
           </div>
@@ -384,6 +390,7 @@ export function EquipmentEditForm({
                   name="supplier_company"
                   value={formData.supplier_company}
                   onChange={handleChange}
+                  maxLength={100}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
               </div>
@@ -397,6 +404,7 @@ export function EquipmentEditForm({
                   name="contract_number"
                   value={formData.contract_number}
                   onChange={handleChange}
+                  maxLength={50}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
               </div>
@@ -508,6 +516,7 @@ export function EquipmentEditForm({
               name="insurance_company"
               value={formData.insurance_company}
               onChange={handleChange}
+              maxLength={100}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             />
           </div>
@@ -521,6 +530,7 @@ export function EquipmentEditForm({
               name="insurance_policy_number"
               value={formData.insurance_policy_number}
               onChange={handleChange}
+              maxLength={50}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             />
           </div>
@@ -615,6 +625,7 @@ export function EquipmentEditForm({
           rows={3}
           value={formData.notes}
           onChange={handleChange}
+          maxLength={2000}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
         />
       </div>

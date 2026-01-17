@@ -111,6 +111,7 @@ export function AddStaffModal({ isOpen, onClose, onSuccess, departments }: AddSt
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              maxLength={50}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -124,6 +125,7 @@ export function AddStaffModal({ isOpen, onClose, onSuccess, departments }: AddSt
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              maxLength={100}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -138,6 +140,7 @@ export function AddStaffModal({ isOpen, onClose, onSuccess, departments }: AddSt
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                maxLength={100}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
               <button
@@ -159,6 +162,7 @@ export function AddStaffModal({ isOpen, onClose, onSuccess, departments }: AddSt
               onChange={(e) => setDepartment(e.target.value)}
               list="departments"
               placeholder="例: 工事部、営業部"
+              maxLength={50}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
             <datalist id="departments">
@@ -175,6 +179,7 @@ export function AddStaffModal({ isOpen, onClose, onSuccess, departments }: AddSt
               value={employeeId}
               onChange={(e) => setEmployeeId(e.target.value)}
               placeholder="例: EMP-001"
+              maxLength={20}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -186,6 +191,7 @@ export function AddStaffModal({ isOpen, onClose, onSuccess, departments }: AddSt
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="例: 090-1234-5678"
+              maxLength={20}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>

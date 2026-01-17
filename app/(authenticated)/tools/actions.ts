@@ -340,6 +340,8 @@ export async function createToolWithItems(formData: {
 
   } else if (formData.tool_master_id) {
     // モード1: 既存マスタから登録
+    console.log('[createToolWithItems] モード1: 既存マスタから登録, tool_master_id:', formData.tool_master_id)
+
     // 既存マスタの情報を取得
     const { data: existingTool, error: toolError } = await supabase
       .from('tools')
@@ -354,11 +356,15 @@ export async function createToolWithItems(formData: {
       return { error: '指定された道具マスタが見つかりません' }
     }
 
+    console.log('[createToolWithItems] 既存マスタ取得成功:', existingTool.name, '現在の個数:', existingTool.quantity)
+
     toolId = existingTool.id
     toolData = existingTool
 
     // quantityを更新（既存の個数 + 新規登録個数）
     const newTotalQuantity = (existingTool.quantity || 0) + parseInt(formData.quantity)
+    console.log('[createToolWithItems] 個数を更新:', existingTool.quantity, '+', formData.quantity, '=', newTotalQuantity)
+
     const { error: updateError } = await supabase
       .from('tools')
       .update({
@@ -371,6 +377,8 @@ export async function createToolWithItems(formData: {
       console.error('Tool quantity update error:', updateError)
       return { error: '道具マスタの個数更新に失敗しました: ' + updateError.message }
     }
+
+    console.log('[createToolWithItems] 道具マスタの個数更新成功、次は個別アイテム作成へ')
 
   } else {
     // モード2: 新規マスタ作成
@@ -427,6 +435,8 @@ export async function createToolWithItems(formData: {
     }
   } else {
     // 個別管理: 個別アイテムを作成
+    console.log('[createToolWithItems] 個別アイテム作成開始, tool_id:', toolId)
+
     // 既存の最大serial_numberを取得
     const { data: existingItems } = await supabase
       .from('tool_items')
@@ -440,9 +450,14 @@ export async function createToolWithItems(formData: {
     if (existingItems && existingItems.length > 0) {
       const lastSerial = existingItems[0].serial_number
       startNumber = parseInt(lastSerial) + 1
+      console.log('[createToolWithItems] 既存アイテムあり、最終シリアル:', lastSerial, '開始番号:', startNumber)
+    } else {
+      console.log('[createToolWithItems] 既存アイテムなし、開始番号:', startNumber)
     }
 
     const quantity = parseInt(formData.quantity)
+    console.log('[createToolWithItems] 作成する個別アイテム数:', quantity)
+
     const toolItems = []
 
     for (let i = 0; i < quantity; i++) {
@@ -456,6 +471,8 @@ export async function createToolWithItems(formData: {
       })
     }
 
+    console.log('[createToolWithItems] 個別アイテム配列作成完了:', toolItems.map(item => item.serial_number).join(', '))
+
     const { error: itemsError } = await supabase
       .from('tool_items')
       .insert(toolItems)
@@ -467,6 +484,8 @@ export async function createToolWithItems(formData: {
       }
     }
 
+    console.log('[createToolWithItems] 個別アイテム登録成功')
+
     // 在庫調整履歴を記録
     const { error: movementError } = await supabase
       .from('tool_movements')
@@ -474,6 +493,8 @@ export async function createToolWithItems(formData: {
         organization_id: userData?.organization_id,
         tool_id: toolId,
         movement_type: 'adjustment',
+        from_location: 'warehouse',
+        to_location: 'warehouse',
         quantity: quantity,
         performed_by: user.id,
         notes: `個別アイテム追加: ${quantity}台登録`,

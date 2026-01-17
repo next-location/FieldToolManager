@@ -174,6 +174,7 @@ export function SupplierFormModal({ supplier, onClose, onSuccess }: SupplierForm
                 <input
                   type="text"
                   required
+                  maxLength={100}
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -186,6 +187,7 @@ export function SupplierFormModal({ supplier, onClose, onSuccess }: SupplierForm
                 </label>
                 <input
                   type="text"
+                  maxLength={100}
                   value={formData.name_kana}
                   onChange={(e) => setFormData({ ...formData, name_kana: e.target.value })}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -198,6 +200,7 @@ export function SupplierFormModal({ supplier, onClose, onSuccess }: SupplierForm
                 </label>
                 <input
                   type="text"
+                  maxLength={10}
                   value={formData.postal_code}
                   onChange={handlePostalCodeChange}
                   placeholder="123-4567 または 1234567"
@@ -210,6 +213,7 @@ export function SupplierFormModal({ supplier, onClose, onSuccess }: SupplierForm
                 <label className="block text-sm font-medium text-gray-700">電話番号</label>
                 <input
                   type="tel"
+                  maxLength={20}
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -220,6 +224,7 @@ export function SupplierFormModal({ supplier, onClose, onSuccess }: SupplierForm
                 <label className="block text-sm font-medium text-gray-700">住所</label>
                 <input
                   type="text"
+                  maxLength={200}
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -230,6 +235,7 @@ export function SupplierFormModal({ supplier, onClose, onSuccess }: SupplierForm
                 <label className="block text-sm font-medium text-gray-700">FAX</label>
                 <input
                   type="tel"
+                  maxLength={20}
                   value={formData.fax}
                   onChange={(e) => setFormData({ ...formData, fax: e.target.value })}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -240,6 +246,7 @@ export function SupplierFormModal({ supplier, onClose, onSuccess }: SupplierForm
                 <label className="block text-sm font-medium text-gray-700">メール</label>
                 <input
                   type="email"
+                  maxLength={100}
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -250,6 +257,7 @@ export function SupplierFormModal({ supplier, onClose, onSuccess }: SupplierForm
                 <label className="block text-sm font-medium text-gray-700">Webサイト</label>
                 <input
                   type="url"
+                  maxLength={200}
                   value={formData.website}
                   onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -260,6 +268,7 @@ export function SupplierFormModal({ supplier, onClose, onSuccess }: SupplierForm
                 <label className="block text-sm font-medium text-gray-700">担当者名</label>
                 <input
                   type="text"
+                  maxLength={50}
                   value={formData.contact_person}
                   onChange={(e) => setFormData({ ...formData, contact_person: e.target.value })}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -276,6 +285,7 @@ export function SupplierFormModal({ supplier, onClose, onSuccess }: SupplierForm
                 <label className="block text-sm font-medium text-gray-700">支払条件</label>
                 <input
                   type="text"
+                  maxLength={100}
                   value={formData.payment_terms}
                   onChange={(e) => setFormData({ ...formData, payment_terms: e.target.value })}
                   placeholder="例: 月末締め翌月末払い"
@@ -293,6 +303,7 @@ export function SupplierFormModal({ supplier, onClose, onSuccess }: SupplierForm
                 <label className="block text-sm font-medium text-gray-700">銀行名</label>
                 <input
                   type="text"
+                  maxLength={50}
                   value={formData.bank_name}
                   onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -303,6 +314,7 @@ export function SupplierFormModal({ supplier, onClose, onSuccess }: SupplierForm
                 <label className="block text-sm font-medium text-gray-700">支店名</label>
                 <input
                   type="text"
+                  maxLength={50}
                   value={formData.branch_name}
                   onChange={(e) => setFormData({ ...formData, branch_name: e.target.value })}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -326,6 +338,7 @@ export function SupplierFormModal({ supplier, onClose, onSuccess }: SupplierForm
                 <label className="block text-sm font-medium text-gray-700">口座番号</label>
                 <input
                   type="text"
+                  maxLength={20}
                   value={formData.account_number}
                   onChange={(e) => setFormData({ ...formData, account_number: e.target.value })}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -336,6 +349,7 @@ export function SupplierFormModal({ supplier, onClose, onSuccess }: SupplierForm
                 <label className="block text-sm font-medium text-gray-700">口座名義</label>
                 <input
                   type="text"
+                  maxLength={100}
                   value={formData.account_holder}
                   onChange={(e) => setFormData({ ...formData, account_holder: e.target.value })}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -349,6 +363,7 @@ export function SupplierFormModal({ supplier, onClose, onSuccess }: SupplierForm
             <label className="block text-sm font-medium text-gray-700">備考</label>
             <textarea
               rows={3}
+              maxLength={2000}
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"

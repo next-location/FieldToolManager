@@ -91,6 +91,7 @@ export function LocationForm({ templates, action }: LocationFormProps) {
                     value={levelValues[template.level] || ''}
                     onChange={(e) => handleLevelChange(template.level, e.target.value)}
                     required
+                    maxLength={50}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder={`例: ${template.level === 1 ? 'A' : template.level === 2 ? '1' : '上'}`}
                   />
@@ -136,6 +137,7 @@ export function LocationForm({ templates, action }: LocationFormProps) {
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               required
+              maxLength={100}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="例: エリアA 棚1 上段"
             />
@@ -158,6 +160,7 @@ export function LocationForm({ templates, action }: LocationFormProps) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
+              maxLength={500}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="この位置の詳細や特徴を入力（任意）"
             />

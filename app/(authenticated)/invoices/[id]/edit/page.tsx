@@ -369,6 +369,7 @@ export default function EditInvoicePage({
                 onChange={(e) => setFormData({...formData, title: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 required
+                maxLength={200}
               />
             </div>
 
@@ -441,6 +442,7 @@ export default function EditInvoicePage({
                         onChange={(e) => handleItemChange(index, 'item_name', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                         required
+                        maxLength={100}
                       />
                     </div>
 
@@ -451,6 +453,7 @@ export default function EditInvoicePage({
                         value={item.description || ''}
                         onChange={(e) => handleItemChange(index, 'description', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                        maxLength={200}
                       />
                     </div>
                   </div>
@@ -579,6 +582,7 @@ export default function EditInvoicePage({
                 onChange={(e) => setFormData({...formData, notes: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 rows={3}
+                maxLength={2000}
               />
             </div>
             <div>
@@ -590,6 +594,7 @@ export default function EditInvoicePage({
                 onChange={(e) => setFormData({...formData, internal_notes: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 rows={3}
+                maxLength={2000}
               />
             </div>
           </div>

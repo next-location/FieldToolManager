@@ -268,6 +268,7 @@ export function WorkReportSettingsForm() {
                 </label>
                 <input
                   type="text"
+                  maxLength={50}
                   value={newField.name}
                   onChange={(e) => setNewField({ ...newField, name: e.target.value })}
                   placeholder="例: 気温"
@@ -301,6 +302,7 @@ export function WorkReportSettingsForm() {
                   </label>
                   <input
                     type="text"
+                    maxLength={20}
                     value={newField.unit || ''}
                     onChange={(e) => setNewField({ ...newField, unit: e.target.value })}
                     placeholder="例: ℃"
@@ -333,6 +335,7 @@ export function WorkReportSettingsForm() {
                 <div className="flex gap-2 mb-2">
                   <input
                     type="text"
+                    maxLength={50}
                     value={newOption}
                     onChange={(e) => setNewOption(e.target.value)}
                     placeholder="選択肢を入力"

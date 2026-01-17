@@ -71,6 +71,7 @@ export default async function EditSitePage({
                   id="name"
                   name="name"
                   required
+                  maxLength={100}
                   defaultValue={site.name}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
@@ -114,6 +115,7 @@ export default async function EditSitePage({
                   type="text"
                   id="address"
                   name="address"
+                  maxLength={200}
                   defaultValue={site.address || ''}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />

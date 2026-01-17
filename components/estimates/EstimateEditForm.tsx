@@ -271,6 +271,7 @@ export function EstimateEditForm({
             </label>
             <input
               type="text"
+              maxLength={200}
               value={formData.title}
               onChange={(e) => setFormData({...formData, title: e.target.value})}
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -322,6 +323,7 @@ export function EstimateEditForm({
                     </label>
                     <input
                       type="text"
+                      maxLength={100}
                       value={item.item_name}
                       onChange={(e) => handleItemChange(index, 'item_name', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
@@ -333,6 +335,7 @@ export function EstimateEditForm({
                     <label className="block text-xs font-medium text-gray-600 mb-1">説明</label>
                     <input
                       type="text"
+                      maxLength={200}
                       value={item.description}
                       onChange={(e) => handleItemChange(index, 'description', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
@@ -346,6 +349,7 @@ export function EstimateEditForm({
                     <label className="block text-xs font-medium text-gray-600 mb-1">カスタム種別</label>
                     <input
                       type="text"
+                      maxLength={50}
                       value={item.custom_type || ''}
                       onChange={(e) => handleItemChange(index, 'custom_type', e.target.value)}
                       placeholder="種別を入力..."
@@ -441,6 +445,7 @@ export function EstimateEditForm({
                     <label className="block text-xs font-medium text-gray-600 mb-1">カスタム単位</label>
                     <input
                       type="text"
+                      maxLength={20}
                       value={item.custom_unit || ''}
                       onChange={(e) => handleItemChange(index, 'custom_unit', e.target.value)}
                       placeholder="単位を入力..."
@@ -490,6 +495,7 @@ export function EstimateEditForm({
               備考（お客様向け）
             </label>
             <textarea
+              maxLength={2000}
               value={formData.notes}
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -501,6 +507,7 @@ export function EstimateEditForm({
               社内メモ
             </label>
             <textarea
+              maxLength={2000}
               value={formData.internal_notes}
               onChange={(e) => setFormData({...formData, internal_notes: e.target.value})}
               className="w-full px-3 py-2 border border-gray-300 rounded-md"

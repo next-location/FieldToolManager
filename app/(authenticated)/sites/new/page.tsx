@@ -56,6 +56,7 @@ export default async function NewSitePage() {
                   id="name"
                   name="name"
                   required
+                  maxLength={100}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="例: 〇〇ビル建設工事"
                 />
@@ -98,6 +99,7 @@ export default async function NewSitePage() {
                   type="text"
                   id="address"
                   name="address"
+                  maxLength={200}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="例: 東京都渋谷区〇〇1-2-3"
                 />
