@@ -301,6 +301,9 @@ export function MovementTabs({
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       実施者
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      備考
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -366,13 +369,16 @@ export function MovementTabs({
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {(group.users || firstMovement.users)?.name || '-'}
                           </td>
+                          <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                            {firstMovement.notes || '-'}
+                          </td>
                         </tr>
                       )
                     })
                   ) : (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={7}
                         className="px-6 py-12 text-center text-gray-500"
                       >
                         道具の移動履歴がありません
@@ -440,6 +446,9 @@ export function MovementTabs({
                           </span>
                         </div>
                         <div className="text-xs text-gray-500">実施者: {(group.users || firstMovement.users)?.name || '-'}</div>
+                        {firstMovement.notes && (
+                          <div className="text-xs text-gray-500">備考: {firstMovement.notes}</div>
+                        )}
                       </div>
                     </div>
                   )
