@@ -92,8 +92,8 @@ export default function ConsumablesList({ initialConsumables }: ConsumablesListP
                       href={`/consumables/${consumable.id}`}
                       className="flex-1 hover:text-blue-700 min-w-0"
                     >
-                      <div className="flex items-center flex-wrap gap-2">
-                        <p className="text-base sm:text-sm font-medium text-blue-600">
+                      <div className="flex items-center flex-wrap gap-2 mb-3">
+                        <p className="text-lg sm:text-sm font-bold sm:font-medium text-blue-600">
                           {consumable.name}
                         </p>
                         {consumable.is_low_stock && (
@@ -102,23 +102,62 @@ export default function ConsumablesList({ initialConsumables }: ConsumablesListP
                           </span>
                         )}
                       </div>
-                      <div className="mt-2 flex flex-col sm:flex-row sm:items-center text-sm text-gray-500 gap-y-1 sm:gap-x-4">
+
+                      {/* スマホ: 在庫情報を大きく表示 */}
+                      <div className="sm:hidden space-y-2">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-xs text-gray-500">合計在庫</span>
+                          <span className="text-2xl font-bold text-gray-900">
+                            {consumable.total_quantity}
+                          </span>
+                          <span className="text-sm text-gray-600">{consumable.unit}</span>
+                        </div>
+                        <div className="flex gap-4 text-sm">
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="text-xs text-gray-500">倉庫</span>
+                            <span className="text-lg font-semibold text-gray-700">
+                              {consumable.warehouse_quantity}
+                            </span>
+                            <span className="text-xs text-gray-500">{consumable.unit}</span>
+                          </div>
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="text-xs text-gray-500">現場</span>
+                            <span className="text-lg font-semibold text-gray-700">
+                              {consumable.site_quantity}
+                            </span>
+                            <span className="text-xs text-gray-500">{consumable.unit}</span>
+                          </div>
+                        </div>
                         {consumable.model_number && (
-                          <span>型番: {consumable.model_number}</span>
+                          <div className="text-xs text-gray-500 pt-1">
+                            型番: {consumable.model_number}
+                          </div>
                         )}
-                        <span>単位: {consumable.unit}</span>
-                        <span>最小在庫: {consumable.minimum_stock}{consumable.unit}</span>
+                        <div className="text-xs text-gray-500">
+                          最小在庫: {consumable.minimum_stock}{consumable.unit}
+                        </div>
                       </div>
-                      <div className="mt-2 flex flex-col sm:flex-row sm:items-center text-sm text-gray-700 gap-y-1 sm:gap-x-4">
-                        <span className="font-medium text-base sm:text-sm">
-                          合計在庫: {consumable.total_quantity}{consumable.unit}
-                        </span>
-                        <span>
-                          倉庫: {consumable.warehouse_quantity}{consumable.unit}
-                        </span>
-                        <span>
-                          現場: {consumable.site_quantity}{consumable.unit}
-                        </span>
+
+                      {/* PC: 従来通りの表示 */}
+                      <div className="hidden sm:block">
+                        <div className="mt-2 flex items-center text-sm text-gray-500 gap-x-4">
+                          {consumable.model_number && (
+                            <span>型番: {consumable.model_number}</span>
+                          )}
+                          <span>単位: {consumable.unit}</span>
+                          <span>最小在庫: {consumable.minimum_stock}{consumable.unit}</span>
+                        </div>
+                        <div className="mt-2 flex items-center text-sm text-gray-700 gap-x-4">
+                          <span className="font-medium">
+                            合計在庫: {consumable.total_quantity}{consumable.unit}
+                          </span>
+                          <span>
+                            倉庫: {consumable.warehouse_quantity}{consumable.unit}
+                          </span>
+                          <span>
+                            現場: {consumable.site_quantity}{consumable.unit}
+                          </span>
+                        </div>
                       </div>
                     </Link>
 
