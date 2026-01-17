@@ -36,7 +36,8 @@
       "Bash(npx tsx:*)",
       "Bash(git log:*)",
       "Bash(node:*)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []
