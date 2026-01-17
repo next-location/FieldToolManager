@@ -21,6 +21,10 @@ interface ToolMovement {
       model_number: string
     } | null
   } | null
+  tools: {
+    name: string
+    model_number: string
+  } | null
   from_site: { name: string } | null
   to_site: { name: string } | null
   users: { name: string } | null
@@ -339,6 +343,11 @@ export function MovementTabs({
                                 >
                                   {firstMovement.tool_items.tools?.name || '不明'} #{firstMovement.tool_items.serial_number}
                                 </Link>
+                              ) : firstMovement.tools ? (
+                                <span className="text-gray-900">
+                                  {firstMovement.tools.name}
+                                  {firstMovement.tools.model_number && ` (${firstMovement.tools.model_number})`}
+                                </span>
                               ) : (
                                 <span className="text-gray-500">削除済み</span>
                               )
@@ -404,6 +413,11 @@ export function MovementTabs({
                             >
                               {firstMovement.tool_items.tools?.name || '不明'} #{firstMovement.tool_items.serial_number}
                             </Link>
+                          ) : firstMovement.tools ? (
+                            <span className="text-sm font-medium text-gray-900">
+                              {firstMovement.tools.name}
+                              {firstMovement.tools.model_number && ` (${firstMovement.tools.model_number})`}
+                            </span>
                           ) : (
                             <span className="text-sm font-medium text-gray-500">削除済み</span>
                           )

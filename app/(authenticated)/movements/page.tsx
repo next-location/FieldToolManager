@@ -39,7 +39,9 @@ export default async function MovementsPage() {
     tool_items: movement.tool_items ? {
       ...movement.tool_items,
       tools: toolsMap.get(movement.tool_items.tool_id) || null
-    } : null
+    } : null,
+    // tool_itemsがない場合（在庫調整など）はtool_idから直接取得
+    tools: movement.tool_items ? null : toolsMap.get(movement.tool_id) || null
   }))
 
   // 消耗品移動履歴を取得
