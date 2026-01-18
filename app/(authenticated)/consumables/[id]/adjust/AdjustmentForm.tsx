@@ -194,8 +194,18 @@ export function AdjustmentForm({
       {/* 数量 */}
       <div>
         <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
-          数量 <span className="text-red-500">*</span>
+          {adjustmentType === 'set' ? '設定する在庫数' : '数量'} <span className="text-red-500">*</span>
         </label>
+        {adjustmentType === 'set' && (
+          <div className="mt-1 mb-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-800">
+              <strong>💡 在庫を設定:</strong> 現在の在庫数（{currentQuantity}{unit}）を無視して、新しい在庫数を設定します。
+            </p>
+            <p className="text-xs text-blue-700 mt-1">
+              例: 実際に数えた在庫が35個なら「35」と入力してください。
+            </p>
+          </div>
+        )}
         <div className="mt-1 flex items-center space-x-2">
           <input
             type="number"
@@ -211,13 +221,20 @@ export function AdjustmentForm({
         </div>
         {quantity && (
           <p className="mt-2 text-sm text-gray-600">
+            現在: {currentQuantity}{unit}
+            {' '}
             {adjustmentType === 'add' && '+ '}
             {adjustmentType === 'remove' && '- '}
             {adjustmentType === 'set' && '→ '}
-            調整後の在庫：
+            調整後:
             <strong className="ml-1 text-gray-900">
               {calculateNewQuantity()} {unit}
             </strong>
+            {adjustmentType === 'set' && (
+              <span className="ml-2 text-xs">
+                ({calculateNewQuantity() > currentQuantity ? '+' : ''}{calculateNewQuantity() - currentQuantity}{unit})
+              </span>
+            )}
           </p>
         )}
         {isLimitedRole && (
