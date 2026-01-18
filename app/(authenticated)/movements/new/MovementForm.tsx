@@ -458,9 +458,9 @@ export function MovementForm({
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">倉庫内の位置を選択（任意）</option>
-                      {/* 本社（メイン倉庫）の位置 */}
+                      {/* 会社（メイン倉庫）の位置 */}
                       {warehouseLocations.filter(loc => !loc.site_id).length > 0 && (
-                        <optgroup label="━━ 本社（メイン倉庫） ━━">
+                        <optgroup label="━━ 会社（メイン倉庫） ━━">
                           {warehouseLocations.filter(loc => !loc.site_id).map((location) => (
                             <option key={location.id} value={location.id}>
                               {location.code} - {location.display_name}
