@@ -257,12 +257,6 @@ export default async function ConsumableDetailPage({
                   📦 在庫調整
                 </Link>
               )}
-              <Link
-                href={`/consumables/${consumable.id}/move`}
-                className="inline-flex items-center px-4 py-2 border border-green-600 rounded-md shadow-sm text-sm font-medium text-green-600 bg-white hover:bg-green-50"
-              >
-                🚚 移動
-              </Link>
             </div>
           </div>
           <div className="border-t border-gray-200">

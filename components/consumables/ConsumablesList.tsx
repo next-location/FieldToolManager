@@ -165,8 +165,8 @@ export default function ConsumablesList({ initialConsumables, userRole }: Consum
                     </Link>
 
                     {/* 右側: アクションボタン */}
-                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 sm:ml-4 shrink-0">
-                      {isManagerOrAbove && (
+                    {isManagerOrAbove && (
+                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 sm:ml-4 shrink-0">
                         <Link
                           href={`/consumables/${consumable.id}/adjust`}
                           className="inline-flex items-center justify-center px-4 py-2.5 sm:px-4 sm:py-2 border border-blue-600 rounded-md text-sm font-medium text-blue-600 bg-white hover:bg-blue-50 whitespace-nowrap"
@@ -174,15 +174,8 @@ export default function ConsumablesList({ initialConsumables, userRole }: Consum
                         >
                           📦 在庫調整
                         </Link>
-                      )}
-                      <Link
-                        href={`/consumables/${consumable.id}/move`}
-                        className="inline-flex items-center justify-center px-4 py-2.5 sm:px-4 sm:py-2 border border-green-600 rounded-md text-sm font-medium text-green-600 bg-white hover:bg-green-50 whitespace-nowrap"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        🚚 移動
-                      </Link>
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </li>
