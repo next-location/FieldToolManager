@@ -78,12 +78,49 @@ export function EquipmentRegistrationForm({
     notes: '',
   })
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target
+    const newValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+      [name]: newValue,
     })
+
+    // カテゴリ変更時に重機コードを自動生成
+    if (name === 'category_id' && value) {
+      await generateEquipmentCode(value)
+    }
+  }
+
+  // 重機コードを自動生成
+  const generateEquipmentCode = async (categoryId: string) => {
+    const category = categories.find(c => c.id === categoryId)
+    if (!category || !category.code_prefix) return
+
+    // 同じプレフィックスの重機の最大番号を取得
+    const { data: existingEquipment } = await supabase
+      .from('heavy_equipment')
+      .select('equipment_code')
+      .eq('organization_id', organizationId)
+      .like('equipment_code', `${category.code_prefix}-%`)
+      .order('equipment_code', { ascending: false })
+      .limit(1)
+
+    let nextNumber = 1
+    if (existingEquipment && existingEquipment.length > 0) {
+      const lastCode = existingEquipment[0].equipment_code
+      const match = lastCode.match(/-(\d+)$/)
+      if (match) {
+        nextNumber = parseInt(match[1]) + 1
+      }
+    }
+
+    const newCode = `${category.code_prefix}-${String(nextNumber).padStart(3, '0')}`
+    setFormData(prev => ({
+      ...prev,
+      equipment_code: newCode,
+    }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -192,6 +229,9 @@ export function EquipmentRegistrationForm({
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             placeholder="例: BH-001"
           />
+          <p className="mt-1 text-xs text-gray-500">
+            カテゴリを選択すると自動で採番されます。手動で変更も可能です。
+          </p>
         </div>
 
         <div>

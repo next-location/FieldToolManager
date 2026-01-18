@@ -42,7 +42,7 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
         const match = lastSerial.match(/(\d+)/)
         if (match) {
           const nextNum = parseInt(match[1]) + 1
-          const paddedNum = String(nextNum).padStart(3, '0')
+          const paddedNum = String(nextNum).padStart(5, '0')
           setStartNumber(paddedNum)
           setSerialNumber(paddedNum) // 単一登録でも自動入力
         }
@@ -170,7 +170,7 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
     const serialNumbers = []
 
     for (let i = 0; i < bulkCount; i++) {
-      serialNumbers.push(String(baseNum + i).padStart(3, '0'))
+      serialNumbers.push(String(baseNum + i).padStart(5, '0'))
     }
 
     // 重複チェック（一括）
@@ -189,7 +189,7 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
     const items = []
 
     for (let i = 0; i < bulkCount; i++) {
-      const serialNum = String(baseNum + i).padStart(3, '0')
+      const serialNum = String(baseNum + i).padStart(5, '0')
       const { data: qrData } = await supabase.rpc('gen_random_uuid')
       const qrCode = qrData || crypto.randomUUID()
 
@@ -220,7 +220,7 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
       to_location: 'warehouse',
       quantity: bulkCount,
       performed_by: userId,
-      notes: `個別アイテム一括追加: ${startNumber}～${String(baseNum + bulkCount - 1).padStart(3, '0')} (${bulkCount}個)`,
+      notes: `個別アイテム一括追加: ${startNumber}～${String(baseNum + bulkCount - 1).padStart(5, '0')} (${bulkCount}個)`,
     })
   }
 
@@ -370,7 +370,7 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       {startNumber} ～{' '}
-                      {String(parseInt(startNumber) + bulkCount - 1).padStart(3, '0')} の{bulkCount}
+                      {String(parseInt(startNumber) + bulkCount - 1).padStart(5, '0')} の{bulkCount}
                       個が登録されます
                     </p>
                   </div>

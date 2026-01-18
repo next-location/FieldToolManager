@@ -3797,3 +3797,46 @@ ALTER TABLE consumable_movements
   ADD CONSTRAINT consumable_movements_movement_type_check
   CHECK (movement_type IN ('入庫', '出庫', '移動', '調整', '棚卸'));
 ```
+
+---
+
+### 20260118_pad_serial_numbers_to_5_digits.sql
+
+**実行日時**: 2026-01-18
+**環境**: 本番環境（実行予定）
+
+#### 変更内容
+- 既存の道具の個別アイテムのシリアル番号を3桁から5桁にゼロ埋め
+- 例: `001` → `00001`, `999` → `00999`
+
+#### 背景
+- 現状のシリアル番号は3桁（001〜999）で自動採番されている
+- 1000個を超えるとエラーになる問題があった
+- 新規作成時は5桁（00001〜99999）で採番するように変更
+- 既存データを5桁に統一することで、全ての道具が統一された形式になる
+
+#### SQL
+```sql
+-- Update serial numbers that are exactly 3 digits
+UPDATE tool_items
+SET serial_number = LPAD(serial_number, 5, '0')
+WHERE serial_number ~ '^\d{1,4}$'
+  AND LENGTH(serial_number) < 5;
+```
+
+#### 影響範囲
+- 既存の道具の個別アイテムのシリアル番号が5桁に統一される
+- 新規作成時も5桁で採番されるため、統一感が出る
+- 99,999個まで対応可能になる
+
+#### 実行コマンド
+
+**本番環境（Supabase Dashboard → SQL Editor）**:
+```sql
+-- 以下のファイルの内容を実行
+-- supabase/migrations/20260118_pad_serial_numbers_to_5_digits.sql
+```
+
+#### ロールバック
+既存データを元の3桁に戻すことはできません（どれが元々3桁だったか判別不可能）。
+新規作成時のみ3桁に戻すことは可能です（コード変更が必要）。

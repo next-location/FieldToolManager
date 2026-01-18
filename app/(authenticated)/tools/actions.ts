@@ -72,7 +72,7 @@ export async function createTool(formData: {
     toolItems.push({
       tool_id: toolData.id,
       organization_id: userData?.organization_id,
-      serial_number: String(i).padStart(3, '0'), // "001", "002", "003"...
+      serial_number: String(i).padStart(5, '0'), // "00001", "00002", "00003"...
       current_location: 'warehouse',
       status: 'available',
       notes: null,
@@ -464,7 +464,7 @@ export async function createToolWithItems(formData: {
       toolItems.push({
         tool_id: toolId,
         organization_id: userData?.organization_id,
-        serial_number: String(startNumber + i).padStart(3, '0'), // "001", "002", "003"...
+        serial_number: String(startNumber + i).padStart(5, '0'), // "00001", "00002", "00003"...
         current_location: 'warehouse',
         status: 'available',
         notes: formData.notes || null,
