@@ -265,27 +265,8 @@ export default function EquipmentMovementForm({
 
       if (updateError) throw updateError
 
-      setSuccess('移動記録を登録しました')
-
-      // フォームをリセット
-      setFormData({
-        equipment_id: '',
-        action_type: 'checkout',
-        from_location_id: '',
-        to_location_id: '',
-        from_other_location: '',
-        to_other_location: '',
-        hour_meter_reading: '',
-        notes: '',
-      })
-      setEquipmentSearch('')
-      setShowEquipmentList(false)
-
-      // 画面をリフレッシュ
-      router.refresh()
-
-      // 3秒後に成功メッセージを消す
-      setTimeout(() => setSuccess(''), 3000)
+      // 移動履歴ページへリダイレクト（成功メッセージ付き）
+      router.push('/movements?success=重機の移動記録を登録しました&tab=equipment')
     } catch (err: any) {
       console.error('移動記録エラー:', err)
       setError(err.message || '移動記録の登録に失敗しました')

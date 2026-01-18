@@ -69,32 +69,38 @@ interface MovementTabsProps {
   consumableMovements: ConsumableMovement[]
   equipmentMovements: EquipmentMovement[]
   heavyEquipmentEnabled: boolean
+  successMessage?: string
+  initialTab?: string
 }
 
 export function MovementTabs({
   toolMovements,
   consumableMovements,
   equipmentMovements,
-  heavyEquipmentEnabled
+  heavyEquipmentEnabled,
+  successMessage: propSuccessMessage,
+  initialTab
 }: MovementTabsProps) {
   const searchParams = useSearchParams()
   const tabParam = searchParams.get('tab') as TabType | null
-  const [activeTab, setActiveTab] = useState<TabType>(tabParam || 'tool')
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<TabType>(initialTab as TabType || tabParam || 'tool')
+  const [successMessage, setSuccessMessage] = useState<string | null>(propSuccessMessage || null)
 
-  // URLパラメータから成功メッセージとタブを取得
+  // propsのsuccessMessageが変更されたら反映
+  useEffect(() => {
+    if (propSuccessMessage) {
+      setSuccessMessage(propSuccessMessage)
+      // 5秒後にメッセージを消す
+      const timer = setTimeout(() => setSuccessMessage(null), 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [propSuccessMessage])
+
+  // URLパラメータからタブを取得
   useEffect(() => {
     const tab = searchParams.get('tab') as TabType | null
     if (tab && (tab === 'tool' || tab === 'consumable' || tab === 'equipment')) {
       setActiveTab(tab)
-    }
-
-    const success = searchParams.get('success')
-    if (success) {
-      setSuccessMessage(decodeURIComponent(success))
-      // 5秒後にメッセージを消す
-      const timer = setTimeout(() => setSuccessMessage(null), 5000)
-      return () => clearTimeout(timer)
     }
   }, [searchParams])
 

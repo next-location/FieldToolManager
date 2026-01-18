@@ -2,7 +2,11 @@ import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/page-auth'
 import { MovementTabs } from './MovementTabs'
 
-export default async function MovementsPage() {
+interface MovementsPageProps {
+  searchParams: { [key: string]: string | string[] | undefined }
+}
+
+export default async function MovementsPage({ searchParams }: MovementsPageProps) {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 道具移動履歴を取得
@@ -120,6 +124,8 @@ export default async function MovementsPage() {
       consumableMovements={consumableMovements || []}
       equipmentMovements={equipmentMovements}
       heavyEquipmentEnabled={orgData?.heavy_equipment_enabled || false}
+      successMessage={typeof searchParams.success === 'string' ? searchParams.success : undefined}
+      initialTab={typeof searchParams.tab === 'string' ? searchParams.tab : undefined}
     />
   )
 }
