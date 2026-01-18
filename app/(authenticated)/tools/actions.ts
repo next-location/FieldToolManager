@@ -467,6 +467,8 @@ export async function createToolWithItems(formData: {
         serial_number: String(startNumber + i).padStart(5, '0'), // "00001", "00002", "00003"...
         current_location: 'warehouse',
         status: 'available',
+        purchase_date: formData.purchase_date || null,
+        purchase_price: formData.purchase_price ? parseFloat(formData.purchase_price) : null,
         notes: formData.notes || null,
       })
     }
