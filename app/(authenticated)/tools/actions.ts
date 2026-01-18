@@ -356,29 +356,12 @@ export async function createToolWithItems(formData: {
       return { error: '指定された道具マスタが見つかりません' }
     }
 
-    console.log('[createToolWithItems] 既存マスタ取得成功:', existingTool.name, '現在の個数:', existingTool.quantity)
+    console.log('[createToolWithItems] 既存マスタ取得成功:', existingTool.name)
 
     toolId = existingTool.id
     toolData = existingTool
 
-    // quantityを更新（既存の個数 + 新規登録個数）
-    const newTotalQuantity = (existingTool.quantity || 0) + parseInt(formData.quantity)
-    console.log('[createToolWithItems] 個数を更新:', existingTool.quantity, '+', formData.quantity, '=', newTotalQuantity)
-
-    const { error: updateError } = await supabase
-      .from('tools')
-      .update({
-        quantity: newTotalQuantity,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', toolId)
-
-    if (updateError) {
-      console.error('Tool quantity update error:', updateError)
-      return { error: '道具マスタの個数更新に失敗しました: ' + updateError.message }
-    }
-
-    console.log('[createToolWithItems] 道具マスタの個数更新成功、次は個別アイテム作成へ')
+    console.log('[createToolWithItems] 個別アイテム作成へ（quantityは最後に実数から計算）')
 
   } else {
     // モード2: 新規マスタ作成
@@ -504,6 +487,31 @@ export async function createToolWithItems(formData: {
 
     if (movementError) {
       console.error('Failed to record movement:', movementError)
+    }
+
+    // 個別アイテムの実数を数えてquantityを更新
+    const { count: actualCount } = await supabase
+      .from('tool_items')
+      .select('*', { count: 'exact', head: true })
+      .eq('tool_id', toolId)
+      .is('deleted_at', null)
+
+    console.log('[createToolWithItems] 個別アイテム実数:', actualCount)
+
+    if (actualCount !== null) {
+      const { error: updateError } = await supabase
+        .from('tools')
+        .update({
+          quantity: actualCount,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', toolId)
+
+      if (updateError) {
+        console.error('Tool quantity update error:', updateError)
+      } else {
+        console.log('[createToolWithItems] 道具マスタのquantityを', actualCount, 'に更新しました')
+      }
     }
   }
 
