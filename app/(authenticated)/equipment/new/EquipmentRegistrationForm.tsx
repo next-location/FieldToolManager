@@ -352,7 +352,7 @@ export function EquipmentRegistrationForm({
               onChange={handleChange}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">倉庫（未設定）</option>
+              <option value="">会社（未登録拠点）</option>
               {locations.filter(loc => loc.is_own_location).length > 0 && (
                 <optgroup label="━━ 自社拠点 ━━">
                   {locations.filter(loc => loc.is_own_location).map((location) => (

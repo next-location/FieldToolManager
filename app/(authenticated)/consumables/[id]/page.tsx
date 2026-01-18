@@ -274,8 +274,8 @@ export default async function ConsumableDetailPage({
                   const locationText =
                     inv.location_type === 'warehouse'
                       ? inv.warehouse_location
-                        ? `倉庫 (${(inv.warehouse_location as any).code} - ${(inv.warehouse_location as any).display_name})`
-                        : '倉庫'
+                        ? `会社 (${(inv.warehouse_location as any).code} - ${(inv.warehouse_location as any).display_name})`
+                        : '会社'
                       : inv.location_type === 'site'
                         ? `現場: ${inv.site ? (inv.site as any).name : '不明'}`
                         : inv.location_type
@@ -383,14 +383,14 @@ export default async function ConsumableDetailPage({
                 {movements.map((movement) => {
                   const fromLocation =
                     movement.from_location_type === 'warehouse'
-                      ? '倉庫'
+                      ? '会社'
                       : movement.from_location_type === 'site'
                         ? `現場: ${movement.from_site ? (movement.from_site as any).name : '不明'}`
                         : movement.from_location_type
 
                   const toLocation =
                     movement.to_location_type === 'warehouse'
-                      ? '倉庫'
+                      ? '会社'
                       : movement.to_location_type === 'site'
                         ? `現場: ${movement.to_site ? (movement.to_site as any).name : '不明'}`
                         : movement.to_location_type

@@ -235,10 +235,10 @@ export function MovementTabs({
                         <span className="text-gray-500 w-16">移動元:</span>
                         <span className="text-gray-900">
                           {movement.action_type === 'checkout'
-                            ? '倉庫'
+                            ? '会社'
                             : !movement.from_site && movement.other_location_name
                             ? movement.other_location_name
-                            : movement.from_site?.name || '倉庫'}
+                            : movement.from_site?.name || '会社'}
                         </span>
                       </div>
 
@@ -246,10 +246,10 @@ export function MovementTabs({
                         <span className="text-gray-500 w-16">移動先:</span>
                         <span className="text-gray-900">
                           {movement.action_type === 'checkin'
-                            ? '倉庫'
+                            ? '会社'
                             : !movement.to_site && movement.other_location_name
                             ? movement.other_location_name
-                            : movement.to_site?.name || '倉庫'}
+                            : movement.to_site?.name || '会社'}
                         </span>
                       </div>
 
@@ -339,7 +339,7 @@ export function MovementTabs({
                             {firstMovement.movement_type === 'adjustment' ? '📝 在庫調整' :
                              firstMovement.movement_type === 'correction' ? '🔄 修正' :
                              (group.to_location || firstMovement.to_location) === 'site' ? '🏗️ 現場へ' :
-                             (group.to_location || firstMovement.to_location) === 'warehouse' ? '🏢 倉庫へ' :
+                             (group.to_location || firstMovement.to_location) === 'warehouse' ? '🏢 会社へ' :
                              (group.to_location || firstMovement.to_location) === 'repair' ? '🔧 修理へ' : (group.to_location || firstMovement.to_location)}
                           </span>
                         </div>
@@ -352,7 +352,7 @@ export function MovementTabs({
                         <div className="flex items-center">
                           <span className="text-gray-500 w-16">移動元:</span>
                           <span className="text-gray-900">
-                            {(group.from_location || firstMovement.from_location) === 'warehouse' ? '倉庫' :
+                            {(group.from_location || firstMovement.from_location) === 'warehouse' ? '会社' :
                              (group.from_location || firstMovement.from_location) === 'site' ? ((group.from_site || firstMovement.from_site)?.name || '現場') :
                              (group.from_location || firstMovement.from_location) === 'repair' ? '修理中' : (group.from_location || firstMovement.from_location)}
                           </span>
@@ -362,7 +362,7 @@ export function MovementTabs({
                           <span className="text-gray-500 w-16">移動先:</span>
                           <span className="text-gray-900">
                             {(group.to_location || firstMovement.to_location) === 'site' ? ((group.to_site || firstMovement.to_site)?.name || '現場') :
-                             (group.to_location || firstMovement.to_location) === 'warehouse' ? '倉庫' :
+                             (group.to_location || firstMovement.to_location) === 'warehouse' ? '会社' :
                              (group.to_location || firstMovement.to_location) === 'repair' ? '修理中' : '-'}
                           </span>
                         </div>
@@ -431,7 +431,7 @@ export function MovementTabs({
                       <div className="flex items-center">
                         <span className="text-gray-500 w-16">移動元:</span>
                         <span className="text-gray-900">
-                          {movement.from_location_type === 'warehouse' ? '倉庫' :
+                          {movement.from_location_type === 'warehouse' ? '会社' :
                            movement.from_location_type === 'site' ? (movement.from_site?.name || '現場') :
                            movement.from_location_type}
                         </span>
@@ -440,7 +440,7 @@ export function MovementTabs({
                       <div className="flex items-center">
                         <span className="text-gray-500 w-16">移動先:</span>
                         <span className="text-gray-900">
-                          {movement.to_location_type === 'warehouse' ? '倉庫' :
+                          {movement.to_location_type === 'warehouse' ? '会社' :
                            movement.to_location_type === 'site' ? (movement.to_site?.name || '現場') :
                            movement.to_location_type}
                         </span>

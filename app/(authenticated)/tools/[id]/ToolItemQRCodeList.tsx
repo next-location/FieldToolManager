@@ -68,8 +68,8 @@ export function ToolItemQRCodeList({
           const locationText =
             item.current_location === 'warehouse'
               ? (item.warehouse_location
-                  ? `倉庫 (${item.warehouse_location.code} - ${item.warehouse_location.display_name})`
-                  : '倉庫')
+                  ? `会社 (${item.warehouse_location.code} - ${item.warehouse_location.display_name})`
+                  : '会社')
               : item.current_location === 'site'
                 ? `現場: ${item.current_site?.name || '不明'}`
                 : item.current_location === 'repair'
