@@ -38,8 +38,6 @@ export function ToolRegistrationForm({
   const [selectedMasterId, setSelectedMasterId] = useState('')
   const [formData, setFormData] = useState({
     quantity: '1',
-    purchase_date: '',
-    purchase_price: '',
     notes: '',
   })
   const [loading, setLoading] = useState(false)
@@ -60,8 +58,6 @@ export function ToolRegistrationForm({
         tool_master_id: mode === 'preset' ? undefined : selectedMasterId,
         preset_id: mode === 'preset' ? selectedPresetId : undefined,
         quantity: formData.quantity,
-        purchase_date: formData.purchase_date,
-        purchase_price: formData.purchase_price,
         notes: formData.notes,
       })
 
@@ -212,38 +208,6 @@ export function ToolRegistrationForm({
             <p className="mt-1 text-[10px] sm:text-xs text-gray-500">
               ※ 指定した個数分の個別アイテム（#001, #002...）とQRコードが作成されます
             </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <div>
-              <label htmlFor="purchase_date" className="block text-sm font-medium text-gray-700">
-                購入日
-              </label>
-              <input
-                type="date"
-                name="purchase_date"
-                id="purchase_date"
-                value={formData.purchase_date}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="purchase_price" className="block text-sm font-medium text-gray-700">
-                購入価格（円）
-              </label>
-              <input
-                type="number"
-                name="purchase_price"
-                id="purchase_price"
-                min="0"
-                step="0.01"
-                value={formData.purchase_price}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
           </div>
 
           <div>
