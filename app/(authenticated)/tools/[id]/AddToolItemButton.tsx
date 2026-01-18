@@ -159,6 +159,20 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
       notes: `個別アイテム追加: ${serialNumber}`,
     })
 
+    // 道具マスタの個数を実際のカウントで更新
+    const { count: actualCount } = await supabase
+      .from('tool_items')
+      .select('*', { count: 'exact', head: true })
+      .eq('tool_id', toolId)
+      .is('deleted_at', null)
+
+    if (actualCount !== null) {
+      await supabase
+        .from('tools')
+        .update({ quantity: actualCount })
+        .eq('id', toolId)
+    }
+
     // 新しいアイテムにスクロール
     if (newItem?.id) {
       setTimeout(() => {
@@ -230,6 +244,20 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
       performed_by: userId,
       notes: `個別アイテム一括追加: ${startNumber}～${String(baseNum + bulkCount - 1).padStart(5, '0')} (${bulkCount}個)`,
     })
+
+    // 道具マスタの個数を実際のカウントで更新
+    const { count: actualCount } = await supabase
+      .from('tool_items')
+      .select('*', { count: 'exact', head: true })
+      .eq('tool_id', toolId)
+      .is('deleted_at', null)
+
+    if (actualCount !== null) {
+      await supabase
+        .from('tools')
+        .update({ quantity: actualCount })
+        .eq('id', toolId)
+    }
   }
 
   return (
