@@ -11,22 +11,24 @@ interface Category {
   icon: string
 }
 
-interface Site {
+interface Location {
   id: string
   name: string
+  type?: string
+  is_own_location?: boolean
 }
 
 interface EquipmentRegistrationFormProps {
   organizationId: string
   categories: Category[]
-  sites: Site[]
+  locations: Location[]
   organizationSettings: any
 }
 
 export function EquipmentRegistrationForm({
   organizationId,
   categories,
-  sites,
+  locations,
   organizationSettings,
 }: EquipmentRegistrationFormProps) {
   const router = useRouter()
@@ -341,7 +343,7 @@ export function EquipmentRegistrationForm({
 
           <div>
             <label htmlFor="current_location_id" className="block text-sm font-medium text-gray-700">
-              現在地
+              初期保管場所
             </label>
             <select
               id="current_location_id"
@@ -350,13 +352,29 @@ export function EquipmentRegistrationForm({
               onChange={handleChange}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">未選択</option>
-              {sites.map((site) => (
-                <option key={site.id} value={site.id}>
-                  {site.name}
-                </option>
-              ))}
+              <option value="">倉庫（未設定）</option>
+              {locations.filter(loc => loc.is_own_location).length > 0 && (
+                <optgroup label="━━ 自社拠点 ━━">
+                  {locations.filter(loc => loc.is_own_location).map((location) => (
+                    <option key={location.id} value={location.id}>
+                      {location.name}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+              {locations.filter(loc => !loc.is_own_location).length > 0 && (
+                <optgroup label="━━ 顧客現場 ━━">
+                  {locations.filter(loc => !loc.is_own_location).map((location) => (
+                    <option key={location.id} value={location.id}>
+                      {location.name}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
             </select>
+            <p className="mt-1 text-xs text-gray-500">
+              登録時点で重機を保管する場所を選択できます（後から変更可能）
+            </p>
           </div>
         </div>
       </div>

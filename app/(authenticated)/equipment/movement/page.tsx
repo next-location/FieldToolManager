@@ -53,12 +53,13 @@ export default async function EquipmentMovementPage() {
     .is('deleted_at', null)
     .order('name')
 
-  // 現場一覧を取得
-  const { data: sites } = await supabase
+  // 拠点一覧を取得（自社拠点 + 顧客現場）
+  const { data: locations } = await supabase
     .from('sites')
-    .select('id, name')
+    .select('id, name, type, is_own_location')
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
+    .order('is_own_location', { ascending: false }) // 自社拠点を先に表示
     .order('name')
 
   return (
@@ -74,7 +75,7 @@ export default async function EquipmentMovementPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <EquipmentMovementForm
             equipment={(equipment as any) || []}
-            sites={sites || []}
+            locations={locations || []}
             currentUserId={userId}
             currentUserName={userData?.name || ''}
             organizationSettings={orgData?.heavy_equipment_settings}

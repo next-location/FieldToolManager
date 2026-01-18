@@ -46,12 +46,13 @@ export default async function NewEquipmentPage() {
     .eq('is_active', true)
     .order('sort_order')
 
-  // 現場一覧を取得
-  const { data: sites } = await supabase
+  // 拠点一覧を取得（自社拠点 + 顧客現場）
+  const { data: locations } = await supabase
     .from('sites')
-    .select('id, name')
+    .select('id, name, type, is_own_location')
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
+    .order('is_own_location', { ascending: false }) // 自社拠点を先に表示
     .order('name')
 
   return (
@@ -71,7 +72,7 @@ export default async function NewEquipmentPage() {
             <EquipmentRegistrationForm
               organizationId={organizationId}
               categories={categories || []}
-              sites={sites || []}
+              locations={locations || []}
               organizationSettings={orgData?.heavy_equipment_settings}
             />
           </div>
