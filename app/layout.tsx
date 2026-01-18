@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { MobileKeyboardDoneButton } from "@/components/MobileKeyboardDoneButton";
+import { MobileInputEnterHandler } from "@/components/MobileInputEnterHandler";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,6 +26,8 @@ export default function RootLayout({
     <html lang="ja">
       <body className={inter.className}>
         {children}
+        <MobileInputEnterHandler />
+        <MobileKeyboardDoneButton />
       </body>
     </html>
   );

@@ -60,3 +60,17 @@ body {
   }
 }
 
+/* モバイル: input要素でEnterキーを押したらキーボードを閉じる */
+@layer base {
+  @media (max-width: 767px) {
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="password"]:focus,
+    input[type="number"]:focus,
+    input[type="tel"]:focus,
+    input[type="url"]:focus {
+      /* JavaScriptで処理するためのマーカー */
+    }
+  }
+}
+
