@@ -145,7 +145,7 @@ export async function updateLocation(id: string, formData: FormData) {
   }
 }
 
-export async function deleteLocation(id: string, formData: FormData) {
+export async function deleteLocation(id: string) {
   try {
     const supabase = await createClient()
 
