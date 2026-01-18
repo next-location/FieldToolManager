@@ -47,7 +47,7 @@ export default async function ConsumableDetailPage({
 
   const qrSize = organization?.qr_print_size || 25
 
-  // 在庫情報を取得
+  // 在庫情報を取得（倉庫→現場の順、現場内は作成日時順で固定）
   const { data: inventory } = await supabase
     .from('consumable_inventory')
     .select(`
@@ -57,7 +57,8 @@ export default async function ConsumableDetailPage({
     `)
     .eq('tool_id', id)
     .eq('organization_id', organizationId)
-    .order('location_type')
+    .order('location_type', { ascending: false })
+    .order('created_at', { ascending: true })
 
   // 移動履歴を取得（最新10件、在庫調整を除外）
   const { data: movements } = await supabase
