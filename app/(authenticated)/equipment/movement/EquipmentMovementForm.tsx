@@ -90,8 +90,21 @@ export default function EquipmentMovementForm({
     )
   }
 
-  // 重機検索フィルター（ひらがな・カタカナ両対応）
+  // 重機検索フィルター（ひらがな・カタカナ両対応 + アクションタイプによるステータスフィルター）
   const filteredEquipment = equipment.filter(equip => {
+    // アクションタイプによるステータスフィルター
+    if (formData.action_type === 'checkout') {
+      // 持出: 倉庫にある利用可能な重機のみ
+      if (equip.status !== 'available') return false
+    } else if (formData.action_type === 'checkin') {
+      // 返却: 使用中の重機のみ
+      if (equip.status !== 'in_use') return false
+    } else if (formData.action_type === 'transfer') {
+      // 移動: 使用中の重機のみ
+      if (equip.status !== 'in_use') return false
+    }
+
+    // 検索キーワードフィルター
     if (!equipmentSearch.trim()) return true
     const searchLower = equipmentSearch.toLowerCase()
     const searchKatakana = toKatakana(searchLower)
@@ -132,14 +145,33 @@ export default function EquipmentMovementForm({
 
     // アクションタイプ変更時にフォームをリセット
     if (name === 'action_type') {
+      // 選択中の重機が新しいアクションで使用可能かチェック
+      const newActionType = value as 'checkout' | 'checkin' | 'transfer'
+      const currentEquip = equipment.find(e => e.id === formData.equipment_id)
+      let shouldClearEquipment = false
+
+      if (currentEquip) {
+        if (newActionType === 'checkout' && currentEquip.status !== 'available') {
+          shouldClearEquipment = true
+        } else if ((newActionType === 'checkin' || newActionType === 'transfer') && currentEquip.status !== 'in_use') {
+          shouldClearEquipment = true
+        }
+      }
+
       setFormData(prev => ({
         ...prev,
-        action_type: value as 'checkout' | 'checkin' | 'transfer',
+        equipment_id: shouldClearEquipment ? '' : prev.equipment_id,
+        action_type: newActionType,
         from_location_id: value === 'checkout' ? '' : prev.from_location_id,
         to_location_id: value === 'checkin' ? '' : prev.to_location_id,
         from_other_location: '',
         to_other_location: '',
       }))
+
+      // 重機選択をクリアした場合は検索フィールドもクリア
+      if (shouldClearEquipment) {
+        setEquipmentSearch('')
+      }
     }
 
     // 「その他の場所」選択時に、対応するテキスト欄以外をクリア
