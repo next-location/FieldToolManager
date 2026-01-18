@@ -68,7 +68,7 @@ export function ConsumableBulkMovementForm({
   const handleUpdateQuantity = (consumableId: string, quantity: number) => {
     setSelectedConsumables(
       selectedConsumables.map((sc) =>
-        sc.consumableId === consumableId ? { ...sc, quantity: Math.max(1, quantity) } : sc
+        sc.consumableId === consumableId ? { ...sc, quantity } : sc
       )
     )
   }
@@ -416,9 +416,21 @@ export function ConsumableBulkMovementForm({
                       type="number"
                       min="1"
                       value={quantity}
-                      onChange={(e) =>
-                        handleUpdateQuantity(consumableId, parseInt(e.target.value) || 1)
-                      }
+                      onChange={(e) => {
+                        const value = e.target.value
+                        if (value === '') {
+                          // 空の場合は一時的に許可（focusが外れた時に1に戻る）
+                          handleUpdateQuantity(consumableId, 0)
+                        } else {
+                          handleUpdateQuantity(consumableId, parseInt(value) || 1)
+                        }
+                      }}
+                      onBlur={(e) => {
+                        // focusが外れた時に0なら1に戻す
+                        if (parseInt(e.target.value) === 0 || e.target.value === '') {
+                          handleUpdateQuantity(consumableId, 1)
+                        }
+                      }}
                       className="w-20 px-2 py-1 border border-gray-300 rounded text-center"
                       disabled={isSubmitting}
                     />
