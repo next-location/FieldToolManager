@@ -196,8 +196,20 @@ export default function EquipmentMovementForm({
         }
       }
 
+      // 選択された重機の組織IDを取得
+      const { data: equipmentData } = await supabase
+        .from('heavy_equipment')
+        .select('organization_id')
+        .eq('id', formData.equipment_id)
+        .single()
+
+      if (!equipmentData) {
+        throw new Error('重機データの取得に失敗しました')
+      }
+
       // 使用記録を作成
       const usageRecordData = {
+        organization_id: equipmentData.organization_id,
         equipment_id: formData.equipment_id,
         user_id: currentUserId,
         action_type: formData.action_type,
