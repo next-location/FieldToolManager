@@ -263,18 +263,21 @@ export default function EquipmentMovementForm({
 
       // 重機の現在地とステータスを更新
       let newStatus = selectedEquipment?.status
-      let newLocationId = selectedEquipment?.current_location_id
+      let newLocationId: string | null = selectedEquipment?.current_location_id || null
       let newUserId: string | null = currentUserId
 
       if (formData.action_type === 'checkout') {
         newStatus = 'in_use'
+        // 持出: 目的地を現在地に設定（その他の場所の場合はnull）
         newLocationId = formData.to_location_id === 'other' ? null : formData.to_location_id
         newUserId = currentUserId
       } else if (formData.action_type === 'checkin') {
         newStatus = 'available'
-        newLocationId = formData.from_location_id === 'other' ? null : formData.from_location_id
+        // 返却: 倉庫に戻すのでnull
+        newLocationId = null
         newUserId = null
       } else if (formData.action_type === 'transfer') {
+        // 移動: 移動先を現在地に設定（その他の場所の場合はnull）
         newLocationId = formData.to_location_id === 'other' ? null : formData.to_location_id
       }
 
