@@ -424,7 +424,23 @@ export default function EquipmentMovementForm({
                     <button
                       key={equip.id}
                       type="button"
-                      onClick={() => {
+                      onClick={async () => {
+                        // current_location_idがnullの場合、最新の移動履歴から「その他の場所」情報を取得
+                        let otherLocationName = ''
+                        if (!equip.current_location_id && (formData.action_type === 'checkin' || formData.action_type === 'transfer')) {
+                          const { data: latestMovement } = await supabase
+                            .from('heavy_equipment_usage_records')
+                            .select('other_location_name')
+                            .eq('equipment_id', equip.id)
+                            .order('action_at', { ascending: false })
+                            .limit(1)
+                            .single()
+
+                          if (latestMovement?.other_location_name) {
+                            otherLocationName = latestMovement.other_location_name
+                          }
+                        }
+
                         setFormData(prev => {
                           const update: any = {
                             ...prev,
@@ -435,10 +451,22 @@ export default function EquipmentMovementForm({
                           // アクションタイプに応じて現在地を設定
                           if (prev.action_type === 'checkin') {
                             // 返却: 現在地を返却元に設定
-                            update.from_location_id = equip.current_location_id || ''
+                            if (equip.current_location_id) {
+                              update.from_location_id = equip.current_location_id
+                            } else {
+                              // その他の場所から返却
+                              update.from_location_id = 'other'
+                              update.from_other_location = otherLocationName
+                            }
                           } else if (prev.action_type === 'transfer') {
                             // 移動: 現在地を移動元に設定
-                            update.from_location_id = equip.current_location_id || ''
+                            if (equip.current_location_id) {
+                              update.from_location_id = equip.current_location_id
+                            } else {
+                              // その他の場所から移動
+                              update.from_location_id = 'other'
+                              update.from_other_location = otherLocationName
+                            }
                           }
                           // checkout の場合は現在地設定不要（倉庫から持ち出すため）
 
@@ -562,30 +590,19 @@ export default function EquipmentMovementForm({
                 </label>
                 <div className="block w-full border border-gray-200 rounded-md px-3 py-2 bg-gray-50 text-gray-700">
                   {selectedEquipment?.sites?.name ||
-                   (formData.from_location_id === 'other' ? 'その他の場所' : '現在地情報なし')}
+                   (formData.from_location_id === 'other' && formData.from_other_location
+                     ? `その他の場所: ${formData.from_other_location}`
+                     : (formData.from_location_id === 'other' ? 'その他の場所' : '現在地情報なし'))}
                 </div>
                 <p className="mt-1 text-xs text-gray-500">選択した重機の現在地が自動的に設定されます</p>
                 <input type="hidden" name="from_location_id" value={formData.from_location_id} />
               </div>
 
-              {formData.from_location_id === 'other' && (
-                <div>
-                  <label htmlFor="from_other_location" className="block text-sm font-medium text-gray-700 mb-2">
-                    その他の場所名 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="from_other_location"
-                    name="from_other_location"
-                    value={formData.from_other_location}
-                    onChange={handleChange}
-                    required
-                    maxLength={100}
-                    className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="例: ○○商事（取引先）、△△市役所（営業先）"
-                  />
-                </div>
-              )}
+              <input
+                type="hidden"
+                name="from_other_location"
+                value={formData.from_other_location}
+              />
             </div>
           )}
 
@@ -599,11 +616,18 @@ export default function EquipmentMovementForm({
                   </label>
                   <div className="block w-full border border-gray-200 rounded-md px-3 py-2 bg-gray-50 text-gray-700">
                     {selectedEquipment?.sites?.name ||
-                     (formData.from_location_id === 'other' ? 'その他の場所' : '現在地情報なし')}
+                     (formData.from_location_id === 'other' && formData.from_other_location
+                       ? `その他の場所: ${formData.from_other_location}`
+                       : (formData.from_location_id === 'other' ? 'その他の場所' : '現在地情報なし'))}
                   </div>
                   <p className="mt-1 text-xs text-gray-500">選択した重機の現在地が自動的に設定されます</p>
                   <input type="hidden" name="from_location_id" value={formData.from_location_id} />
                 </div>
+                <input
+                  type="hidden"
+                  name="from_other_location"
+                  value={formData.from_other_location}
+                />
               </div>
 
               <div className="space-y-3">
