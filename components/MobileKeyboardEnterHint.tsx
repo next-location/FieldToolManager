@@ -4,16 +4,30 @@ import { useEffect } from 'react'
 
 export function MobileKeyboardEnterHint() {
   useEffect(() => {
+    // Enterキー押下時にキーボードを閉じる処理
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
+        const type = e.target.getAttribute('type')
+        // input要素（textarea以外）でEnterキーが押されたらblur
+        if (['text', 'email', 'password', 'number', 'tel', 'url'].includes(type || '')) {
+          e.preventDefault()
+          e.target.blur()
+        }
+      }
+    }
+
     // 全てのinput要素にenterkeyhint="done"を追加
+    const addEnterKeyHint = (input: HTMLInputElement) => {
+      if (!input.hasAttribute('enterkeyhint')) {
+        input.setAttribute('enterkeyhint', 'done')
+      }
+    }
+
     const inputs = document.querySelectorAll<HTMLInputElement>(
       'input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="tel"], input[type="url"]'
     )
 
-    inputs.forEach((input) => {
-      if (!input.hasAttribute('enterkeyhint')) {
-        input.setAttribute('enterkeyhint', 'done')
-      }
-    })
+    inputs.forEach(addEnterKeyHint)
 
     // MutationObserverで動的に追加される要素も監視
     const observer = new MutationObserver((mutations) => {
@@ -23,19 +37,13 @@ export function MobileKeyboardEnterHint() {
             const newInputs = node.querySelectorAll<HTMLInputElement>(
               'input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="tel"], input[type="url"]'
             )
-            newInputs.forEach((input) => {
-              if (!input.hasAttribute('enterkeyhint')) {
-                input.setAttribute('enterkeyhint', 'done')
-              }
-            })
+            newInputs.forEach(addEnterKeyHint)
 
             // node自体がinputの場合
             if (node instanceof HTMLInputElement) {
               const type = node.getAttribute('type')
               if (['text', 'email', 'password', 'number', 'tel', 'url'].includes(type || '')) {
-                if (!node.hasAttribute('enterkeyhint')) {
-                  node.setAttribute('enterkeyhint', 'done')
-                }
+                addEnterKeyHint(node)
               }
             }
           }
@@ -48,7 +56,13 @@ export function MobileKeyboardEnterHint() {
       subtree: true,
     })
 
-    return () => observer.disconnect()
+    // Enterキーイベントリスナーを追加
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      observer.disconnect()
+      document.removeEventListener('keydown', handleKeyDown)
+    }
   }, [])
 
   return null
