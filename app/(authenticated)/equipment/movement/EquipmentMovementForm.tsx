@@ -24,7 +24,6 @@ interface Equipment {
 interface Site {
   id: string
   name: string
-  site_type: string
 }
 
 interface EquipmentMovementFormProps {

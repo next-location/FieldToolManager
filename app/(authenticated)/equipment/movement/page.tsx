@@ -56,7 +56,7 @@ export default async function EquipmentMovementPage() {
   // 現場一覧を取得
   const { data: sites } = await supabase
     .from('sites')
-    .select('id, name, site_type')
+    .select('id, name')
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
