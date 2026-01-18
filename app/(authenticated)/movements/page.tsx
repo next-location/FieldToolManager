@@ -3,11 +3,12 @@ import { requireAuth } from '@/lib/auth/page-auth'
 import { MovementTabs } from './MovementTabs'
 
 interface MovementsPageProps {
-  searchParams: { [key: string]: string | string[] | undefined }
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
 export default async function MovementsPage({ searchParams }: MovementsPageProps) {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
+  const params = await searchParams
 
   // 道具移動履歴を取得
   const { data: toolMovements } = await supabase
@@ -124,8 +125,8 @@ export default async function MovementsPage({ searchParams }: MovementsPageProps
       consumableMovements={consumableMovements || []}
       equipmentMovements={equipmentMovements}
       heavyEquipmentEnabled={orgData?.heavy_equipment_enabled || false}
-      successMessage={typeof searchParams.success === 'string' ? searchParams.success : undefined}
-      initialTab={typeof searchParams.tab === 'string' ? searchParams.tab : undefined}
+      successMessage={typeof params.success === 'string' ? params.success : undefined}
+      initialTab={typeof params.tab === 'string' ? params.tab : undefined}
     />
   )
 }
