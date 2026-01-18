@@ -55,7 +55,7 @@ export async function createMovement(formData: FormData) {
   }
 
   // 移動を登録
-  const { error } = await supabase.from('tool_movements').insert({
+  const insertData = {
     organization_id: userData?.organization_id,
     tool_id: toolItem.tool_id, // 道具マスタIDも保持
     tool_item_id, // 個別アイテムID
@@ -67,9 +67,14 @@ export async function createMovement(formData: FormData) {
     quantity,
     performed_by: user.id,
     notes: notes || null,
-  })
+  }
+
+  console.log('[MOVEMENT INSERT DATA]', JSON.stringify(insertData, null, 2))
+
+  const { error } = await supabase.from('tool_movements').insert(insertData)
 
   if (error) {
+    console.error('[MOVEMENT INSERT ERROR]', error)
     throw new Error(`移動の登録に失敗しました: ${error.message}`)
   }
 
