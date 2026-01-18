@@ -335,12 +335,22 @@ export function ConsumableBulkMovementForm({
     }
   }
 
+  // ひらがな・カタカナ正規化関数
+  const normalizeText = (text: string): string => {
+    return text
+      .toLowerCase()
+      .replace(/[\u30a1-\u30f6]/g, (match) => {
+        const chr = match.charCodeAt(0) - 0x60
+        return String.fromCharCode(chr)
+      })
+  }
+
   // 検索フィルタリング
   const filteredConsumables = consumables.filter((consumable) => {
-    const query = searchQuery.toLowerCase()
+    const query = normalizeText(searchQuery)
     return (
-      consumable.name.toLowerCase().includes(query) ||
-      (consumable.model_number?.toLowerCase() || '').includes(query)
+      normalizeText(consumable.name).includes(query) ||
+      normalizeText(consumable.model_number || '').includes(query)
     )
   })
 

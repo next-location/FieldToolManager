@@ -443,13 +443,23 @@ export function BulkMovementForm({
     }
   }
 
+  // ひらがな・カタカナ正規化関数
+  const normalizeText = (text: string): string => {
+    return text
+      .toLowerCase()
+      .replace(/[\u30a1-\u30f6]/g, (match) => {
+        const chr = match.charCodeAt(0) - 0x60
+        return String.fromCharCode(chr)
+      })
+  }
+
   // 検索フィルタリング
   const filteredTools = toolItems.filter((item) => {
-    const query = searchQuery.toLowerCase()
+    const query = normalizeText(searchQuery)
     return (
-      item.serial_number.toLowerCase().includes(query) ||
-      (item.tools?.name?.toLowerCase() || '').includes(query) ||
-      (item.tools?.model_number?.toLowerCase() || '').includes(query)
+      normalizeText(item.serial_number).includes(query) ||
+      normalizeText(item.tools?.name || '').includes(query) ||
+      normalizeText(item.tools?.model_number || '').includes(query)
     )
   })
 
