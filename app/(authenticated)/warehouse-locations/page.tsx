@@ -14,12 +14,13 @@ export default async function WarehouseLocationsPage() {
     redirect('/')
   }
 
-  // 倉庫位置を取得
+  // 倉庫位置を取得（拠点情報も含める）
   const { data: locations } = await supabase
     .from('warehouse_locations')
-    .select('*')
+    .select('*, sites(name, type)')
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
+    .order('site_id', { nullsFirst: true })
     .order('code')
 
   // 位置ごとの道具数を取得
@@ -76,6 +77,9 @@ export default async function WarehouseLocationsPage() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    拠点
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     位置コード
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -98,6 +102,11 @@ export default async function WarehouseLocationsPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {locationsWithCounts.map((location) => (
                   <tr key={location.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {(location as any).sites ? (location as any).sites.name : '会社（メイン倉庫）'}
+                      </div>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{location.code}</div>
                     </td>

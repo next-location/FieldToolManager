@@ -21,6 +21,15 @@ export default async function NewWarehouseLocationPage() {
     .eq('is_active', true)
     .order('level')
 
+  // 自社拠点を取得
+  const { data: sites } = await supabase
+    .from('sites')
+    .select('id, name, type')
+    .eq('organization_id', organizationId)
+    .eq('is_own_location', true)
+    .is('deleted_at', null)
+    .order('name')
+
   // 倉庫階層が未設定の場合、設定画面に誘導
   if (!templates || templates.length === 0) {
     return (
@@ -69,7 +78,7 @@ export default async function NewWarehouseLocationPage() {
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 pb-6 sm:px-0 sm:py-6">
-      <LocationForm templates={templates} action={createWarehouseLocation} />
+      <LocationForm templates={templates} sites={sites || []} action={createWarehouseLocation} />
       </div>
     </div>
   )

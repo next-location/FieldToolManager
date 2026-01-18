@@ -10,6 +10,7 @@ export async function createWarehouseLocation(formData: FormData) {
   const code = formData.get('code') as string
   const displayName = formData.get('display_name') as string
   const description = formData.get('description') as string
+  const siteId = formData.get('site_id') as string
   const generateQR = formData.get('generate_qr') === 'on'
 
   // ユーザー情報を取得
@@ -45,6 +46,7 @@ export async function createWarehouseLocation(formData: FormData) {
   // 登録処理
   const { error } = await supabase.from('warehouse_locations').insert({
     organization_id: userData?.organization_id,
+    site_id: siteId || null,
     code,
     display_name: displayName,
     description: description || null,
@@ -54,7 +56,7 @@ export async function createWarehouseLocation(formData: FormData) {
 
   if (error) {
     if (error.code === '23505') {
-      throw new Error('この位置コードは既に登録されています')
+      throw new Error('この位置コードは既に登録されています（同じ拠点内）')
     }
     throw new Error(`登録に失敗しました: ${error.message}`)
   }

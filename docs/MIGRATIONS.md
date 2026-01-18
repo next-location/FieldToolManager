@@ -4061,3 +4061,125 @@ ALTER TABLE sites DROP COLUMN IF EXISTS type;
 - 既存機能は全て動作し続けます（後方互換性を維持）
 - ロールバックは可能ですが、Phase 2 以降の実装後は推奨されません
 
+---
+
+### 20260118_add_site_id_to_warehouse_locations.sql
+
+**実行日**: 2026-01-18
+**目的**: 倉庫位置を拠点ごとに管理できるようにする
+
+#### 背景
+複数の自社拠点（本社倉庫、第二倉庫、支店等）で同じ倉庫位置コード体系を使いたいが、現状の `warehouse_locations` テーブルは organization_id のみで管理しているため、拠点間で位置コードが重複できない問題があった。
+
+**例**:
+- 本社倉庫に「A-1-上」という位置コードを作成
+- 第二倉庫にも「A-1-上」を作りたいが、重複エラーになる
+
+#### 変更内容
+
+1. **site_id カラム追加**:
+   - `warehouse_locations` テーブルに `site_id UUID` カラムを追加
+   - `sites` テーブルへの外部キー制約
+   - NULL 許可（NULL = 会社メイン倉庫）
+
+2. **インデックス追加**:
+   - `idx_warehouse_locations_site` を作成（パフォーマンス向上）
+
+3. **ユニーク制約の変更**:
+   - 旧: `(organization_id, code)` がユニーク
+   - 新: `(organization_id, site_id, code)` がユニーク
+   - これにより、同じ組織内で異なる拠点なら同じコードを使用可能
+
+#### SQL
+```sql
+-- Add site_id column
+ALTER TABLE warehouse_locations
+  ADD COLUMN site_id UUID REFERENCES sites(id) ON DELETE CASCADE;
+
+-- Add index for performance
+CREATE INDEX idx_warehouse_locations_site
+  ON warehouse_locations(site_id) WHERE site_id IS NOT NULL;
+
+-- Add comment
+COMMENT ON COLUMN warehouse_locations.site_id IS '拠点ID（nullの場合は会社メイン倉庫）';
+
+-- Update unique constraint to include site_id
+ALTER TABLE warehouse_locations
+  DROP CONSTRAINT IF EXISTS warehouse_locations_organization_id_code_key;
+
+ALTER TABLE warehouse_locations
+  ADD CONSTRAINT warehouse_locations_organization_id_site_id_code_key
+  UNIQUE(organization_id, site_id, code);
+```
+
+#### 影響範囲
+
+**既存機能への影響: なし（後方互換性を維持）**
+
+1. **既存データ**: 全ての既存 `warehouse_locations` レコードは `site_id = NULL`（会社メイン倉庫）
+2. **既存クエリ**: `site_id` を参照しないクエリは引き続き動作
+3. **ユニーク制約**: `site_id = NULL` のレコードは従来通り `code` がユニーク
+
+**新機能**:
+- 倉庫位置登録時に拠点を選択可能
+- 各拠点ごとに独立した位置コード体系を管理
+- 道具・消耗品移動時に「拠点 > 倉庫位置」の階層で選択可能
+
+#### 実行コマンド
+
+**本番環境（Supabase Dashboard → SQL Editor）**:
+```sql
+-- 以下のファイルの内容を実行
+-- supabase/migrations/20260118_add_site_id_to_warehouse_locations.sql
+```
+
+#### 検証クエリ
+
+実行後、以下のクエリで確認:
+```sql
+-- カラムが追加されたことを確認
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'warehouse_locations'
+  AND column_name = 'site_id';
+
+-- インデックスが作成されたことを確認
+SELECT indexname, indexdef
+FROM pg_indexes
+WHERE tablename = 'warehouse_locations'
+  AND indexname = 'idx_warehouse_locations_site';
+
+-- ユニーク制約が更新されたことを確認
+SELECT conname, pg_get_constraintdef(oid)
+FROM pg_constraint
+WHERE conrelid = 'warehouse_locations'::regclass
+  AND contype = 'u';
+
+-- 既存データが全て site_id = NULL になっていることを確認
+SELECT COUNT(*) as total, COUNT(site_id) as with_site
+FROM warehouse_locations
+WHERE deleted_at IS NULL;
+```
+
+#### ロールバック
+```sql
+-- ユニーク制約を元に戻す
+ALTER TABLE warehouse_locations
+  DROP CONSTRAINT IF EXISTS warehouse_locations_organization_id_site_id_code_key;
+
+ALTER TABLE warehouse_locations
+  ADD CONSTRAINT warehouse_locations_organization_id_code_key
+  UNIQUE(organization_id, code);
+
+-- インデックス削除
+DROP INDEX IF EXISTS idx_warehouse_locations_site;
+
+-- カラム削除
+ALTER TABLE warehouse_locations DROP COLUMN IF EXISTS site_id;
+```
+
+#### 注意事項
+- **重要**: site_id を追加したレコードを作成後はロールバック非推奨
+- 既存の倉庫位置（site_id = NULL）は「会社メイン倉庫」として扱われる
+- UI 実装は次のステップで対応
+

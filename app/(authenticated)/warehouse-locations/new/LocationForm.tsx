@@ -10,12 +10,20 @@ type Template = {
   is_active: boolean
 }
 
+type Site = {
+  id: string
+  name: string
+  type: string
+}
+
 type LocationFormProps = {
   templates: Template[]
+  sites: Site[]
   action: (formData: FormData) => Promise<void>
 }
 
-export function LocationForm({ templates, action }: LocationFormProps) {
+export function LocationForm({ templates, sites, action }: LocationFormProps) {
+  const [siteId, setSiteId] = useState('')
   const [levelValues, setLevelValues] = useState<Record<number, string>>({})
   const [generatedCode, setGeneratedCode] = useState('')
   const [displayName, setDisplayName] = useState('')
@@ -68,6 +76,30 @@ export function LocationForm({ templates, action }: LocationFormProps) {
 
       <form action={action}>
         <div className="space-y-6">
+          {/* 拠点選択 */}
+          <div>
+            <label htmlFor="site_id" className="block text-sm font-medium text-gray-700 mb-2">
+              拠点（任意）
+            </label>
+            <select
+              id="site_id"
+              name="site_id"
+              value={siteId}
+              onChange={(e) => setSiteId(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">会社（メイン倉庫）</option>
+              {sites.map((site) => (
+                <option key={site.id} value={site.id}>
+                  {site.name}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-gray-500">
+              この倉庫位置がどの拠点にあるか選択します（未選択の場合は会社メイン倉庫）
+            </p>
+          </div>
+
           {/* 階層入力フィールド */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
