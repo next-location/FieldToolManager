@@ -8,7 +8,7 @@ export default async function ConsumableBulkMovementPage() {
   // 消耗品マスターを取得
   const { data: consumables } = await supabase
     .from('tools')
-    .select('id, name, model_number, unit')
+    .select('id, name, model_number, unit, qr_code')
     .eq('organization_id', organizationId)
     .eq('management_type', 'consumable')
     .order('name')

@@ -56,17 +56,18 @@ export default async function MovementsPage() {
       quantity,
       notes,
       created_at,
-      tools (
+      tool_id,
+      tools!consumable_movements_tool_id_fkey (
         name,
         model_number
       ),
-      from_site:from_site_id (
+      from_site:sites!consumable_movements_from_site_id_fkey (
         name
       ),
-      to_site:to_site_id (
+      to_site:sites!consumable_movements_to_site_id_fkey (
         name
       ),
-      users:performed_by (
+      users!consumable_movements_performed_by_fkey (
         name
       )
     `

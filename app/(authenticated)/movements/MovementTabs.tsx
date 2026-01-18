@@ -38,13 +38,14 @@ interface ConsumableMovement {
   quantity: number
   notes: string | null
   created_at: string
+  tool_id: string
   tools: {
     name: string
     model_number: string | null
-  }[]
-  from_site: { name: string }[]
-  to_site: { name: string }[]
-  users: { name: string }[]
+  } | null
+  from_site: { name: string } | null
+  to_site: { name: string } | null
+  users: { name: string } | null
 }
 
 interface EquipmentMovement {
@@ -404,11 +405,11 @@ export function MovementTabs({
                             {movement.movement_type}
                           </span>
                           <h3 className="text-sm font-medium text-gray-900">
-                            {movement.tools[0]?.name || '不明な道具'}
+                            {movement.tools?.name || '不明な消耗品'}
                           </h3>
-                          {movement.tools[0]?.model_number && (
+                          {movement.tools?.model_number && (
                             <span className="text-sm text-gray-500">
-                              ({movement.tools[0].model_number})
+                              ({movement.tools.model_number})
                             </span>
                           )}
                         </div>
@@ -418,14 +419,14 @@ export function MovementTabs({
                             <span className="font-medium mr-1">移動元:</span>
                             {movement.from_location_type === 'warehouse'
                               ? '倉庫'
-                              : movement.from_site?.[0]?.name || '不明'}
+                              : movement.from_site?.name || '不明'}
                           </div>
                           <span>→</span>
                           <div className="flex items-center">
                             <span className="font-medium mr-1">移動先:</span>
                             {movement.to_location_type === 'warehouse'
                               ? '倉庫'
-                              : movement.to_site?.[0]?.name || '不明'}
+                              : movement.to_site?.name || '不明'}
                           </div>
                           <div className="flex items-center">
                             <span className="font-medium mr-1">数量:</span>
@@ -442,7 +443,7 @@ export function MovementTabs({
 
                         <div className="mt-2 flex items-center space-x-4 text-xs text-gray-400">
                           <span>
-                            実行者: {movement.users?.[0]?.name || '不明'}
+                            実行者: {movement.users?.name || '不明'}
                           </span>
                           <span>
                             {new Date(movement.created_at).toLocaleString(

@@ -3,12 +3,14 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { QrCameraScanner } from '@/components/QrCameraScanner'
 
 interface Consumable {
   id: string
   name: string
   model_number: string | null
   unit: string
+  qr_code?: string
 }
 
 interface Site {
@@ -48,6 +50,44 @@ export function ConsumableBulkMovementForm({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null)
+  const [showCamera, setShowCamera] = useState(false)
+  const [scanSuccess, setScanSuccess] = useState(false)
+  const [lastScannedConsumable, setLastScannedConsumable] = useState<string | null>(null)
+
+  // QRコードスキャン処理
+  const handleQrScan = async (qrCode: string): Promise<{ success: boolean; message?: string }> => {
+    const trimmedQr = qrCode.trim()
+    if (!trimmedQr) {
+      return { success: false, message: 'QRコードが空です' }
+    }
+
+    // QRコードで消耗品を検索
+    const consumable = consumables.find((c) => c.qr_code === trimmedQr)
+
+    if (!consumable) {
+      setError('QRコードが見つかりません')
+      setTimeout(() => setError(null), 3000)
+      return { success: false, message: 'QRコードが見つかりません' }
+    }
+
+    // 重複チェック
+    if (selectedConsumables.find((sc) => sc.consumableId === consumable.id)) {
+      setError('この消耗品は既に選択されています')
+      setTimeout(() => setError(null), 3000)
+      return { success: false, message: 'この消耗品は既に選択されています' }
+    }
+
+    // 消耗品を追加
+    setSelectedConsumables([...selectedConsumables, { consumableId: consumable.id, quantity: 1 }])
+    setLastScannedConsumable(`${consumable.name}${consumable.model_number ? ` (${consumable.model_number})` : ''}`)
+    setScanSuccess(true)
+    setTimeout(() => {
+      setScanSuccess(false)
+      setLastScannedConsumable(null)
+    }, 2000)
+
+    return { success: true }
+  }
 
   // 消耗品を追加
   const handleAddConsumable = (consumableId: string) => {
@@ -331,6 +371,29 @@ export function ConsumableBulkMovementForm({
       <div className="space-y-4">
         <h3 className="text-base font-semibold text-gray-900">2. 消耗品を選択</h3>
 
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <p className="text-sm text-gray-600">QRスキャンまたは検索して消耗品を選択</p>
+          <button
+            type="button"
+            onClick={() => setShowCamera(true)}
+            disabled={isSubmitting}
+            className="w-full sm:w-auto px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+          >
+            📷 QRコードをスキャン
+          </button>
+        </div>
+
+        {/* 成功メッセージ */}
+        {scanSuccess && lastScannedConsumable && (
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded flex items-center gap-2 animate-pulse">
+            <span className="text-2xl">✓</span>
+            <div>
+              <div className="font-semibold">読み取り成功！</div>
+              <div className="text-sm">{lastScannedConsumable}</div>
+            </div>
+          </div>
+        )}
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             消耗品を検索して追加
@@ -490,6 +553,14 @@ export function ConsumableBulkMovementForm({
             : `移動を実行（${selectedConsumables.length}個）`}
         </button>
       </div>
+
+      {/* QRカメラスキャナー */}
+      {showCamera && (
+        <QrCameraScanner
+          onScan={handleQrScan}
+          onClose={() => setShowCamera(false)}
+        />
+      )}
     </form>
   )
 }
