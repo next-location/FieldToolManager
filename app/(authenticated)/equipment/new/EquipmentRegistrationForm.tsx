@@ -116,7 +116,7 @@ export function EquipmentRegistrationForm({
       }
     }
 
-    const newCode = `${category.code_prefix}-${String(nextNumber).padStart(3, '0')}`
+    const newCode = `${category.code_prefix}-${String(nextNumber).padStart(5, '0')}`
     setFormData(prev => ({
       ...prev,
       equipment_code: newCode,
@@ -227,7 +227,7 @@ export function EquipmentRegistrationForm({
             required
             maxLength={50}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            placeholder="例: BH-001"
+            placeholder="例: BH-00001"
           />
           <p className="mt-1 text-xs text-gray-500">
             カテゴリを選択すると自動で採番されます。手動で変更も可能です。
