@@ -6,21 +6,45 @@ export function MobileKeyboardDoneButton() {
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false)
 
   useEffect(() => {
-    const handleFocus = () => setIsKeyboardOpen(true)
-    const handleBlur = () => setIsKeyboardOpen(false)
+    const handleFocus = (e: Event) => {
+      const target = e.target
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement
+      ) {
+        setIsKeyboardOpen(true)
+      }
+    }
 
-    // 全てのフォーム要素にリスナーを追加
-    const formElements = document.querySelectorAll('input, textarea, select')
-    formElements.forEach((element) => {
-      element.addEventListener('focus', handleFocus)
-      element.addEventListener('blur', handleBlur)
-    })
+    const handleBlur = (e: Event) => {
+      const target = e.target
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement
+      ) {
+        // 少し遅延させて、他の要素にフォーカスが移っていないか確認
+        setTimeout(() => {
+          const activeElement = document.activeElement
+          if (
+            !(activeElement instanceof HTMLInputElement) &&
+            !(activeElement instanceof HTMLTextAreaElement) &&
+            !(activeElement instanceof HTMLSelectElement)
+          ) {
+            setIsKeyboardOpen(false)
+          }
+        }, 100)
+      }
+    }
+
+    // イベント委譲を使用（動的に追加される要素にも対応）
+    document.addEventListener('focusin', handleFocus, true)
+    document.addEventListener('focusout', handleBlur, true)
 
     return () => {
-      formElements.forEach((element) => {
-        element.removeEventListener('focus', handleFocus)
-        element.removeEventListener('blur', handleBlur)
-      })
+      document.removeEventListener('focusin', handleFocus, true)
+      document.removeEventListener('focusout', handleBlur, true)
     }
   }, [])
 
