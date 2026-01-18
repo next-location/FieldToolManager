@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { DeleteConsumableButton } from './DeleteConsumableButton'
 import { QRCodePrint } from '@/components/qr/QRCodePrint'
 import { InventoryActionButtons } from './InventoryActionButtons'
+import { AdjustmentHistory } from './AdjustmentHistory'
 
 export default async function ConsumableDetailPage({
   params,
@@ -75,7 +76,7 @@ export default async function ConsumableDetailPage({
     .order('created_at', { ascending: false })
     .limit(10)
 
-  // 在庫調整履歴を取得（最新10件）
+  // 在庫調整・消費履歴を取得（最新10件）
   const { data: adjustments } = await supabase
     .from('consumable_movements')
     .select(`
@@ -84,7 +85,7 @@ export default async function ConsumableDetailPage({
     `)
     .eq('tool_id', id)
     .eq('organization_id', organizationId)
-    .eq('movement_type', '調整')
+    .in('movement_type', ['調整', '消費'])
     .order('created_at', { ascending: false })
     .limit(10)
 
@@ -321,55 +322,13 @@ export default async function ConsumableDetailPage({
           </div>
         </div>
 
-        {/* 在庫調整履歴 */}
-        <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
-              在庫調整履歴（最新10件）
-            </h3>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">
-              過去の在庫調整記録
-            </p>
-          </div>
-          <div className="border-t border-gray-200">
-            {adjustments && adjustments.length > 0 ? (
-              <ul className="divide-y divide-gray-200">
-                {adjustments.map((adjustment) => (
-                  <li key={adjustment.id} className="px-4 py-4 sm:px-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="text-sm text-gray-900">
-                          {adjustment.notes || '在庫調整'}
-                        </div>
-                        <div className="mt-1 text-xs text-gray-500">
-                          {new Date(adjustment.created_at).toLocaleString(
-                            'ja-JP'
-                          )}{' '}
-                          •{' '}
-                          {adjustment.performed_by_user
-                            ? (adjustment.performed_by_user as any).name
-                            : '不明'}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-bold text-gray-900">
-                          {adjustment.quantity}
-                          <span className="ml-1 text-xs font-normal text-gray-500">
-                            {consumable.unit}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="px-4 py-6 text-center text-sm text-gray-500">
-                在庫調整履歴がありません
-              </div>
-            )}
-          </div>
-        </div>
+        {/* 在庫調整・消費履歴 */}
+        <AdjustmentHistory
+          consumableId={consumable.id}
+          organizationId={organizationId}
+          initialAdjustments={adjustments || []}
+          unit={consumable.unit}
+        />
 
         {/* 移動履歴 */}
         <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
