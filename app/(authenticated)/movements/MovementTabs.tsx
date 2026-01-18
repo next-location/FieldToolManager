@@ -54,6 +54,7 @@ interface EquipmentMovement {
   action_at: string
   hour_meter_reading: number | null
   notes: string | null
+  other_location_name: string | null
   heavy_equipment: {
     equipment_code: string
     name: string
