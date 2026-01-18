@@ -16,12 +16,12 @@ export default async function NewConsumableOrderPage() {
     redirect('/login')
   }
 
-  // 消耗品（is_consumable=true）の道具マスタ一覧を取得
+  // 消耗品（management_type='consumable'）の道具マスタ一覧を取得
   const { data: consumables } = await supabase
     .from('tools')
-    .select('id, name, model_number, manufacturer')
+    .select('id, name, model_number, manufacturer, unit')
     .eq('organization_id', organizationId)
-    .eq('is_consumable', true)
+    .eq('management_type', 'consumable')
     .is('deleted_at', null)
     .order('name')
 

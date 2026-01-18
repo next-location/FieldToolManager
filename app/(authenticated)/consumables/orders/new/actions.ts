@@ -28,7 +28,7 @@ export async function createConsumableOrder(formData: FormData) {
   }
 
   // フォームデータ取得
-  const toolId = formData.get('tool_id') as string
+  let toolId = formData.get('tool_id') as string
   const orderNumber = formData.get('order_number') as string
   const orderDate = formData.get('order_date') as string
   const expectedDeliveryDate = formData.get('expected_delivery_date') as string
@@ -38,6 +38,39 @@ export async function createConsumableOrder(formData: FormData) {
   const supplierName = formData.get('supplier_name') as string
   const supplierContact = formData.get('supplier_contact') as string
   const notes = formData.get('notes') as string
+
+  // 新規消耗品の場合は先に消耗品を登録
+  const newConsumableName = formData.get('new_consumable_name') as string
+  if (newConsumableName) {
+    const newConsumableUnit = formData.get('new_consumable_unit') as string
+    const newConsumableModel = formData.get('new_consumable_model') as string
+    const newConsumableManufacturer = formData.get('new_consumable_manufacturer') as string
+
+    // QRコード生成
+    const qrCode = `CONSUMABLE-${Date.now()}-${Math.random().toString(36).substring(7)}`
+
+    const { data: newConsumable, error: consumableError } = await supabase
+      .from('tools')
+      .insert({
+        organization_id: userData.organization_id,
+        name: newConsumableName,
+        model_number: newConsumableModel || null,
+        manufacturer: newConsumableManufacturer || null,
+        unit: newConsumableUnit,
+        management_type: 'consumable',
+        minimum_stock: 0,
+        qr_code: qrCode,
+      })
+      .select('id')
+      .single()
+
+    if (consumableError || !newConsumable) {
+      console.error('消耗品登録エラー:', consumableError)
+      throw new Error(`消耗品の登録に失敗しました: ${consumableError?.message}`)
+    }
+
+    toolId = newConsumable.id
+  }
 
   // バリデーション
   if (!toolId || !orderNumber || !orderDate || !quantity || quantity < 1) {

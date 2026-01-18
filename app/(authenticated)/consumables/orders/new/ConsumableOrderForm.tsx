@@ -9,6 +9,7 @@ interface Tool {
   name: string
   model_number: string | null
   manufacturer: string | null
+  unit: string
 }
 
 interface Props {
@@ -20,8 +21,10 @@ export default function ConsumableOrderForm({ consumables, suggestedOrderNumber 
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isNewConsumable, setIsNewConsumable] = useState(false)
+  const [selectedConsumable, setSelectedConsumable] = useState<Tool | null>(null)
 
-  // 自動計算: 単価 × 数量 = 合計金額
+  // 自動計算: 単価 × 数量 = 合計金額（整数のみ）
   const [quantity, setQuantity] = useState<number>(1)
   const [unitPrice, setUnitPrice] = useState<string>('')
   const [totalPrice, setTotalPrice] = useState<string>('')
@@ -29,18 +32,29 @@ export default function ConsumableOrderForm({ consumables, suggestedOrderNumber 
   const handleQuantityChange = (value: number) => {
     setQuantity(value)
     if (unitPrice) {
-      const total = value * parseFloat(unitPrice)
-      setTotalPrice(total.toFixed(2))
+      const total = value * parseInt(unitPrice)
+      setTotalPrice(total.toString())
     }
   }
 
   const handleUnitPriceChange = (value: string) => {
     setUnitPrice(value)
     if (value && quantity) {
-      const total = quantity * parseFloat(value)
-      setTotalPrice(total.toFixed(2))
+      const total = quantity * parseInt(value)
+      setTotalPrice(total.toString())
     } else {
       setTotalPrice('')
+    }
+  }
+
+  const handleConsumableChange = (toolId: string) => {
+    if (toolId === '__new__') {
+      setIsNewConsumable(true)
+      setSelectedConsumable(null)
+    } else {
+      setIsNewConsumable(false)
+      const consumable = consumables.find(c => c.id === toolId)
+      setSelectedConsumable(consumable || null)
     }
   }
 
@@ -100,7 +114,8 @@ export default function ConsumableOrderForm({ consumables, suggestedOrderNumber 
                 <select
                   name="tool_id"
                   id="tool_id"
-                  required
+                  required={!isNewConsumable}
+                  onChange={(e) => handleConsumableChange(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">消耗品を選択してください</option>
@@ -110,8 +125,67 @@ export default function ConsumableOrderForm({ consumables, suggestedOrderNumber 
                       {tool.model_number && ` (${tool.model_number})`}
                     </option>
                   ))}
+                  <option value="__new__">+ 新しい消耗品を登録</option>
                 </select>
               </div>
+
+              {/* 新規消耗品登録フォーム */}
+              {isNewConsumable && (
+                <>
+                  <div className="md:col-span-2 bg-blue-50 border border-blue-200 rounded-md p-4">
+                    <h4 className="text-sm font-medium text-blue-900 mb-3">新規消耗品情報</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="new_consumable_name" className="block text-sm font-medium text-gray-700 mb-1">
+                          消耗品名 <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="new_consumable_name"
+                          id="new_consumable_name"
+                          required
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="new_consumable_unit" className="block text-sm font-medium text-gray-700 mb-1">
+                          単位 <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="new_consumable_unit"
+                          id="new_consumable_unit"
+                          required
+                          placeholder="例: 個、箱、本"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="new_consumable_model" className="block text-sm font-medium text-gray-700 mb-1">
+                          型番
+                        </label>
+                        <input
+                          type="text"
+                          name="new_consumable_model"
+                          id="new_consumable_model"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="new_consumable_manufacturer" className="block text-sm font-medium text-gray-700 mb-1">
+                          メーカー
+                        </label>
+                        <input
+                          type="text"
+                          name="new_consumable_manufacturer"
+                          id="new_consumable_manufacturer"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* 発注日 */}
               <div>
@@ -167,12 +241,11 @@ export default function ConsumableOrderForm({ consumables, suggestedOrderNumber 
                   type="number"
                   name="unit_price"
                   id="unit_price"
-                  step="0.01"
                   min="0"
                   value={unitPrice}
                   onChange={(e) => handleUnitPriceChange(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="0.00"
+                  placeholder="0"
                 />
               </div>
 
@@ -185,12 +258,11 @@ export default function ConsumableOrderForm({ consumables, suggestedOrderNumber 
                   type="number"
                   name="total_price"
                   id="total_price"
-                  step="0.01"
                   min="0"
                   value={totalPrice}
                   readOnly
                   className="w-full px-3 py-2 border border-gray-300 bg-gray-50 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="0.00"
+                  placeholder="0"
                 />
                 <p className="mt-1 text-[10px] sm:text-xs text-gray-500">
                   単価 × 数量で自動計算されます
