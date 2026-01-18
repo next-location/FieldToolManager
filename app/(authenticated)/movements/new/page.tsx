@@ -85,12 +85,13 @@ export default async function NewMovementPage({
     .is('deleted_at', null)
     .order('name')
 
-  // 倉庫位置一覧を取得
+  // 倉庫位置一覧を取得（拠点情報も含める）
   const { data: warehouseLocations } = await supabase
     .from('warehouse_locations')
-    .select('id, code, display_name')
+    .select('id, code, display_name, site_id, sites(name, type)')
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
+    .order('site_id', { nullsFirst: true })
     .order('code')
 
   return (

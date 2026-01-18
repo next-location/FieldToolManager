@@ -27,6 +27,11 @@ type WarehouseLocation = {
   id: string
   code: string
   display_name: string
+  site_id?: string | null
+  sites?: {
+    name: string
+    type: string
+  } | null
 }
 
 export function MovementForm({
@@ -415,11 +420,30 @@ export function MovementForm({
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">倉庫位置を選択（任意）</option>
-                      {warehouseLocations.map((location) => (
-                        <option key={location.id} value={location.id}>
-                          {location.code} - {location.display_name}
-                        </option>
-                      ))}
+                      {/* 会社メイン倉庫の位置 */}
+                      {warehouseLocations.filter(loc => !loc.site_id).length > 0 && (
+                        <optgroup label="━━ 会社（メイン倉庫） ━━">
+                          {warehouseLocations.filter(loc => !loc.site_id).map((location) => (
+                            <option key={location.id} value={location.id}>
+                              {location.code} - {location.display_name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      {/* 各拠点の倉庫位置 */}
+                      {Array.from(new Set(warehouseLocations.filter(loc => loc.site_id).map(loc => loc.site_id))).map((siteId) => {
+                        const siteLocations = warehouseLocations.filter(loc => loc.site_id === siteId)
+                        const siteName = siteLocations[0]?.sites?.name || '不明な拠点'
+                        return (
+                          <optgroup key={siteId} label={`━━ ${siteName} ━━`}>
+                            {siteLocations.map((location) => (
+                              <option key={location.id} value={location.id}>
+                                {location.code} - {location.display_name}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )
+                      })}
                     </select>
                   </div>
                 )}
