@@ -13,6 +13,21 @@ export default async function ConsumableBulkMovementPage() {
     .eq('management_type', 'consumable')
     .order('name')
 
+  // 消耗品在庫を取得
+  const { data: inventories } = await supabase
+    .from('consumable_inventory')
+    .select(`
+      tool_id,
+      location_type,
+      site_id,
+      warehouse_location_id,
+      quantity,
+      site:sites!consumable_inventory_site_id_fkey (id, name),
+      warehouse_location:warehouse_locations!consumable_inventory_warehouse_location_id_fkey (id, code, display_name)
+    `)
+    .eq('organization_id', organizationId)
+    .gt('quantity', 0)
+
   // 現場一覧を取得
   const { data: sites } = await supabase
     .from('sites')
@@ -36,6 +51,7 @@ export default async function ConsumableBulkMovementPage() {
           <ConsumableBulkMovementForm
             consumables={consumables || []}
             sites={sites || []}
+            inventories={inventories || []}
           />
         </div>
       </div>

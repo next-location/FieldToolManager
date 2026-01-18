@@ -18,9 +18,27 @@ interface Site {
   name: string
 }
 
+interface Inventory {
+  tool_id: string
+  location_type: string
+  site_id: string | null
+  warehouse_location_id: string | null
+  quantity: number
+  site?: {
+    id: string
+    name: string
+  } | null
+  warehouse_location?: {
+    id: string
+    code: string
+    display_name: string
+  } | null
+}
+
 interface ConsumableBulkMovementFormProps {
   consumables: Consumable[]
   sites: Site[]
+  inventories: Inventory[]
 }
 
 interface SelectedConsumable {
@@ -33,6 +51,7 @@ type DirectionType = 'to_site' | 'from_site'
 export function ConsumableBulkMovementForm({
   consumables,
   sites,
+  inventories,
 }: ConsumableBulkMovementFormProps) {
   const router = useRouter()
   const supabase = createClient()
@@ -455,6 +474,7 @@ export function ConsumableBulkMovementForm({
               const isSelected = selectedConsumables.some(
                 (sc) => sc.consumableId === consumable.id
               )
+              const consumableInventories = inventories.filter(inv => inv.tool_id === consumable.id)
               return (
                 <button
                   key={consumable.id}
@@ -474,6 +494,24 @@ export function ConsumableBulkMovementForm({
                   {consumable.model_number && (
                     <div className="text-xs text-gray-500">{consumable.model_number}</div>
                   )}
+                  <div className="text-xs text-gray-500 mt-1">
+                    {consumableInventories.length > 0 ? (
+                      consumableInventories.map((inv, idx) => (
+                        <div key={idx}>
+                          {inv.location_type === 'warehouse'
+                            ? inv.warehouse_location
+                              ? `倉庫（${inv.warehouse_location.code} - ${inv.warehouse_location.display_name}）: ${inv.quantity}${consumable.unit}`
+                              : `倉庫: ${inv.quantity}${consumable.unit}`
+                            : inv.site
+                            ? `${inv.site.name}: ${inv.quantity}${consumable.unit}`
+                            : `現場: ${inv.quantity}${consumable.unit}`
+                          }
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-gray-400">在庫なし</div>
+                    )}
+                  </div>
                 </button>
               )
             })}
@@ -501,18 +539,38 @@ export function ConsumableBulkMovementForm({
 
         {selectedConsumableDetails.length > 0 ? (
           <div className="border-2 border-gray-300 rounded-lg divide-y divide-gray-200">
-            {selectedConsumableDetails.map(({ consumableId, quantity, consumable }) => (
-              <div key={consumableId} className="p-4 flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="font-medium text-sm text-gray-900">
-                    {consumable.name}
-                  </div>
-                  {consumable.model_number && (
-                    <div className="text-xs text-gray-500 mt-1">
-                      型番: {consumable.model_number}
+            {selectedConsumableDetails.map(({ consumableId, quantity, consumable }) => {
+              const consumableInventories = inventories.filter(inv => inv.tool_id === consumableId)
+              return (
+                <div key={consumableId} className="p-4 flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="font-medium text-sm text-gray-900">
+                      {consumable.name}
                     </div>
-                  )}
-                </div>
+                    {consumable.model_number && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        型番: {consumable.model_number}
+                      </div>
+                    )}
+                    <div className="text-xs text-gray-500 mt-1">
+                      {consumableInventories.length > 0 ? (
+                        consumableInventories.map((inv, idx) => (
+                          <div key={idx}>
+                            {inv.location_type === 'warehouse'
+                              ? inv.warehouse_location
+                                ? `倉庫（${inv.warehouse_location.code} - ${inv.warehouse_location.display_name}）: ${inv.quantity}${consumable.unit}`
+                                : `倉庫: ${inv.quantity}${consumable.unit}`
+                              : inv.site
+                              ? `${inv.site.name}: ${inv.quantity}${consumable.unit}`
+                              : `現場: ${inv.quantity}${consumable.unit}`
+                            }
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-gray-400">在庫なし</div>
+                      )}
+                    </div>
+                  </div>
                 <div className="flex items-center space-x-3">
                   <div className="flex flex-col items-end space-y-1">
                     <div className="flex items-center space-x-2">
@@ -555,7 +613,8 @@ export function ConsumableBulkMovementForm({
                   </button>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         ) : (
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center text-gray-500">
