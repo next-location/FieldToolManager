@@ -188,22 +188,22 @@ export default async function ToolItemDetailPage({
                     {new Date(toolItem.created_at).toLocaleDateString('ja-JP')}
                   </dd>
                 </div>
-                {toolItem.purchase_date && (
-                  <div>
-                    <dt className="text-sm font-medium text-gray-600">購入日</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      {new Date(toolItem.purchase_date).toLocaleDateString('ja-JP')}
-                    </dd>
-                  </div>
-                )}
-                {toolItem.purchase_price && (
-                  <div>
-                    <dt className="text-sm font-medium text-gray-600">購入価格</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      ¥{toolItem.purchase_price.toLocaleString()}
-                    </dd>
-                  </div>
-                )}
+                <div>
+                  <dt className="text-sm font-medium text-gray-600">購入日</dt>
+                  <dd className="mt-1 text-sm text-gray-900">
+                    {toolItem.purchase_date
+                      ? new Date(toolItem.purchase_date).toLocaleDateString('ja-JP')
+                      : '未設定'}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-gray-600">購入価格</dt>
+                  <dd className="mt-1 text-sm text-gray-900">
+                    {toolItem.purchase_price
+                      ? `¥${toolItem.purchase_price.toLocaleString()}`
+                      : '未設定'}
+                  </dd>
+                </div>
               </dl>
               {toolItem.notes && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
