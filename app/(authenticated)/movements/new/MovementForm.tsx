@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createMovement } from '../actions'
+import { createClient } from '@/lib/supabase/client'
 
 type ToolItem = {
   id: string
@@ -41,6 +42,7 @@ export function MovementForm({
   selectedItemId,
   toolSetItems = [],
   toolSetId,
+  userRole,
 }: {
   toolItems: ToolItem[]
   sites: Site[]
@@ -48,6 +50,7 @@ export function MovementForm({
   selectedItemId?: string
   toolSetItems?: ToolItem[]
   toolSetId?: string
+  userRole: string
 }) {
   const router = useRouter()
   const [toolItemId, setToolItemId] = useState(selectedItemId || '')
@@ -199,6 +202,32 @@ export function MovementForm({
         }
       } else {
         // 個別移動
+
+        // 位置修正モードでない場合、セットメンバーシップをチェック
+        if (!correctionMode && selectedItem) {
+          const supabase = createClient()
+          const { data: setMembership } = await supabase
+            .from('tool_set_items')
+            .select('tool_set_id, tool_sets(name)')
+            .eq('tool_item_id', selectedItem.id)
+            .single()
+
+          if (setMembership) {
+            const setName = (setMembership as any).tool_sets?.name || 'セット'
+            if (userRole === 'admin' || userRole === 'leader') {
+              setError(
+                `❌ この道具は「${setName}」に含まれています。\n\nセット内の道具は個別に移動できません。\n\n個別移動が必要な場合:\n1. セット詳細画面でセットを削除\n2. 道具を個別に移動\n3. 必要に応じてセットを再登録`
+              )
+            } else {
+              setError(
+                `❌ この道具は「${setName}」に含まれています。\n\nセット内の道具は個別に移動できません。\n\n上司（リーダー以上）に相談してください。`
+              )
+            }
+            setLoading(false)
+            return
+          }
+        }
+
         // 倉庫内移動で同じ倉庫位置への移動をチェック
         if (getMovementType() === 'warehouse_move') {
           if (!warehouseLocationId) {
@@ -319,17 +348,24 @@ export function MovementForm({
               <div className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-700">
                 📍 {currentLocationText}
               </div>
-              <div className="mt-2 flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCorrectionMode(!correctionMode)}
-                  className={`text-sm ${
-                    correctionMode ? 'text-red-600 font-medium' : 'text-blue-600'
-                  } hover:underline`}
-                >
-                  {correctionMode ? '✓ 位置修正モード' : '実際の場所が違う場合はこちら'}
-                </button>
-              </div>
+              {(userRole === 'admin' || userRole === 'leader') && (
+                <div className="mt-2 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCorrectionMode(!correctionMode)}
+                    className={`text-sm ${
+                      correctionMode ? 'text-red-600 font-medium' : 'text-blue-600'
+                    } hover:underline`}
+                  >
+                    {correctionMode ? '✓ 位置修正モード' : '実際の場所が違う場合はこちら'}
+                  </button>
+                </div>
+              )}
+              {userRole !== 'admin' && userRole !== 'leader' && (
+                <p className="mt-2 text-xs text-gray-500">
+                  💡 実際の場所が違う場合は、上司（リーダー以上）に位置修正を依頼してください
+                </p>
+              )}
             </div>
           )}
 

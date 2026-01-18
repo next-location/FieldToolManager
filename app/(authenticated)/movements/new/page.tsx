@@ -124,6 +124,7 @@ export default async function NewMovementPage({
             selectedItemId={params.tool_item_id}
             toolSetItems={toolSetItems}
             toolSetId={params.tool_set_id}
+            userRole={userRole}
           />
         </div>
       </div>
