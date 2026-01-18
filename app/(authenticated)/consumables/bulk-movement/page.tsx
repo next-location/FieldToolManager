@@ -14,7 +14,7 @@ export default async function ConsumableBulkMovementPage() {
     .order('name')
 
   // 消耗品在庫を取得
-  const { data: inventories } = await supabase
+  const { data: inventoriesRaw } = await supabase
     .from('consumable_inventory')
     .select(`
       tool_id,
@@ -27,6 +27,17 @@ export default async function ConsumableBulkMovementPage() {
     `)
     .eq('organization_id', organizationId)
     .gt('quantity', 0)
+
+  // 型を整形
+  const inventories = (inventoriesRaw || []).map((inv: any) => ({
+    tool_id: inv.tool_id,
+    location_type: inv.location_type,
+    site_id: inv.site_id,
+    warehouse_location_id: inv.warehouse_location_id,
+    quantity: inv.quantity,
+    site: Array.isArray(inv.site) ? inv.site[0] : inv.site,
+    warehouse_location: Array.isArray(inv.warehouse_location) ? inv.warehouse_location[0] : inv.warehouse_location,
+  }))
 
   // 現場一覧を取得
   const { data: sites } = await supabase
