@@ -3892,3 +3892,47 @@ WHERE equipment_code ~ '^[A-Z]+-\d{1,4}$'
 #### 注意事項
 - QRコードラベルの再印刷が必要です
 - 重機コードを他のシステムやドキュメントで参照している場合は、それらも更新が必要です
+
+---
+
+### 20260118_add_other_location_to_equipment_usage.sql
+
+**実行日時**: 2026-01-18
+**環境**: 本番環境（実行予定）
+
+#### 変更内容
+- `heavy_equipment_usage_records` テーブルに `other_location_name` カラムを追加
+- 重機が現場以外の場所（取引先、営業先など）に移動できるようにする
+
+#### 背景
+- 社用車などの重機は、建設現場以外に取引先や営業先などに移動することがある
+- 現状は `sites` テーブルに登録された現場のみに移動可能
+- 「その他の場所」オプションを追加し、自由入力できるようにする
+
+#### SQL
+```sql
+ALTER TABLE heavy_equipment_usage_records
+ADD COLUMN other_location_name TEXT;
+
+COMMENT ON COLUMN heavy_equipment_usage_records.other_location_name IS 'その他の場所名（現場以外の移動先）例: 取引先、営業先など';
+```
+
+#### 影響範囲
+- 重機移動ページで「その他の場所」を選択できるようになる
+- セレクトで「その他の場所」を選ぶと、テキスト入力欄が表示される
+- `other_location_name` が設定されている場合、`location_id` は NULL になる
+- **重要**: この機能は重機のみ。道具や消耗品は対象外
+
+#### 実行コマンド
+
+**本番環境（Supabase Dashboard → SQL Editor）**:
+```sql
+-- 以下のファイルの内容を実行
+-- supabase/migrations/20260118_add_other_location_to_equipment_usage.sql
+```
+
+#### ロールバック
+```sql
+ALTER TABLE heavy_equipment_usage_records
+DROP COLUMN other_location_name;
+```

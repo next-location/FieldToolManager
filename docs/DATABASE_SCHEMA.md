@@ -3594,6 +3594,7 @@ CREATE TABLE heavy_equipment_usage_records (
 
   from_location_id UUID REFERENCES locations(id),
   to_location_id UUID REFERENCES locations(id),
+  other_location_name TEXT,  -- その他の場所名（取引先・営業先など、現場以外の移動先）
 
   -- メーター記録（enable_hour_meterがtrueの場合のみ）
   hour_meter_reading DECIMAL(10, 1),

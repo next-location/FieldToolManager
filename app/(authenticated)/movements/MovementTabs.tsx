@@ -226,12 +226,28 @@ export function MovementTabs({
 
                       <div className="flex items-center">
                         <span className="text-gray-500 w-16">移動元:</span>
-                        <span className="text-gray-900">{movement.from_site?.name || '倉庫'}</span>
+                        <span className="text-gray-900">
+                          {movement.action_type === 'checkout' && !movement.from_site
+                            ? '倉庫'
+                            : movement.action_type === 'checkin' && movement.other_location_name
+                            ? movement.other_location_name
+                            : movement.action_type === 'transfer' && movement.other_location_name
+                            ? movement.other_location_name
+                            : movement.from_site?.name || '倉庫'}
+                        </span>
                       </div>
 
                       <div className="flex items-center">
                         <span className="text-gray-500 w-16">移動先:</span>
-                        <span className="text-gray-900">{movement.to_site?.name || '倉庫'}</span>
+                        <span className="text-gray-900">
+                          {movement.action_type === 'checkin' && !movement.to_site
+                            ? '倉庫'
+                            : movement.action_type === 'checkout' && movement.other_location_name
+                            ? movement.other_location_name
+                            : movement.action_type === 'transfer' && movement.other_location_name
+                            ? movement.other_location_name
+                            : movement.to_site?.name || '倉庫'}
+                        </span>
                       </div>
 
                       {movement.notes && (

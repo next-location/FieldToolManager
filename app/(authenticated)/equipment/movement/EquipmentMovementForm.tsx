@@ -53,6 +53,8 @@ export default function EquipmentMovementForm({
     action_type: 'checkout' as 'checkout' | 'checkin' | 'transfer',
     from_location_id: '',
     to_location_id: '',
+    from_other_location: '',
+    to_other_location: '',
     hour_meter_reading: '',
     notes: '',
   })
@@ -87,7 +89,22 @@ export default function EquipmentMovementForm({
         action_type: value as 'checkout' | 'checkin' | 'transfer',
         from_location_id: value === 'checkout' ? '' : prev.from_location_id,
         to_location_id: value === 'checkin' ? '' : prev.to_location_id,
+        from_other_location: '',
+        to_other_location: '',
       }))
+    }
+
+    // 「その他の場所」選択時に、対応するテキスト欄以外をクリア
+    if (name === 'to_location_id' && value === 'other') {
+      setFormData(prev => ({ ...prev, to_location_id: 'other' }))
+    } else if (name === 'to_location_id' && value !== 'other') {
+      setFormData(prev => ({ ...prev, to_other_location: '' }))
+    }
+
+    if (name === 'from_location_id' && value === 'other') {
+      setFormData(prev => ({ ...prev, from_location_id: 'other' }))
+    } else if (name === 'from_location_id' && value !== 'other') {
+      setFormData(prev => ({ ...prev, from_other_location: '' }))
     }
   }
 
@@ -103,14 +120,32 @@ export default function EquipmentMovementForm({
       }
 
       // バリデーション
-      if (formData.action_type === 'checkout' && !formData.to_location_id) {
-        throw new Error('持出先を選択してください')
+      if (formData.action_type === 'checkout') {
+        if (!formData.to_location_id) {
+          throw new Error('持出先を選択してください')
+        }
+        if (formData.to_location_id === 'other' && !formData.to_other_location.trim()) {
+          throw new Error('その他の場所名を入力してください')
+        }
       }
-      if (formData.action_type === 'checkin' && !formData.from_location_id) {
-        throw new Error('返却元を選択してください')
+      if (formData.action_type === 'checkin') {
+        if (!formData.from_location_id) {
+          throw new Error('返却元を選択してください')
+        }
+        if (formData.from_location_id === 'other' && !formData.from_other_location.trim()) {
+          throw new Error('その他の場所名を入力してください')
+        }
       }
-      if (formData.action_type === 'transfer' && (!formData.from_location_id || !formData.to_location_id)) {
-        throw new Error('移動元と移動先を選択してください')
+      if (formData.action_type === 'transfer') {
+        if (!formData.from_location_id || !formData.to_location_id) {
+          throw new Error('移動元と移動先を選択してください')
+        }
+        if (formData.from_location_id === 'other' && !formData.from_other_location.trim()) {
+          throw new Error('移動元のその他の場所名を入力してください')
+        }
+        if (formData.to_location_id === 'other' && !formData.to_other_location.trim()) {
+          throw new Error('移動先のその他の場所名を入力してください')
+        }
       }
 
       // 使用記録を作成
@@ -118,8 +153,11 @@ export default function EquipmentMovementForm({
         equipment_id: formData.equipment_id,
         user_id: currentUserId,
         action_type: formData.action_type,
-        from_location_id: formData.from_location_id || null,
-        to_location_id: formData.to_location_id || null,
+        from_location_id: formData.from_location_id === 'other' ? null : (formData.from_location_id || null),
+        to_location_id: formData.to_location_id === 'other' ? null : (formData.to_location_id || null),
+        other_location_name: formData.from_location_id === 'other'
+          ? formData.from_other_location
+          : (formData.to_location_id === 'other' ? formData.to_other_location : null),
         hour_meter_reading: formData.hour_meter_reading ? parseFloat(formData.hour_meter_reading) : null,
         notes: formData.notes || null,
         action_at: new Date().toISOString(),
@@ -138,14 +176,14 @@ export default function EquipmentMovementForm({
 
       if (formData.action_type === 'checkout') {
         newStatus = 'in_use'
-        newLocationId = formData.to_location_id
+        newLocationId = formData.to_location_id === 'other' ? null : formData.to_location_id
         newUserId = currentUserId
       } else if (formData.action_type === 'checkin') {
         newStatus = 'available'
-        newLocationId = formData.from_location_id
+        newLocationId = formData.from_location_id === 'other' ? null : formData.from_location_id
         newUserId = null
       } else if (formData.action_type === 'transfer') {
-        newLocationId = formData.to_location_id
+        newLocationId = formData.to_location_id === 'other' ? null : formData.to_location_id
       }
 
       const updateData: any = {
@@ -331,26 +369,191 @@ export default function EquipmentMovementForm({
 
           {/* 持出の場合 */}
           {formData.action_type === 'checkout' && (
-            <div>
-              <label htmlFor="to_location_id" className="block text-sm font-medium text-gray-700 mb-2">
-                持出先（現場） <span className="text-red-500">*</span>
-              </label>
-              <select
-                id="to_location_id"
-                name="to_location_id"
-                value={formData.to_location_id}
-                onChange={handleChange}
-                required
-                className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">選択してください</option>
-                {sites.map((site) => (
-                  <option key={site.id} value={site.id}>
-                    {site.name}
-                  </option>
-                ))}
-              </select>
-              <p className="mt-1 text-xs text-gray-500">
+            <div className="space-y-3">
+              <div>
+                <label htmlFor="to_location_id" className="block text-sm font-medium text-gray-700 mb-2">
+                  持出先 <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="to_location_id"
+                  name="to_location_id"
+                  value={formData.to_location_id}
+                  onChange={handleChange}
+                  required
+                  className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">選択してください</option>
+                  {sites.map((site) => (
+                    <option key={site.id} value={site.id}>
+                      {site.name}
+                    </option>
+                  ))}
+                  <option value="other">その他の場所</option>
+                </select>
+                <p className="mt-1 text-xs text-gray-500">現場またはその他の場所（取引先・営業先など）を選択してください</p>
+              </div>
+
+              {formData.to_location_id === 'other' && (
+                <div>
+                  <label htmlFor="to_other_location" className="block text-sm font-medium text-gray-700 mb-2">
+                    その他の場所名 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="to_other_location"
+                    name="to_other_location"
+                    value={formData.to_other_location}
+                    onChange={handleChange}
+                    required
+                    maxLength={100}
+                    className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="例: ○○商事（取引先）、△△市役所（営業先）"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 返却の場合 */}
+          {formData.action_type === 'checkin' && (
+            <div className="space-y-3">
+              <div>
+                <label htmlFor="from_location_id" className="block text-sm font-medium text-gray-700 mb-2">
+                  返却元 <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="from_location_id"
+                  name="from_location_id"
+                  value={formData.from_location_id}
+                  onChange={handleChange}
+                  required
+                  className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">選択してください</option>
+                  {sites.map((site) => (
+                    <option key={site.id} value={site.id}>
+                      {site.name}
+                    </option>
+                  ))}
+                  <option value="other">その他の場所</option>
+                </select>
+                <p className="mt-1 text-xs text-gray-500">返却元の現場またはその他の場所を選択してください</p>
+              </div>
+
+              {formData.from_location_id === 'other' && (
+                <div>
+                  <label htmlFor="from_other_location" className="block text-sm font-medium text-gray-700 mb-2">
+                    その他の場所名 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="from_other_location"
+                    name="from_other_location"
+                    value={formData.from_other_location}
+                    onChange={handleChange}
+                    required
+                    maxLength={100}
+                    className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="例: ○○商事（取引先）、△△市役所（営業先）"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 移動の場合 */}
+          {formData.action_type === 'transfer' && (
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <div>
+                  <label htmlFor="from_location_id" className="block text-sm font-medium text-gray-700 mb-2">
+                    移動元 <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="from_location_id"
+                    name="from_location_id"
+                    value={formData.from_location_id}
+                    onChange={handleChange}
+                    required
+                    className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">選択してください</option>
+                    {sites.map((site) => (
+                      <option key={site.id} value={site.id}>
+                        {site.name}
+                      </option>
+                    ))}
+                    <option value="other">その他の場所</option>
+                  </select>
+                </div>
+
+                {formData.from_location_id === 'other' && (
+                  <div>
+                    <label htmlFor="from_other_location" className="block text-sm font-medium text-gray-700 mb-2">
+                      移動元のその他の場所名 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="from_other_location"
+                      name="from_other_location"
+                      value={formData.from_other_location}
+                      onChange={handleChange}
+                      required
+                      maxLength={100}
+                      className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="例: ○○商事（取引先）"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label htmlFor="to_location_id" className="block text-sm font-medium text-gray-700 mb-2">
+                    移動先 <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="to_location_id"
+                    name="to_location_id"
+                    value={formData.to_location_id}
+                    onChange={handleChange}
+                    required
+                    className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">選択してください</option>
+                    {sites.map((site) => (
+                      <option key={site.id} value={site.id}>
+                        {site.name}
+                      </option>
+                    ))}
+                    <option value="other">その他の場所</option>
+                  </select>
+                </div>
+
+                {formData.to_location_id === 'other' && (
+                  <div>
+                    <label htmlFor="to_other_location" className="block text-sm font-medium text-gray-700 mb-2">
+                      移動先のその他の場所名 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="to_other_location"
+                      name="to_other_location"
+                      value={formData.to_other_location}
+                      onChange={handleChange}
+                      required
+                      maxLength={100}
+                      className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="例: △△市役所（営業先）"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 以下、既存のメーター入力などが続く */}
+          <div className="mt-1 text-xs text-gray-500">
                 使用者: {currentUserName}
               </p>
             </div>

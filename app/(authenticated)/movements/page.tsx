@@ -103,7 +103,8 @@ export default async function MovementsPage() {
         heavy_equipment!inner (equipment_code, name),
         from_site:from_location_id (name),
         to_site:to_location_id (name),
-        users!inner (name)
+        users!inner (name),
+        other_location_name
       `
       )
       .eq('organization_id', organizationId)
