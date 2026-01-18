@@ -48,7 +48,7 @@ export default async function ConsumableDetailPage({
   const qrSize = organization?.qr_print_size || 25
 
   // 在庫情報を取得
-  const { data: inventory } = await supabase
+  const { data: inventory, error: inventoryError } = await supabase
     .from('consumable_inventory')
     .select(`
       *,
@@ -58,6 +58,17 @@ export default async function ConsumableDetailPage({
     .eq('tool_id', id)
     .eq('organization_id', organizationId)
     .order('location_type')
+
+  // デバッグ用
+  if (inventoryError) {
+    console.error('[INVENTORY ERROR]', inventoryError)
+  }
+  console.log('[INVENTORY DEBUG]', {
+    tool_id: id,
+    organization_id: organizationId,
+    inventory_count: inventory?.length || 0,
+    inventory: inventory,
+  })
 
   // 移動履歴を取得（最新10件、在庫調整を除外）
   const { data: movements } = await supabase

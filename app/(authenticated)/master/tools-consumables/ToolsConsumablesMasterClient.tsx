@@ -4,9 +4,9 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { SlidersHorizontal } from 'lucide-react'
 import { copyPresetToOrganization, deleteToolMaster, deleteCategoryMaster } from './actions'
-import { ToolMasterForm } from './ToolMasterForm'
-import { CategoryMasterForm } from './CategoryMasterForm'
 import ToolMasterFiltersModal from '@/components/master/ToolMasterFiltersModal'
+import ToolMasterFormModal from '@/components/master/ToolMasterFormModal'
+import CategoryMasterFormModal from '@/components/master/CategoryMasterFormModal'
 
 type Preset = {
   id: string
@@ -246,40 +246,6 @@ export function ToolsConsumablesMasterClient({
                 </button>
               </div>
 
-              {/* カテゴリフォーム */}
-              {showCategoryForm && (
-                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      {editingCategory ? 'カテゴリ編集' : 'カテゴリ新規作成'}
-                    </h3>
-                    <button
-                      onClick={() => {
-                        setShowCategoryForm(false)
-                        setEditingCategory(null)
-                      }}
-                      className="text-gray-400 hover:text-gray-500"
-                    >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                  <CategoryMasterForm
-                    organizationId={organizationId}
-                    editingCategory={editingCategory}
-                    onSuccess={() => {
-                      setShowCategoryForm(false)
-                      setEditingCategory(null)
-                      window.location.reload()
-                    }}
-                    onCancel={() => {
-                      setShowCategoryForm(false)
-                      setEditingCategory(null)
-                    }}
-                  />
-                </div>
-              )}
 
               {/* カテゴリ一覧 */}
               <div>
@@ -487,42 +453,6 @@ export function ToolsConsumablesMasterClient({
                 )}
               </div>
 
-              {/* 道具マスタフォーム */}
-              {showToolForm && (
-                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      {editingToolMaster ? '道具マスタ編集' : '道具マスタ新規作成'}
-                    </h3>
-                    <button
-                      onClick={() => {
-                        setShowToolForm(false)
-                        setEditingToolMaster(null)
-                      }}
-                      className="text-gray-400 hover:text-gray-500"
-                    >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                  <ToolMasterForm
-                    categories={categories}
-                    manufacturers={manufacturers}
-                    organizationId={organizationId}
-                    editingMaster={editingToolMaster}
-                    onSuccess={() => {
-                      setShowToolForm(false)
-                      setEditingToolMaster(null)
-                      window.location.reload()
-                    }}
-                    onCancel={() => {
-                      setShowToolForm(false)
-                      setEditingToolMaster(null)
-                    }}
-                  />
-                </div>
-              )}
 
               {/* システム共通プリセット */}
               <div>
@@ -680,6 +610,40 @@ export function ToolsConsumablesMasterClient({
         onReset={() => {
           setSearchQuery('')
           setSelectedCategory('')
+        }}
+      />
+
+      {/* 道具マスタフォームモーダル */}
+      <ToolMasterFormModal
+        isOpen={showToolForm}
+        onClose={() => {
+          setShowToolForm(false)
+          setEditingToolMaster(null)
+        }}
+        categories={categories}
+        manufacturers={manufacturers}
+        organizationId={organizationId}
+        editingMaster={editingToolMaster}
+        onSuccess={() => {
+          setShowToolForm(false)
+          setEditingToolMaster(null)
+          window.location.reload()
+        }}
+      />
+
+      {/* カテゴリマスタフォームモーダル */}
+      <CategoryMasterFormModal
+        isOpen={showCategoryForm}
+        onClose={() => {
+          setShowCategoryForm(false)
+          setEditingCategory(null)
+        }}
+        organizationId={organizationId}
+        editingCategory={editingCategory}
+        onSuccess={() => {
+          setShowCategoryForm(false)
+          setEditingCategory(null)
+          window.location.reload()
         }}
       />
     </div>
