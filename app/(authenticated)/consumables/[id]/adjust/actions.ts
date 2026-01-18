@@ -8,11 +8,13 @@ export async function adjustConsumableInventory({
   consumableId,
   adjustmentType,
   quantity,
+  unitPrice,
   reason,
 }: {
   consumableId: string
   adjustmentType: 'add' | 'remove' | 'set'
   quantity: number
+  unitPrice: number | null
   reason: string
 }) {
   const supabase = await createClient()
@@ -100,6 +102,8 @@ export async function adjustConsumableInventory({
         ? '削減'
         : '設定'
 
+  const totalAmount = unitPrice !== null ? quantity * unitPrice : null
+
   const { error: movementError } = await supabase
     .from('consumable_movements')
     .insert({
@@ -113,6 +117,8 @@ export async function adjustConsumableInventory({
       to_site_id: null, // 旧カラム
       to_location_id: null, // 新カラム（倉庫）
       quantity: quantity,
+      unit_price: unitPrice,
+      total_amount: totalAmount,
       performed_by: user.id,
       notes: `[${adjustmentTypeText}] ${reason}`,
     })

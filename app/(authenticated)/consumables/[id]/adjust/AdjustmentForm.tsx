@@ -26,6 +26,7 @@ export function AdjustmentForm({
   const router = useRouter()
   const [adjustmentType, setAdjustmentType] = useState<'add' | 'remove' | 'set'>('add')
   const [quantity, setQuantity] = useState('')
+  const [unitPrice, setUnitPrice] = useState('')
   const [reason, setReason] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -93,11 +94,20 @@ export function AdjustmentForm({
       return
     }
 
+    const price = unitPrice ? parseFloat(unitPrice) : null
+
+    if (price !== null && (isNaN(price) || price < 0)) {
+      setError('単価は0以上の数値を入力してください')
+      setLoading(false)
+      return
+    }
+
     try {
       await adjustConsumableInventory({
         consumableId,
         adjustmentType,
         quantity: qty,
+        unitPrice: price,
         reason,
       })
       router.push('/consumables')
@@ -243,6 +253,36 @@ export function AdjustmentForm({
           </p>
         )}
       </div>
+
+      {/* 単価（在庫追加時のみ） */}
+      {adjustmentType === 'add' && (
+        <div>
+          <label htmlFor="unitPrice" className="block text-sm font-medium text-gray-700">
+            単価（任意）
+          </label>
+          <div className="mt-1 flex items-center space-x-2">
+            <input
+              type="number"
+              id="unitPrice"
+              min="0"
+              step="0.01"
+              value={unitPrice}
+              onChange={(e) => setUnitPrice(e.target.value)}
+              placeholder="例: 120"
+              className="block w-32 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+            <span className="text-sm text-gray-700">円/{unit}</span>
+          </div>
+          {unitPrice && quantity && (
+            <p className="mt-1 text-xs text-gray-500">
+              合計金額: ¥{(parseFloat(unitPrice) * parseInt(quantity)).toLocaleString()}
+            </p>
+          )}
+          <p className="mt-1 text-xs text-gray-500">
+            💡 後からコスト計算をする場合は単価を入力してください
+          </p>
+        </div>
+      )}
 
       {/* 理由 */}
       <div>
