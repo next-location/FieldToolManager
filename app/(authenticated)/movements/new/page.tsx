@@ -86,13 +86,22 @@ export default async function NewMovementPage({
     .order('name')
 
   // 倉庫位置一覧を取得（拠点情報も含める）
-  const { data: warehouseLocations } = await supabase
+  const { data: warehouseLocationsRaw } = await supabase
     .from('warehouse_locations')
     .select('id, code, display_name, site_id, sites(name, type)')
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('site_id', { nullsFirst: true })
     .order('code')
+
+  // 型を変換（sitesは配列として返されるが、実際は1対1なのでオブジェクトに変換）
+  const warehouseLocations = (warehouseLocationsRaw || []).map((loc: any) => ({
+    id: loc.id,
+    code: loc.code,
+    display_name: loc.display_name,
+    site_id: loc.site_id,
+    sites: Array.isArray(loc.sites) ? loc.sites[0] : loc.sites,
+  }))
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -120,7 +129,7 @@ export default async function NewMovementPage({
           <MovementForm
             toolItems={toolItems || []}
             sites={sites || []}
-            warehouseLocations={warehouseLocations || []}
+            warehouseLocations={warehouseLocations}
             selectedItemId={params.tool_item_id}
             toolSetItems={toolSetItems}
             toolSetId={params.tool_set_id}
