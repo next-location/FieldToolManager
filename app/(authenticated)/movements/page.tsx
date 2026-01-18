@@ -45,7 +45,7 @@ export default async function MovementsPage() {
   }))
 
   // 消耗品移動履歴を取得
-  const { data: consumableMovements } = await supabase
+  const { data: rawConsumableMovements } = await supabase
     .from('consumable_movements')
     .select(
       `
@@ -75,6 +75,15 @@ export default async function MovementsPage() {
     .eq('organization_id', organizationId)
     .order('created_at', { ascending: false })
     .limit(100)
+
+  // Supabaseの配列形式を単一オブジェクトに変換
+  const consumableMovements = (rawConsumableMovements || []).map((movement: any) => ({
+    ...movement,
+    tools: Array.isArray(movement.tools) ? movement.tools[0] : movement.tools,
+    from_site: Array.isArray(movement.from_site) ? movement.from_site[0] : movement.from_site,
+    to_site: Array.isArray(movement.to_site) ? movement.to_site[0] : movement.to_site,
+    users: Array.isArray(movement.users) ? movement.users[0] : movement.users,
+  }))
 
   // 重機管理機能が有効かチェック
   const { data: orgData } = await supabase
