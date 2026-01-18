@@ -342,6 +342,7 @@ export function BulkMovementForm({
 
           if (to === 'repair') movementType = 'repair'
           else if (from === 'repair' && to === 'warehouse') movementType = 'return_from_repair'
+          else if (from === 'warehouse' && to === 'warehouse') movementType = 'warehouse_move'
           else if (from === 'warehouse' && to === 'site') movementType = 'check_out'
           else if (from === 'site' && to === 'warehouse') movementType = 'check_in'
           else if (from === 'site' && to === 'site') movementType = 'transfer'
