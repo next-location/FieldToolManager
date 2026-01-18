@@ -3936,3 +3936,128 @@ COMMENT ON COLUMN heavy_equipment_usage_records.other_location_name IS 'その�
 ALTER TABLE heavy_equipment_usage_records
 DROP COLUMN other_location_name;
 ```
+
+---
+
+### 20260118_add_sites_type_column.sql
+
+**実行日時**: 2026-01-18
+**環境**: ローカル → 本番環境（実行予定）
+
+#### 変更内容
+- `sites` テーブルに `type` カラムを追加（拠点タイプ分類）
+- `is_own_location` 生成カラムを追加（自社拠点判定用）
+
+#### 背景
+Phase 1: Multi-Location Management 実装の一環として実施。
+
+現状の課題:
+- 現在の `sites` テーブルは全て顧客の建設現場として扱われている
+- 本社倉庫は文字列 "倉庫" として各テーブルで管理されている
+- 自社の支店、倉庫、資材置き場などを登録・管理する機能がない
+- 本社以外に拠点がある企業が自社間で道具・消耗品・重機を移動できない
+
+解決策:
+- `sites` テーブルに `type` カラムを追加し、拠点タイプを分類
+- 既存データは全て `customer_site`（顧客現場）として扱う
+- 新たに自社拠点（本社倉庫、支店、資材置き場等）を登録可能にする
+
+#### 拠点タイプ一覧
+- `customer_site`: 顧客現場（建設現場等）
+- `own_warehouse`: 自社倉庫（本社倉庫、支店倉庫等）
+- `branch`: 支店
+- `storage_yard`: 資材置き場
+- `other`: その他
+
+#### SQL
+```sql
+-- sitesテーブルにtypeカラムを追加
+-- Phase 1: Database Preparation for Multi-Location Management
+
+-- Step 1: Add type column with default value for existing data
+ALTER TABLE sites
+ADD COLUMN type TEXT NOT NULL DEFAULT 'customer_site'
+CHECK (type IN ('customer_site', 'own_warehouse', 'branch', 'storage_yard', 'other'));
+
+-- Step 2: Add is_own_location generated column for easy filtering
+ALTER TABLE sites
+ADD COLUMN is_own_location BOOLEAN GENERATED ALWAYS AS (
+  type IN ('own_warehouse', 'branch', 'storage_yard')
+) STORED;
+
+-- Step 3: Create index for performance
+CREATE INDEX idx_sites_type ON sites(type);
+CREATE INDEX idx_sites_is_own_location ON sites(is_own_location) WHERE is_own_location = true;
+
+-- Step 4: Add comments for documentation
+COMMENT ON COLUMN sites.type IS '拠点タイプ: customer_site=顧客現場, own_warehouse=自社倉庫, branch=支店, storage_yard=資材置き場, other=その他';
+COMMENT ON COLUMN sites.is_own_location IS '自社拠点かどうか (type が own_warehouse, branch, storage_yard の場合 true)';
+```
+
+#### 影響範囲
+**既存機能への影響: なし（後方互換性を維持）**
+
+1. **既存データ**: 全ての既存 `sites` レコードは `type='customer_site'` としてデフォルト設定される
+2. **既存クエリ**: `type` を参照しないクエリは引き続き動作（カラム追加のみ）
+3. **RLS ポリシー**: 既存の RLS ポリシーは `type` に依存しないため影響なし
+4. **UI**: 既存の現場一覧・登録・編集画面は変更なし（次のフェーズで対応）
+
+**新機能（次フェーズで実装予定）**:
+- 組織設定で自社拠点を登録・管理できるようになる
+- 道具・消耗品・重機の登録時に初期保管場所を選択できる
+- 移動時に自社拠点と顧客現場を区別して選択できる
+
+#### 実行コマンド
+
+**ローカル環境（Docker起動後）**:
+```bash
+npx supabase db reset
+# または
+psql $DATABASE_URL -f supabase/migrations/20260118_add_sites_type_column.sql
+```
+
+**本番環境（Supabase Dashboard → SQL Editor）**:
+```sql
+-- 以下のファイルの内容を実行
+-- supabase/migrations/20260118_add_sites_type_column.sql
+```
+
+#### 検証クエリ
+
+実行後、以下のクエリで確認:
+```sql
+-- カラムが追加されたことを確認
+SELECT column_name, data_type, column_default, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'sites'
+  AND column_name IN ('type', 'is_own_location');
+
+-- 既存データが全て customer_site になっていることを確認
+SELECT type, is_own_location, COUNT(*)
+FROM sites
+GROUP BY type, is_own_location;
+
+-- インデックスが作成されたことを確認
+SELECT indexname, indexdef
+FROM pg_indexes
+WHERE tablename = 'sites'
+  AND indexname IN ('idx_sites_type', 'idx_sites_is_own_location');
+```
+
+#### ロールバック
+```sql
+-- インデックス削除
+DROP INDEX IF EXISTS idx_sites_is_own_location;
+DROP INDEX IF EXISTS idx_sites_type;
+
+-- カラム削除
+ALTER TABLE sites DROP COLUMN IF EXISTS is_own_location;
+ALTER TABLE sites DROP COLUMN IF EXISTS type;
+```
+
+#### 注意事項
+- **重要**: このマイグレーションは Phase 1 の基盤作成です
+- UI の変更は Phase 2 で実装します
+- 既存機能は全て動作し続けます（後方互換性を維持）
+- ロールバックは可能ですが、Phase 2 以降の実装後は推奨されません
+
