@@ -54,12 +54,15 @@ export default async function EquipmentMovementPage() {
     .order('name')
 
   // 現場一覧を取得
-  const { data: sites } = await supabase
+  const { data: sites, error: sitesError } = await supabase
     .from('sites')
     .select('id, name, site_type')
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
+
+  // デバッグ: 現場データ取得結果をログ出力
+  console.log('🏗️ Sites query result:', { sites, sitesError, organizationId })
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
