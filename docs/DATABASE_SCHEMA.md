@@ -2191,7 +2191,7 @@ CREATE TABLE consumable_movements (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   tool_id UUID NOT NULL REFERENCES tools(id) ON DELETE CASCADE,  -- 消耗品マスタ
-  movement_type TEXT NOT NULL CHECK (movement_type IN ('入庫', '出庫', '移動', '調整', '棚卸')),
+  movement_type TEXT NOT NULL CHECK (movement_type IN ('入庫', '出庫', '移動', '調整', '棚卸', '一括移動')),
   from_location_type TEXT CHECK (from_location_type IN ('warehouse', 'site')),
   from_site_id UUID REFERENCES sites(id) ON DELETE SET NULL,
   to_location_type TEXT CHECK (to_location_type IN ('warehouse', 'site')),
@@ -2209,7 +2209,7 @@ CREATE TABLE consumable_movements (
 );
 
 COMMENT ON TABLE consumable_movements IS '消耗品の移動履歴を記録するテーブル';
-COMMENT ON COLUMN consumable_movements.movement_type IS '移動タイプ: 入庫/出庫/移動/調整/棚卸';
+COMMENT ON COLUMN consumable_movements.movement_type IS '移動タイプ: 入庫/出庫/移動/調整/棚卸/一括移動';
 COMMENT ON COLUMN consumable_movements.from_location_type IS '移動元の場所タイプ';
 COMMENT ON COLUMN consumable_movements.from_site_id IS '移動元現場ID（site の場合）';
 COMMENT ON COLUMN consumable_movements.to_location_type IS '移動先の場所タイプ';

@@ -90,24 +90,25 @@ export function MovementForm({
 
   return (
     <form onSubmit={handleSubmit} className="px-4 py-5 sm:p-6 space-y-6">
+      {/* エラー表示 */}
       {error && (
-        <div className="rounded-md bg-red-50 p-4">
-          <p className="text-sm text-red-800">{error}</p>
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {error}
         </div>
       )}
 
       <input type="hidden" name="consumableId" value={consumableId} />
       <input type="hidden" name="trackingMode" value={trackingMode} />
 
-      {/* 移動方向 */}
-      <div>
-        <label className="text-sm font-medium text-gray-700 mb-3 block">
-          移動方向
-        </label>
+      {/* 1. 移動方向選択 */}
+      <div className="space-y-4">
+        <h3 className="text-base font-semibold text-gray-900">1. 移動方向を選択</h3>
+
         <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
             onClick={() => setDirection('to_site')}
+            disabled={loading}
             className={`p-4 border-2 rounded-lg text-center transition-colors ${
               direction === 'to_site'
                 ? 'border-blue-500 bg-blue-50 text-blue-700'
@@ -116,12 +117,12 @@ export function MovementForm({
           >
             <div className="text-2xl mb-1">🏢 → 🏗️</div>
             <div className="font-medium">倉庫 → 現場</div>
-            <div className="text-xs text-gray-500 mt-1">持ち出し</div>
           </button>
 
           <button
             type="button"
             onClick={() => setDirection('from_site')}
+            disabled={loading}
             className={`p-4 border-2 rounded-lg text-center transition-colors ${
               direction === 'from_site'
                 ? 'border-blue-500 bg-blue-50 text-blue-700'
@@ -130,98 +131,107 @@ export function MovementForm({
           >
             <div className="text-2xl mb-1">🏗️ → 🏢</div>
             <div className="font-medium">現場 → 倉庫</div>
-            <div className="text-xs text-gray-500 mt-1">返却</div>
           </button>
         </div>
         <input type="hidden" name="direction" value={direction} />
-      </div>
 
-      {/* 現場選択 */}
-      <div>
-        <label
-          htmlFor="siteId"
-          className="block text-sm font-medium text-gray-700"
-        >
-          {direction === 'to_site' ? '持ち出し先の現場' : '返却元の現場'}
-          <span className="text-red-500">*</span>
-        </label>
-        <select
-          id="siteId"
-          name="siteId"
-          value={siteId}
-          onChange={(e) => setSiteId(e.target.value)}
-          required
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-        >
-          <option value="">選択してください</option>
-          {sites.map((site) => (
-            <option key={site.id} value={site.id}>
-              {site.name}
-            </option>
-          ))}
-        </select>
-      </div>
+        {/* 現場選択 */}
+        <div>
+          <label
+            htmlFor="siteId"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            現場 <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="siteId"
+            name="siteId"
+            value={siteId}
+            onChange={(e) => setSiteId(e.target.value)}
+            required
+            disabled={loading}
+            className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">現場を選択してください</option>
+            {sites.map((site) => (
+              <option key={site.id} value={site.id}>
+                {site.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      {/* 移動元の在庫表示 */}
-      {siteId && (
-        <div className="rounded-md bg-blue-50 p-4">
-          <p className="text-sm text-blue-800">
+        {/* 移動元の在庫表示 */}
+        {siteId && (
+          <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded">
             {direction === 'to_site' ? '倉庫' : '現場'}の現在の在庫:{' '}
             <span className="font-medium">
               {sourceQuantity} {unit}
             </span>
-          </p>
-        </div>
-      )}
-
-      {/* 数量入力（quantity モードのみ） */}
-      {trackingMode === 'quantity' && (
-        <div>
-          <label
-            htmlFor="quantity"
-            className="block text-sm font-medium text-gray-700"
-          >
-            移動数量<span className="text-red-500">*</span>
-          </label>
-          <div className="mt-1 relative rounded-md shadow-sm">
-            <input
-              type="number"
-              id="quantity"
-              name="quantity"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              min="1"
-              max={sourceQuantity}
-              required
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-              placeholder="数量を入力"
-            />
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <span className="text-gray-500 sm:text-sm">{unit}</span>
-            </div>
           </div>
-          <p className="mt-1 text-xs text-gray-500">
-            移動可能: 最大 {sourceQuantity} {unit}
-          </p>
+        )}
+      </div>
+
+      {/* 2. 数量入力（quantity モードのみ） */}
+      {trackingMode === 'quantity' && (
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold text-gray-900">2. 移動数量を入力</h3>
+
+          <div>
+            <label
+              htmlFor="quantity"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              移動数量 <span className="text-red-500">*</span>
+            </label>
+            <div className="relative rounded-md shadow-sm">
+              <input
+                type="number"
+                id="quantity"
+                name="quantity"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                min="1"
+                max={sourceQuantity}
+                required
+                disabled={loading}
+                className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="数量を入力"
+              />
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <span className="text-gray-500 text-sm">{unit}</span>
+              </div>
+            </div>
+            <p className="mt-1 text-xs text-gray-500">
+              移動可能: 最大 {sourceQuantity} {unit}
+            </p>
+          </div>
         </div>
       )}
 
-      {/* 備考（simple/quantity モード） */}
+      {/* 3. 備考（simple/quantity モード） */}
       {trackingMode !== 'none' && (
-        <div>
-          <label
-            htmlFor="notes"
-            className="block text-sm font-medium text-gray-700"
-          >
-            備考
-          </label>
-          <textarea
-            id="notes"
-            name="notes"
-            rows={3}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            placeholder="例：塗装作業用、返却時の状態など"
-          />
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold text-gray-900">
+            {trackingMode === 'quantity' ? '3. 備考（任意）' : '2. 備考（任意）'}
+          </h3>
+
+          <div>
+            <label
+              htmlFor="notes"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              備考
+            </label>
+            <textarea
+              id="notes"
+              name="notes"
+              rows={3}
+              disabled={loading}
+              className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="例：塗装作業用、返却時の状態など"
+            />
+          </div>
         </div>
       )}
 
@@ -230,7 +240,7 @@ export function MovementForm({
         <button
           type="submit"
           disabled={loading || !siteId}
-          className="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full sm:w-auto px-6 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading
             ? '移動中...'
@@ -242,10 +252,8 @@ export function MovementForm({
 
       {/* 説明 */}
       {trackingMode === 'simple' && (
-        <div className="rounded-md bg-yellow-50 p-4">
-          <p className="text-sm text-yellow-800">
-            ℹ️ 組織設定で「移動のみ記録（数量なし）」が選択されているため、数量は記録されません
-          </p>
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded">
+          ℹ️ 組織設定で「移動のみ記録（数量なし）」が選択されているため、数量は記録されません
         </div>
       )}
     </form>

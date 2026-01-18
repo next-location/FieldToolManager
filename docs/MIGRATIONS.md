@@ -3745,3 +3745,55 @@ psql -h localhost -p 54322 -U postgres -d postgres -f supabase/migrations/202501
 DROP TABLE IF EXISTS organization_settings CASCADE;
 ```
 
+
+---
+
+### 20260118_add_bulk_movement_type.sql
+
+**実行日時**: 2026-01-18
+**環境**: 本番環境（実行予定）
+
+#### 変更内容
+- `consumable_movements` テーブルの `movement_type` CHECK 制約に `'一括移動'` を追加
+- 消耗品の一括移動機能で使用する移動タイプを許可
+
+#### 背景
+- 消耗品移動ページ（`/consumables/bulk-movement`）で複数の消耗品を一括移動する際、`movement_type` に `'一括移動'` を使用
+- 既存の CHECK 制約では `'入庫', '出庫', '移動', '調整', '棚卸'` のみが許可されており、`'一括移動'` を挿入しようとすると制約違反エラーが発生
+- エラーメッセージ: `new row for relation "consumable_movements" violates check constraint "consumable_movements_movement_type_check"`
+
+#### SQL
+```sql
+-- Drop existing constraint
+ALTER TABLE consumable_movements
+  DROP CONSTRAINT IF EXISTS consumable_movements_movement_type_check;
+
+-- Add new constraint with '一括移動' included
+ALTER TABLE consumable_movements
+  ADD CONSTRAINT consumable_movements_movement_type_check
+  CHECK (movement_type IN ('入庫', '出庫', '移動', '調整', '棚卸', '一括移動'));
+```
+
+#### 影響範囲
+- 消耗品の一括移動が正常に記録できるようになる
+- 移動履歴ページの消耗品タブに一括移動の履歴が表示される
+
+#### 実行コマンド
+
+**本番環境（Supabase Dashboard → SQL Editor）**:
+```sql
+-- 以下のファイルの内容を実行
+-- supabase/migrations/20260118_add_bulk_movement_type.sql
+```
+
+#### ロールバック
+```sql
+-- Drop constraint with '一括移動'
+ALTER TABLE consumable_movements
+  DROP CONSTRAINT IF EXISTS consumable_movements_movement_type_check;
+
+-- Restore original constraint without '一括移動'
+ALTER TABLE consumable_movements
+  ADD CONSTRAINT consumable_movements_movement_type_check
+  CHECK (movement_type IN ('入庫', '出庫', '移動', '調整', '棚卸'));
+```
