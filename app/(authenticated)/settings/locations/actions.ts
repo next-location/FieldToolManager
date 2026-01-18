@@ -173,12 +173,10 @@ export async function deleteLocation(id: string) {
       throw new Error('この操作を実行する権限がありません')
     }
 
-    // 論理削除
+    // 物理削除（自社拠点は完全に削除）
     const { error } = await supabase
       .from('sites')
-      .update({
-        deleted_at: new Date().toISOString(),
-      })
+      .delete()
       .eq('id', id)
       .eq('organization_id', userData.organization_id)
 
