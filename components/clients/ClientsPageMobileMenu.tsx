@@ -5,7 +5,7 @@ import { MoreVertical, Download, Upload } from 'lucide-react'
 
 interface ClientsPageMobileMenuProps {
   onExport: () => void
-  onImportClick: () => void
+  onImportClick?: () => void
   exporting: boolean
   importing: boolean
 }
@@ -53,14 +53,16 @@ export default function ClientsPageMobileMenu({
               <Download className="h-4 w-4 mr-2" />
               {exporting ? 'エクスポート中...' : 'CSVエクスポート'}
             </button>
-            <button
-              onClick={handleImport}
-              disabled={importing}
-              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              {importing ? 'インポート中...' : 'CSVインポート'}
-            </button>
+            {onImportClick && (
+              <button
+                onClick={handleImport}
+                disabled={importing}
+                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                {importing ? 'インポート中...' : 'CSVインポート'}
+              </button>
+            )}
           </div>
         </>
       )}

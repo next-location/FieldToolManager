@@ -133,7 +133,7 @@ export function ClientTabs({ clients, initialTab = 'all', isImpersonating }: Cli
               + 新規登録
             </Link>
           </div>
-          <div className="sm:hidden">
+          <div className="sm:hidden flex items-center gap-2">
             <ImportExportButtons
               mobileMenuOnly
               isImpersonating={isImpersonating}

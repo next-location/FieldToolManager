@@ -99,18 +99,13 @@ export default function ImportExportButtons({ mobileMenuOnly = false, isImperson
     }
   }
 
-  // なりすまし時のみ表示
-  if (!isImpersonating) {
-    return null
-  }
-
   // モバイルメニューモードの場合
   if (mobileMenuOnly) {
     return (
       <>
         <ClientsPageMobileMenu
           onExport={handleExport}
-          onImportClick={handleImportClick}
+          onImportClick={isImpersonating ? handleImportClick : undefined}
           exporting={exporting}
           importing={importing}
         />
@@ -188,13 +183,15 @@ export default function ImportExportButtons({ mobileMenuOnly = false, isImperson
           {exporting ? 'エクスポート中...' : 'CSVエクスポート'}
         </button>
 
-        <button
-          onClick={handleImportClick}
-          disabled={importing}
-          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-        >
-          {importing ? 'インポート中...' : 'CSVインポート'}
-        </button>
+        {isImpersonating && (
+          <button
+            onClick={handleImportClick}
+            disabled={importing}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+          >
+            {importing ? 'インポート中...' : 'CSVインポート'}
+          </button>
+        )}
 
         <input
           ref={fileInputRef}
