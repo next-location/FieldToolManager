@@ -4,8 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { DeleteConsumableButton } from './DeleteConsumableButton'
 import { QRCodePrint } from '@/components/qr/QRCodePrint'
-import { ConsumeButton } from './ConsumeButton'
-import { AddInventoryButton } from './AddInventoryButton'
+import { InventoryActionButtons } from './InventoryActionButtons'
 
 export default async function ConsumableDetailPage({
   params,
@@ -306,15 +305,8 @@ export default async function ConsumableDetailPage({
                             </span>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <AddInventoryButton
-                            consumableId={consumable.id}
-                            inventoryId={inv.id}
-                            currentQuantity={inv.quantity}
-                            unit={consumable.unit}
-                            locationText={locationText}
-                          />
-                          <ConsumeButton
+                        <div>
+                          <InventoryActionButtons
                             consumableId={consumable.id}
                             inventoryId={inv.id}
                             currentQuantity={inv.quantity}
