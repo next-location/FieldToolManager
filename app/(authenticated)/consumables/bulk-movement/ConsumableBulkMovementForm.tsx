@@ -78,7 +78,7 @@ export function ConsumableBulkMovementForm({
     }
 
     // 消耗品を追加
-    setSelectedConsumables([...selectedConsumables, { consumableId: consumable.id, quantity: 1 }])
+    setSelectedConsumables([...selectedConsumables, { consumableId: consumable.id, quantity: 0 }])
     setLastScannedConsumable(`${consumable.name}${consumable.model_number ? ` (${consumable.model_number})` : ''}`)
     setScanSuccess(true)
     setTimeout(() => {
@@ -92,7 +92,7 @@ export function ConsumableBulkMovementForm({
   // 消耗品を追加
   const handleAddConsumable = (consumableId: string) => {
     if (!selectedConsumables.find((sc) => sc.consumableId === consumableId)) {
-      setSelectedConsumables([...selectedConsumables, { consumableId, quantity: 1 }])
+      setSelectedConsumables([...selectedConsumables, { consumableId, quantity: 0 }])
       setSearchQuery('')
     }
   }
@@ -132,6 +132,13 @@ export function ConsumableBulkMovementForm({
 
     if (selectedConsumables.length === 0) {
       setError('移動する消耗品を少なくとも1つ選択してください')
+      return
+    }
+
+    // 数量が0の消耗品がないかチェック
+    const invalidItems = selectedConsumables.filter(sc => sc.quantity === 0)
+    if (invalidItems.length > 0) {
+      setError('すべての消耗品の個数を入力してください')
       return
     }
 
@@ -216,31 +223,46 @@ export function ConsumableBulkMovementForm({
         // 移動元の在庫を減らす
         const newSourceQuantity = sourceInventory.quantity - quantity
         if (newSourceQuantity === 0) {
-          await supabase
+          const { error: deleteError } = await supabase
             .from('consumable_inventory')
             .delete()
             .eq('id', sourceInventory.id)
+
+          if (deleteError) {
+            console.error('在庫削除エラー:', deleteError)
+            throw new Error(`在庫削除に失敗: ${deleteError.message}`)
+          }
         } else {
-          await supabase
+          const { error: updateError } = await supabase
             .from('consumable_inventory')
             .update({
               quantity: newSourceQuantity,
               updated_at: new Date().toISOString(),
             })
             .eq('id', sourceInventory.id)
+
+          if (updateError) {
+            console.error('在庫更新エラー:', updateError)
+            throw new Error(`在庫更新に失敗: ${updateError.message}`)
+          }
         }
 
         // 移動先の在庫を増やす
         if (destInventory) {
-          await supabase
+          const { error: updateError } = await supabase
             .from('consumable_inventory')
             .update({
               quantity: destInventory.quantity + quantity,
               updated_at: new Date().toISOString(),
             })
             .eq('id', destInventory.id)
+
+          if (updateError) {
+            console.error('在庫更新エラー:', updateError)
+            throw new Error(`在庫更新に失敗: ${updateError.message}`)
+          }
         } else {
-          await supabase.from('consumable_inventory').insert({
+          const { error: insertError } = await supabase.from('consumable_inventory').insert({
             organization_id: userData?.organization_id,
             tool_id: consumableId,
             location_type: toLocationType,
@@ -248,10 +270,15 @@ export function ConsumableBulkMovementForm({
             warehouse_location_id: null,
             quantity: quantity,
           })
+
+          if (insertError) {
+            console.error('在庫追加エラー:', insertError)
+            throw new Error(`在庫追加に失敗: ${insertError.message}`)
+          }
         }
 
         // 移動履歴を記録
-        await supabase.from('consumable_movements').insert({
+        const { error: movementError } = await supabase.from('consumable_movements').insert({
           organization_id: userData?.organization_id,
           tool_id: consumableId,
           movement_type: '一括移動',
@@ -263,6 +290,11 @@ export function ConsumableBulkMovementForm({
           performed_by: user.id,
           notes: notes || null,
         })
+
+        if (movementError) {
+          console.error('移動履歴記録エラー:', movementError)
+          throw new Error(`移動履歴の記録に失敗しました: ${movementError.message}`)
+        }
       }
 
       // 成功したら移動履歴ページ（消耗品タブ）にリダイレクト
@@ -479,23 +511,17 @@ export function ConsumableBulkMovementForm({
                     <input
                       type="number"
                       min="1"
-                      value={quantity}
+                      value={quantity === 0 ? '' : quantity}
+                      placeholder="個数"
                       onChange={(e) => {
                         const value = e.target.value
-                        // 空文字列の場合は何も入力していない状態として扱う
                         if (value === '') {
+                          handleUpdateQuantity(consumableId, 0)
                           return
                         }
                         const numValue = parseInt(value)
-                        if (!isNaN(numValue) && numValue >= 1) {
+                        if (!isNaN(numValue) && numValue >= 0) {
                           handleUpdateQuantity(consumableId, numValue)
-                        }
-                      }}
-                      onBlur={(e) => {
-                        // focusが外れた時に空または0なら1に戻す
-                        const value = e.target.value
-                        if (value === '' || parseInt(value) === 0 || isNaN(parseInt(value))) {
-                          handleUpdateQuantity(consumableId, 1)
                         }
                       }}
                       className="w-20 px-2 py-1 border border-gray-300 rounded text-center"
