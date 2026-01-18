@@ -11,6 +11,10 @@ export default async function ConsumableAdjustPage({
   const { id } = await params
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
+  // Manager/Admin以外はアクセス拒否
+  if (userRole !== 'manager' && userRole !== 'admin') {
+    redirect('/consumables')
+  }
 
   // 消耗品情報取得
   const { data: consumable } = await supabase

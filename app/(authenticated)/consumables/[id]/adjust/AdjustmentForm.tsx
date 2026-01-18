@@ -19,6 +19,8 @@ export function AdjustmentForm({
 }) {
   // staffとleader権限の場合、±100個までの制限
   const STAFF_MAX_ADJUSTMENT = 100
+  // Manager/Admin権限の場合、50,000個までの制限
+  const MANAGER_MAX_ADJUSTMENT = 50000
   const isLimitedRole = userRole === 'staff' || userRole === 'leader'
 
   const router = useRouter()
@@ -65,6 +67,21 @@ export function AdjustmentForm({
         }
       } else if (qty > STAFF_MAX_ADJUSTMENT) {
         setError(`一般スタッフ・リーダーは±${STAFF_MAX_ADJUSTMENT}個までの調整に制限されています。大幅な調整が必要な場合は管理者またはマネージャーに依頼してください。`)
+        setLoading(false)
+        return
+      }
+    }
+
+    // Manager/Admin権限の上限チェック（50,000個）
+    if (!isLimitedRole) {
+      if (adjustmentType === 'set') {
+        if (qty > MANAGER_MAX_ADJUSTMENT) {
+          setError(`在庫設定は${MANAGER_MAX_ADJUSTMENT.toLocaleString()}個までです。`)
+          setLoading(false)
+          return
+        }
+      } else if (qty > MANAGER_MAX_ADJUSTMENT) {
+        setError(`一度に調整できる数量は${MANAGER_MAX_ADJUSTMENT.toLocaleString()}個までです。`)
         setLoading(false)
         return
       }

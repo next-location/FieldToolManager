@@ -101,7 +101,7 @@ export default async function ConsumablesPage() {
           </div>
         )}
 
-        <ConsumablesList initialConsumables={consumablesWithInventory || []} />
+        <ConsumablesList initialConsumables={consumablesWithInventory || []} userRole={userRole} />
 
         {/* スマホのみ: FABボタン */}
         {isAdmin && <ConsumablesPageFAB />}

@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { DeleteConsumableButton } from './DeleteConsumableButton'
 import { QRCodePrint } from '@/components/qr/QRCodePrint'
 import { ConsumeButton } from './ConsumeButton'
+import { AddInventoryButton } from './AddInventoryButton'
 
 export default async function ConsumableDetailPage({
   params,
@@ -254,12 +255,14 @@ export default async function ConsumableDetailPage({
               </p>
             </div>
             <div className="flex space-x-3">
-              <Link
-                href={`/consumables/${consumable.id}/adjust`}
-                className="inline-flex items-center px-4 py-2 border border-blue-600 rounded-md shadow-sm text-sm font-medium text-blue-600 bg-white hover:bg-blue-50"
-              >
-                📦 在庫調整
-              </Link>
+              {(userRole === 'manager' || userRole === 'admin') && (
+                <Link
+                  href={`/consumables/${consumable.id}/adjust`}
+                  className="inline-flex items-center px-4 py-2 border border-blue-600 rounded-md shadow-sm text-sm font-medium text-blue-600 bg-white hover:bg-blue-50"
+                >
+                  📦 在庫調整
+                </Link>
+              )}
               <Link
                 href={`/consumables/${consumable.id}/move`}
                 className="inline-flex items-center px-4 py-2 border border-green-600 rounded-md shadow-sm text-sm font-medium text-green-600 bg-white hover:bg-green-50"
@@ -303,7 +306,14 @@ export default async function ConsumableDetailPage({
                             </span>
                           </div>
                         </div>
-                        <div>
+                        <div className="flex gap-2">
+                          <AddInventoryButton
+                            consumableId={consumable.id}
+                            inventoryId={inv.id}
+                            currentQuantity={inv.quantity}
+                            unit={consumable.unit}
+                            locationText={locationText}
+                          />
                           <ConsumeButton
                             consumableId={consumable.id}
                             inventoryId={inv.id}

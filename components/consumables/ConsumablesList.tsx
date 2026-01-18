@@ -26,9 +26,12 @@ interface Consumable {
 
 interface ConsumablesListProps {
   initialConsumables: Consumable[]
+  userRole: string
 }
 
-export default function ConsumablesList({ initialConsumables }: ConsumablesListProps) {
+export default function ConsumablesList({ initialConsumables, userRole }: ConsumablesListProps) {
+  const isManagerOrAbove = userRole === 'manager' || userRole === 'admin'
+
   const [consumables, setConsumables] = useState<Consumable[]>(initialConsumables)
   const [filteredConsumables, setFilteredConsumables] = useState<Consumable[]>(initialConsumables)
   const [filters, setFilters] = useState<FilterState>({
@@ -163,13 +166,15 @@ export default function ConsumablesList({ initialConsumables }: ConsumablesListP
 
                     {/* 右側: アクションボタン */}
                     <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 sm:ml-4 shrink-0">
-                      <Link
-                        href={`/consumables/${consumable.id}/adjust`}
-                        className="inline-flex items-center justify-center px-4 py-2.5 sm:px-4 sm:py-2 border border-blue-600 rounded-md text-sm font-medium text-blue-600 bg-white hover:bg-blue-50 whitespace-nowrap"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        📦 在庫調整
-                      </Link>
+                      {isManagerOrAbove && (
+                        <Link
+                          href={`/consumables/${consumable.id}/adjust`}
+                          className="inline-flex items-center justify-center px-4 py-2.5 sm:px-4 sm:py-2 border border-blue-600 rounded-md text-sm font-medium text-blue-600 bg-white hover:bg-blue-50 whitespace-nowrap"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          📦 在庫調整
+                        </Link>
+                      )}
                       <Link
                         href={`/consumables/${consumable.id}/move`}
                         className="inline-flex items-center justify-center px-4 py-2.5 sm:px-4 sm:py-2 border border-green-600 rounded-md text-sm font-medium text-green-600 bg-white hover:bg-green-50 whitespace-nowrap"
