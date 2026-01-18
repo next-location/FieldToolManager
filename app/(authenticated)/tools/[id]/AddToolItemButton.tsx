@@ -14,6 +14,8 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
   const [mode, setMode] = useState<'single' | 'bulk'>('single') // 単一 or 一括
   const [serialNumber, setSerialNumber] = useState('')
   const [notes, setNotes] = useState('')
+  const [purchaseDate, setPurchaseDate] = useState('')
+  const [purchasePrice, setPurchasePrice] = useState('')
   const [bulkCount, setBulkCount] = useState(5) // 一括登録数
   const [startNumber, setStartNumber] = useState('001') // 開始番号
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -95,6 +97,8 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
       setIsModalOpen(false)
       setSerialNumber('')
       setNotes('')
+      setPurchaseDate('')
+      setPurchasePrice('')
       setMode('single')
       router.refresh()
     } catch (err: any) {
@@ -133,6 +137,8 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
         current_location: 'warehouse',
         status: 'available',
         notes: notes || null,
+        purchase_date: purchaseDate || null,
+        purchase_price: purchasePrice ? parseFloat(purchasePrice) : null,
       })
       .select('id')
       .single()
@@ -215,6 +221,8 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
         current_location: 'warehouse',
         status: 'available',
         notes: null,
+        purchase_date: purchaseDate || null,
+        purchase_price: purchasePrice ? parseFloat(purchasePrice) : null,
       })
     }
 
@@ -336,6 +344,35 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
                     <p className="text-xs text-gray-500 mt-1">一意の識別番号を入力してください</p>
                   </div>
 
+                  <div className="mb-4">
+                    <label htmlFor="purchase_date" className="block text-sm font-medium text-gray-700 mb-1">
+                      購入日
+                    </label>
+                    <input
+                      type="date"
+                      id="purchase_date"
+                      value={purchaseDate}
+                      onChange={(e) => setPurchaseDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <label htmlFor="purchase_price" className="block text-sm font-medium text-gray-700 mb-1">
+                      購入価格（円）
+                    </label>
+                    <input
+                      type="number"
+                      id="purchase_price"
+                      value={purchasePrice}
+                      onChange={(e) => setPurchasePrice(e.target.value)}
+                      min="0"
+                      step="0.01"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="例: 15000"
+                    />
+                  </div>
+
                   <div className="mb-6">
                     <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
                       備考
@@ -403,9 +440,40 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
                     </p>
                   </div>
 
+                  <div className="mb-4">
+                    <label htmlFor="bulk_purchase_date" className="block text-sm font-medium text-gray-700 mb-1">
+                      購入日
+                    </label>
+                    <input
+                      type="date"
+                      id="bulk_purchase_date"
+                      value={purchaseDate}
+                      onChange={(e) => setPurchaseDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">すべてのアイテムに同じ購入日が設定されます</p>
+                  </div>
+
+                  <div className="mb-4">
+                    <label htmlFor="bulk_purchase_price" className="block text-sm font-medium text-gray-700 mb-1">
+                      購入価格（円）
+                    </label>
+                    <input
+                      type="number"
+                      id="bulk_purchase_price"
+                      value={purchasePrice}
+                      onChange={(e) => setPurchasePrice(e.target.value)}
+                      min="0"
+                      step="0.01"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="例: 15000"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">すべてのアイテムに同じ購入価格が設定されます</p>
+                  </div>
+
                   <div className="mb-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <p className="text-xs text-yellow-800">
-                      ℹ️ 一括登録後、個別に備考を追加したい場合は各アイテムの編集画面から行えます
+                      ℹ️ 一括登録後、個別に備考や購入情報を変更したい場合は各アイテムの編集画面から行えます
                     </p>
                   </div>
                 </>
