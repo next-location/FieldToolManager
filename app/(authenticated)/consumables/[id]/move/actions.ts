@@ -37,7 +37,11 @@ export async function moveConsumable(formData: FormData) {
     : null
   const notes = formData.get('notes') as string
 
-  // 移動元と移動先を決定
+  // 移動元と移動先のlocation_idを決定
+  const fromLocationId = direction === 'to_site' ? null : siteId // nullの場合は倉庫（後で自社倉庫IDに変更予定）
+  const toLocationId = direction === 'to_site' ? siteId : null
+
+  // 旧式のlocation_typeとsite_id（後方互換性のため維持）
   const fromLocation = direction === 'to_site' ? 'warehouse' : 'site'
   const toLocation = direction === 'to_site' ? 'site' : 'warehouse'
   const fromSiteId = direction === 'from_site' ? siteId : null
@@ -137,6 +141,7 @@ export async function moveConsumable(formData: FormData) {
           tool_id: consumableId,
           location_type: toLocation,
           site_id: toSiteId,
+          location_id: toLocationId, // 新カラム
           warehouse_location_id: null,
           quantity: quantity,
         })
@@ -155,10 +160,12 @@ export async function moveConsumable(formData: FormData) {
         organization_id: userData?.organization_id,
         tool_id: consumableId,
         movement_type: '移動',
-        from_location_type: fromLocation,
-        from_site_id: fromSiteId,
-        to_location_type: toLocation,
-        to_site_id: toSiteId,
+        from_location_type: fromLocation, // 旧カラム（後方互換性のため維持）
+        from_site_id: fromSiteId, // 旧カラム
+        from_location_id: fromLocationId, // 新カラム
+        to_location_type: toLocation, // 旧カラム
+        to_site_id: toSiteId, // 旧カラム
+        to_location_id: toLocationId, // 新カラム
         quantity: trackingMode === 'quantity' ? quantity : 1,
         performed_by: user.id,
         notes: notes || null,

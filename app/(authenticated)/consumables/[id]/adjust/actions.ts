@@ -82,6 +82,7 @@ export async function adjustConsumableInventory({
         tool_id: consumableId,
         location_type: 'warehouse',
         site_id: null,
+        location_id: null, // 新カラム（倉庫の場合はnull、後で自社倉庫IDに変更予定）
         warehouse_location_id: null,
         quantity: newQuantity,
       })
@@ -105,10 +106,12 @@ export async function adjustConsumableInventory({
       organization_id: userData?.organization_id,
       tool_id: consumableId,
       movement_type: '調整',
-      from_location_type: 'warehouse',
-      from_site_id: null,
-      to_location_type: 'warehouse',
-      to_site_id: null,
+      from_location_type: 'warehouse', // 旧カラム
+      from_site_id: null, // 旧カラム
+      from_location_id: null, // 新カラム（倉庫）
+      to_location_type: 'warehouse', // 旧カラム
+      to_site_id: null, // 旧カラム
+      to_location_id: null, // 新カラム（倉庫）
       quantity: quantity,
       performed_by: user.id,
       notes: `[${adjustmentTypeText}] ${reason}`,

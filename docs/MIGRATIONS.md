@@ -113,6 +113,74 @@ npm run health-check
 
 ## 3. マイグレーション履歴
 
+### 🏢 Phase 5: 消耗品テーブルを sites ベースに改修（2026-01-19）
+
+#### 20260119_add_location_id_to_consumables.sql
+
+**適用日**: 2026-01-19
+**適用環境**: 本番環境
+**影響範囲**: `consumable_inventory`, `consumable_movements`テーブル
+
+**目的**:
+消耗品の在庫管理・移動履歴を文字列ベースの`location_type`から、sitesテーブルへのFK（`location_id`）に統一する。
+
+**背景**:
+- Phase 1-4で自社拠点管理機能（sitesテーブルに`type`カラム追加）を実装済み
+- 消耗品テーブルは旧式の`location_type`（'warehouse'/'site'）で場所を管理していた
+- 複数の自社拠点を区別できず、本社倉庫・支店A・支店Bなどが管理不可能だった
+
+**変更内容**:
+
+1. **consumable_movements テーブル**:
+```sql
+-- 新カラム追加
+ALTER TABLE consumable_movements
+  ADD COLUMN from_location_id UUID REFERENCES sites(id),
+  ADD COLUMN to_location_id UUID REFERENCES sites(id);
+
+-- 既存カラムを非推奨化（削除はしない）
+COMMENT ON COLUMN consumable_movements.from_location_type IS '【非推奨】from_location_id を使用';
+COMMENT ON COLUMN consumable_movements.to_location_type IS '【非推奨】to_location_id を使用';
+```
+
+2. **consumable_inventory テーブル**:
+```sql
+-- 新カラム追加
+ALTER TABLE consumable_inventory
+  ADD COLUMN location_id UUID REFERENCES sites(id);
+
+-- UNIQUE制約更新
+ALTER TABLE consumable_inventory
+  ADD CONSTRAINT consumable_inventory_org_tool_location_unique
+  UNIQUE(organization_id, tool_id, location_id, warehouse_location_id);
+
+-- 既存カラムを非推奨化
+COMMENT ON COLUMN consumable_inventory.location_type IS '【非推奨】location_id を使用';
+```
+
+**適用方法**:
+1. Supabase Dashboard > SQL Editor
+2. `supabase/migrations/20260119_add_location_id_to_consumables.sql` の内容をコピペ
+3. "Run" をクリック
+
+**後方互換性**:
+- 既存の`location_type`, `site_id`カラムは削除せず維持
+- 新旧両方のデータ構造をサポート
+- 段階的な移行が可能
+
+**ロールバック**:
+```sql
+ALTER TABLE consumable_movements
+  DROP COLUMN IF EXISTS from_location_id,
+  DROP COLUMN IF EXISTS to_location_id;
+
+ALTER TABLE consumable_inventory
+  DROP CONSTRAINT IF EXISTS consumable_inventory_org_tool_location_unique,
+  DROP COLUMN IF EXISTS location_id;
+```
+
+---
+
 ### 🏗️ 倉庫階層管理システムの型定義修正（2026-01-14）
 
 #### 変更内容
