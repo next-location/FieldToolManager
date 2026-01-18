@@ -213,6 +213,8 @@ export default function EquipmentMovementForm({
         action_type: 'checkout',
         from_location_id: '',
         to_location_id: '',
+        from_other_location: '',
+        to_other_location: '',
         hour_meter_reading: '',
         notes: '',
       })
