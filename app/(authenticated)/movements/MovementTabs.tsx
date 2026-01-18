@@ -463,7 +463,8 @@ export function MovementTabs({
                       <div className="flex items-center">
                         <span className="text-gray-500 w-16">移動先:</span>
                         <span className="text-gray-900">
-                          {movement.to_location_type === 'warehouse' ? '会社' :
+                          {movement.movement_type === '消費' ? '消費（使用済み）' :
+                           movement.to_location_type === 'warehouse' ? '会社' :
                            movement.to_location_type === 'site' ? formatLocationWithIcon(movement.to_site, '現場') :
                            movement.to_location_type}
                         </span>

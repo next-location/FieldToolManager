@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { DeleteConsumableButton } from './DeleteConsumableButton'
 import { QRCodePrint } from '@/components/qr/QRCodePrint'
+import { ConsumeButton } from './ConsumeButton'
 
 export default async function ConsumableDetailPage({
   params,
@@ -282,7 +283,7 @@ export default async function ConsumableDetailPage({
 
                   return (
                     <li key={inv.id} className="px-4 py-4 sm:px-6">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center">
                             <span className="text-sm font-medium text-gray-900">
@@ -301,6 +302,15 @@ export default async function ConsumableDetailPage({
                               {consumable.unit}
                             </span>
                           </div>
+                        </div>
+                        <div>
+                          <ConsumeButton
+                            consumableId={consumable.id}
+                            inventoryId={inv.id}
+                            currentQuantity={inv.quantity}
+                            unit={consumable.unit}
+                            locationText={locationText}
+                          />
                         </div>
                       </div>
                     </li>
@@ -395,12 +405,19 @@ export default async function ConsumableDetailPage({
                         ? `現場: ${movement.to_site ? (movement.to_site as any).name : '不明'}`
                         : movement.to_location_type
 
+                  // 消費の場合は特別な表示
+                  const isConsumption = movement.movement_type === '消費'
+                  const displayText = isConsumption
+                    ? `${fromLocation}で消費`
+                    : `${fromLocation} → ${toLocation}`
+
                   return (
                     <li key={movement.id} className="px-4 py-4 sm:px-6">
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <div className="text-sm text-gray-900">
-                            {fromLocation} → {toLocation}
+                            {isConsumption && <span className="mr-1">📝</span>}
+                            {displayText}
                           </div>
                           <div className="mt-1 text-xs text-gray-500">
                             {new Date(movement.created_at).toLocaleString(
