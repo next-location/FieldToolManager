@@ -380,6 +380,7 @@ export default function EquipmentMovementForm({
             <input
               type="text"
               id="equipment_search"
+              name="equipment_search"
               value={equipmentSearch}
               onChange={(e) => {
                 setEquipmentSearch(e.target.value)
@@ -387,6 +388,7 @@ export default function EquipmentMovementForm({
               }}
               onFocus={() => setShowEquipmentList(true)}
               placeholder="重機名、重機コード、カテゴリで検索..."
+              autoComplete="off"
               className={`block w-full border rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500 ${
                 !formData.equipment_id ? 'border-gray-300' : 'border-green-500 bg-green-50'
               }`}
