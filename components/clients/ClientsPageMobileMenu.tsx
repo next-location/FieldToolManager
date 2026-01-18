@@ -24,7 +24,9 @@ export default function ClientsPageMobileMenu({
   }
 
   const handleImport = () => {
-    onImportClick()
+    if (onImportClick) {
+      onImportClick()
+    }
     setIsOpen(false)
   }
 
