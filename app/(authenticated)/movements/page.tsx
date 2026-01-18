@@ -21,8 +21,8 @@ export default async function MovementsPage({ searchParams }: MovementsPageProps
         serial_number,
         tool_id
       ),
-      from_site:sites!tool_movements_from_site_id_fkey (name),
-      to_site:sites!tool_movements_to_site_id_fkey (name),
+      from_site:sites!tool_movements_from_site_id_fkey (name, type),
+      to_site:sites!tool_movements_to_site_id_fkey (name, type),
       users!tool_movements_performed_by_fkey (name)
     `
     )
@@ -67,10 +67,12 @@ export default async function MovementsPage({ searchParams }: MovementsPageProps
         model_number
       ),
       from_site:sites!consumable_movements_from_site_id_fkey (
-        name
+        name,
+        type
       ),
       to_site:sites!consumable_movements_to_site_id_fkey (
-        name
+        name,
+        type
       ),
       users!consumable_movements_performed_by_fkey (
         name

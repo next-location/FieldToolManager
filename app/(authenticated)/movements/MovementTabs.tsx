@@ -25,8 +25,8 @@ interface ToolMovement {
     name: string
     model_number: string
   } | null
-  from_site: { name: string } | null
-  to_site: { name: string } | null
+  from_site: { name: string; type: string } | null
+  to_site: { name: string; type: string } | null
   users: { name: string } | null
 }
 
@@ -43,8 +43,8 @@ interface ConsumableMovement {
     name: string
     model_number: string | null
   } | null
-  from_site: { name: string } | null
-  to_site: { name: string } | null
+  from_site: { name: string; type: string } | null
+  to_site: { name: string; type: string } | null
   users: { name: string } | null
 }
 
@@ -59,9 +59,32 @@ interface EquipmentMovement {
     equipment_code: string
     name: string
   } | null
-  from_site: { name: string } | null
-  to_site: { name: string } | null
+  from_site: { name: string; type: string } | null
+  to_site: { name: string; type: string } | null
   users: { name: string } | null
+}
+
+// 拠点タイプに応じたアイコンを返す
+function getLocationIcon(type: string): string {
+  switch (type) {
+    case 'own_warehouse':
+      return '🏢' // 自社倉庫
+    case 'branch':
+      return '🏪' // 支店
+    case 'storage_yard':
+      return '📦' // 資材置き場
+    case 'customer_site':
+      return '🏗️' // 顧客現場
+    default:
+      return '📍' // その他
+  }
+}
+
+// 拠点名にアイコンを付けて表示
+function formatLocationWithIcon(site: { name: string; type: string } | null, defaultName: string = '倉庫'): string {
+  if (!site) return defaultName
+  const icon = getLocationIcon(site.type)
+  return `${icon} ${site.name}`
 }
 
 interface MovementTabsProps {
@@ -238,7 +261,7 @@ export function MovementTabs({
                             ? '会社'
                             : !movement.from_site && movement.other_location_name
                             ? movement.other_location_name
-                            : movement.from_site?.name || '会社'}
+                            : movement.from_site ? formatLocationWithIcon(movement.from_site, '会社') : '会社'}
                         </span>
                       </div>
 
@@ -249,7 +272,7 @@ export function MovementTabs({
                             ? '会社'
                             : !movement.to_site && movement.other_location_name
                             ? movement.other_location_name
-                            : movement.to_site?.name || '会社'}
+                            : movement.to_site ? formatLocationWithIcon(movement.to_site, '会社') : '会社'}
                         </span>
                       </div>
 
@@ -353,7 +376,7 @@ export function MovementTabs({
                           <span className="text-gray-500 w-16">移動元:</span>
                           <span className="text-gray-900">
                             {(group.from_location || firstMovement.from_location) === 'warehouse' ? '会社' :
-                             (group.from_location || firstMovement.from_location) === 'site' ? ((group.from_site || firstMovement.from_site)?.name || '現場') :
+                             (group.from_location || firstMovement.from_location) === 'site' ? formatLocationWithIcon((group.from_site || firstMovement.from_site), '現場') :
                              (group.from_location || firstMovement.from_location) === 'repair' ? '修理中' : (group.from_location || firstMovement.from_location)}
                           </span>
                         </div>
@@ -361,7 +384,7 @@ export function MovementTabs({
                         <div className="flex items-center">
                           <span className="text-gray-500 w-16">移動先:</span>
                           <span className="text-gray-900">
-                            {(group.to_location || firstMovement.to_location) === 'site' ? ((group.to_site || firstMovement.to_site)?.name || '現場') :
+                            {(group.to_location || firstMovement.to_location) === 'site' ? formatLocationWithIcon((group.to_site || firstMovement.to_site), '現場') :
                              (group.to_location || firstMovement.to_location) === 'warehouse' ? '会社' :
                              (group.to_location || firstMovement.to_location) === 'repair' ? '修理中' : '-'}
                           </span>
@@ -432,7 +455,7 @@ export function MovementTabs({
                         <span className="text-gray-500 w-16">移動元:</span>
                         <span className="text-gray-900">
                           {movement.from_location_type === 'warehouse' ? '会社' :
-                           movement.from_location_type === 'site' ? (movement.from_site?.name || '現場') :
+                           movement.from_location_type === 'site' ? formatLocationWithIcon(movement.from_site, '現場') :
                            movement.from_location_type}
                         </span>
                       </div>
@@ -441,7 +464,7 @@ export function MovementTabs({
                         <span className="text-gray-500 w-16">移動先:</span>
                         <span className="text-gray-900">
                           {movement.to_location_type === 'warehouse' ? '会社' :
-                           movement.to_location_type === 'site' ? (movement.to_site?.name || '現場') :
+                           movement.to_location_type === 'site' ? formatLocationWithIcon(movement.to_site, '現場') :
                            movement.to_location_type}
                         </span>
                       </div>
