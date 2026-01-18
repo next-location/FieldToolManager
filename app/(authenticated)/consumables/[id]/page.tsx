@@ -108,7 +108,7 @@ export default async function ConsumableDetailPage({
   const isLowStock = totalStock < (consumable.minimum_stock || 0)
 
   return (
-    <div className="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
         <div className="mb-6">
           <Link
@@ -119,148 +119,100 @@ export default async function ConsumableDetailPage({
           </Link>
         </div>
 
-        {/* 基本情報 */}
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
-            <div>
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                消耗品詳細
-              </h3>
-              <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                ID: {consumable.id}
-              </p>
-            </div>
-            <div className="flex space-x-3">
-              <Link
-                href={`/consumables/${consumable.id}/edit`}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                編集
-              </Link>
-              <DeleteConsumableButton
-                consumableId={consumable.id}
-                consumableName={consumable.name}
-              />
-            </div>
-          </div>
-
-          {consumable.image_url && (
-            <div className="px-4 py-5 sm:px-6 border-t border-gray-200 bg-gray-50">
-              <div className="relative w-full h-64 rounded-lg overflow-hidden bg-white">
-                <Image
-                  src={consumable.image_url}
-                  alt={consumable.name}
-                  fill
-                  className="object-contain"
-                  unoptimized
-                />
-              </div>
-            </div>
-          )}
-
-          <div className="border-t border-gray-200">
-            <dl>
-              <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">消耗品名</dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  {consumable.name}
-                </dd>
-              </div>
-
-              <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">型番</dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  {consumable.model_number || '未設定'}
-                </dd>
-              </div>
-
-              <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">メーカー</dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  {consumable.manufacturer || '未設定'}
-                </dd>
-              </div>
-
-              <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">単位</dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  {consumable.unit}
-                </dd>
-              </div>
-
-              <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">
-                  合計在庫数
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  {totalStock} {consumable.unit}
-                  {isLowStock && (
-                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                      ⚠️ 在庫不足
-                    </span>
-                  )}
-                </dd>
-              </div>
-
-              <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">
-                  最小在庫数
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  {consumable.minimum_stock}
-                </dd>
-              </div>
-
-              {consumable.notes && (
-                <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">備考</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {consumable.notes}
-                  </dd>
-                </div>
-              )}
-
-              <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">QRコード</dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <QRCodePrint
-                    value={consumable.qr_code}
-                    itemName={consumable.name}
-                    itemCode={`ID: ${consumable.id.substring(0, 8)}...`}
-                    itemType="消耗品"
-                    size={200}
-                    qrSize={qrSize}
-                  />
-                </dd>
-              </div>
-            </dl>
+        {/* ヘッダー: タイトルとボタン */}
+        <div className="mb-6">
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900 mb-4">
+            {consumable.name}
+          </h1>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link
+              href={`/consumables/${consumable.id}/edit`}
+              className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            >
+              編集
+            </Link>
+            <DeleteConsumableButton
+              consumableId={consumable.id}
+              consumableName={consumable.name}
+            />
           </div>
         </div>
 
-        {/* 在庫詳細 */}
-        <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+        {/* 基本情報 */}
+        <div className="mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
+              <p className="text-sm font-medium text-gray-600 mb-1">型番</p>
+              <p className="text-base text-gray-900">{consumable.model_number || '未設定'}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600 mb-1">メーカー</p>
+              <p className="text-base text-gray-900">{consumable.manufacturer || '未設定'}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600 mb-1">単位</p>
+              <p className="text-base text-gray-900">{consumable.unit}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600 mb-1">合計在庫数</p>
+              <p className="text-base text-gray-900">
+                {totalStock} {consumable.unit}
+                {isLowStock && (
+                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                    ⚠️ 在庫不足
+                  </span>
+                )}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600 mb-1">最小在庫数</p>
+              <p className="text-base text-gray-900">{consumable.minimum_stock}</p>
+            </div>
+            {consumable.notes && (
+              <div className="sm:col-span-2">
+                <p className="text-sm font-medium text-gray-600 mb-1">備考</p>
+                <p className="text-base text-gray-900">{consumable.notes}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* QRコード */}
+        <div className="mb-6">
+          <h2 className="text-base font-medium text-gray-900 mb-4">QRコード</h2>
+          <QRCodePrint
+            value={consumable.qr_code}
+            itemName={consumable.name}
+            itemCode={`ID: ${consumable.id.substring(0, 8)}...`}
+            itemType="消耗品"
+            size={200}
+            qrSize={qrSize}
+          />
+        </div>
+
+        {/* 在庫詳細 */}
+        <div className="mt-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+            <div>
+              <h2 className="text-base font-medium text-gray-900">
                 在庫詳細（全{inventory?.length || 0}箇所）
-              </h3>
-              <p className="mt-1 max-w-2xl text-sm text-gray-500">
+              </h2>
+              <p className="mt-1 text-sm text-gray-500">
                 各保管場所の在庫状況
               </p>
             </div>
-            <div className="flex space-x-3">
-              {(userRole === 'manager' || userRole === 'admin') && (
-                <Link
-                  href={`/consumables/${consumable.id}/adjust`}
-                  className="inline-flex items-center px-4 py-2 border border-blue-600 rounded-md shadow-sm text-sm font-medium text-blue-600 bg-white hover:bg-blue-50"
-                >
-                  📦 在庫調整
-                </Link>
-              )}
-            </div>
+            {(userRole === 'manager' || userRole === 'admin') && (
+              <Link
+                href={`/consumables/${consumable.id}/adjust`}
+                className="inline-flex items-center justify-center px-4 py-2 border border-blue-600 rounded-md shadow-sm text-sm font-medium text-blue-600 bg-white hover:bg-blue-50"
+              >
+                📦 在庫調整
+              </Link>
+            )}
           </div>
-          <div className="border-t border-gray-200">
-            {inventory && inventory.length > 0 ? (
+
+          {inventory && inventory.length > 0 ? (
+            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
               <ul className="divide-y divide-gray-200">
                 {inventory.map((inv) => {
                   const locationText =
@@ -274,10 +226,11 @@ export default async function ConsumableDetailPage({
 
                   return (
                     <li key={inv.id} className="px-4 py-4 sm:px-6">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex-1">
+                      {/* スマホ: 縦並び、PC: 横並び */}
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-center">
-                            <span className="text-sm font-medium text-gray-900">
+                            <span className="text-base sm:text-sm font-medium text-gray-900">
                               📍 {locationText}
                             </span>
                           </div>
@@ -286,35 +239,37 @@ export default async function ConsumableDetailPage({
                             {new Date(inv.updated_at).toLocaleString('ja-JP')}
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-lg font-bold text-gray-900">
-                            {inv.quantity}
-                            <span className="ml-1 text-sm font-normal text-gray-500">
-                              {consumable.unit}
-                            </span>
+                        <div className="flex items-center justify-between sm:justify-end gap-4">
+                          <div className="text-right">
+                            <div className="text-2xl sm:text-lg font-bold text-gray-900">
+                              {inv.quantity}
+                              <span className="ml-1 text-base sm:text-sm font-normal text-gray-500">
+                                {consumable.unit}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                        <div>
-                          <InventoryActionButtons
-                            consumableId={consumable.id}
-                            inventoryId={inv.id}
-                            currentQuantity={inv.quantity}
-                            unit={consumable.unit}
-                            locationText={locationText}
-                            userRole={userRole}
-                          />
+                          <div className="shrink-0">
+                            <InventoryActionButtons
+                              consumableId={consumable.id}
+                              inventoryId={inv.id}
+                              currentQuantity={inv.quantity}
+                              unit={consumable.unit}
+                              locationText={locationText}
+                              userRole={userRole}
+                            />
+                          </div>
                         </div>
                       </div>
                     </li>
                   )
                 })}
               </ul>
-            ) : (
-              <div className="px-4 py-6 text-center text-sm text-gray-500">
-                在庫がありません
-              </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="bg-white shadow overflow-hidden sm:rounded-lg px-4 py-6 text-center text-sm text-gray-500">
+              在庫がありません
+            </div>
+          )}
         </div>
 
         {/* 在庫調整・消費履歴 */}
