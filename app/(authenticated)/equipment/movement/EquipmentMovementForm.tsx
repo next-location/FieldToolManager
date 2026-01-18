@@ -422,12 +422,25 @@ export default function EquipmentMovementForm({
                       key={equip.id}
                       type="button"
                       onClick={() => {
-                        setFormData(prev => ({
-                          ...prev,
-                          equipment_id: equip.id,
-                          from_location_id: equip.current_location_id || '',
-                          hour_meter_reading: equip.current_hour_meter?.toString() || '',
-                        }))
+                        setFormData(prev => {
+                          const update: any = {
+                            ...prev,
+                            equipment_id: equip.id,
+                            hour_meter_reading: equip.current_hour_meter?.toString() || '',
+                          }
+
+                          // アクションタイプに応じて現在地を設定
+                          if (prev.action_type === 'checkin') {
+                            // 返却: 現在地を返却元に設定
+                            update.from_location_id = equip.current_location_id || ''
+                          } else if (prev.action_type === 'transfer') {
+                            // 移動: 現在地を移動元に設定
+                            update.from_location_id = equip.current_location_id || ''
+                          }
+                          // checkout の場合は現在地設定不要（倉庫から持ち出すため）
+
+                          return update
+                        })
                         setEquipmentSearch(`${equip.equipment_code} - ${equip.name}`)
                         setShowEquipmentList(false)
                       }}
@@ -542,25 +555,14 @@ export default function EquipmentMovementForm({
             <div className="space-y-3">
               <div>
                 <label htmlFor="from_location_id" className="block text-sm font-medium text-gray-700 mb-2">
-                  返却元 <span className="text-red-500">*</span>
+                  返却元（自動設定）
                 </label>
-                <select
-                  id="from_location_id"
-                  name="from_location_id"
-                  value={formData.from_location_id}
-                  onChange={handleChange}
-                  required
-                  className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">選択してください</option>
-                  {sites.map((site) => (
-                    <option key={site.id} value={site.id}>
-                      {site.name}
-                    </option>
-                  ))}
-                  <option value="other">その他の場所</option>
-                </select>
-                <p className="mt-1 text-xs text-gray-500">返却元の現場またはその他の場所を選択してください</p>
+                <div className="block w-full border border-gray-200 rounded-md px-3 py-2 bg-gray-50 text-gray-700">
+                  {selectedEquipment?.sites?.name ||
+                   (formData.from_location_id === 'other' ? 'その他の場所' : '現在地情報なし')}
+                </div>
+                <p className="mt-1 text-xs text-gray-500">選択した重機の現在地が自動的に設定されます</p>
+                <input type="hidden" name="from_location_id" value={formData.from_location_id} />
               </div>
 
               {formData.from_location_id === 'other' && (
@@ -590,44 +592,15 @@ export default function EquipmentMovementForm({
               <div className="space-y-3">
                 <div>
                   <label htmlFor="from_location_id" className="block text-sm font-medium text-gray-700 mb-2">
-                    移動元 <span className="text-red-500">*</span>
+                    移動元（自動設定）
                   </label>
-                  <select
-                    id="from_location_id"
-                    name="from_location_id"
-                    value={formData.from_location_id}
-                    onChange={handleChange}
-                    required
-                    className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">選択してください</option>
-                    {sites.map((site) => (
-                      <option key={site.id} value={site.id}>
-                        {site.name}
-                      </option>
-                    ))}
-                    <option value="other">その他の場所</option>
-                  </select>
-                </div>
-
-                {formData.from_location_id === 'other' && (
-                  <div>
-                    <label htmlFor="from_other_location" className="block text-sm font-medium text-gray-700 mb-2">
-                      移動元のその他の場所名 <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="from_other_location"
-                      name="from_other_location"
-                      value={formData.from_other_location}
-                      onChange={handleChange}
-                      required
-                      maxLength={100}
-                      className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="例: ○○商事（取引先）"
-                    />
+                  <div className="block w-full border border-gray-200 rounded-md px-3 py-2 bg-gray-50 text-gray-700">
+                    {selectedEquipment?.sites?.name ||
+                     (formData.from_location_id === 'other' ? 'その他の場所' : '現在地情報なし')}
                   </div>
-                )}
+                  <p className="mt-1 text-xs text-gray-500">選択した重機の現在地が自動的に設定されます</p>
+                  <input type="hidden" name="from_location_id" value={formData.from_location_id} />
+                </div>
               </div>
 
               <div className="space-y-3">
