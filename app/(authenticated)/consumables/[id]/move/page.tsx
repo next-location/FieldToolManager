@@ -48,12 +48,13 @@ export default async function ConsumableMovePage({
     .eq('tool_id', id)
     .eq('organization_id', organizationId)
 
-  // 現場一覧を取得
+  // 顧客現場一覧を取得（自社拠点は除外）
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name, is_active')
     .eq('organization_id', organizationId)
     .eq('is_active', true)
+    .eq('is_own_location', false)
     .is('deleted_at', null)
     .order('name')
 
@@ -83,7 +84,7 @@ export default async function ConsumableMovePage({
               {consumable.name} - 移動
             </h2>
             <p className="mt-1 text-sm text-gray-500">
-              倉庫と現場の間で消耗品を移動します
+              自社拠点と顧客現場の間で消耗品を移動します
             </p>
           </div>
 
@@ -94,7 +95,7 @@ export default async function ConsumableMovePage({
             </h3>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">倉庫:</span>
+                <span className="text-gray-600">自社拠点:</span>
                 <span className="font-medium">
                   {warehouseInventory?.quantity || 0} {consumable.unit}
                 </span>

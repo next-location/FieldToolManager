@@ -76,12 +76,13 @@ export default async function NewMovementPage({
     .is('deleted_at', null)
     .order('serial_number')
 
-  // 現場一覧を取得
+  // 顧客現場一覧を取得（自社拠点は除外）
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name')
     .eq('organization_id', organizationId)
     .eq('is_active', true)
+    .eq('is_own_location', false)
     .is('deleted_at', null)
     .order('name')
 

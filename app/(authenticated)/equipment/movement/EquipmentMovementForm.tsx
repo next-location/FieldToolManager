@@ -96,7 +96,7 @@ export default function EquipmentMovementForm({
   const filteredEquipment = equipment.filter(equip => {
     // アクションタイプによるステータスフィルター
     if (formData.action_type === 'checkout') {
-      // 持出: 倉庫にある利用可能な重機のみ
+      // 持出: 自社拠点にある利用可能な重機のみ
       if (equip.status !== 'available') return false
     } else if (formData.action_type === 'checkin') {
       // 返却: 使用中の重機のみ
@@ -275,7 +275,7 @@ export default function EquipmentMovementForm({
         newUserId = currentUserId
       } else if (formData.action_type === 'checkin') {
         newStatus = 'available'
-        // 返却: 倉庫に戻すのでnull
+        // 返却: 自社拠点に戻すのでnull
         newLocationId = null
         newUserId = null
       } else if (formData.action_type === 'transfer') {
@@ -470,7 +470,7 @@ export default function EquipmentMovementForm({
                               update.from_other_location = otherLocationName
                             }
                           }
-                          // checkout の場合は現在地設定不要（倉庫から持ち出すため）
+                          // checkout の場合は現在地設定不要（自社拠点から持ち出すため）
 
                           return update
                         })

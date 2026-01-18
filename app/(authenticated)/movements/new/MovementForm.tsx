@@ -111,10 +111,10 @@ export function MovementForm({
   const movementTypeLabel = () => {
     const type = getMovementType()
     if (correctionMode) return '🔧 位置修正'
-    if (type === 'warehouse_move') return '📦 倉庫内移動'
-    if (type === 'check_out') return '🔵 持ち出し（倉庫→現場）'
-    if (type === 'check_in') return '🟢 返却（現場→倉庫）'
-    if (type === 'transfer') return '🔄 移動（現場→現場）'
+    if (type === 'warehouse_move') return '📦 拠点内移動（自社拠点内）'
+    if (type === 'check_out') return '🔵 持ち出し（自社拠点→顧客現場）'
+    if (type === 'check_in') return '🟢 返却（顧客現場→自社拠点）'
+    if (type === 'transfer') return '🔄 移動（顧客現場→顧客現場）'
     if (type === 'repair') return '🔧 修理に出す'
     if (type === 'return_from_repair') return '✅ 修理から戻る'
     return '移動先を選択してください'
@@ -389,7 +389,8 @@ export function MovementForm({
                     }`}
                   >
                     <div className="text-2xl mb-1">🏢</div>
-                    <div className="font-medium">倉庫</div>
+                    <div className="font-medium">自社拠点</div>
+                    <div className="text-xs text-gray-500 mt-1">本社・支社・倉庫</div>
                   </button>
 
                   <button
@@ -402,7 +403,8 @@ export function MovementForm({
                     }`}
                   >
                     <div className="text-2xl mb-1">🏗️</div>
-                    <div className="font-medium">現場</div>
+                    <div className="font-medium">顧客現場</div>
+                    <div className="text-xs text-gray-500 mt-1">工事現場</div>
                   </button>
 
                   <button
@@ -422,11 +424,11 @@ export function MovementForm({
                   </button>
                 </div>
 
-                {/* 現場選択 */}
+                {/* 顧客現場選択 */}
                 {destination === 'site' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      現場 <span className="text-red-500">*</span>
+                      顧客現場 <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={toSiteId}
@@ -434,7 +436,7 @@ export function MovementForm({
                       required
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">現場を選択してください</option>
+                      <option value="">顧客現場を選択してください</option>
                       {sites.map((site) => (
                         <option key={site.id} value={site.id}>
                           {site.name}
@@ -444,21 +446,21 @@ export function MovementForm({
                   </div>
                 )}
 
-                {/* 倉庫位置選択（オプション） */}
+                {/* 自社拠点の倉庫位置選択（オプション） */}
                 {destination === 'warehouse' && warehouseLocations.length > 0 && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      倉庫位置（オプション）
+                      倉庫内の位置（オプション）
                     </label>
                     <select
                       value={warehouseLocationId}
                       onChange={(e) => setWarehouseLocationId(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">倉庫位置を選択（任意）</option>
-                      {/* 会社メイン倉庫の位置 */}
+                      <option value="">倉庫内の位置を選択（任意）</option>
+                      {/* 本社（メイン倉庫）の位置 */}
                       {warehouseLocations.filter(loc => !loc.site_id).length > 0 && (
-                        <optgroup label="━━ 会社（メイン倉庫） ━━">
+                        <optgroup label="━━ 本社（メイン倉庫） ━━">
                           {warehouseLocations.filter(loc => !loc.site_id).map((location) => (
                             <option key={location.id} value={location.id}>
                               {location.code} - {location.display_name}
@@ -466,7 +468,7 @@ export function MovementForm({
                           ))}
                         </optgroup>
                       )}
-                      {/* 各拠点の倉庫位置 */}
+                      {/* 各拠点（支社・営業所など）の倉庫位置 */}
                       {Array.from(new Set(warehouseLocations.filter(loc => loc.site_id).map(loc => loc.site_id))).map((siteId) => {
                         const siteLocations = warehouseLocations.filter(loc => loc.site_id === siteId)
                         const siteName = siteLocations[0]?.sites?.name || '不明な拠点'
