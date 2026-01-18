@@ -48,6 +48,15 @@ export default async function ConsumableBulkMovementPage() {
     .is('deleted_at', null)
     .order('name')
 
+  // 倉庫位置一覧を取得
+  const { data: warehouseLocations } = await supabase
+    .from('warehouse_locations')
+    .select('id, code, display_name')
+    .eq('organization_id', organizationId)
+    .eq('is_active', true)
+    .is('deleted_at', null)
+    .order('code')
+
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 pt-3 sm:px-0 sm:py-6">
@@ -63,6 +72,7 @@ export default async function ConsumableBulkMovementPage() {
             consumables={consumables || []}
             sites={sites || []}
             inventories={inventories || []}
+            warehouseLocations={warehouseLocations || []}
           />
         </div>
       </div>
