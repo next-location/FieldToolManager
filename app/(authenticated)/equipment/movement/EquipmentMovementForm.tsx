@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -59,8 +59,57 @@ export default function EquipmentMovementForm({
     notes: '',
   })
 
+  const [equipmentSearch, setEquipmentSearch] = useState('')
+  const [showEquipmentList, setShowEquipmentList] = useState(false)
+  const equipmentDropdownRef = useRef<HTMLDivElement>(null)
+
   // 選択された重機の情報
   const selectedEquipment = equipment.find(e => e.id === formData.equipment_id)
+
+  // ドロップダウン外側クリック検知
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (equipmentDropdownRef.current && !equipmentDropdownRef.current.contains(event.target as Node)) {
+        setShowEquipmentList(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  // ひらがな・カタカナ変換関数
+  const toKatakana = (str: string) => {
+    return str.replace(/[\u3041-\u3096]/g, (match) =>
+      String.fromCharCode(match.charCodeAt(0) + 0x60)
+    )
+  }
+
+  const toHiragana = (str: string) => {
+    return str.replace(/[\u30a1-\u30f6]/g, (match) =>
+      String.fromCharCode(match.charCodeAt(0) - 0x60)
+    )
+  }
+
+  // 重機検索フィルター（ひらがな・カタカナ両対応）
+  const filteredEquipment = equipment.filter(equip => {
+    if (!equipmentSearch.trim()) return true
+    const searchLower = equipmentSearch.toLowerCase()
+    const searchKatakana = toKatakana(searchLower)
+    const searchHiragana = toHiragana(searchLower)
+
+    const targetText = `${equip.equipment_code} ${equip.name} ${equip.heavy_equipment_categories?.name || ''}`.toLowerCase()
+    const targetKatakana = toKatakana(targetText)
+    const targetHiragana = toHiragana(targetText)
+
+    return targetText.includes(searchLower) ||
+           targetText.includes(searchKatakana) ||
+           targetText.includes(searchHiragana) ||
+           targetKatakana.includes(searchLower) ||
+           targetKatakana.includes(searchKatakana) ||
+           targetHiragana.includes(searchLower) ||
+           targetHiragana.includes(searchHiragana)
+  })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -218,6 +267,8 @@ export default function EquipmentMovementForm({
         hour_meter_reading: '',
         notes: '',
       })
+      setEquipmentSearch('')
+      setShowEquipmentList(false)
 
       // 画面をリフレッシュ
       router.refresh()
@@ -311,26 +362,63 @@ export default function EquipmentMovementForm({
           </div>
 
           {/* 重機選択 */}
-          <div>
-            <label htmlFor="equipment_id" className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="relative" ref={equipmentDropdownRef}>
+            <label htmlFor="equipment_search" className="block text-sm font-medium text-gray-700 mb-2">
               重機 <span className="text-red-500">*</span>
             </label>
-            <select
-              id="equipment_id"
-              name="equipment_id"
-              value={formData.equipment_id}
-              onChange={handleChange}
-              required
+            <input
+              type="text"
+              id="equipment_search"
+              value={equipmentSearch}
+              onChange={(e) => {
+                setEquipmentSearch(e.target.value)
+                setShowEquipmentList(true)
+              }}
+              onFocus={() => setShowEquipmentList(true)}
+              placeholder="重機名、重機コード、カテゴリで検索..."
               className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">選択してください</option>
-              {equipment.map((equip) => (
-                <option key={equip.id} value={equip.id}>
-                  {equip.equipment_code} - {equip.name}
-                  {equip.sites && ` (現在地: ${equip.sites.name})`}
-                </option>
-              ))}
-            </select>
+            />
+            <input type="hidden" name="equipment_id" value={formData.equipment_id} required />
+
+            {/* 検索結果ドロップダウン */}
+            {showEquipmentList && equipmentSearch && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                {filteredEquipment.length > 0 ? (
+                  filteredEquipment.map((equip) => (
+                    <button
+                      key={equip.id}
+                      type="button"
+                      onClick={() => {
+                        setFormData(prev => ({
+                          ...prev,
+                          equipment_id: equip.id,
+                          from_location_id: equip.current_location_id || '',
+                          hour_meter_reading: equip.current_hour_meter?.toString() || '',
+                        }))
+                        setEquipmentSearch(`${equip.equipment_code} - ${equip.name}`)
+                        setShowEquipmentList(false)
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 border-b border-gray-200"
+                    >
+                      <div className="font-medium text-sm">
+                        {equip.equipment_code} - {equip.name}
+                      </div>
+                      {equip.sites && (
+                        <div className="text-xs text-gray-500">現在地: {equip.sites.name}</div>
+                      )}
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-4 py-3 text-sm text-gray-500">該当する重機が見つかりません</div>
+                )}
+              </div>
+            )}
+
+            {selectedEquipment && !showEquipmentList && (
+              <p className="mt-1 text-xs text-gray-500">
+                選択中: {selectedEquipment.equipment_code} - {selectedEquipment.name}
+              </p>
+            )}
           </div>
 
           {/* 選択された重機の情報表示 */}
