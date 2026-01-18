@@ -34,9 +34,10 @@ interface StaffListClientProps {
     current_count: number
   } | null
   departments: string[]
+  isImpersonating: boolean
 }
 
-export function StaffListClient({ userRole, organization, departments }: StaffListClientProps) {
+export function StaffListClient({ userRole, organization, departments, isImpersonating }: StaffListClientProps) {
   const [staff, setStaff] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -252,17 +253,19 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
             <>
               {/* PC表示: 従来通り横並び */}
               <div className="hidden sm:flex space-x-2">
-                <button
-                  onClick={() => setIsBulkImportModalOpen(true)}
-                  disabled={usagePercent >= 100}
-                  className={`px-4 py-2 text-sm font-medium rounded-md shadow-sm ${
-                    usagePercent >= 100
-                      ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                      : 'bg-purple-600 text-white hover:bg-purple-700'
-                  }`}
-                >
-                  CSVインポート
-                </button>
+                {isImpersonating && (
+                  <button
+                    onClick={() => setIsBulkImportModalOpen(true)}
+                    disabled={usagePercent >= 100}
+                    className={`px-4 py-2 text-sm font-medium rounded-md shadow-sm ${
+                      usagePercent >= 100
+                        ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                        : 'bg-purple-600 text-white hover:bg-purple-700'
+                    }`}
+                  >
+                    CSVインポート
+                  </button>
+                )}
                 <button
                   onClick={() => setIsPermissionMatrixOpen(true)}
                   className="px-4 py-2 text-sm font-medium rounded-md shadow-sm bg-purple-600 text-white hover:bg-purple-700"
@@ -285,7 +288,7 @@ export function StaffListClient({ userRole, organization, departments }: StaffLi
               {/* スマホ表示: 3点メニューのみ */}
               <div className="sm:hidden">
                 <StaffPageMobileMenu
-                  onCsvImport={() => setIsBulkImportModalOpen(true)}
+                  onCsvImport={isImpersonating ? () => setIsBulkImportModalOpen(true) : undefined}
                   onPermissions={() => setIsPermissionMatrixOpen(true)}
                   disabled={usagePercent >= 100}
                 />

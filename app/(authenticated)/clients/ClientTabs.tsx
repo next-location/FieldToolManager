@@ -12,9 +12,10 @@ type TabType = 'all' | 'customer' | 'supplier' | 'partner' | 'both'
 interface ClientTabsProps {
   clients: Client[]
   initialTab?: TabType
+  isImpersonating: boolean
 }
 
-export function ClientTabs({ clients, initialTab = 'all' }: ClientTabsProps) {
+export function ClientTabs({ clients, initialTab = 'all', isImpersonating }: ClientTabsProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState<TabType>(initialTab)
@@ -119,6 +120,7 @@ export function ClientTabs({ clients, initialTab = 'all' }: ClientTabsProps) {
           <h1 className="text-lg sm:text-2xl font-bold text-gray-900">取引先マスタ</h1>
           <div className="hidden sm:flex gap-3">
             <ImportExportButtons
+              isImpersonating={isImpersonating}
               filters={{
                 client_type: activeTab !== 'all' ? activeTab : undefined,
                 is_active: 'true',
@@ -134,6 +136,7 @@ export function ClientTabs({ clients, initialTab = 'all' }: ClientTabsProps) {
           <div className="sm:hidden">
             <ImportExportButtons
               mobileMenuOnly
+              isImpersonating={isImpersonating}
               filters={{
                 client_type: activeTab !== 'all' ? activeTab : undefined,
                 is_active: 'true',

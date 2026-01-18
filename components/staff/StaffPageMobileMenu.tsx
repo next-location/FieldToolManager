@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { MoreVertical, Upload, Shield } from 'lucide-react'
 
 interface StaffPageMobileMenuProps {
-  onCsvImport: () => void
+  onCsvImport?: () => void
   onPermissions: () => void
   disabled?: boolean
 }
@@ -46,17 +46,19 @@ export default function StaffPageMobileMenu({
       {isOpen && (
         <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
           <div className="py-1">
-            <button
-              onClick={() => {
-                onCsvImport()
-                setIsOpen(false)
-              }}
-              disabled={disabled}
-              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              CSVインポート
-            </button>
+            {onCsvImport && (
+              <button
+                onClick={() => {
+                  onCsvImport()
+                  setIsOpen(false)
+                }}
+                disabled={disabled}
+                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                CSVインポート
+              </button>
+            )}
             <button
               onClick={() => {
                 onPermissions()

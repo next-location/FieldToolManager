@@ -6,13 +6,14 @@ import ClientsPageMobileMenu from '@/components/clients/ClientsPageMobileMenu'
 
 interface ImportExportButtonsProps {
   mobileMenuOnly?: boolean
+  isImpersonating: boolean
   filters?: {
     client_type?: string
     is_active?: string
   }
 }
 
-export default function ImportExportButtons({ mobileMenuOnly = false, filters }: ImportExportButtonsProps) {
+export default function ImportExportButtons({ mobileMenuOnly = false, isImpersonating, filters }: ImportExportButtonsProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [importing, setImporting] = useState(false)
@@ -96,6 +97,11 @@ export default function ImportExportButtons({ mobileMenuOnly = false, filters }:
     } finally {
       setImporting(false)
     }
+  }
+
+  // なりすまし時のみ表示
+  if (!isImpersonating) {
+    return null
   }
 
   // モバイルメニューモードの場合

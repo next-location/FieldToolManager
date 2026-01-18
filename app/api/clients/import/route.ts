@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { verifySessionToken } from '@/lib/auth/impersonation'
+import { cookies } from 'next/headers'
 
 export async function POST(request: Request) {
   try {
@@ -12,6 +14,20 @@ export async function POST(request: Request) {
 
     if (!user) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
+    }
+
+    // なりすましログインチェック
+    const cookieStore = await cookies()
+    const impersonationToken = cookieStore.get('impersonation_session')?.value
+    const impersonationSession = impersonationToken
+      ? await verifySessionToken(impersonationToken)
+      : null
+
+    if (!impersonationSession) {
+      return NextResponse.json(
+        { error: 'この機能はスーパー管理者のなりすましログイン時のみ利用できます' },
+        { status: 403 }
+      )
     }
 
     // ユーザー情報取得

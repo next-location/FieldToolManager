@@ -2,6 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { verifySessionToken } from '@/lib/auth/impersonation'
+import { cookies } from 'next/headers'
 
 type ToolMasterImportData = {
   name: string
@@ -26,6 +28,17 @@ export async function importToolMastersFromCSV(toolMasters: ToolMasterImportData
 
   if (!user) {
     return { error: '認証が必要です' }
+  }
+
+  // なりすましログインチェック
+  const cookieStore = await cookies()
+  const impersonationToken = cookieStore.get('impersonation_session')?.value
+  const impersonationSession = impersonationToken
+    ? await verifySessionToken(impersonationToken)
+    : null
+
+  if (!impersonationSession) {
+    return { error: 'この機能はスーパー管理者のなりすましログイン時のみ利用できます' }
   }
 
   // ユーザー情報取得

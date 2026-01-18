@@ -16,7 +16,7 @@ export default async function ClientsPage({
   const clientType = (params.client_type || 'all') as 'all' | ClientType
   const search = params.search || ''
 
-  const { organizationId, userRole, supabase } = await requireAuth()
+  const { organizationId, userRole, supabase, isImpersonating } = await requireAuth()
 
   // 管理者権限チェック
   if (userRole !== 'admin') {
@@ -44,7 +44,7 @@ export default async function ClientsPage({
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 pb-6 sm:px-0 sm:py-6">
         {/* タブ付き取引先一覧 */}
-        <ClientTabs clients={clients || []} initialTab={clientType} />
+        <ClientTabs clients={clients || []} initialTab={clientType} isImpersonating={isImpersonating} />
       </div>
     </div>
   )

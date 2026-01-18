@@ -3,9 +3,14 @@ import { requireAuth } from '@/lib/auth/page-auth'
 import { CSVImportClient } from './CSVImportClient'
 
 export default async function CSVImportPage() {
-  const { userId, organizationId, userRole, supabase } = await requireAuth()
+  const { userId, organizationId, userRole, supabase, isImpersonating } = await requireAuth()
 
   // ユーザー情報を取得
+
+  // なりすましログイン時のみアクセス可能
+  if (!isImpersonating) {
+    redirect('/')
+  }
 
   // 管理者権限チェック
   if (!['admin', 'super_admin'].includes(userRole)) {

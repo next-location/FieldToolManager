@@ -3,7 +3,7 @@ import { requireAuth } from '@/lib/auth/page-auth'
 import { StaffListClient } from './StaffListClient'
 
 export default async function StaffPage() {
-  const { userId, organizationId, userRole, supabase } = await requireAuth()
+  const { userId, organizationId, userRole, supabase, isImpersonating } = await requireAuth()
 
   // 契約情報取得（プラン上限確認用）
   const { data: contract } = await supabase
@@ -46,6 +46,7 @@ export default async function StaffPage() {
               : null
           }
           departments={uniqueDepartments}
+          isImpersonating={isImpersonating}
         />
       </div>
     </div>
