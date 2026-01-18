@@ -26,26 +26,17 @@ export async function moveConsumable(formData: FormData) {
   }
 
   const consumableId = formData.get('consumableId') as string
-  const direction = formData.get('direction') as 'to_site' | 'from_site'
-  const siteId = formData.get('siteId') as string
-  const trackingMode = formData.get('trackingMode') as
-    | 'quantity'
-    | 'simple'
-    | 'none'
+  const fromType = formData.get('fromType') as 'warehouse' | 'site'
+  const toType = formData.get('toType') as 'warehouse' | 'site'
+  const fromSiteId = formData.get('fromSiteId') as string | null
+  const toSiteId = formData.get('toSiteId') as string | null
+  const fromWarehouseLocationId = formData.get('fromWarehouseLocationId') as string | null
+  const toWarehouseLocationId = formData.get('toWarehouseLocationId') as string | null
+  const trackingMode = formData.get('trackingMode') as 'quantity' | 'simple' | 'none'
   const quantity = formData.get('quantity')
     ? parseInt(formData.get('quantity') as string)
     : null
   const notes = formData.get('notes') as string
-
-  // 移動元と移動先のlocation_idを決定
-  const fromLocationId = direction === 'to_site' ? null : siteId // nullの場合は倉庫（後で自社倉庫IDに変更予定）
-  const toLocationId = direction === 'to_site' ? siteId : null
-
-  // 旧式のlocation_typeとsite_id（後方互換性のため維持）
-  const fromLocation = direction === 'to_site' ? 'warehouse' : 'site'
-  const toLocation = direction === 'to_site' ? 'site' : 'warehouse'
-  const fromSiteId = direction === 'from_site' ? siteId : null
-  const toSiteId = direction === 'to_site' ? siteId : null
 
   // quantity モードの場合は在庫を更新
   if (trackingMode === 'quantity' && quantity) {
@@ -55,13 +46,18 @@ export async function moveConsumable(formData: FormData) {
       .select('*')
       .eq('tool_id', consumableId)
       .eq('organization_id', userData?.organization_id)
-      .eq('location_type', fromLocation)
+      .eq('location_type', fromType)
 
-    // site_idの条件を追加（NULLの場合は.is()を使用）
-    if (fromSiteId) {
+    // 移動元の条件を追加
+    if (fromType === 'site' && fromSiteId) {
       sourceInventoryQuery = sourceInventoryQuery.eq('site_id', fromSiteId)
-    } else {
+    } else if (fromType === 'warehouse') {
       sourceInventoryQuery = sourceInventoryQuery.is('site_id', null)
+      if (fromWarehouseLocationId) {
+        sourceInventoryQuery = sourceInventoryQuery.eq('warehouse_location_id', fromWarehouseLocationId)
+      } else {
+        sourceInventoryQuery = sourceInventoryQuery.is('warehouse_location_id', null)
+      }
     }
 
     const { data: sourceInventory } = await sourceInventoryQuery.single()
@@ -80,18 +76,22 @@ export async function moveConsumable(formData: FormData) {
       .select('*')
       .eq('tool_id', consumableId)
       .eq('organization_id', userData?.organization_id)
-      .eq('location_type', toLocation)
+      .eq('location_type', toType)
 
-    // site_idの条件を追加（NULLの場合は.is()を使用）
-    if (toSiteId) {
+    // 移動先の条件を追加
+    if (toType === 'site' && toSiteId) {
       destInventoryQuery = destInventoryQuery.eq('site_id', toSiteId)
-    } else {
+    } else if (toType === 'warehouse') {
       destInventoryQuery = destInventoryQuery.is('site_id', null)
+      if (toWarehouseLocationId) {
+        destInventoryQuery = destInventoryQuery.eq('warehouse_location_id', toWarehouseLocationId)
+      } else {
+        destInventoryQuery = destInventoryQuery.is('warehouse_location_id', null)
+      }
     }
 
     const { data: destInventory } = await destInventoryQuery.single()
 
-    // トランザクション的に更新
     // 移動元の在庫を減らす
     const newSourceQuantity = sourceInventory.quantity - quantity
     if (newSourceQuantity === 0) {
@@ -139,10 +139,10 @@ export async function moveConsumable(formData: FormData) {
         .insert({
           organization_id: userData?.organization_id,
           tool_id: consumableId,
-          location_type: toLocation,
-          site_id: toSiteId,
-          location_id: toLocationId, // 新カラム
-          warehouse_location_id: null,
+          location_type: toType,
+          site_id: toType === 'site' ? toSiteId : null,
+          location_id: toType === 'site' ? toSiteId : null,
+          warehouse_location_id: toType === 'warehouse' ? toWarehouseLocationId : null,
           quantity: quantity,
         })
 
@@ -160,12 +160,12 @@ export async function moveConsumable(formData: FormData) {
         organization_id: userData?.organization_id,
         tool_id: consumableId,
         movement_type: '移動',
-        from_location_type: fromLocation, // 旧カラム（後方互換性のため維持）
-        from_site_id: fromSiteId, // 旧カラム
-        from_location_id: fromLocationId, // 新カラム
-        to_location_type: toLocation, // 旧カラム
-        to_site_id: toSiteId, // 旧カラム
-        to_location_id: toLocationId, // 新カラム
+        from_location_type: fromType,
+        from_site_id: fromType === 'site' ? fromSiteId : null,
+        from_location_id: fromType === 'site' ? fromSiteId : null,
+        to_location_type: toType,
+        to_site_id: toType === 'site' ? toSiteId : null,
+        to_location_id: toType === 'site' ? toSiteId : null,
         quantity: trackingMode === 'quantity' ? quantity : 1,
         performed_by: user.id,
         notes: notes || null,

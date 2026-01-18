@@ -58,6 +58,15 @@ export default async function ConsumableMovePage({
     .is('deleted_at', null)
     .order('name')
 
+  // 倉庫位置一覧を取得
+  const { data: warehouseLocations } = await supabase
+    .from('warehouse_locations')
+    .select('id, code, display_name')
+    .eq('organization_id', organizationId)
+    .eq('is_active', true)
+    .is('deleted_at', null)
+    .order('code')
+
   // 倉庫在庫
   const warehouseInventory =
     inventories?.find((inv) => inv.location_type === 'warehouse') || null
@@ -130,6 +139,7 @@ export default async function ConsumableMovePage({
             warehouseInventory={warehouseInventory}
             siteInventories={siteInventories}
             sites={sites || []}
+            warehouseLocations={warehouseLocations || []}
             trackingMode={
               organization?.consumable_movement_tracking || 'quantity'
             }
