@@ -104,9 +104,6 @@ export default async function LocationsSettingsPage() {
                       <h2 className="text-base font-semibold text-gray-900">
                         {SITE_TYPE_LABELS[type]}
                       </h2>
-                      <span className="ml-2 text-sm text-gray-500">
-                        ({typeLocations.length})
-                      </span>
                     </div>
                   </div>
                   <ul className="divide-y divide-gray-200">
@@ -154,15 +151,6 @@ export default async function LocationsSettingsPage() {
             })}
           </div>
         )}
-
-        <div className="mt-6">
-          <Link
-            href="/settings/organization"
-            className="text-sm text-blue-600 hover:text-blue-700"
-          >
-            ← 運用設定に戻る
-          </Link>
-        </div>
       </div>
     </div>
   )
