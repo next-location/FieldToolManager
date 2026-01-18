@@ -53,6 +53,7 @@ export function ConsumableBulkMovementForm({
   const [showCamera, setShowCamera] = useState(false)
   const [scanSuccess, setScanSuccess] = useState(false)
   const [lastScannedConsumable, setLastScannedConsumable] = useState<string | null>(null)
+  const [quantityErrors, setQuantityErrors] = useState<string[]>([])
 
   // QRコードスキャン処理
   const handleQrScan = async (qrCode: string): Promise<{ success: boolean; message?: string }> => {
@@ -111,6 +112,10 @@ export function ConsumableBulkMovementForm({
         sc.consumableId === consumableId ? { ...sc, quantity } : sc
       )
     )
+    // 数量を入力したらそのアイテムのエラーを削除
+    if (quantity > 0) {
+      setQuantityErrors(quantityErrors.filter(id => id !== consumableId))
+    }
   }
 
   // すべてクリア
@@ -123,6 +128,7 @@ export function ConsumableBulkMovementForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    setQuantityErrors([])
 
     // バリデーション
     if (!siteId) {
@@ -138,6 +144,7 @@ export function ConsumableBulkMovementForm({
     // 数量が0の消耗品がないかチェック
     const invalidItems = selectedConsumables.filter(sc => sc.quantity === 0)
     if (invalidItems.length > 0) {
+      setQuantityErrors(invalidItems.map(item => item.consumableId))
       setError('すべての消耗品の個数を入力してください')
       return
     }
@@ -507,27 +514,36 @@ export function ConsumableBulkMovementForm({
                   )}
                 </div>
                 <div className="flex items-center space-x-3">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="number"
-                      min="1"
-                      value={quantity === 0 ? '' : quantity}
-                      placeholder="個数"
-                      onChange={(e) => {
-                        const value = e.target.value
-                        if (value === '') {
-                          handleUpdateQuantity(consumableId, 0)
-                          return
-                        }
-                        const numValue = parseInt(value)
-                        if (!isNaN(numValue) && numValue >= 0) {
-                          handleUpdateQuantity(consumableId, numValue)
-                        }
-                      }}
-                      className="w-20 px-2 py-1 border border-gray-300 rounded text-center"
-                      disabled={isSubmitting}
-                    />
-                    <span className="text-sm text-gray-600">{consumable.unit}</span>
+                  <div className="flex flex-col items-end space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="number"
+                        min="1"
+                        value={quantity === 0 ? '' : quantity}
+                        placeholder="個数"
+                        onChange={(e) => {
+                          const value = e.target.value
+                          if (value === '') {
+                            handleUpdateQuantity(consumableId, 0)
+                            return
+                          }
+                          const numValue = parseInt(value)
+                          if (!isNaN(numValue) && numValue >= 0) {
+                            handleUpdateQuantity(consumableId, numValue)
+                          }
+                        }}
+                        className={`w-20 px-2 py-1 border rounded text-center ${
+                          quantityErrors.includes(consumableId)
+                            ? 'border-red-300 bg-red-50'
+                            : 'border-gray-300'
+                        }`}
+                        disabled={isSubmitting}
+                      />
+                      <span className="text-sm text-gray-600">{consumable.unit}</span>
+                    </div>
+                    {quantityErrors.includes(consumableId) && (
+                      <p className="text-xs text-red-600">消耗品の数を入力してください</p>
+                    )}
                   </div>
                   <button
                     type="button"
