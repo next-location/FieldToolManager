@@ -42,7 +42,7 @@ export function DeleteConsumableButton({
     return (
       <button
         onClick={() => setShowConfirm(true)}
-        className="inline-flex items-center px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50"
+        className="inline-flex items-center justify-center px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50"
       >
         削除
       </button>
