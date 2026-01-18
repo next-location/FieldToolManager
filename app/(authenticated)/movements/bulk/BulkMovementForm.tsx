@@ -23,6 +23,11 @@ interface ToolItem {
     id: string
     name: string
   }[] | null
+  warehouse_location?: {
+    id: string
+    code: string
+    display_name: string
+  } | null
   inToolSet?: boolean
   toolSetName?: string | null
 }
@@ -682,7 +687,9 @@ export function BulkMovementForm({
                           <div className="text-xs text-gray-500">
                             現在位置:{' '}
                             {tool.current_location === 'warehouse'
-                              ? '倉庫'
+                              ? tool.warehouse_location
+                                ? `倉庫（${tool.warehouse_location.code} - ${tool.warehouse_location.display_name}）`
+                                : '倉庫'
                               : tool.current_location === 'site'
                               ? (tool.current_site?.[0]?.name || '現場')
                               : '修理中'}
@@ -809,7 +816,9 @@ export function BulkMovementForm({
                   <div className="text-xs text-gray-500">
                     現在位置:{' '}
                     {tool.current_location === 'warehouse'
-                      ? '倉庫'
+                      ? tool.warehouse_location
+                        ? `倉庫（${tool.warehouse_location.code} - ${tool.warehouse_location.display_name}）`
+                        : '倉庫'
                       : tool.current_location === 'site'
                       ? (tool.current_site?.[0]?.name || '現場')
                       : '修理中'}

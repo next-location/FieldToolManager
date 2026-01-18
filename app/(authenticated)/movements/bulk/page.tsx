@@ -29,7 +29,8 @@ export default async function BulkMovementPage({
       warehouse_location_id,
       status,
       tool_id,
-      current_site:sites!tool_items_current_site_id_fkey (id, name)
+      current_site:sites!tool_items_current_site_id_fkey (id, name),
+      warehouse_location:warehouse_locations!tool_items_warehouse_location_id_fkey (id, code, display_name)
     `)
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
