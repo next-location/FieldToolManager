@@ -265,8 +265,9 @@ export function ConsumableBulkMovementForm({
         })
       }
 
-      // 成功したら消耗品一覧にリダイレクト
-      router.push('/consumables')
+      // 成功したら移動履歴ページ（消耗品タブ）にリダイレクト
+      const successMessage = `${selectedConsumables.length}件の消耗品移動が完了しました`
+      router.push(`/movements?tab=consumable&success=${encodeURIComponent(successMessage)}`)
       router.refresh()
     } catch (err: any) {
       console.error('移動エラー:', err)
@@ -481,16 +482,19 @@ export function ConsumableBulkMovementForm({
                       value={quantity}
                       onChange={(e) => {
                         const value = e.target.value
+                        // 空文字列の場合は何も入力していない状態として扱う
                         if (value === '') {
-                          // 空の場合は一時的に許可（focusが外れた時に1に戻る）
-                          handleUpdateQuantity(consumableId, 0)
-                        } else {
-                          handleUpdateQuantity(consumableId, parseInt(value) || 1)
+                          return
+                        }
+                        const numValue = parseInt(value)
+                        if (!isNaN(numValue) && numValue >= 1) {
+                          handleUpdateQuantity(consumableId, numValue)
                         }
                       }}
                       onBlur={(e) => {
-                        // focusが外れた時に0なら1に戻す
-                        if (parseInt(e.target.value) === 0 || e.target.value === '') {
+                        // focusが外れた時に空または0なら1に戻す
+                        const value = e.target.value
+                        if (value === '' || parseInt(value) === 0 || isNaN(parseInt(value))) {
                           handleUpdateQuantity(consumableId, 1)
                         }
                       }}

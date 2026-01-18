@@ -76,12 +76,18 @@ export function MovementTabs({
   equipmentMovements,
   heavyEquipmentEnabled
 }: MovementTabsProps) {
-  const [activeTab, setActiveTab] = useState<TabType>('tool')
   const searchParams = useSearchParams()
+  const tabParam = searchParams.get('tab') as TabType | null
+  const [activeTab, setActiveTab] = useState<TabType>(tabParam || 'tool')
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
-  // URLパラメータから成功メッセージを取得
+  // URLパラメータから成功メッセージとタブを取得
   useEffect(() => {
+    const tab = searchParams.get('tab') as TabType | null
+    if (tab && (tab === 'tool' || tab === 'consumable' || tab === 'equipment')) {
+      setActiveTab(tab)
+    }
+
     const success = searchParams.get('success')
     if (success) {
       setSuccessMessage(decodeURIComponent(success))
@@ -175,98 +181,65 @@ export function MovementTabs({
         {/* タブコンテンツ */}
         {activeTab === 'equipment' ? (
           <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-            {/* PC: Table view */}
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      日時
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      種別
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      重機
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      移動元
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      移動先
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      実施者
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {equipmentMovements && equipmentMovements.length > 0 ? (
-                    equipmentMovements.map((movement) => (
-                      <tr key={movement.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {new Date(movement.action_at).toLocaleString('ja-JP')}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+            {/* Card view (PC & Mobile) */}
+            <div className="divide-y divide-gray-200">
+              {equipmentMovements && equipmentMovements.length > 0 ? (
+                equipmentMovements.map((movement) => (
+                  <div key={movement.id} className="p-4 sm:p-6 hover:bg-gray-50">
+                    {/* ヘッダー: 重機名と日時 */}
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        {movement.heavy_equipment ? (
+                          <div className="text-base font-semibold text-gray-900">
+                            {movement.heavy_equipment.equipment_code} - {movement.heavy_equipment.name}
+                          </div>
+                        ) : (
+                          <div className="text-base font-semibold text-gray-500">削除済み</div>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 ml-4 whitespace-nowrap">
+                        {new Date(movement.action_at).toLocaleString('ja-JP', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
+                    </div>
+
+                    {/* 詳細情報 */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                      <div className="flex items-center">
+                        <span className="text-gray-500 w-16">種別:</span>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                           {movement.action_type === 'checkout' ? '🏗️ 持出' :
                            movement.action_type === 'checkin' ? '🏢 返却' :
                            movement.action_type === 'transfer' ? '🔄 移動' : movement.action_type}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          {movement.heavy_equipment ? (
-                            <span className="text-gray-900">
-                              {movement.heavy_equipment.equipment_code} - {movement.heavy_equipment.name}
-                            </span>
-                          ) : (
-                            <span className="text-gray-500">削除済み</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {movement.from_site?.name || '倉庫'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {movement.to_site?.name || '倉庫'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {movement.users?.name || '-'}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="px-6 py-12 text-center text-gray-500"
-                      >
-                        重機の移動履歴がありません
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Mobile: Card view */}
-            <div className="sm:hidden divide-y divide-gray-200">
-              {equipmentMovements && equipmentMovements.length > 0 ? (
-                equipmentMovements.map((movement) => (
-                  <div key={movement.id} className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="text-sm font-medium text-gray-900">
-                        {movement.heavy_equipment ? `${movement.heavy_equipment.equipment_code} - ${movement.heavy_equipment.name}` : '削除済み'}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {new Date(movement.action_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                    <div className="space-y-1 text-sm text-gray-600">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
-                          {movement.action_type === 'checkout' ? '持出' : movement.action_type === 'checkin' ? '返却' : '移動'}
                         </span>
-                        <span>{movement.from_site?.name || '倉庫'} → {movement.to_site?.name || '倉庫'}</span>
                       </div>
-                      <div className="text-xs text-gray-500">実施者: {movement.users?.name || '-'}</div>
+
+                      <div className="flex items-center">
+                        <span className="text-gray-500 w-16">実施者:</span>
+                        <span className="text-gray-900">{movement.users?.name || '-'}</span>
+                      </div>
+
+                      <div className="flex items-center">
+                        <span className="text-gray-500 w-16">移動元:</span>
+                        <span className="text-gray-900">{movement.from_site?.name || '倉庫'}</span>
+                      </div>
+
+                      <div className="flex items-center">
+                        <span className="text-gray-500 w-16">移動先:</span>
+                        <span className="text-gray-900">{movement.to_site?.name || '倉庫'}</span>
+                      </div>
+
+                      {movement.notes && (
+                        <div className="sm:col-span-2 flex">
+                          <span className="text-gray-500 w-16 flex-shrink-0">備考:</span>
+                          <span className="text-gray-600 flex-1">{movement.notes}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))
@@ -394,99 +367,86 @@ export function MovementTabs({
           </div>
         ) : (
           <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-            {consumableMovements && consumableMovements.length > 0 ? (
-              <ul className="divide-y divide-gray-200">
-                {consumableMovements.map((movement) => (
-                  <li key={movement.id} className="px-6 py-4 hover:bg-gray-50">
-                    <div className="flex items-center justify-between">
+            {/* Card view (PC & Mobile) */}
+            <div className="divide-y divide-gray-200">
+              {consumableMovements && consumableMovements.length > 0 ? (
+                consumableMovements.map((movement) => (
+                  <div key={movement.id} className="p-4 sm:p-6 hover:bg-gray-50">
+                    {/* ヘッダー: 消耗品名と日時 */}
+                    <div className="flex justify-between items-start mb-3">
                       <div className="flex-1">
-                        <div className="flex items-center space-x-4">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            {movement.movement_type}
-                          </span>
-                          <h3 className="text-sm font-medium text-gray-900">
-                            {movement.tools?.name || '不明な消耗品'}
-                          </h3>
+                        <div className="text-base font-semibold text-gray-900">
+                          {movement.tools?.name || '不明な消耗品'}
                           {movement.tools?.model_number && (
-                            <span className="text-sm text-gray-500">
+                            <span className="text-sm text-gray-500 font-normal ml-2">
                               ({movement.tools.model_number})
                             </span>
                           )}
                         </div>
-
-                        <div className="mt-2 flex items-center space-x-6 text-sm text-gray-500">
-                          <div className="flex items-center">
-                            <span className="font-medium mr-1">移動元:</span>
-                            {movement.from_location_type === 'warehouse'
-                              ? '倉庫'
-                              : movement.from_site?.name || '不明'}
-                          </div>
-                          <span>→</span>
-                          <div className="flex items-center">
-                            <span className="font-medium mr-1">移動先:</span>
-                            {movement.to_location_type === 'warehouse'
-                              ? '倉庫'
-                              : movement.to_site?.name || '不明'}
-                          </div>
-                          <div className="flex items-center">
-                            <span className="font-medium mr-1">数量:</span>
-                            {movement.quantity}個
-                          </div>
-                        </div>
-
-                        {movement.notes && (
-                          <div className="mt-2 text-sm text-gray-600">
-                            <span className="font-medium">メモ:</span>{' '}
-                            {movement.notes}
-                          </div>
-                        )}
-
-                        <div className="mt-2 flex items-center space-x-4 text-xs text-gray-400">
-                          <span>
-                            実行者: {movement.users?.name || '不明'}
-                          </span>
-                          <span>
-                            {new Date(movement.created_at).toLocaleString(
-                              'ja-JP',
-                              {
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              }
-                            )}
-                          </span>
-                        </div>
+                      </div>
+                      <div className="text-xs text-gray-500 ml-4 whitespace-nowrap">
+                        {new Date(movement.created_at).toLocaleString('ja-JP', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
                       </div>
                     </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="px-4 py-12 text-center">
-                <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">
-                  移動履歴がありません
-                </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  消耗品の移動を行うと、ここに履歴が表示されます
-                </p>
-              </div>
-            )}
+
+                    {/* 詳細情報 */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                      <div className="flex items-center">
+                        <span className="text-gray-500 w-16">種別:</span>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {movement.movement_type}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center">
+                        <span className="text-gray-500 w-16">実施者:</span>
+                        <span className="text-gray-900">{movement.users?.name || '-'}</span>
+                      </div>
+
+                      <div className="flex items-center">
+                        <span className="text-gray-500 w-16">移動元:</span>
+                        <span className="text-gray-900">
+                          {movement.from_location_type === 'warehouse' ? '倉庫' :
+                           movement.from_location_type === 'site' ? (movement.from_site?.name || '現場') :
+                           movement.from_location_type}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center">
+                        <span className="text-gray-500 w-16">移動先:</span>
+                        <span className="text-gray-900">
+                          {movement.to_location_type === 'warehouse' ? '倉庫' :
+                           movement.to_location_type === 'site' ? (movement.to_site?.name || '現場') :
+                           movement.to_location_type}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center">
+                        <span className="text-gray-500 w-16">数量:</span>
+                        <span className="text-gray-900">{movement.quantity}個</span>
+                      </div>
+
+                      {movement.notes && (
+                        <div className="sm:col-span-2 flex">
+                          <span className="text-gray-500 w-16 flex-shrink-0">備考:</span>
+                          <span className="text-gray-600 flex-1">{movement.notes}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="px-4 py-12 text-center text-gray-500">
+                  消耗品の移動履歴がありません
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
