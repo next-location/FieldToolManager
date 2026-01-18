@@ -10,6 +10,7 @@ interface InventoryActionButtonsProps {
   currentQuantity: number
   unit: string
   locationText: string
+  userRole: string
 }
 
 type ActionType = 'none' | 'add' | 'consume'
@@ -20,9 +21,13 @@ export function InventoryActionButtons({
   currentQuantity,
   unit,
   locationText,
+  userRole,
 }: InventoryActionButtonsProps) {
+  const isManagerOrAdmin = userRole === 'manager' || userRole === 'admin'
+
   const [activeAction, setActiveAction] = useState<ActionType>('none')
   const [quantity, setQuantity] = useState('')
+  const [unitPrice, setUnitPrice] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -37,6 +42,13 @@ export function InventoryActionButtons({
       return
     }
 
+    const price = unitPrice ? parseFloat(unitPrice) : null
+
+    if (price !== null && (isNaN(price) || price < 0)) {
+      setError('単価は0以上の数値を入力してください')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -44,12 +56,14 @@ export function InventoryActionButtons({
         consumableId,
         inventoryId,
         quantity: addQty,
+        unitPrice: price,
         locationText,
       })
 
       // 成功したらリセット
       setActiveAction('none')
       setQuantity('')
+      setUnitPrice('')
     } catch (err: any) {
       setError(err.message || '在庫追加に失敗しました')
     } finally {
@@ -123,7 +137,7 @@ export function InventoryActionButtons({
   if (activeAction === 'add') {
     return (
       <form onSubmit={handleAddSubmit} className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <input
             type="number"
             min="1"
@@ -133,8 +147,24 @@ export function InventoryActionButtons({
             className="w-24 px-2 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             disabled={isSubmitting}
             autoFocus
+            required
           />
           <span className="text-sm text-gray-600">{unit}</span>
+          {isManagerOrAdmin && (
+            <>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={unitPrice}
+                onChange={(e) => setUnitPrice(e.target.value)}
+                placeholder="単価（円）"
+                className="w-28 px-2 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                disabled={isSubmitting}
+              />
+              <span className="text-xs text-gray-500">円/{unit}</span>
+            </>
+          )}
           <button
             type="submit"
             disabled={isSubmitting}
@@ -151,6 +181,11 @@ export function InventoryActionButtons({
             キャンセル
           </button>
         </div>
+        {!isManagerOrAdmin && (
+          <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+            💡 単価はManager/Adminが後で入力します
+          </div>
+        )}
         {error && (
           <div className="text-xs text-red-600">
             {error}

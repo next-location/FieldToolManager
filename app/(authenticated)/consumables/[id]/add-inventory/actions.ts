@@ -7,11 +7,13 @@ export async function addConsumableInventory({
   consumableId,
   inventoryId,
   quantity,
+  unitPrice,
   locationText,
 }: {
   consumableId: string
   inventoryId: string
   quantity: number
+  unitPrice: number | null
   locationText: string
 }) {
   const supabase = await createClient()
@@ -61,7 +63,9 @@ export async function addConsumableInventory({
     throw new Error('在庫更新に失敗しました: ' + updateError.message)
   }
 
-  // 追加履歴を記録
+  // 追加履歴を記録（単価・金額を含む）
+  const totalAmount = unitPrice !== null ? quantity * unitPrice : null
+
   const { error: movementError } = await supabase
     .from('consumable_movements')
     .insert({
@@ -75,6 +79,8 @@ export async function addConsumableInventory({
       to_site_id: inventory.site_id,
       to_location_id: inventory.location_type === 'warehouse' ? inventory.warehouse_location_id : inventory.site_id,
       quantity: quantity,
+      unit_price: unitPrice,
+      total_amount: totalAmount,
       performed_by: user.id,
       notes: `${locationText}で在庫追加（+${quantity}${inventory.unit || '個'}）`,
     })

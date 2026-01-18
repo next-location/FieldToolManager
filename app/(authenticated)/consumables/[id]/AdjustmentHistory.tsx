@@ -66,11 +66,14 @@ export function AdjustmentHistory({
             <ul className="divide-y divide-gray-200">
               {adjustments.map((adjustment) => {
                 const isConsumption = adjustment.movement_type === '消費'
+                const hasUnitPrice = adjustment.unit_price !== null && adjustment.unit_price !== undefined
+                const isPriceRequired = !isConsumption && !hasUnitPrice
+
                 return (
                   <li key={adjustment.id} className="px-4 py-4 sm:px-6">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           {isConsumption && (
                             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
                               消費
@@ -79,6 +82,11 @@ export function AdjustmentHistory({
                           {!isConsumption && (
                             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                               調整
+                            </span>
+                          )}
+                          {isPriceRequired && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                              ⚠️ 単価未入力
                             </span>
                           )}
                           <div className="text-sm text-gray-900">
@@ -93,6 +101,11 @@ export function AdjustmentHistory({
                           {adjustment.performed_by_user
                             ? (adjustment.performed_by_user as any).name
                             : '不明'}
+                          {hasUnitPrice && (
+                            <>
+                              {' '}• 単価: ¥{adjustment.unit_price?.toLocaleString()}/{unit}
+                            </>
+                          )}
                         </div>
                       </div>
                       <div className="text-right">
@@ -103,6 +116,11 @@ export function AdjustmentHistory({
                             {unit}
                           </span>
                         </div>
+                        {hasUnitPrice && adjustment.total_amount && (
+                          <div className="text-xs text-gray-600 mt-1">
+                            ¥{adjustment.total_amount.toLocaleString()}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </li>

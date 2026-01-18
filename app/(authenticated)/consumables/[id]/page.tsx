@@ -307,6 +307,7 @@ export default async function ConsumableDetailPage({
                             currentQuantity={inv.quantity}
                             unit={consumable.unit}
                             locationText={locationText}
+                            userRole={userRole}
                           />
                         </div>
                       </div>
