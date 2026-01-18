@@ -66,12 +66,6 @@ export default function EquipmentMovementForm({
   // 選択された重機の情報
   const selectedEquipment = equipment.find(e => e.id === formData.equipment_id)
 
-  // デバッグ: sites データを確認
-  useEffect(() => {
-    console.log('🔍 Sites data:', sites)
-    console.log('📊 Sites count:', sites?.length || 0)
-  }, [sites])
-
   // ドロップダウン外側クリック検知
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
