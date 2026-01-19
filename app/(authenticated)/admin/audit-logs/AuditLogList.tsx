@@ -9,7 +9,7 @@ import AuditLogMobileMenu from '@/components/admin/AuditLogMobileMenu'
 interface AuditLogListProps {
   initialAuditLogs: (AuditLog & {
     users?: {
-      full_name: string | null
+      name: string | null
       email: string | null
     } | null
   })[]
@@ -32,7 +32,7 @@ export function AuditLogList({ initialAuditLogs }: AuditLogListProps) {
       return (
         log.entity_type.toLowerCase().includes(searchLower) ||
         log.entity_id?.toLowerCase().includes(searchLower) ||
-        log.users?.full_name?.toLowerCase().includes(searchLower) ||
+        log.users?.name?.toLowerCase().includes(searchLower) ||
         log.users?.email?.toLowerCase().includes(searchLower)
       )
     }
@@ -97,7 +97,7 @@ export function AuditLogList({ initialAuditLogs }: AuditLogListProps) {
       new Date(log.created_at).toLocaleString('ja-JP'),
       getActionLabel(log.action),
       getEntityLabel(log.entity_type),
-      log.users?.full_name || log.users?.email || '不明',
+      log.users?.name || log.users?.email || '不明',
       log.ip_address || '',
     ])
 
@@ -297,7 +297,7 @@ export function AuditLogList({ initialAuditLogs }: AuditLogListProps) {
                         {getEntityLabel(log.entity_type)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {log.users?.full_name || log.users?.email || '不明'}
+                        {log.users?.name || log.users?.email || '不明'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {log.ip_address || '-'}
