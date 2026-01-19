@@ -18,10 +18,10 @@ CREATE TABLE IF NOT EXISTS user_password_change_tokens (
 );
 
 -- インデックス作成
-CREATE INDEX idx_user_password_change_tokens_user_id ON user_password_change_tokens(user_id);
-CREATE INDEX idx_user_password_change_tokens_token ON user_password_change_tokens(token);
-CREATE INDEX idx_user_password_change_tokens_expires_at ON user_password_change_tokens(expires_at);
-CREATE INDEX idx_user_password_change_tokens_used ON user_password_change_tokens(used);
+CREATE INDEX IF NOT EXISTS idx_user_password_change_tokens_user_id ON user_password_change_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_password_change_tokens_token ON user_password_change_tokens(token);
+CREATE INDEX IF NOT EXISTS idx_user_password_change_tokens_expires_at ON user_password_change_tokens(expires_at);
+CREATE INDEX IF NOT EXISTS idx_user_password_change_tokens_used ON user_password_change_tokens(used);
 
 -- コメント
 COMMENT ON TABLE user_password_change_tokens IS 'ユーザーパスワード変更時の確認コード管理';
@@ -42,8 +42,8 @@ CREATE TABLE IF NOT EXISTS password_history (
 );
 
 -- インデックス作成
-CREATE INDEX idx_password_history_user_id ON password_history(user_id);
-CREATE INDEX idx_password_history_created_at ON password_history(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_password_history_user_id ON password_history(user_id);
+CREATE INDEX IF NOT EXISTS idx_password_history_created_at ON password_history(user_id, created_at DESC);
 
 -- コメント
 COMMENT ON TABLE password_history IS 'パスワード履歴（再利用防止用）';
@@ -73,7 +73,11 @@ COMMENT ON FUNCTION cleanup_expired_password_tokens IS '期限切れのパスワ
 -- =============================================
 -- 各ユーザーにつき最新5件のみを保持
 
-CREATE OR REPLACE FUNCTION cleanup_old_password_history()
+-- 既存の関数を削除
+DROP FUNCTION IF EXISTS cleanup_old_password_history() CASCADE;
+
+-- 新しい関数を作成
+CREATE FUNCTION cleanup_old_password_history()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 SECURITY DEFINER
