@@ -47,6 +47,7 @@ export function AuditLogList({ initialAuditLogs }: AuditLogListProps) {
   const getActionLabel = (action: string) => {
     const labels: Record<string, string> = {
       create: '作成',
+      insert: '登録',
       update: '更新',
       delete: '削除',
       view: '閲覧',
@@ -55,13 +56,21 @@ export function AuditLogList({ initialAuditLogs }: AuditLogListProps) {
       password_change: 'パスワード変更',
       password_reset: 'パスワードリセット',
       export: 'エクスポート',
+      approve: '承認',
+      reject: '差戻し',
+      submit: '提出',
+      send: '送信',
+      receive: '受領',
+      pay: '支払',
     }
-    return labels[action] || action
+    return labels[action.toLowerCase()] || action
   }
 
   const getActionColor = (action: string) => {
-    switch (action) {
+    const lowerAction = action.toLowerCase()
+    switch (lowerAction) {
       case 'create':
+      case 'insert':
         return 'bg-green-100 text-green-800'
       case 'update':
         return 'bg-blue-100 text-blue-800'
@@ -74,6 +83,15 @@ export function AuditLogList({ initialAuditLogs }: AuditLogListProps) {
         return 'bg-purple-100 text-purple-800'
       case 'export':
         return 'bg-yellow-100 text-yellow-800'
+      case 'approve':
+      case 'submit':
+        return 'bg-green-100 text-green-800'
+      case 'reject':
+        return 'bg-red-100 text-red-800'
+      case 'send':
+      case 'receive':
+      case 'pay':
+        return 'bg-blue-100 text-blue-800'
       default:
         return 'bg-gray-100 text-gray-800'
     }
