@@ -68,14 +68,14 @@ export default async function AuditLogsPage({
     query = query.eq('user_id', params.user_id)
   }
 
-  // 期間検索
-  if (params.start_date) {
+  // 期間検索（空文字列をチェック）
+  if (params.start_date && params.start_date.trim() !== '') {
     // YYYY-MM-DDの00:00:00から開始
     const startDateTime = `${params.start_date}T00:00:00.000Z`
     console.log('[AUDIT LOGS] Start date filter:', params.start_date, '→', startDateTime)
     query = query.gte('created_at', startDateTime)
   }
-  if (params.end_date) {
+  if (params.end_date && params.end_date.trim() !== '') {
     // YYYY-MM-DDの23:59:59まで含める
     const endDateTime = `${params.end_date}T23:59:59.999Z`
     console.log('[AUDIT LOGS] End date filter:', params.end_date, '→', endDateTime)
@@ -90,6 +90,20 @@ export default async function AuditLogsPage({
   if (auditLogsError) {
     console.error('[AuditLogsPage] Error fetching audit logs:', auditLogsError)
   }
+
+  console.log('[AUDIT LOGS] Query result:', {
+    totalCount: count,
+    returnedCount: auditLogs?.length || 0,
+    filters: {
+      action: params.action,
+      entity: params.entity,
+      user_id: params.user_id,
+      start_date: params.start_date,
+      end_date: params.end_date,
+    },
+    firstLogDate: auditLogs?.[0]?.created_at,
+    lastLogDate: auditLogs?.[auditLogs.length - 1]?.created_at,
+  })
 
   const totalPages = count ? Math.ceil(count / pageSize) : 1
 
