@@ -137,7 +137,7 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
 
   const selectedClientName = clients.find(c => c.id === formData.client_id)?.name || ''
   const selectedUserName = users.find(u => u.id === formData.project_manager_id)?.name || ''
-  const selectedSiteName = sites.find(s => s.id === formData.site_id)?.site_name || ''
+  const selectedSiteName = sites.find(s => s.id === formData.site_id)?.name || ''
 
   const filteredUsers = users.filter(user => {
     if (!userSearchQuery) return true
@@ -165,10 +165,7 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
     const queryKatakana = hiraganaToKatakana(query)
 
     return (
-      site.site_name?.toLowerCase().includes(query) ||
-      site.site_name_kana?.toLowerCase().includes(query) ||
-      site.site_name_kana?.toLowerCase().includes(queryKatakana.toLowerCase()) ||
-      site.site_code?.toLowerCase().includes(query) ||
+      site.name?.toLowerCase().includes(query) ||
       site.address?.toLowerCase().includes(query)
     )
   })
@@ -214,7 +211,7 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
 
         // 現場名でソート
         const sortedSites = allSites.sort((a: any, b: any) => {
-          return (a.site_name || '').localeCompare(b.site_name || '')
+          return (a.name || '').localeCompare(b.name || '')
         })
 
         setSites(sortedSites)
@@ -438,6 +435,86 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
             )}
           </div>
 
+          {/* 現場選択 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              関連現場
+            </label>
+            <div className="relative" ref={siteDropdownRef}>
+              <input
+                type="text"
+                value={isSiteDropdownOpen ? siteSearchQuery : selectedSiteName}
+                onChange={(e) => {
+                  setSiteSearchQuery(e.target.value)
+                  setIsSiteDropdownOpen(true)
+                }}
+                onFocus={() => setIsSiteDropdownOpen(true)}
+                placeholder={formData.client_id ? "取引先に紐づく現場を検索..." : "まず取引先を選択してください"}
+                disabled={!formData.client_id}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              />
+
+              <button
+                type="button"
+                onClick={() => setIsSiteDropdownOpen(!isSiteDropdownOpen)}
+                disabled={!formData.client_id}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {isSiteDropdownOpen && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                  {filteredSites.length > 0 ? (
+                    <ul>
+                      {filteredSites.map(site => (
+                        <li key={site.id}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData({...formData, site_id: site.id})
+                              setSiteSearchQuery('')
+                              setIsSiteDropdownOpen(false)
+                            }}
+                            className="w-full text-left px-4 py-2 hover:bg-blue-50 flex flex-col"
+                          >
+                            <span className="font-medium">{site.name}</span>
+                            {site.address && (
+                              <span className="text-xs text-gray-500">{site.address}</span>
+                            )}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="px-4 py-3 text-sm text-gray-500">
+                      {formData.client_id
+                        ? '選択された取引先に紐づく現場がありません'
+                        : '該当する現場が見つかりません'}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            {formData.site_id && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData({...formData, site_id: ''})
+                  setSiteSearchQuery('')
+                }}
+                className="mt-1 text-xs text-blue-600 hover:text-blue-700"
+              >
+                選択をクリア
+              </button>
+            )}
+            <p className="mt-1 text-xs text-gray-500">
+              ※ 取引先を選択すると、その取引先に紐づく現場が表示されます
+            </p>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               工事責任者
@@ -513,87 +590,6 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
                 選択をクリア
               </button>
             )}
-          </div>
-
-          {/* 現場選択 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              関連現場
-            </label>
-            <div className="relative" ref={siteDropdownRef}>
-              <input
-                type="text"
-                value={isSiteDropdownOpen ? siteSearchQuery : selectedSiteName}
-                onChange={(e) => {
-                  setSiteSearchQuery(e.target.value)
-                  setIsSiteDropdownOpen(true)
-                }}
-                onFocus={() => setIsSiteDropdownOpen(true)}
-                placeholder={formData.client_id ? "取引先に紐づく現場を検索..." : "まず取引先を選択してください"}
-                disabled={!formData.client_id}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-              />
-
-              <button
-                type="button"
-                onClick={() => setIsSiteDropdownOpen(!isSiteDropdownOpen)}
-                disabled={!formData.client_id}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {isSiteDropdownOpen && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                  {filteredSites.length > 0 ? (
-                    <ul>
-                      {filteredSites.map(site => (
-                        <li key={site.id}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setFormData({...formData, site_id: site.id})
-                              setSiteSearchQuery('')
-                              setIsSiteDropdownOpen(false)
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-blue-50 flex flex-col"
-                          >
-                            <span className="font-medium">{site.site_name}</span>
-                            <span className="text-xs text-gray-500">
-                              {site.site_code}
-                              {site.address && ` / ${site.address}`}
-                            </span>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <div className="px-4 py-3 text-sm text-gray-500">
-                      {formData.client_id
-                        ? '選択された取引先に紐づく現場がありません'
-                        : '該当する現場が見つかりません'}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-            {formData.site_id && (
-              <button
-                type="button"
-                onClick={() => {
-                  setFormData({...formData, site_id: ''})
-                  setSiteSearchQuery('')
-                }}
-                className="mt-1 text-xs text-blue-600 hover:text-blue-700"
-              >
-                選択をクリア
-              </button>
-            )}
-            <p className="mt-1 text-xs text-gray-500">
-              ※ 取引先を選択すると、その取引先に紐づく現場が表示されます
-            </p>
           </div>
         </div>
       </div>
