@@ -49,6 +49,25 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
     }
   }, [mode])
 
+  // 取引先変更時：紐づく現場を自動セット
+  useEffect(() => {
+    if (formData.client_id && sites.length > 0) {
+      const clientSites = sites.filter(site => site.client_id === formData.client_id)
+
+      // 紐づく現場が1件だけの場合は自動セット
+      if (clientSites.length === 1) {
+        setFormData(prev => ({ ...prev, site_id: clientSites[0].id }))
+      } else if (clientSites.length === 0) {
+        // 紐づく現場がない場合はクリア
+        setFormData(prev => ({ ...prev, site_id: '' }))
+      }
+      // 2件以上の場合は既存の選択を保持（編集モード時）、または未選択のまま
+    } else if (!formData.client_id) {
+      // 取引先未選択の場合は現場もクリア
+      setFormData(prev => ({ ...prev, site_id: '' }))
+    }
+  }, [formData.client_id, sites])
+
   const fetchCsrfToken = async () => {
     try {
       const response = await fetch('/api/csrf-token')
@@ -134,6 +153,12 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
   })
 
   const filteredSites = sites.filter(site => {
+    // 取引先が選択されている場合、その取引先に紐づく現場のみ表示
+    if (formData.client_id && site.client_id !== formData.client_id) {
+      return false
+    }
+
+    // 検索クエリでフィルタリング
     if (!siteSearchQuery) return true
 
     const query = siteSearchQuery.toLowerCase()
@@ -504,14 +529,16 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
                   setIsSiteDropdownOpen(true)
                 }}
                 onFocus={() => setIsSiteDropdownOpen(true)}
-                placeholder="現場を検索..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder={formData.client_id ? "取引先に紐づく現場を検索..." : "まず取引先を選択してください"}
+                disabled={!formData.client_id}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
 
               <button
                 type="button"
                 onClick={() => setIsSiteDropdownOpen(!isSiteDropdownOpen)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                disabled={!formData.client_id}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -544,7 +571,9 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
                     </ul>
                   ) : (
                     <div className="px-4 py-3 text-sm text-gray-500">
-                      該当する現場が見つかりません
+                      {formData.client_id
+                        ? '選択された取引先に紐づく現場がありません'
+                        : '該当する現場が見つかりません'}
                     </div>
                   )}
                 </div>
@@ -563,7 +592,7 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
               </button>
             )}
             <p className="mt-1 text-xs text-gray-500">
-              ※ 工事が実施される現場を選択できます（任意）
+              ※ 取引先を選択すると、その取引先に紐づく現場が表示されます
             </p>
           </div>
         </div>
