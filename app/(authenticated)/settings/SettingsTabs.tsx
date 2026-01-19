@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { SettingsForm } from './SettingsForm';
 import TwoFactorSettings from '@/components/user/TwoFactorSettings';
-import { User, Shield } from 'lucide-react';
+import PasswordChangeModal from '@/components/user/PasswordChangeModal';
+import { User, Shield, Lock } from 'lucide-react';
 
 interface SettingsTabsProps {
   userId: string;
@@ -26,6 +27,7 @@ export function SettingsTabs({
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState<'profile' | 'security'>('profile');
+  const [showPasswordChangeModal, setShowPasswordChangeModal] = useState(false);
 
   useEffect(() => {
     // URLパラメータからタブを設定
@@ -96,6 +98,31 @@ export function SettingsTabs({
             <h2 className="text-lg font-medium text-gray-900 mb-4">
               セキュリティ設定
             </h2>
+
+            {/* パスワード変更セクション */}
+            <div className="mb-8 pb-8 border-b border-gray-200">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Lock className="w-5 h-5 text-gray-600" />
+                    <h3 className="text-base font-semibold text-gray-900">
+                      パスワード変更
+                    </h3>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    定期的にパスワードを変更してセキュリティを強化しましょう
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowPasswordChangeModal(true)}
+                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  パスワードを変更
+                </button>
+              </div>
+            </div>
+
+            {/* 二要素認証セクション */}
             <TwoFactorSettings
               userId={userId}
               userEmail={userEmail}
@@ -104,6 +131,14 @@ export function SettingsTabs({
           </div>
         </div>
       </div>
+
+      {/* パスワード変更モーダル */}
+      <PasswordChangeModal
+        isOpen={showPasswordChangeModal}
+        onClose={() => setShowPasswordChangeModal(false)}
+        userId={userId}
+        userEmail={userEmail}
+      />
     </div>
   );
 }
