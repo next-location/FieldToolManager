@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { logConsumableUpdated } from '@/lib/audit-log'
 
 export async function markAsOrdered(orderId: string) {
   const supabase = await createClient()
@@ -141,6 +142,20 @@ export async function markAsDelivered(formData: FormData) {
   if (movementError) {
     throw new Error(`移動履歴の作成に失敗しました: ${movementError.message}`)
   }
+
+  // 監査ログを記録（入庫による在庫増加）
+  await logConsumableUpdated(
+    order.tool_id,
+    { quantity: existingInventory?.quantity || 0 },
+    {
+      quantity: (existingInventory?.quantity || 0) + order.quantity,
+      action: 'delivery',
+      order_number: order.order_number,
+      delivered_quantity: order.quantity,
+      delivery_date: actualDeliveryDate,
+      notes: deliveryNotes
+    }
+  )
 
   revalidatePath(`/consumables/orders/${orderId}`)
   revalidatePath('/consumables/orders')

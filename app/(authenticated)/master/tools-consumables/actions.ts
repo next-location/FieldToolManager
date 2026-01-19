@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { logConsumableCreated, logConsumableUpdated, logConsumableDeleted } from '@/lib/audit-log'
 
 // プリセットから道具マスタを作成
 export async function copyPresetToOrganization(presetId: string) {
@@ -118,6 +119,13 @@ export async function deleteConsumableMaster(masterId: string) {
     return { error: '削除権限がありません（Admin のみ）' }
   }
 
+  // 削除前のデータを取得
+  const { data: consumableData } = await supabase
+    .from('tools')
+    .select('*')
+    .eq('id', masterId)
+    .single()
+
   const { error } = await supabase
     .from('tools')
     .update({ deleted_at: new Date().toISOString() })
@@ -125,6 +133,11 @@ export async function deleteConsumableMaster(masterId: string) {
 
   if (error) {
     return { error: `削除に失敗しました: ${error.message}` }
+  }
+
+  // 監査ログを記録
+  if (consumableData) {
+    await logConsumableDeleted(masterId, consumableData)
   }
 
   revalidatePath('/master/tools-consumables')
@@ -242,6 +255,13 @@ export async function createOrUpdateConsumableMaster(data: {
   }
 
   if (data.id) {
+    // 更新前のデータを取得
+    const { data: oldData } = await supabase
+      .from('tools')
+      .select('*')
+      .eq('id', data.id)
+      .single()
+
     // 更新
     const { error } = await supabase
       .from('tools')
@@ -260,23 +280,37 @@ export async function createOrUpdateConsumableMaster(data: {
     if (error) {
       return { error: `更新に失敗しました: ${error.message}` }
     }
+
+    // 監査ログを記録
+    if (oldData) {
+      await logConsumableUpdated(data.id, oldData, data)
+    }
   } else {
     // 新規作成
-    const { error } = await supabase.from('tools').insert({
-      organization_id: data.organization_id,
-      name: data.name,
-      model_number: data.model_number || null,
-      manufacturer: data.manufacturer || null,
-      category_id: data.category_id || null,
-      management_type: 'consumable',
-      unit: data.unit,
-      minimum_stock: data.minimum_stock,
-      image_url: data.image_url || null,
-      notes: data.notes || null,
-    })
+    const { data: newConsumable, error } = await supabase
+      .from('tools')
+      .insert({
+        organization_id: data.organization_id,
+        name: data.name,
+        model_number: data.model_number || null,
+        manufacturer: data.manufacturer || null,
+        category_id: data.category_id || null,
+        management_type: 'consumable',
+        unit: data.unit,
+        minimum_stock: data.minimum_stock,
+        image_url: data.image_url || null,
+        notes: data.notes || null,
+      })
+      .select()
+      .single()
 
     if (error) {
       return { error: `登録に失敗しました: ${error.message}` }
+    }
+
+    // 監査ログを記録
+    if (newConsumable) {
+      await logConsumableCreated(newConsumable.id, data)
     }
   }
 

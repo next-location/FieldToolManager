@@ -15,6 +15,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf';
 import { validatePassword, DEFAULT_PASSWORD_POLICY } from '@/lib/password-policy';
+import { logPasswordChanged } from '@/lib/audit-log';
 
 export async function POST(request: NextRequest) {
   // CSRF検証
@@ -139,6 +140,12 @@ export async function POST(request: NextRequest) {
         used_at: new Date().toISOString(),
       })
       .eq('id', tokenData.id);
+
+    // 監査ログを記録
+    await logPasswordChanged(user.id, {
+      email: userData.email,
+      name: userData.name,
+    });
 
     // 全セッションを無効化（セキュリティ強化）
     // Supabase Authは自動的に他のセッションを無効化するため、特別な処理は不要

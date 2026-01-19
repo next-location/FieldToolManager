@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { HeavyEquipment } from '@/types/heavy-equipment'
+import { updateEquipment } from '../../actions'
 
 interface Category {
   id: string
@@ -134,15 +135,14 @@ export function EquipmentEditForm({
         current_hour_meter: formData.current_hour_meter ? parseFloat(formData.current_hour_meter) : null,
 
         notes: formData.notes || null,
-        updated_at: new Date().toISOString(),
       }
 
-      const { error: updateError } = await supabase
-        .from('heavy_equipment')
-        .update(equipmentData)
-        .eq('id', equipment.id)
+      // サーバーアクションを使用して重機を更新（監査ログ付き）
+      const result = await updateEquipment(equipment.id, equipmentData)
 
-      if (updateError) throw updateError
+      if (!result.success) {
+        throw new Error(result.error)
+      }
 
       // 成功したら詳細ページへ
       router.push(`/equipment/${equipment.id}`)

@@ -3,6 +3,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { validatePassword, DEFAULT_PASSWORD_POLICY } from '@/lib/password-policy'
 import { sendWelcomeEmail } from '@/lib/email/welcome'
+import { logUserCreated } from '@/lib/audit-log'
 
 // Admin client for auth operations
 function createAdminClient() {
@@ -297,6 +298,17 @@ export async function POST(request: NextRequest) {
       change_type: 'created',
       old_values: null,
       new_values: { name, email, role, department, employee_id, phone },
+    })
+
+    // 監査ログ記録（パスワードは除外）
+    await logUserCreated(newUser.id, {
+      name,
+      email,
+      role,
+      department,
+      employee_id,
+      phone,
+      is_active: true,
     })
 
     // 組織情報を取得（ウェルカムメール送信用）

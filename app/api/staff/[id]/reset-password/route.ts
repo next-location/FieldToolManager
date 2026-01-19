@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
+import { logUserUpdated } from '@/lib/audit-log'
 
 // POST /api/staff/[id]/reset-password - パスワードリセットトークン発行
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -76,6 +77,20 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       new_values: { reset_requested: true },
       notes: 'パスワードリセットトークンが発行されました',
     })
+
+    // 監査ログ記録（パスワードは記録しない）
+    await logUserUpdated(
+      userId,
+      {
+        name: targetUser.name,
+        email: targetUser.email,
+      },
+      {
+        name: targetUser.name,
+        email: targetUser.email,
+        password_reset_requested: true,
+      }
+    )
 
     // メール送信（実装は環境に応じて）
     // 本番環境ではメール送信サービス（SendGrid, AWS SES等）を使用

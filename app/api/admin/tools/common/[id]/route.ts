@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
+import { createAuditLogFromRequest } from '@/lib/audit-log';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -118,6 +119,31 @@ export async function PUT(
         user_agent: request.headers.get('user-agent'),
       });
 
+    // 監査ログを記録（消耗品の場合）
+    if (body.management_type === 'consumable') {
+      // 更新前のデータを取得
+      const { data: oldTool } = await supabase
+        .from('tools')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (oldTool) {
+        await createAuditLogFromRequest(
+          request,
+          session.id,
+          'system', // システム共通道具は組織IDがnull
+          {
+            action: 'update',
+            entity_type: 'consumables',
+            entity_id: id,
+            old_values: oldTool,
+            new_values: body
+          }
+        );
+      }
+    }
+
     return NextResponse.json({ tool });
   } catch (error: any) {
     console.error('API error:', error);
@@ -176,6 +202,28 @@ export async function DELETE(
         ip_address: request.headers.get('x-forwarded-for') || 'unknown',
         user_agent: request.headers.get('user-agent'),
       });
+
+    // 完全なツール情報を取得
+    const { data: fullTool } = await supabase
+      .from('tools')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    // 監査ログを記録（消耗品の場合）
+    if (fullTool && fullTool.management_type === 'consumable') {
+      await createAuditLogFromRequest(
+        request,
+        session.id,
+        'system', // システム共通道具は組織IDがnull
+        {
+          action: 'delete',
+          entity_type: 'consumables',
+          entity_id: id,
+          old_values: fullTool
+        }
+      );
+    }
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

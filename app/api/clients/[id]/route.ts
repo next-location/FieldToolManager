@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
+import { logClientUpdated, logClientDeleted } from '@/lib/audit-log'
 
 // GET /api/clients/:id - 取引先詳細取得
 export async function GET(
@@ -100,10 +101,10 @@ export async function PATCH(
     // リクエストボディ取得
     const body = await request.json()
 
-    // 取引先存在確認
+    // 取引先存在確認（更新前のデータを取得）
     const { data: existingClient } = await supabase
       .from('clients')
-      .select('id')
+      .select('*')
       .eq('id', id)
       .eq('organization_id', userData?.organization_id)
       .is('deleted_at', null)
@@ -182,6 +183,27 @@ export async function PATCH(
       return NextResponse.json({ error: '取引先の更新に失敗しました' }, { status: 500 })
     }
 
+    // 監査ログ記録（変更された項目のみ）
+    const oldData: Record<string, any> = {}
+    const newData: Record<string, any> = {}
+
+    // 監査ログに記録する項目
+    const auditFields = [
+      'name', 'name_kana', 'client_type', 'client_code', 'email',
+      'phone', 'address', 'is_active', 'contact_person', 'payment_terms'
+    ]
+
+    auditFields.forEach((field) => {
+      if (updateData[field] !== undefined && existingClient[field] !== updateData[field]) {
+        oldData[field] = existingClient[field]
+        newData[field] = updateData[field]
+      }
+    })
+
+    if (Object.keys(newData).length > 0) {
+      await logClientUpdated(id, oldData, newData)
+    }
+
     return NextResponse.json({ data: client })
   } catch (error) {
     console.error('Unexpected error:', error)
@@ -230,6 +252,19 @@ export async function DELETE(
       return NextResponse.json({ error: '管理者権限が必要です' }, { status: 403 })
     }
 
+    // 削除前のデータを取得
+    const { data: clientToDelete } = await supabase
+      .from('clients')
+      .select('*')
+      .eq('id', id)
+      .eq('organization_id', userData?.organization_id)
+      .is('deleted_at', null)
+      .single()
+
+    if (!clientToDelete) {
+      return NextResponse.json({ error: '取引先が見つかりません' }, { status: 404 })
+    }
+
     // 関連現場の確認
     const { data: relatedSites, error: sitesError } = await supabase
       .from('sites')
@@ -260,6 +295,18 @@ export async function DELETE(
       console.error('Error deleting client:', error)
       return NextResponse.json({ error: '取引先の削除に失敗しました' }, { status: 500 })
     }
+
+    // 監査ログ記録
+    await logClientDeleted(id, {
+      name: clientToDelete.name,
+      name_kana: clientToDelete.name_kana,
+      client_type: clientToDelete.client_type,
+      client_code: clientToDelete.client_code,
+      email: clientToDelete.email,
+      phone: clientToDelete.phone,
+      address: clientToDelete.address,
+      is_active: clientToDelete.is_active,
+    })
 
     return NextResponse.json({ message: '取引先を削除しました' })
   } catch (error) {

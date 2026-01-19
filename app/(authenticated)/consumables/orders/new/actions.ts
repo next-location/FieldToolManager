@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { logConsumableCreated } from '@/lib/audit-log'
 
 export async function createConsumableOrder(formData: FormData) {
   const supabase = await createClient()
@@ -67,6 +68,16 @@ export async function createConsumableOrder(formData: FormData) {
       console.error('消耗品登録エラー:', consumableError)
       throw new Error(`消耗品の登録に失敗しました: ${consumableError?.message}`)
     }
+
+    // 監査ログを記録（新規消耗品作成）
+    await logConsumableCreated(newConsumable.id, {
+      name: newConsumableName,
+      model_number: newConsumableModel || null,
+      manufacturer: newConsumableManufacturer || null,
+      unit: newConsumableUnit,
+      management_type: 'consumable',
+      qr_code: qrCode
+    })
 
     toolId = newConsumable.id
   }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
+import { createAuditLogFromRequest } from '@/lib/audit-log';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -124,6 +125,21 @@ export async function POST(request: NextRequest) {
         ip_address: request.headers.get('x-forwarded-for') || 'unknown',
         user_agent: request.headers.get('user-agent'),
       });
+
+    // 監査ログを記録（消耗品の場合）
+    if (body.management_type === 'consumable') {
+      await createAuditLogFromRequest(
+        request,
+        session.id,
+        'system', // システム共通道具は組織IDがnull
+        {
+          action: 'create',
+          entity_type: 'consumables',
+          entity_id: tool.id,
+          new_values: body
+        }
+      );
+    }
 
     return NextResponse.json({ tool });
   } catch (error: any) {

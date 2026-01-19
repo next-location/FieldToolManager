@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { createEquipment } from '../actions'
 
 interface Category {
   id: string
@@ -141,7 +142,6 @@ export function EquipmentRegistrationForm({
 
       // 登録データ準備
       const equipmentData = {
-        organization_id: organizationId,
         equipment_code: formData.equipment_code,
         name: formData.name,
         category_id: formData.category_id || null,
@@ -179,13 +179,12 @@ export function EquipmentRegistrationForm({
         notes: formData.notes || null,
       }
 
-      const { data, error: insertError } = await supabase
-        .from('heavy_equipment')
-        .insert(equipmentData)
-        .select()
-        .single()
+      // サーバーアクションを使用して重機を作成（監査ログ付き）
+      const result = await createEquipment(equipmentData)
 
-      if (insertError) throw insertError
+      if (!result.success) {
+        throw new Error(result.error)
+      }
 
       // 成功したら一覧ページへ
       router.push('/equipment')

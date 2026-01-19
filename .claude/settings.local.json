@@ -41,7 +41,8 @@
       "Bash(git revert:*)",
       "Bash(source .env.local)",
       "Bash(chmod:*)",
-      "Bash(./test-integration-simple.sh:*)"
+      "Bash(./test-integration-simple.sh:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []

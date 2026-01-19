@@ -8,6 +8,8 @@ export type AuditAction =
   | 'login'
   | 'logout'
   | 'export'
+  | 'password_change'
+  | 'password_reset'
 
 export interface AuditLog {
   id: string

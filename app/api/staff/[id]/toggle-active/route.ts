@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { logUserUpdated } from '@/lib/audit-log'
 
 // POST /api/staff/[id]/toggle-active - アカウント有効化/無効化
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     // 現在の状態取得
     const { data: targetUser, error: fetchError } = await supabase
       .from('users')
-      .select('is_active, role')
+      .select('*')
       .eq('id', userId)
       .eq('organization_id', userData?.organization_id)
       .single()
@@ -83,6 +84,23 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       old_values: { is_active: targetUser.is_active },
       new_values: { is_active: newStatus },
     })
+
+    // 監査ログ記録
+    await logUserUpdated(
+      userId,
+      {
+        name: targetUser.name,
+        email: targetUser.email,
+        role: targetUser.role,
+        is_active: targetUser.is_active,
+      },
+      {
+        name: targetUser.name,
+        email: targetUser.email,
+        role: targetUser.role,
+        is_active: newStatus,
+      }
+    )
 
     return NextResponse.json({ success: true, is_active: newStatus })
   } catch (error) {

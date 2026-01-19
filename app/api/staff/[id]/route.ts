@@ -1,5 +1,6 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { logUserUpdated, logUserDeleted } from '@/lib/audit-log'
 
 // PATCH /api/staff/[id] - スタッフ編集
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -146,6 +147,27 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       }
     }
 
+    // 監査ログ記録
+    await logUserUpdated(
+      userId,
+      {
+        name: oldData.name,
+        email: oldData.email,
+        role: oldData.role,
+        department: oldData.department,
+        employee_id: oldData.employee_id,
+        phone: oldData.phone,
+      },
+      {
+        name,
+        email,
+        role,
+        department,
+        employee_id,
+        phone,
+      }
+    )
+
     return NextResponse.json({ data: newData })
   } catch (error) {
     console.error('Unexpected error:', error)
@@ -191,7 +213,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     // 削除対象ユーザー取得
     const { data: targetUser, error: fetchError } = await supabase
       .from('users')
-      .select('role')
+      .select('*')
       .eq('id', userId)
       .eq('organization_id', userData?.organization_id)
       .single()
@@ -249,6 +271,16 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       change_type: 'deleted',
       old_values: null,
       new_values: null,
+    })
+
+    // 監査ログ記録
+    await logUserDeleted(userId, {
+      name: targetUser.name,
+      email: targetUser.email,
+      role: targetUser.role,
+      department: targetUser.department,
+      employee_id: targetUser.employee_id,
+      phone: targetUser.phone,
     })
 
     return NextResponse.json({ success: true })

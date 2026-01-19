@@ -10,6 +10,7 @@ import {
   checkPasswordExpiration,
 } from '@/lib/security-middleware'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
+import { logLogin } from '@/lib/audit-log'
 
 export async function POST(request: Request) {
   // CSRF検証（セキュリティ強化）
@@ -249,6 +250,13 @@ export async function POST(request: Request) {
 
   // ログイン成功を記録
   await recordLoginAttempt(email, ipAddress, userAgent, true)
+
+  // 監査ログを記録
+  await logLogin(data.user.id, {
+    email,
+    role: userData.role,
+    two_factor_enabled: userData.two_factor_enabled,
+  })
 
   // 2FAが必要な場合（デモユーザーはスキップ）
   if (!isDemo && userData.two_factor_enabled) {

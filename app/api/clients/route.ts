@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
+import { logClientCreated } from '@/lib/audit-log'
 
 // GET /api/clients - 取引先一覧取得
 export async function GET(request: NextRequest) {
@@ -203,6 +204,18 @@ export async function POST(request: NextRequest) {
       }
       return NextResponse.json({ error: '取引先の作成に失敗しました' }, { status: 500 })
     }
+
+    // 監査ログ記録
+    await logClientCreated(client.id, {
+      name: client.name,
+      name_kana: client.name_kana,
+      client_type: client.client_type,
+      client_code: client.client_code,
+      email: client.email,
+      phone: client.phone,
+      address: client.address,
+      is_active: client.is_active,
+    })
 
     return NextResponse.json({ data: client }, { status: 201 })
   } catch (error) {

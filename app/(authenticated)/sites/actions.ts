@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { logSiteCreated, logSiteUpdated, logSiteDeleted } from '@/lib/audit-log'
 
 export async function createSite(formData: FormData) {
   try {
@@ -61,6 +62,14 @@ export async function createSite(formData: FormData) {
 
     console.log('[CREATE SITE] Site created:', siteData)
 
+    // 監査ログを記録
+    await logSiteCreated(siteData.id, {
+      name: siteData.name,
+      address: siteData.address,
+      manager_id: siteData.manager_id,
+      client_id: siteData.client_id,
+    })
+
     revalidatePath('/sites')
     redirect('/sites')
   } catch (error) {
@@ -72,21 +81,30 @@ export async function createSite(formData: FormData) {
 export async function updateSite(id: string, formData: FormData) {
   const supabase = await createClient()
 
+  // 更新前のデータを取得
+  const { data: oldData } = await supabase
+    .from('sites')
+    .select('*')
+    .eq('id', id)
+    .single()
+
   const name = formData.get('name') as string
   const address = formData.get('address') as string
   const manager_id = formData.get('manager_id') as string | null
   const client_id = formData.get('client_id') as string | null
   const is_active = formData.get('is_active') === 'true'
 
+  const newData = {
+    name,
+    address: address || null,
+    manager_id: manager_id || null,
+    client_id: client_id || null,
+    is_active,
+  }
+
   const { error } = await supabase
     .from('sites')
-    .update({
-      name,
-      address: address || null,
-      manager_id: manager_id || null,
-      client_id: client_id || null,
-      is_active,
-    })
+    .update(newData)
     .eq('id', id)
 
   if (error) {
@@ -95,6 +113,11 @@ export async function updateSite(id: string, formData: FormData) {
       throw new Error('同じ名前の現場がすでに登録されています。別の名前を使用してください。')
     }
     throw new Error(`現場の更新に失敗しました: ${error.message}`)
+  }
+
+  // 監査ログを記録
+  if (oldData) {
+    await logSiteUpdated(id, oldData, newData)
   }
 
   revalidatePath('/sites')

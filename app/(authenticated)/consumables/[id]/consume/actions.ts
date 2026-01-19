@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { logConsumableUpdated } from '@/lib/audit-log'
 
 export async function consumeConsumable({
   consumableId,
@@ -99,6 +100,18 @@ export async function consumeConsumable({
   if (movementError) {
     throw new Error('消費履歴の記録に失敗しました: ' + movementError.message)
   }
+
+  // 監査ログを記録
+  await logConsumableUpdated(
+    consumableId,
+    { quantity: inventory.quantity },
+    {
+      quantity: newQuantity,
+      action: 'consume',
+      consumed_quantity: quantity,
+      location: locationText
+    }
+  )
 
   revalidatePath(`/consumables/${consumableId}`)
 

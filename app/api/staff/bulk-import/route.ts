@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { verifySessionToken } from '@/lib/auth/impersonation'
 import { cookies } from 'next/headers'
+import { logUserCreated } from '@/lib/audit-log'
 
 interface StaffImportRow {
   name: string
@@ -201,6 +202,18 @@ export async function POST(request: NextRequest) {
             phone: s.phone,
           },
           notes: 'CSV一括登録',
+        })
+
+        // 監査ログ記録（パスワードは除外）
+        await logUserCreated(authData.user.id, {
+          name: s.name,
+          email: s.email,
+          role: s.role,
+          department: s.department,
+          employee_id: s.employee_id,
+          phone: s.phone,
+          is_active: true,
+          bulk_import: true,
         })
 
         results.success++
