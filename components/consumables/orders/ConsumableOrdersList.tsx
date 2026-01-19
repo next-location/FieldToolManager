@@ -95,7 +95,7 @@ export default function ConsumableOrdersList({ orders }: ConsumableOrdersListPro
             </div>
 
             {/* PC表示: 横並び（横幅いっぱいに使用） */}
-            <div className="hidden sm:flex items-center px-6 py-4 gap-6">
+            <div className="hidden sm:flex items-center px-6 py-4 gap-4">
               {/* 左側: 発注番号・消耗品名 */}
               <div className="flex-1 min-w-0">
                 <p className="text-base font-semibold text-gray-900 truncate">
@@ -107,7 +107,7 @@ export default function ConsumableOrdersList({ orders }: ConsumableOrdersListPro
               </div>
 
               {/* 中央: 数量・金額 */}
-              <div className="flex items-center gap-8">
+              <div className="flex items-center gap-6">
                 <div className="text-center">
                   <p className="text-xs text-gray-500 mb-1">数量</p>
                   <p className="text-base font-semibold text-gray-900">{order.quantity}個</p>
@@ -122,37 +122,36 @@ export default function ConsumableOrdersList({ orders }: ConsumableOrdersListPro
                 </div>
               </div>
 
-              {/* 右側: 日付・ステータス・発注者 */}
-              <div className="flex items-center gap-6">
-                <div className="text-right">
-                  <p className="text-xs text-gray-500 mb-1">発注日</p>
-                  <p className="text-sm text-gray-900">
-                    {new Date(order.order_date).toLocaleDateString('ja-JP')}
-                  </p>
-                  {order.expected_delivery_date && (
-                    <>
-                      <p className="text-xs text-gray-500 mt-2 mb-1">納品予定</p>
-                      <p className="text-sm text-gray-900">
-                        {new Date(order.expected_delivery_date).toLocaleDateString('ja-JP')}
-                      </p>
-                    </>
-                  )}
-                </div>
-
-                <div className="flex flex-col items-end gap-2">
-                  <span
-                    className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${getStatusColor(
-                      order.status
-                    )}`}
-                  >
-                    {order.status}
-                  </span>
-                  {order.ordered_by_user && (
-                    <p className="text-xs text-gray-500">
-                      {order.ordered_by_user.name}
+              {/* 右側: 日付 */}
+              <div className="text-right">
+                <p className="text-xs text-gray-500 mb-1">発注日</p>
+                <p className="text-sm text-gray-900">
+                  {new Date(order.order_date).toLocaleDateString('ja-JP')}
+                </p>
+                {order.expected_delivery_date && (
+                  <>
+                    <p className="text-xs text-gray-500 mt-2 mb-1">納品予定</p>
+                    <p className="text-sm text-gray-900">
+                      {new Date(order.expected_delivery_date).toLocaleDateString('ja-JP')}
                     </p>
-                  )}
-                </div>
+                  </>
+                )}
+              </div>
+
+              {/* ステータス・担当者（横並び） */}
+              <div className="flex items-center gap-3">
+                <span
+                  className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap ${getStatusColor(
+                    order.status
+                  )}`}
+                >
+                  {order.status}
+                </span>
+                {order.ordered_by_user && (
+                  <p className="text-xs text-gray-500 whitespace-nowrap">
+                    {order.ordered_by_user.name}
+                  </p>
+                )}
               </div>
             </div>
           </Link>
