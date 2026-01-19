@@ -21,11 +21,12 @@ export default async function NewSitePage() {
     .eq('is_active', true)
     .order('name')
 
-  // 取引先一覧を取得
+  // 取引先一覧を取得（顧客と顧客兼仕入れ先のみ）
   const { data: clients } = await supabase
     .from('clients')
-    .select('id, name, client_code')
+    .select('id, name, client_code, client_type')
     .eq('organization_id', organizationId)
+    .in('client_type', ['customer', 'both'])
     .eq('is_active', true)
     .is('deleted_at', null)
     .order('name')
