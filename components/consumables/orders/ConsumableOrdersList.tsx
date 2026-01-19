@@ -92,11 +92,6 @@ export default function ConsumableOrdersList({ orders }: ConsumableOrdersListPro
                 </div>
               </div>
 
-              <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end">
-                <span className="text-xs text-blue-600 font-medium">
-                  詳細を見る →
-                </span>
-              </div>
             </div>
 
             {/* PC表示: 横並び（横幅いっぱいに使用） */}
@@ -157,13 +152,6 @@ export default function ConsumableOrdersList({ orders }: ConsumableOrdersListPro
                       {order.ordered_by_user.name}
                     </p>
                   )}
-                </div>
-
-                {/* 詳細を見る矢印 */}
-                <div className="text-blue-600 ml-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
                 </div>
               </div>
             </div>

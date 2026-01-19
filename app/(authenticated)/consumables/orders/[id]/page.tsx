@@ -51,28 +51,47 @@ export default async function ConsumableOrderDetailPage({ params }: Props) {
 
   return (
     <ConsumableOrderDetailPageWrapper>
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-4 sm:p-6">
       {/* ヘッダー */}
-      <div className="flex justify-between items-start">
-        <div>
-          <Link
-            href="/consumables/orders"
-            className="text-sm text-blue-600 hover:text-blue-800 mb-2 inline-block"
-          >
-            ← 発注一覧に戻る
-          </Link>
-          <h1 className="text-2xl font-semibold text-gray-900">発注詳細</h1>
+      <div>
+        <Link
+          href="/consumables/orders"
+          className="text-sm text-blue-600 hover:text-blue-800 mb-4 inline-block"
+        >
+          ← 発注一覧に戻る
+        </Link>
+
+        {/* スマホ: 縦積み */}
+        <div className="sm:hidden">
+          <h1 className="text-lg font-bold text-gray-900">発注詳細</h1>
           <p className="mt-1 text-sm text-gray-600">発注番号: {orderWithRelations.order_number}</p>
-        </div>
-        <div className="flex space-x-3">
+
           {isLeaderOrAdmin && orderWithRelations.status !== '納品済み' && orderWithRelations.status !== 'キャンセル' && (
             <Link
               href={`/consumables/orders/${id}/edit`}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              className="mt-4 inline-block w-full text-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
             >
               編集
             </Link>
           )}
+        </div>
+
+        {/* PC: 横並び */}
+        <div className="hidden sm:flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900">発注詳細</h1>
+            <p className="mt-1 text-sm text-gray-600">発注番号: {orderWithRelations.order_number}</p>
+          </div>
+          <div className="flex space-x-3">
+            {isLeaderOrAdmin && orderWithRelations.status !== '納品済み' && orderWithRelations.status !== 'キャンセル' && (
+              <Link
+                href={`/consumables/orders/${id}/edit`}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                編集
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 
