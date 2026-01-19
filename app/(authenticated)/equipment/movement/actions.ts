@@ -38,10 +38,10 @@ export async function createEquipmentMovement(params: CreateEquipmentMovementPar
   }
 
   try {
-    // 重機データを取得
+    // 重機データを取得（default_location_id を追加）
     const { data: equipmentData } = await supabase
       .from('heavy_equipment')
-      .select('organization_id, equipment_code, name, status, current_location_id, enable_hour_meter, current_hour_meter')
+      .select('organization_id, equipment_code, name, status, current_location_id, enable_hour_meter, current_hour_meter, default_location_id')
       .eq('id', params.equipment_id)
       .single()
 
@@ -86,8 +86,12 @@ export async function createEquipmentMovement(params: CreateEquipmentMovementPar
       newLocationId = params.to_location_id === 'other' ? null : params.to_location_id
       newUserId = user.id
     } else if (params.action_type === 'checkin') {
+      // 返却時はデフォルトの保管場所に戻す
+      if (!(equipmentData as any).default_location_id) {
+        return { success: false, error: 'デフォルトの保管場所が設定されていません' }
+      }
       newStatus = 'available'
-      newLocationId = null
+      newLocationId = (equipmentData as any).default_location_id
       newUserId = null
     } else if (params.action_type === 'transfer') {
       newLocationId = params.to_location_id === 'other' ? null : params.to_location_id

@@ -19,7 +19,18 @@ export async function createAuditLog(
       organizationId,
     })
 
-    const supabase = await createClient()
+    // Service Role Keyを使用してRLSをバイパス
+    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
+    const supabase = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    )
 
     // ユーザーIDと組織IDが渡されていない場合は取得を試みる
     let finalUserId = userId

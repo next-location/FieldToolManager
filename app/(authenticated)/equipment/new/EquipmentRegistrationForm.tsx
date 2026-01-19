@@ -60,6 +60,7 @@ export function EquipmentRegistrationForm({
     // ステータス
     status: 'available',
     current_location_id: '',
+    default_location_id: '',
 
     // 車検管理
     requires_vehicle_inspection: false,
@@ -160,7 +161,8 @@ export function EquipmentRegistrationForm({
         purchase_price: formData.purchase_price ? parseFloat(formData.purchase_price) : null,
 
         status: formData.status,
-        current_location_id: formData.current_location_id || null,
+        current_location_id: formData.default_location_id || null,
+        default_location_id: formData.default_location_id || null,
 
         requires_vehicle_inspection: formData.requires_vehicle_inspection,
         vehicle_inspection_date: formData.vehicle_inspection_date || null,
@@ -341,8 +343,36 @@ export function EquipmentRegistrationForm({
           </div>
 
           <div>
+            <label htmlFor="default_location_id" className="block text-sm font-medium text-gray-700">
+              デフォルト保管場所 <span className="text-red-500">*</span>
+            </label>
+            <p className="mt-1 text-xs text-gray-500">
+              返却時に自動的にこの場所に戻ります
+            </p>
+            <select
+              id="default_location_id"
+              name="default_location_id"
+              value={formData.default_location_id}
+              onChange={handleChange}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              required
+            >
+              <option value="">選択してください</option>
+              {locations.filter(loc => loc.is_own_location).length > 0 ? (
+                locations.filter(loc => loc.is_own_location).map((location) => (
+                  <option key={location.id} value={location.id}>
+                    {location.name}
+                  </option>
+                ))
+              ) : (
+                <option value="" disabled>自社拠点が登録されていません</option>
+              )}
+            </select>
+          </div>
+
+          <div className="hidden">
             <label htmlFor="current_location_id" className="block text-sm font-medium text-gray-700">
-              初期保管場所
+              初期保管場所（非表示）
             </label>
             <select
               id="current_location_id"

@@ -59,6 +59,7 @@ export function EquipmentEditForm({
     // ステータス
     status: equipment.status,
     current_location_id: equipment.current_location_id || '',
+    default_location_id: (equipment as any).default_location_id || '',
 
     // 車検管理
     requires_vehicle_inspection: equipment.requires_vehicle_inspection,
@@ -120,6 +121,7 @@ export function EquipmentEditForm({
 
         status: formData.status,
         current_location_id: formData.current_location_id || null,
+        default_location_id: formData.default_location_id || null,
 
         requires_vehicle_inspection: formData.requires_vehicle_inspection,
         vehicle_inspection_date: formData.vehicle_inspection_date || null,
@@ -301,6 +303,34 @@ export function EquipmentEditForm({
               maxLength={50}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             />
+          </div>
+
+          <div>
+            <label htmlFor="default_location_id" className="block text-sm font-medium text-gray-700">
+              デフォルト保管場所 <span className="text-red-500">*</span>
+            </label>
+            <p className="mt-1 text-xs text-gray-500">
+              返却時に自動的にこの場所に戻ります
+            </p>
+            <select
+              id="default_location_id"
+              name="default_location_id"
+              value={formData.default_location_id}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              required
+            >
+              <option value="">選択してください</option>
+              {sites.filter((site: any) => site.is_own_location).length > 0 ? (
+                sites.filter((site: any) => site.is_own_location).map((site) => (
+                  <option key={site.id} value={site.id}>
+                    {site.name}
+                  </option>
+                ))
+              ) : (
+                <option value="" disabled>自社拠点が登録されていません</option>
+              )}
+            </select>
           </div>
 
           <div>

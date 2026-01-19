@@ -13,9 +13,17 @@ interface AuditLogListProps {
       email: string | null
     } | null
   })[]
+  currentPage: number
+  totalPages: number
+  totalCount: number
 }
 
-export function AuditLogList({ initialAuditLogs }: AuditLogListProps) {
+export function AuditLogList({
+  initialAuditLogs,
+  currentPage,
+  totalPages,
+  totalCount,
+}: AuditLogListProps) {
   const [auditLogs] = useState(initialAuditLogs)
   const [actionFilter, setActionFilter] = useState<string>('all')
   const [entityFilter, setEntityFilter] = useState<string>('all')
