@@ -31,15 +31,63 @@ export async function createAuditLog(params: CreateAuditLogParams): Promise<void
       return
     }
 
-    // IPアドレスとUser Agentを取得
-    const headersList = await headers()
-    const ip_address = params.ip_address || headersList.get('x-forwarded-for') || headersList.get('x-real-ip')
-    const user_agent = params.user_agent || headersList.get('user-agent')
+    // IPアドレスとUser Agentを取得（Server Actionsでは取得できないのでnullにする）
+    let ip_address = params.ip_address || null
+    let user_agent = params.user_agent || null
+
+    try {
+      // API Route経由の場合のみheaders()を使用
+      const headersList = await headers()
+      ip_address = ip_address || headersList.get('x-forwarded-for') || headersList.get('x-real-ip')
+      user_agent = user_agent || headersList.get('user-agent')
+    } catch (headerError) {
+      // Server Actionsではheaders()が使えないのでスキップ
+      console.log('[AuditLog] Running in Server Action, headers not available')
+    }
 
     // 監査ログを挿入
     const { error } = await supabase.from('audit_logs').insert({
       organization_id: userData.organization_id,
       user_id: user.id,
+      action: params.action,
+      entity_type: params.entity_type,
+      entity_id: params.entity_id || null,
+      old_values: params.old_values || null,
+      new_values: params.new_values || null,
+      ip_address,
+      user_agent,
+    })
+
+    if (error) {
+      console.error('[AuditLog] Failed to create audit log:', error)
+    } else {
+      console.log(`[AuditLog] ${params.action} ${params.entity_type} ${params.entity_id || ''}`)
+    }
+  } catch (error) {
+    console.error('[AuditLog] Unexpected error:', error)
+  }
+}
+
+/**
+ * NextRequestから監査ログを記録する（API Route用）
+ */
+export async function createAuditLogFromRequest(
+  request: Request,
+  userId: string,
+  organizationId: string,
+  params: Omit<CreateAuditLogParams, 'ip_address' | 'user_agent'>
+): Promise<void> {
+  try {
+    const supabase = await createClient()
+
+    // IPアドレスとUser Agentを取得
+    const ip_address = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip')
+    const user_agent = request.headers.get('user-agent')
+
+    // 監査ログを挿入
+    const { error } = await supabase.from('audit_logs').insert({
+      organization_id: organizationId,
+      user_id: userId,
       action: params.action,
       entity_type: params.entity_type,
       entity_id: params.entity_id || null,
