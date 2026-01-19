@@ -100,9 +100,6 @@ export async function createTool(formData: {
     minimum_stock: toolData.minimum_stock,
   })
 
-  // 通知を作成
-  await notifyToolCreated(toolData.id, toolData.name)
-
   // 低在庫チェック
   if (toolData.quantity < toolData.minimum_stock) {
     await notifyLowStock(
@@ -524,9 +521,6 @@ export async function createToolWithItems(formData: {
     minimum_stock: toolData.minimum_stock,
     management_type: toolData.management_type,
   })
-
-  // 通知を作成
-  await notifyToolCreated(toolId, toolData.name)
 
   // 低在庫チェック
   const currentQuantity = toolData.management_type === 'consumable'
