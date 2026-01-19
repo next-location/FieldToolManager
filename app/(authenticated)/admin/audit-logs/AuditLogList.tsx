@@ -17,6 +17,9 @@ interface AuditLogListProps {
   currentPage: number
   totalPages: number
   totalCount: number
+  uniqueActions: string[]
+  uniqueEntities: string[]
+  uniqueUsers: { id: string; name: string }[]
 }
 
 export function AuditLogList({
@@ -24,13 +27,18 @@ export function AuditLogList({
   currentPage,
   totalPages,
   totalCount,
+  uniqueActions,
+  uniqueEntities,
+  uniqueUsers,
 }: AuditLogListProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [auditLogs] = useState(initialAuditLogs)
   const [actionFilter, setActionFilter] = useState<string>(searchParams.get('action') || 'all')
   const [entityFilter, setEntityFilter] = useState<string>(searchParams.get('entity') || 'all')
-  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '')
+  const [userFilter, setUserFilter] = useState<string>(searchParams.get('user_id') || 'all')
+  const [startDate, setStartDate] = useState(searchParams.get('start_date') || '')
+  const [endDate, setEndDate] = useState(searchParams.get('end_date') || '')
   const [expandedLog, setExpandedLog] = useState<string | null>(null)
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
 
@@ -39,7 +47,9 @@ export function AuditLogList({
     const params = new URLSearchParams()
     if (actionFilter !== 'all') params.set('action', actionFilter)
     if (entityFilter !== 'all') params.set('entity', entityFilter)
-    if (searchTerm) params.set('search', searchTerm)
+    if (userFilter !== 'all') params.set('user_id', userFilter)
+    if (startDate) params.set('start_date', startDate)
+    if (endDate) params.set('end_date', endDate)
     params.set('page', '1') // フィルター変更時は1ページ目に戻る
 
     router.push(`/admin/audit-logs?${params.toString()}`)
@@ -47,11 +57,6 @@ export function AuditLogList({
 
   // クライアントサイドではフィルタリングしない（サーバーサイドで済んでいる）
   const filteredLogs = auditLogs
-
-  // ユニークなアクション一覧
-  const uniqueActions = Array.from(new Set(auditLogs.map((log) => log.action)))
-  // ユニークなエンティティ一覧
-  const uniqueEntities = Array.from(new Set(auditLogs.map((log) => log.entity_type)))
 
   const getActionLabel = (action: string) => {
     const labels: Record<string, string> = {
@@ -161,19 +166,29 @@ export function AuditLogList({
   const handleResetFilters = () => {
     setActionFilter('all')
     setEntityFilter('all')
-    setSearchTerm('')
+    setUserFilter('all')
+    setStartDate('')
+    setEndDate('')
     router.push('/admin/audit-logs')
   }
 
-  // フィルター数をカウント（検索ワード以外）
-  const filterCount = [actionFilter !== 'all' ? 1 : 0, entityFilter !== 'all' ? 1 : 0].reduce((a, b) => a + b, 0)
+  // フィルター数をカウント
+  const filterCount = [
+    actionFilter !== 'all' ? 1 : 0,
+    entityFilter !== 'all' ? 1 : 0,
+    userFilter !== 'all' ? 1 : 0,
+    startDate ? 1 : 0,
+    endDate ? 1 : 0,
+  ].reduce((a, b) => a + b, 0)
 
   // ページ遷移関数
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams()
     if (actionFilter !== 'all') params.set('action', actionFilter)
     if (entityFilter !== 'all') params.set('entity', entityFilter)
-    if (searchTerm) params.set('search', searchTerm)
+    if (userFilter !== 'all') params.set('user_id', userFilter)
+    if (startDate) params.set('start_date', startDate)
+    if (endDate) params.set('end_date', endDate)
     params.set('page', newPage.toString())
 
     router.push(`/admin/audit-logs?${params.toString()}`)
@@ -205,65 +220,37 @@ export function AuditLogList({
         </p>
       </div>
 
-      {/* 検索・フィルタ - Mobile */}
+      {/* フィルタ - Mobile */}
       <div className="sm:hidden mb-6">
-        <div className="flex items-center gap-2">
-          <div className="flex-1">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  applyFilters()
-                }
-              }}
-              placeholder="エンティティIDで検索（Enterで実行）"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
-            />
-          </div>
-          <button
-            onClick={() => setIsFilterModalOpen(true)}
-            className="relative p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50"
-            aria-label="フィルター"
-          >
-            <SlidersHorizontal className="h-5 w-5 text-gray-600" />
-            {filterCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                {filterCount}
-              </span>
-            )}
-          </button>
-        </div>
+        <button
+          onClick={() => setIsFilterModalOpen(true)}
+          className="relative w-full p-3 border border-gray-300 rounded-md bg-white hover:bg-gray-50 flex items-center justify-center gap-2"
+        >
+          <SlidersHorizontal className="h-5 w-5 text-gray-600" />
+          <span className="text-sm font-medium text-gray-700">フィルター</span>
+          {filterCount > 0 && (
+            <span className="bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              {filterCount}
+            </span>
+          )}
+        </button>
       </div>
 
-      {/* 検索・フィルタ - PC */}
+      {/* フィルタ - PC */}
       <div className="hidden sm:block bg-white shadow rounded-lg p-6 mb-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">検索・フィルター</h2>
+          <h2 className="text-lg font-semibold text-gray-900">フィルター</h2>
+          {filterCount > 0 && (
+            <button
+              onClick={handleResetFilters}
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            >
+              クリア
+            </button>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* 検索 */}
-          <div>
-            <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
-              検索
-            </label>
-            <input
-              type="text"
-              id="search"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  applyFilters()
-                }
-              }}
-              placeholder="エンティティIDで検索（Enterで実行）"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
-            />
-          </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* アクションフィルター */}
           <div>
             <label htmlFor="action" className="block text-sm font-medium text-gray-700 mb-1">
@@ -279,7 +266,9 @@ export function AuditLogList({
                 const params = new URLSearchParams()
                 if (newValue !== 'all') params.set('action', newValue)
                 if (entityFilter !== 'all') params.set('entity', entityFilter)
-                if (searchTerm) params.set('search', searchTerm)
+                if (userFilter !== 'all') params.set('user_id', userFilter)
+                if (startDate) params.set('start_date', startDate)
+                if (endDate) params.set('end_date', endDate)
                 params.set('page', '1')
                 router.push(`/admin/audit-logs?${params.toString()}`)
               }}
@@ -309,7 +298,9 @@ export function AuditLogList({
                 const params = new URLSearchParams()
                 if (actionFilter !== 'all') params.set('action', actionFilter)
                 if (newValue !== 'all') params.set('entity', newValue)
-                if (searchTerm) params.set('search', searchTerm)
+                if (userFilter !== 'all') params.set('user_id', userFilter)
+                if (startDate) params.set('start_date', startDate)
+                if (endDate) params.set('end_date', endDate)
                 params.set('page', '1')
                 router.push(`/admin/audit-logs?${params.toString()}`)
               }}
@@ -322,6 +313,90 @@ export function AuditLogList({
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* スタッフフィルター */}
+          <div>
+            <label htmlFor="user" className="block text-sm font-medium text-gray-700 mb-1">
+              スタッフ
+            </label>
+            <select
+              id="user"
+              value={userFilter}
+              onChange={(e) => {
+                const newValue = e.target.value
+                setUserFilter(newValue)
+                // 即座にサーバーサイドフィルタリングを実行
+                const params = new URLSearchParams()
+                if (actionFilter !== 'all') params.set('action', actionFilter)
+                if (entityFilter !== 'all') params.set('entity', entityFilter)
+                if (newValue !== 'all') params.set('user_id', newValue)
+                if (startDate) params.set('start_date', startDate)
+                if (endDate) params.set('end_date', endDate)
+                params.set('page', '1')
+                router.push(`/admin/audit-logs?${params.toString()}`)
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+            >
+              <option value="all">すべて</option>
+              {uniqueUsers.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* 開始日 */}
+          <div>
+            <label htmlFor="start_date" className="block text-sm font-medium text-gray-700 mb-1">
+              開始日
+            </label>
+            <input
+              type="date"
+              id="start_date"
+              value={startDate}
+              onChange={(e) => {
+                const newValue = e.target.value
+                setStartDate(newValue)
+                // 即座にサーバーサイドフィルタリングを実行
+                const params = new URLSearchParams()
+                if (actionFilter !== 'all') params.set('action', actionFilter)
+                if (entityFilter !== 'all') params.set('entity', entityFilter)
+                if (userFilter !== 'all') params.set('user_id', userFilter)
+                if (newValue) params.set('start_date', newValue)
+                if (endDate) params.set('end_date', endDate)
+                params.set('page', '1')
+                router.push(`/admin/audit-logs?${params.toString()}`)
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+            />
+          </div>
+
+          {/* 終了日 */}
+          <div>
+            <label htmlFor="end_date" className="block text-sm font-medium text-gray-700 mb-1">
+              終了日
+            </label>
+            <input
+              type="date"
+              id="end_date"
+              value={endDate}
+              onChange={(e) => {
+                const newValue = e.target.value
+                setEndDate(newValue)
+                // 即座にサーバーサイドフィルタリングを実行
+                const params = new URLSearchParams()
+                if (actionFilter !== 'all') params.set('action', actionFilter)
+                if (entityFilter !== 'all') params.set('entity', entityFilter)
+                if (userFilter !== 'all') params.set('user_id', userFilter)
+                if (startDate) params.set('start_date', startDate)
+                if (newValue) params.set('end_date', newValue)
+                params.set('page', '1')
+                router.push(`/admin/audit-logs?${params.toString()}`)
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+            />
           </div>
         </div>
       </div>
@@ -501,12 +576,19 @@ export function AuditLogList({
         onClose={() => setIsFilterModalOpen(false)}
         actionFilter={actionFilter}
         entityFilter={entityFilter}
+        userFilter={userFilter}
+        startDate={startDate}
+        endDate={endDate}
         onActionChange={setActionFilter}
         onEntityChange={setEntityFilter}
+        onUserChange={setUserFilter}
+        onStartDateChange={setStartDate}
+        onEndDateChange={setEndDate}
         onApply={handleApplyFilters}
         onReset={handleResetFilters}
         uniqueActions={uniqueActions}
         uniqueEntities={uniqueEntities}
+        uniqueUsers={uniqueUsers}
         getActionLabel={getActionLabel}
         getEntityLabel={getEntityLabel}
       />

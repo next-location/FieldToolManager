@@ -7,12 +7,19 @@ interface AuditLogFiltersModalProps {
   onClose: () => void
   actionFilter: string
   entityFilter: string
+  userFilter: string
+  startDate: string
+  endDate: string
   onActionChange: (value: string) => void
   onEntityChange: (value: string) => void
+  onUserChange: (value: string) => void
+  onStartDateChange: (value: string) => void
+  onEndDateChange: (value: string) => void
   onApply: () => void
   onReset: () => void
   uniqueActions: string[]
   uniqueEntities: string[]
+  uniqueUsers: { id: string; name: string }[]
   getActionLabel: (action: string) => string
   getEntityLabel: (entity: string) => string
 }
@@ -22,12 +29,19 @@ export default function AuditLogFiltersModal({
   onClose,
   actionFilter,
   entityFilter,
+  userFilter,
+  startDate,
+  endDate,
   onActionChange,
   onEntityChange,
+  onUserChange,
+  onStartDateChange,
+  onEndDateChange,
   onApply,
   onReset,
   uniqueActions,
   uniqueEntities,
+  uniqueUsers,
   getActionLabel,
   getEntityLabel,
 }: AuditLogFiltersModalProps) {
@@ -106,6 +120,63 @@ export default function AuditLogFiltersModal({
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* スタッフフィルター */}
+          <div>
+            <label
+              htmlFor="modal-user"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              スタッフ
+            </label>
+            <select
+              id="modal-user"
+              value={userFilter}
+              onChange={(e) => onUserChange(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">すべて</option>
+              {uniqueUsers.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* 開始日 */}
+          <div>
+            <label
+              htmlFor="modal-start-date"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              開始日
+            </label>
+            <input
+              type="date"
+              id="modal-start-date"
+              value={startDate}
+              onChange={(e) => onStartDateChange(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          {/* 終了日 */}
+          <div>
+            <label
+              htmlFor="modal-end-date"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              終了日
+            </label>
+            <input
+              type="date"
+              id="modal-end-date"
+              value={endDate}
+              onChange={(e) => onEndDateChange(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            />
           </div>
         </div>
 

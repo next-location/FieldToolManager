@@ -27,7 +27,10 @@ export default async function EquipmentDetailPage({
         name,
         icon
       ),
-      sites!heavy_equipment_current_location_id_fkey (
+      current_location:sites!heavy_equipment_current_location_id_fkey (
+        name
+      ),
+      default_location:sites!heavy_equipment_default_location_id_fkey (
         name
       ),
       users!heavy_equipment_current_user_id_fkey (

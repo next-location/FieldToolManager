@@ -5,7 +5,14 @@ import { AuditLogList } from './AuditLogList'
 export default async function AuditLogsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; action?: string; entity?: string; search?: string }>
+  searchParams: Promise<{
+    page?: string
+    action?: string
+    entity?: string
+    user_id?: string
+    start_date?: string
+    end_date?: string
+  }>
 }) {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
@@ -57,10 +64,19 @@ export default async function AuditLogsPage({
   if (params.entity && params.entity !== 'all') {
     query = query.eq('entity_type', params.entity)
   }
+  if (params.user_id && params.user_id !== 'all') {
+    query = query.eq('user_id', params.user_id)
+  }
 
-  // サーバーサイド検索（entity_idで部分一致）
-  if (params.search) {
-    query = query.ilike('entity_id', `%${params.search}%`)
+  // 期間検索
+  if (params.start_date) {
+    query = query.gte('created_at', params.start_date)
+  }
+  if (params.end_date) {
+    // 終了日の23:59:59まで含める
+    const endDate = new Date(params.end_date)
+    endDate.setHours(23, 59, 59, 999)
+    query = query.lte('created_at', endDate.toISOString())
   }
 
   // ページネーションとソート
@@ -74,6 +90,43 @@ export default async function AuditLogsPage({
 
   const totalPages = count ? Math.ceil(count / pageSize) : 1
 
+  // フィルター用の全データを取得（ユニーク値用）
+  const { data: allLogsForFilters } = await supabaseService
+    .from('audit_logs')
+    .select(
+      `
+      action,
+      entity_type,
+      user_id,
+      users:user_id (
+        name,
+        email
+      )
+    `
+    )
+    .eq('organization_id', organizationId)
+
+  // ユニークな値を抽出
+  const uniqueActions = Array.from(
+    new Set((allLogsForFilters || []).map((log) => log.action).filter(Boolean))
+  )
+  const uniqueEntities = Array.from(
+    new Set((allLogsForFilters || []).map((log) => log.entity_type).filter(Boolean))
+  )
+  const uniqueUsers = Array.from(
+    new Map(
+      (allLogsForFilters || [])
+        .filter((log) => log.user_id && log.users)
+        .map((log) => [
+          log.user_id,
+          {
+            id: log.user_id,
+            name: (log.users as any)?.name || (log.users as any)?.email || '不明',
+          },
+        ])
+    ).values()
+  )
+
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 pb-6 sm:px-0 sm:py-6">
@@ -82,6 +135,9 @@ export default async function AuditLogsPage({
           currentPage={page}
           totalPages={totalPages}
           totalCount={count || 0}
+          uniqueActions={uniqueActions}
+          uniqueEntities={uniqueEntities}
+          uniqueUsers={uniqueUsers}
         />
       </div>
     </div>

@@ -17,7 +17,10 @@ interface EquipmentWithRelations extends HeavyEquipment {
     name: string
     icon: string
   }
-  sites?: {
+  current_location?: {
+    name: string
+  }
+  default_location?: {
     name: string
   }
   users?: {
@@ -453,12 +456,19 @@ export default function EquipmentDetailTabs({
               </div>
             )}
 
-            {/* 現在地・使用者 */}
+            {/* 現在地・デフォルト保管場所・使用者 */}
             <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">現在地</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{equipment.sites?.name || '未設定'}</dd>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{equipment.current_location?.name || '未設定'}</dd>
             </div>
             <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">デフォルト保管場所</dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {equipment.default_location?.name || '未設定'}
+                <span className="ml-2 text-xs text-gray-500">（返却時に自動的にここに戻ります）</span>
+              </dd>
+            </div>
+            <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">使用者</dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{equipment.users?.name || '未割当'}</dd>
             </div>
