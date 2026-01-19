@@ -24,18 +24,22 @@ export default async function AuditLogsPage() {
     }
   )
 
-  const { data: auditLogs } = await supabaseService
+  const { data: auditLogs, error: auditLogsError } = await supabaseService
     .from('audit_logs')
     .select(`
       *,
       users:user_id (
-        full_name,
+        name,
         email
       )
     `)
     .eq('organization_id', organizationId)
     .order('created_at', { ascending: false })
     .limit(100)
+
+  if (auditLogsError) {
+    console.error('[AuditLogsPage] Error fetching audit logs:', auditLogsError)
+  }
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
