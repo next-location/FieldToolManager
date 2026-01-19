@@ -4,6 +4,7 @@ import Link from 'next/link'
 import type { ConsumableOrderWithRelations } from '@/types/consumable-orders'
 import ConsumableOrdersPageFAB from '@/components/consumables/orders/ConsumableOrdersPageFAB'
 import ConsumableOrdersList from '@/components/consumables/orders/ConsumableOrdersList'
+import ConsumableOrdersPageWrapper from './ConsumableOrdersPageWrapper'
 
 export default async function ConsumableOrdersPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
@@ -48,6 +49,7 @@ export default async function ConsumableOrdersPage() {
   }
 
   return (
+    <ConsumableOrdersPageWrapper>
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 pb-6 sm:px-0 sm:py-6 space-y-6">
         {/* ヘッダー */}
@@ -177,5 +179,6 @@ export default async function ConsumableOrdersPage() {
       <ConsumableOrdersPageFAB />
       </div>
     </div>
+    </ConsumableOrdersPageWrapper>
   )
 }

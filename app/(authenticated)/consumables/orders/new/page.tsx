@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/page-auth'
 import ConsumableOrderForm from './ConsumableOrderForm'
+import ConsumableOrdersNewPageWrapper from './ConsumableOrdersNewPageWrapper'
 
 export default async function NewConsumableOrderPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
@@ -48,6 +49,7 @@ export default async function NewConsumableOrderPage() {
   const suggestedOrderNumber = `ORD-${today}-${String(nextNumber).padStart(4, '0')}`
 
   return (
+    <ConsumableOrdersNewPageWrapper>
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 pb-6 sm:px-0 sm:py-6">
         <div className="mb-8">
@@ -63,5 +65,6 @@ export default async function NewConsumableOrderPage() {
         />
       </div>
     </div>
+    </ConsumableOrdersNewPageWrapper>
   )
 }

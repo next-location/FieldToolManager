@@ -198,31 +198,32 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                   >
                     消耗品一覧
                   </Link>
+                  {/* 消耗品発注管理 - フル機能統合パック限定 */}
+                  {hasFullPackage && (
+                    <Link
+                      href="/consumables/orders"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive('/consumables/orders')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      消耗品発注管理
+                    </Link>
+                  )}
                   {!isDemo && (
-                    <>
-                      <Link
-                        href="/consumables/orders"
-                        onClick={onClose}
-                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                          isActive('/consumables/orders')
-                            ? 'bg-blue-50 text-blue-700 font-medium'
-                            : 'text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        消耗品発注管理
-                      </Link>
-                      <Link
-                        href="/tool-sets"
-                        onClick={onClose}
-                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                          pathname === '/tool-sets' || pathname?.startsWith('/tool-sets/')
-                            ? 'bg-blue-50 text-blue-700 font-medium'
-                            : 'text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        道具セット登録
-                      </Link>
-                    </>
+                    <Link
+                      href="/tool-sets"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        pathname === '/tool-sets' || pathname?.startsWith('/tool-sets/')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      道具セット登録
+                    </Link>
                   )}
                 </div>
               )}

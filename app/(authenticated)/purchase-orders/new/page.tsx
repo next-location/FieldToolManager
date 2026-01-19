@@ -56,6 +56,13 @@ export default function NewPurchaseOrderPage() {
     fetchSuppliers()
     fetchProjects()
     generateOrderNumber()
+
+    // 消耗品発注からの遷移の場合、データを自動入力
+    const params = new URLSearchParams(window.location.search)
+    const consumableOrderId = params.get('consumable_order_id')
+    if (consumableOrderId && params.get('from') === 'consumable') {
+      fetchConsumableOrderData(consumableOrderId)
+    }
   }, [])
 
   const fetchSuppliers = async () => {
@@ -114,6 +121,69 @@ export default function NewPurchaseOrderPage() {
         ...prev,
         order_number: `PO-${year}${month}-0001`
       }))
+    }
+  }
+
+  const fetchConsumableOrderData = async (orderId: string) => {
+    const { data: order } = await supabase
+      .from('consumable_orders')
+      .select(`
+        *,
+        tools:tool_id (
+          id,
+          name,
+          model_number,
+          manufacturer,
+          unit
+        )
+      `)
+      .eq('id', orderId)
+      .single()
+
+    if (!order) return
+
+    // 消耗品発注データを発注書フォームに自動入力
+    const consumableTool = order.tools as any
+
+    setItems([
+      {
+        id: '1',
+        item_type: 'material',
+        item_name: consumableTool?.name || '',
+        description: consumableTool?.model_number
+          ? `型番: ${consumableTool.model_number}${consumableTool.manufacturer ? ` / メーカー: ${consumableTool.manufacturer}` : ''}`
+          : '',
+        quantity: order.quantity || 1,
+        unit: consumableTool?.unit || '個',
+        unit_price: order.unit_price || 0,
+        tax_rate: 10,
+        amount: order.total_price || 0
+      }
+    ])
+
+    setFormData(prev => ({
+      ...prev,
+      order_date: order.order_date || prev.order_date,
+      delivery_date: order.expected_delivery_date || prev.delivery_date,
+      notes: order.notes || '',
+      internal_memo: `消耗品発注管理から作成 (発注番号: ${order.order_number})`
+    }))
+
+    // 仕入れ先が設定されている場合は検索して設定
+    if (order.supplier_name) {
+      const { data: client } = await supabase
+        .from('clients')
+        .select('id')
+        .ilike('name', `%${order.supplier_name}%`)
+        .limit(1)
+        .single()
+
+      if (client) {
+        setFormData(prev => ({
+          ...prev,
+          client_id: client.id
+        }))
+      }
     }
   }
 

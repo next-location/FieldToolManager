@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import type { ConsumableOrderWithRelations } from '@/types/consumable-orders'
 import {
   markAsOrdered,
@@ -84,6 +85,16 @@ export default function OrderDetailActions({ order, userId }: Props) {
         <div className="px-4 py-5 sm:p-6">
           <h3 className="text-lg leading-6 font-medium text-gray-900">アクション</h3>
           <div className="mt-5 space-y-3">
+            {/* 発注書作成ボタン - 下書き中または発注済みの場合に表示 */}
+            {(order.status === '下書き中' || order.status === '発注済み') && (
+              <Link
+                href={`/purchase-orders/new?from=consumable&consumable_order_id=${order.id}`}
+                className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              >
+                📄 正式な発注書を作成
+              </Link>
+            )}
+
             {order.status === '下書き中' && (
               <>
                 <button

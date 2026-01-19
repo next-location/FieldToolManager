@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import type { ConsumableOrderWithRelations } from '@/types/consumable-orders'
 import OrderDetailActions from './OrderDetailActions'
+import ConsumableOrderDetailPageWrapper from './ConsumableOrderDetailPageWrapper'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -49,6 +50,7 @@ export default async function ConsumableOrderDetailPage({ params }: Props) {
   const isLeaderOrAdmin = userRole === 'admin' || userRole === 'leader'
 
   return (
+    <ConsumableOrderDetailPageWrapper>
     <div className="space-y-6 p-6">
       {/* ヘッダー */}
       <div className="flex justify-between items-start">
@@ -223,5 +225,6 @@ export default async function ConsumableOrderDetailPage({ params }: Props) {
         />
       )}
     </div>
+    </ConsumableOrderDetailPageWrapper>
   )
 }

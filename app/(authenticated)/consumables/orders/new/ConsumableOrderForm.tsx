@@ -25,22 +25,24 @@ export default function ConsumableOrderForm({ consumables, suggestedOrderNumber 
   const [selectedConsumable, setSelectedConsumable] = useState<Tool | null>(null)
 
   // 自動計算: 単価 × 数量 = 合計金額（整数のみ）
-  const [quantity, setQuantity] = useState<number>(1)
+  const [quantity, setQuantity] = useState<string>('')
   const [unitPrice, setUnitPrice] = useState<string>('')
   const [totalPrice, setTotalPrice] = useState<string>('')
 
-  const handleQuantityChange = (value: number) => {
+  const handleQuantityChange = (value: string) => {
     setQuantity(value)
-    if (unitPrice) {
-      const total = value * parseInt(unitPrice)
+    if (unitPrice && value) {
+      const total = parseInt(value) * parseInt(unitPrice)
       setTotalPrice(total.toString())
+    } else {
+      setTotalPrice('')
     }
   }
 
   const handleUnitPriceChange = (value: string) => {
     setUnitPrice(value)
     if (value && quantity) {
-      const total = quantity * parseInt(value)
+      const total = parseInt(quantity) * parseInt(value)
       setTotalPrice(total.toString())
     } else {
       setTotalPrice('')
@@ -227,7 +229,7 @@ export default function ConsumableOrderForm({ consumables, suggestedOrderNumber 
                   required
                   min="1"
                   value={quantity}
-                  onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
+                  onChange={(e) => handleQuantityChange(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>

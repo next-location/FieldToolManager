@@ -35,7 +35,7 @@ body {
   input[type="date"],
   input[type="time"],
   input[type="datetime-local"] {
-    @apply bg-white text-base text-left;
+    @apply bg-white text-base;
     height: 36px;
   }
 

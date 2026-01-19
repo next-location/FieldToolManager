@@ -4251,3 +4251,91 @@ ALTER TABLE warehouse_locations DROP COLUMN IF EXISTS site_id;
 - 既存の倉庫位置（site_id = NULL）は「会社メイン倉庫」として扱われる
 - UI 実装は次のステップで対応
 
+---
+
+### 20250119000001_add_document_id_to_consumable_orders.sql
+
+**実施日**: 2026-01-19
+**目的**: 消耗品発注管理と帳票管理（発注書PDF）の連携
+**対象**: `consumable_orders` テーブル
+**関連機能**: 消耗品発注管理（フル機能パック限定）
+
+#### 変更内容
+
+1. **document_id カラム追加**
+   - 消耗品発注から生成された発注書（documents テーブル）への参照
+   - NULL 許可（発注書未生成の発注も許可）
+   - 外部キー制約: documents.id（ON DELETE SET NULL）
+
+2. **インデックス追加**
+   - `idx_consumable_orders_document_id` - 発注書からの逆引き検索を高速化
+   - 部分インデックス（document_id IS NOT NULL）でストレージ効率化
+
+#### SQL
+
+```sql
+-- 以下のファイルの内容を実行
+-- supabase/migrations/20250119000001_add_document_id_to_consumable_orders.sql
+
+-- document_id カラムを追加
+ALTER TABLE consumable_orders
+ADD COLUMN document_id UUID REFERENCES documents(id) ON DELETE SET NULL;
+
+-- インデックス追加（発注書からの逆引き検索を高速化）
+CREATE INDEX idx_consumable_orders_document_id
+ON consumable_orders(document_id)
+WHERE document_id IS NOT NULL;
+
+-- コメント追加
+COMMENT ON COLUMN consumable_orders.document_id IS '生成された発注書のドキュメントID（documentsテーブルへの参照）';
+```
+
+#### 検証クエリ
+
+実行後、以下のクエリで確認:
+```sql
+-- カラムが追加されたことを確認
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'consumable_orders'
+  AND column_name = 'document_id';
+
+-- インデックスが作成されたことを確認
+SELECT indexname, indexdef
+FROM pg_indexes
+WHERE tablename = 'consumable_orders'
+  AND indexname = 'idx_consumable_orders_document_id';
+
+-- 外部キー制約が作成されたことを確認
+SELECT
+  tc.constraint_name,
+  tc.table_name,
+  kcu.column_name,
+  ccu.table_name AS foreign_table_name,
+  ccu.column_name AS foreign_column_name
+FROM information_schema.table_constraints AS tc
+JOIN information_schema.key_column_usage AS kcu
+  ON tc.constraint_name = kcu.constraint_name
+JOIN information_schema.constraint_column_usage AS ccu
+  ON ccu.constraint_name = tc.constraint_name
+WHERE tc.table_name = 'consumable_orders'
+  AND tc.constraint_type = 'FOREIGN KEY'
+  AND kcu.column_name = 'document_id';
+```
+
+#### ロールバック
+
+```sql
+-- インデックス削除
+DROP INDEX IF EXISTS idx_consumable_orders_document_id;
+
+-- カラム削除（外部キー制約も自動削除される）
+ALTER TABLE consumable_orders DROP COLUMN IF EXISTS document_id;
+```
+
+#### 注意事項
+- **重要**: document_id を持つ発注が存在する場合、ロールバックは推奨されません
+- 既存の発注データ（document_id = NULL）はそのまま残ります
+- 発注書生成機能は Phase 6 で実装予定
+- フル機能パック以外のユーザーはこの機能にアクセスできません（PackageGate で制御）
+

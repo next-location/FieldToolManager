@@ -717,6 +717,7 @@ localStorage.setItem('mock_package_type', 'full');
 | 重機管理 | asset.equipment | 現場資産パック |
 | QRコード | asset.qr_code | 現場資産パック |
 | 棚卸し | asset.inventory | 現場資産パック |
+| 消耗品発注管理 | asset.consumable_orders | フル機能統合パック限定 ✨NEW |
 | 出退勤管理 | dx.attendance | 現場DX業務効率化パック |
 | 作業報告書 | dx.work_reports | 現場DX業務効率化パック |
 | 見積書 | dx.estimates | 現場DX業務効率化パック |
