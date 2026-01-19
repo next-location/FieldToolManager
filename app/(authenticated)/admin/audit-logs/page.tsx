@@ -70,14 +70,14 @@ export default async function AuditLogsPage({
 
   // 期間検索（空文字列をチェック）
   if (params.start_date && params.start_date.trim() !== '') {
-    // YYYY-MM-DDの00:00:00から開始
-    const startDateTime = `${params.start_date}T00:00:00.000Z`
+    // YYYY-MM-DDをJST (UTC+9) の00:00:00として扱い、UTCに変換
+    const startDateTime = `${params.start_date}T00:00:00+09:00`
     console.log('[AUDIT LOGS] Start date filter:', params.start_date, '→', startDateTime)
     query = query.gte('created_at', startDateTime)
   }
   if (params.end_date && params.end_date.trim() !== '') {
-    // YYYY-MM-DDの23:59:59まで含める
-    const endDateTime = `${params.end_date}T23:59:59.999Z`
+    // YYYY-MM-DDをJST (UTC+9) の23:59:59として扱い、UTCに変換
+    const endDateTime = `${params.end_date}T23:59:59.999+09:00`
     console.log('[AUDIT LOGS] End date filter:', params.end_date, '→', endDateTime)
     query = query.lte('created_at', endDateTime)
   }
