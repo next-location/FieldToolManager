@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import type { HeavyEquipment, HeavyEquipmentMaintenance } from '@/types/heavy-equipment'
 import { QRCodeDisplay } from './QRCodeDisplay'
 import {
@@ -11,6 +12,7 @@ import {
   formatCurrency,
   formatPercentage,
 } from '@/lib/equipment-cost'
+import { createEquipmentMovement } from '../movement/actions'
 
 interface EquipmentWithRelations extends HeavyEquipment {
   heavy_equipment_categories?: {
@@ -57,7 +59,9 @@ export default function EquipmentDetailTabs({
   isLeaderOrAdmin,
   qrSize = 25,
 }: EquipmentDetailTabsProps) {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<'basic' | 'usage' | 'maintenance' | 'cost' | 'qr'>('basic')
+  const [isReturning, setIsReturning] = useState(false)
 
   // コストサマリー計算
   const costSummary = generateEquipmentCostSummary(equipment, maintenanceRecords)
@@ -194,6 +198,42 @@ export default function EquipmentDetailTabs({
 
   const alerts = getAlerts()
 
+  // 返却処理
+  const handleReturn = async () => {
+    const defaultLocationName = equipment.default_location?.name || 'デフォルト保管場所'
+
+    if (!confirm(`この重機を「${defaultLocationName}」に返却しますか？`)) {
+      return
+    }
+
+    setIsReturning(true)
+
+    try {
+      const result = await createEquipmentMovement({
+        equipment_id: equipment.id,
+        action_type: 'checkin',
+        from_location_id: equipment.current_location_id,
+        to_location_id: null,
+        from_other_location: null,
+        to_other_location: null,
+        hour_meter_reading: null,
+        notes: null,
+      })
+
+      if (result.success) {
+        alert('返却しました')
+        router.refresh()
+      } else {
+        alert(`返却に失敗しました: ${result.error}`)
+      }
+    } catch (error) {
+      console.error('返却エラー:', error)
+      alert('返却に失敗しました')
+    } finally {
+      setIsReturning(false)
+    }
+  }
+
   return (
     <div className="bg-white shadow overflow-hidden sm:rounded-lg">
       {/* ヘッダー */}
@@ -248,15 +288,16 @@ export default function EquipmentDetailTabs({
             </Link>
           )}
           {equipment.status === 'in_use' && (
-            <Link
-              href="/equipment/movement"
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700"
+            <button
+              onClick={handleReturn}
+              disabled={isReturning}
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
               </svg>
-              返却
-            </Link>
+              {isReturning ? '返却中...' : '返却'}
+            </button>
           )}
 
           {isLeaderOrAdmin && (
