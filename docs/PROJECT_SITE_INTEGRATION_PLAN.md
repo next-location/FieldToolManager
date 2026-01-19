@@ -1,8 +1,49 @@
 # 工事管理と現場マスタの統合計画書
 
 > **作成日**: 2026-01-19
-> **ステータス**: 検証完了・実装待ち
+> **最終更新**: 2026-01-19
+> **ステータス**: ✅ Phase 1-3 実装完了・本番稼働中
 > **目的**: 工事（projects）と現場（sites）のデータ連携を強化し、業務効率を向上させる
+
+---
+
+## ✅ 実装完了サマリー
+
+**実装日**: 2026-01-19
+**デプロイ**: コミット f440915 - `feat: implement project-site integration (Phase 1-3)`
+
+### 完了した実装
+
+#### ✅ Phase 1: データベース構造の拡張
+- `projects` テーブルに `site_id` カラムを追加（マイグレーション実行済）
+- 工事詳細ページに現場情報を表示（リンク、住所、取引先情報）
+
+#### ✅ Phase 2: UI 実装
+- 工事登録・編集フォームに現場選択ドロップダウンを追加（検索機能付き）
+- 工事一覧ページ（PC・モバイル）に現場名カラムを追加
+
+#### ✅ Phase 3: 自動連携機能
+- 発注書作成時、工事選択で現場住所を納品場所に自動入力
+- 作業報告は既に `site_id` を持つため追加実装不要
+
+### マイグレーション
+
+**ファイル**: `supabase/migrations/20260119120000_add_site_id_to_projects.sql`
+
+```sql
+ALTER TABLE projects ADD COLUMN site_id UUID REFERENCES sites(id) ON DELETE SET NULL;
+CREATE INDEX idx_projects_site_id ON projects(site_id);
+```
+
+**実行状況**: ✅ 本番環境で手動実行済（Supabase Dashboard）
+
+### 動作確認
+
+- ✅ 工事詳細ページで現場情報が表示される
+- ✅ 工事フォームで現場選択が可能
+- ✅ 工事一覧で現場名が表示される
+- ✅ 発注書作成時、工事から現場住所が自動入力される
+- ✅ 既存データに影響なし（site_id = NULL は許可される）
 
 ---
 
@@ -14,6 +55,7 @@
 4. [実装計画](#4-実装計画)
 5. [マイグレーション手順](#5-マイグレーション手順)
 6. [テストシナリオ](#6-テストシナリオ)
+7. [実装記録](#7-実装記録)
 
 ---
 
@@ -1233,3 +1275,88 @@ LIMIT 50;
 
 **最終更新日**: 2026-01-19
 **ステータス**: ✅ 検証完了・実装待ち
+
+---
+
+## 7. 実装記録
+
+### 7.1 実装タイムライン
+
+| 日時 | Phase | 内容 | 担当 | ステータス |
+|------|-------|------|------|-----------|
+| 2026-01-19 | 計画 | 要件検証・実装計画作成 | Claude | ✅ 完了 |
+| 2026-01-19 | Phase 1 | DBマイグレーション実行 | User + Claude | ✅ 完了 |
+| 2026-01-19 | Phase 1 | 工事詳細ページに現場情報表示 | Claude | ✅ 完了 |
+| 2026-01-19 | Phase 2 | 工事フォームに現場選択追加 | Claude | ✅ 完了 |
+| 2026-01-19 | Phase 2 | 工事一覧に現場カラム追加 | Claude | ✅ 完了 |
+| 2026-01-19 | Phase 3 | 発注書自動連携機能追加 | Claude | ✅ 完了 |
+| 2026-01-19 | デプロイ | 本番環境デプロイ | Claude | ✅ 完了 |
+
+### 7.2 変更ファイル一覧
+
+#### データベース
+- `supabase/migrations/20260119120000_add_site_id_to_projects.sql` - 新規作成
+
+#### ドキュメント
+- `docs/MIGRATIONS.md` - マイグレーション履歴追記
+- `docs/PROJECT_SITE_INTEGRATION_PLAN.md` - 本ファイル（実装完了記録）
+
+#### 実装ファイル
+- `app/(authenticated)/projects/[id]/page.tsx` - 工事詳細ページ（現場情報表示）
+- `app/(authenticated)/projects/page.tsx` - 工事一覧ページ（site クエリ追加）
+- `components/projects/ProjectForm.tsx` - 工事フォーム（現場選択追加）
+- `components/projects/ProjectListClient.tsx` - 工事一覧コンポーネント（現場カラム追加）
+- `app/(authenticated)/purchase-orders/new/page.tsx` - 発注書作成（現場住所自動入力）
+
+### 7.3 コミット履歴
+
+```bash
+commit f440915
+Author: Claude <noreply@anthropic.com>
+Date: 2026-01-19
+
+feat: implement project-site integration (Phase 1-3)
+
+- Add site_id column to projects table with migration
+- Display site information on project detail page
+- Add site selection dropdown to project form (create/edit)
+- Show site name column in project list (PC and mobile)
+- Auto-populate delivery location from project's site when creating purchase orders
+- Update MIGRATIONS.md with migration history
+
+Related: docs/PROJECT_SITE_INTEGRATION_PLAN.md
+```
+
+### 7.4 残課題・今後の拡張
+
+#### 今後実装予定の機能
+- 現場詳細ページから関連工事一覧を表示
+- 工事進捗と現場ステータスの連動
+- 現場別の予算消化率レポート
+
+#### 検討事項
+- 工事完了時、現場ステータスを自動更新するか？
+- 現場削除時、紐づく工事の site_id を NULL にする（現在の設定通り）
+
+### 7.5 注意事項
+
+#### 運用上の注意
+- **工事と現場の紐付けは任意**: site_id = NULL も許可されるため、現場に紐づかない工事も作成可能
+- **現場削除の影響**: 現場を削除しても工事データは残る（site_id が NULL になる）
+- **既存データ**: 過去の工事は site_id = NULL のまま（必要に応じて手動で紐付け可能）
+
+#### トラブルシューティング
+- **工事一覧で現場が表示されない**: site_id が NULL か、現場が削除されている
+- **発注書で住所が自動入力されない**: 工事に現場が紐付いていないか、現場に住所が登録されていない
+
+---
+
+## 8. 参考資料
+
+- [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) - データベーススキーマ全体
+- [MIGRATIONS.md](./MIGRATIONS.md) - 全マイグレーション履歴
+- [ROLE_BASED_ACCESS_CONTROL.md](./ROLE_BASED_ACCESS_CONTROL.md) - 権限制御仕様
+
+---
+
+**END OF DOCUMENT**
