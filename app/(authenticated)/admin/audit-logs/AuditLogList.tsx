@@ -267,6 +267,58 @@ export function AuditLogList({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          {/* 開始日 */}
+          <div>
+            <label htmlFor="start_date" className="block text-sm font-medium text-gray-700 mb-1">
+              開始日
+            </label>
+            <input
+              type="date"
+              id="start_date"
+              value={startDate}
+              onChange={(e) => {
+                const newValue = e.target.value
+                setStartDate(newValue)
+                // 即座にサーバーサイドフィルタリングを実行
+                const params = new URLSearchParams()
+                if (actionFilter !== 'all') params.set('action', actionFilter)
+                if (entityFilter !== 'all') params.set('entity', entityFilter)
+                if (userFilter !== 'all') params.set('user_id', userFilter)
+                if (newValue) params.set('start_date', newValue)
+                if (endDate) params.set('end_date', endDate)
+                params.set('page', '1')
+                router.push(`/admin/audit-logs?${params.toString()}`)
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+            />
+          </div>
+
+          {/* 終了日 */}
+          <div>
+            <label htmlFor="end_date" className="block text-sm font-medium text-gray-700 mb-1">
+              終了日
+            </label>
+            <input
+              type="date"
+              id="end_date"
+              value={endDate}
+              onChange={(e) => {
+                const newValue = e.target.value
+                setEndDate(newValue)
+                // 即座にサーバーサイドフィルタリングを実行
+                const params = new URLSearchParams()
+                if (actionFilter !== 'all') params.set('action', actionFilter)
+                if (entityFilter !== 'all') params.set('entity', entityFilter)
+                if (userFilter !== 'all') params.set('user_id', userFilter)
+                if (startDate) params.set('start_date', startDate)
+                if (newValue) params.set('end_date', newValue)
+                params.set('page', '1')
+                router.push(`/admin/audit-logs?${params.toString()}`)
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+            />
+          </div>
+
           {/* アクションフィルター */}
           <div>
             <label htmlFor="action" className="block text-sm font-medium text-gray-700 mb-1">
@@ -361,58 +413,6 @@ export function AuditLogList({
                 </option>
               ))}
             </select>
-          </div>
-
-          {/* 開始日 */}
-          <div>
-            <label htmlFor="start_date" className="block text-sm font-medium text-gray-700 mb-1">
-              開始日
-            </label>
-            <input
-              type="date"
-              id="start_date"
-              value={startDate}
-              onChange={(e) => {
-                const newValue = e.target.value
-                setStartDate(newValue)
-                // 即座にサーバーサイドフィルタリングを実行
-                const params = new URLSearchParams()
-                if (actionFilter !== 'all') params.set('action', actionFilter)
-                if (entityFilter !== 'all') params.set('entity', entityFilter)
-                if (userFilter !== 'all') params.set('user_id', userFilter)
-                if (newValue) params.set('start_date', newValue)
-                if (endDate) params.set('end_date', endDate)
-                params.set('page', '1')
-                router.push(`/admin/audit-logs?${params.toString()}`)
-              }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
-            />
-          </div>
-
-          {/* 終了日 */}
-          <div>
-            <label htmlFor="end_date" className="block text-sm font-medium text-gray-700 mb-1">
-              終了日
-            </label>
-            <input
-              type="date"
-              id="end_date"
-              value={endDate}
-              onChange={(e) => {
-                const newValue = e.target.value
-                setEndDate(newValue)
-                // 即座にサーバーサイドフィルタリングを実行
-                const params = new URLSearchParams()
-                if (actionFilter !== 'all') params.set('action', actionFilter)
-                if (entityFilter !== 'all') params.set('entity', entityFilter)
-                if (userFilter !== 'all') params.set('user_id', userFilter)
-                if (startDate) params.set('start_date', startDate)
-                if (newValue) params.set('end_date', newValue)
-                params.set('page', '1')
-                router.push(`/admin/audit-logs?${params.toString()}`)
-              }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
-            />
           </div>
         </div>
       </div>

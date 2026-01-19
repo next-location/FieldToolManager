@@ -70,13 +70,16 @@ export default async function AuditLogsPage({
 
   // 期間検索
   if (params.start_date) {
-    query = query.gte('created_at', params.start_date)
+    // YYYY-MM-DDの00:00:00から開始
+    const startDateTime = `${params.start_date}T00:00:00.000Z`
+    console.log('[AUDIT LOGS] Start date filter:', params.start_date, '→', startDateTime)
+    query = query.gte('created_at', startDateTime)
   }
   if (params.end_date) {
-    // 終了日の23:59:59まで含める
-    const endDate = new Date(params.end_date)
-    endDate.setHours(23, 59, 59, 999)
-    query = query.lte('created_at', endDate.toISOString())
+    // YYYY-MM-DDの23:59:59まで含める
+    const endDateTime = `${params.end_date}T23:59:59.999Z`
+    console.log('[AUDIT LOGS] End date filter:', params.end_date, '→', endDateTime)
+    query = query.lte('created_at', endDateTime)
   }
 
   // ページネーションとソート
