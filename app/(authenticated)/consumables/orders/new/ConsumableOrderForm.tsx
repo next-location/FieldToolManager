@@ -78,7 +78,7 @@ export default function ConsumableOrderForm({ consumables, suggestedOrderNumber 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {error && (
+      {error && !isSubmitting && (
         <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
           {error}
         </div>
