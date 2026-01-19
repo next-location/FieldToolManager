@@ -46,6 +46,14 @@ export async function createAuditLog(params: CreateAuditLogParams): Promise<void
     }
 
     // 監査ログを挿入
+    console.log('[AuditLog] Inserting audit log:', {
+      organization_id: userData.organization_id,
+      user_id: user.id,
+      action: params.action,
+      entity_type: params.entity_type,
+      entity_id: params.entity_id,
+    })
+
     const { error } = await supabase.from('audit_logs').insert({
       organization_id: userData.organization_id,
       user_id: user.id,
@@ -61,7 +69,7 @@ export async function createAuditLog(params: CreateAuditLogParams): Promise<void
     if (error) {
       console.error('[AuditLog] Failed to create audit log:', error)
     } else {
-      console.log(`[AuditLog] ${params.action} ${params.entity_type} ${params.entity_id || ''}`)
+      console.log(`[AuditLog] SUCCESS: ${params.action} ${params.entity_type} ${params.entity_id || ''}`)
     }
   } catch (error) {
     console.error('[AuditLog] Unexpected error:', error)
@@ -111,12 +119,14 @@ export async function createAuditLogFromRequest(
  * 道具作成の監査ログ
  */
 export async function logToolCreated(toolId: string, toolData: Record<string, any>) {
+  console.log('[logToolCreated] Called with toolId:', toolId)
   await createAuditLog({
     action: 'create',
     entity_type: 'tools',
     entity_id: toolId,
     new_values: toolData,
   })
+  console.log('[logToolCreated] Completed')
 }
 
 /**
