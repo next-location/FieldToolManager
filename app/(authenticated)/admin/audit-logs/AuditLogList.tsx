@@ -284,8 +284,8 @@ export function AuditLogList({
                 if (actionFilter !== 'all') params.set('action', actionFilter)
                 if (entityFilter !== 'all') params.set('entity', entityFilter)
                 if (userFilter !== 'all') params.set('user_id', userFilter)
-                if (newValue) params.set('start_date', newValue)
-                if (endDate) params.set('end_date', endDate)
+                if (newValue && newValue.trim() !== '') params.set('start_date', newValue)
+                if (endDate && endDate.trim() !== '') params.set('end_date', endDate)
                 params.set('page', '1')
                 router.push(`/admin/audit-logs?${params.toString()}`)
               }}
@@ -310,8 +310,8 @@ export function AuditLogList({
                 if (actionFilter !== 'all') params.set('action', actionFilter)
                 if (entityFilter !== 'all') params.set('entity', entityFilter)
                 if (userFilter !== 'all') params.set('user_id', userFilter)
-                if (startDate) params.set('start_date', startDate)
-                if (newValue) params.set('end_date', newValue)
+                if (startDate && startDate.trim() !== '') params.set('start_date', startDate)
+                if (newValue && newValue.trim() !== '') params.set('end_date', newValue)
                 params.set('page', '1')
                 router.push(`/admin/audit-logs?${params.toString()}`)
               }}
