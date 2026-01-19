@@ -1,0 +1,64 @@
+# robots.txt - ザイロク (Zairoku)
+# 検索エンジンのクロール制御ルール
+
+# すべての検索エンジンに対するルール
+User-agent: *
+
+# 認証が必要なページ・管理画面を除外
+Disallow: /dashboard
+Disallow: /admin/
+Disallow: /login
+Disallow: /auth/
+Disallow: /onboarding
+Disallow: /reset-password
+
+# 認証が必要な機能ページを除外
+Disallow: /tools/
+Disallow: /equipment/
+Disallow: /consumables/
+Disallow: /projects/
+Disallow: /clients/
+Disallow: /sites/
+Disallow: /staff/
+Disallow: /invoices/
+Disallow: /estimates/
+Disallow: /purchase-orders/
+Disallow: /analytics/
+Disallow: /settings/
+Disallow: /work-reports/
+Disallow: /attendance/
+Disallow: /movements/
+Disallow: /scan/
+Disallow: /profile/
+Disallow: /notifications/
+Disallow: /master/
+Disallow: /payables/
+Disallow: /receivables/
+Disallow: /payments/
+Disallow: /recurring-invoices/
+Disallow: /suppliers/
+Disallow: /tool-items/
+Disallow: /tool-sets/
+Disallow: /warehouse-locations/
+Disallow: /manual/
+Disallow: /qa/
+Disallow: /alerts/
+
+# APIエンドポイントを除外
+Disallow: /api/
+
+# その他の内部ページ
+Disallow: /maintenance
+Disallow: /error/
+Disallow: /consumable-movements
+
+# 公開ページ（明示的に許可）
+Allow: /
+Allow: /contact
+Allow: /request-demo
+Allow: /privacy-policy
+Allow: /commercial-law
+Allow: /help/
+
+# サイトマップの場所
+Sitemap: https://zairoku.com/sitemap.xml

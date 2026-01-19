@@ -14,17 +14,22 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
   const [loading, setLoading] = useState(false)
   const [clients, setClients] = useState<any[]>([])
   const [users, setUsers] = useState<any[]>([])
+  const [sites, setSites] = useState<any[]>([])
   const [clientSearchQuery, setClientSearchQuery] = useState('')
   const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false)
   const clientDropdownRef = useRef<HTMLDivElement>(null)
   const [userSearchQuery, setUserSearchQuery] = useState('')
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
   const userDropdownRef = useRef<HTMLDivElement>(null)
+  const [siteSearchQuery, setSiteSearchQuery] = useState('')
+  const [isSiteDropdownOpen, setIsSiteDropdownOpen] = useState(false)
+  const siteDropdownRef = useRef<HTMLDivElement>(null)
 
   const [formData, setFormData] = useState({
     project_code: project?.project_code || '',
     project_name: project?.project_name || '',
     client_id: project?.client_id || '',
+    site_id: project?.site_id || '',
     start_date: project?.start_date || '',
     end_date: project?.end_date || '',
     contract_amount: project?.contract_amount?.toString() || '',
@@ -36,6 +41,7 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
   useEffect(() => {
     fetchClients()
     fetchUsers()
+    fetchSites()
     if (mode === 'create') {
       generateProjectCode()
     }
@@ -51,6 +57,10 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
       if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
         setIsUserDropdownOpen(false)
         setUserSearchQuery('')
+      }
+      if (siteDropdownRef.current && !siteDropdownRef.current.contains(event.target as Node)) {
+        setIsSiteDropdownOpen(false)
+        setSiteSearchQuery('')
       }
     }
 
@@ -96,6 +106,7 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
 
   const selectedClientName = clients.find(c => c.id === formData.client_id)?.name || ''
   const selectedUserName = users.find(u => u.id === formData.project_manager_id)?.name || ''
+  const selectedSiteName = sites.find(s => s.id === formData.site_id)?.site_name || ''
 
   const filteredUsers = users.filter(user => {
     if (!userSearchQuery) return true
@@ -107,6 +118,21 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
       user.name?.toLowerCase().includes(query) ||
       user.name?.toLowerCase().includes(queryKatakana.toLowerCase()) ||
       user.email?.toLowerCase().includes(query)
+    )
+  })
+
+  const filteredSites = sites.filter(site => {
+    if (!siteSearchQuery) return true
+
+    const query = siteSearchQuery.toLowerCase()
+    const queryKatakana = hiraganaToKatakana(query)
+
+    return (
+      site.site_name?.toLowerCase().includes(query) ||
+      site.site_name_kana?.toLowerCase().includes(query) ||
+      site.site_name_kana?.toLowerCase().includes(queryKatakana.toLowerCase()) ||
+      site.site_code?.toLowerCase().includes(query) ||
+      site.address?.toLowerCase().includes(query)
     )
   })
 
@@ -139,6 +165,25 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
       }
     } catch (error) {
       console.error('Error fetching users:', error)
+    }
+  }
+
+  const fetchSites = async () => {
+    try {
+      const response = await fetch('/api/sites?is_active=true&limit=1000')
+      if (response.ok) {
+        const result = await response.json()
+        const allSites = result.data || []
+
+        // 現場名でソート
+        const sortedSites = allSites.sort((a: any, b: any) => {
+          return (a.site_name || '').localeCompare(b.site_name || '')
+        })
+
+        setSites(sortedSites)
+      }
+    } catch (error) {
+      console.error('Error fetching sites:', error)
     }
   }
 
@@ -197,6 +242,7 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
         project_code: formData.project_code,
         project_name: formData.project_name,
         client_id: formData.client_id || null,
+        site_id: formData.site_id || null,
         start_date: formData.start_date || null,
         end_date: formData.end_date || null,
         contract_amount: formData.contract_amount ? parseFloat(formData.contract_amount) : null,
@@ -429,6 +475,83 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
                 選択をクリア
               </button>
             )}
+          </div>
+
+          {/* 現場選択 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              関連現場
+            </label>
+            <div className="relative" ref={siteDropdownRef}>
+              <input
+                type="text"
+                value={isSiteDropdownOpen ? siteSearchQuery : selectedSiteName}
+                onChange={(e) => {
+                  setSiteSearchQuery(e.target.value)
+                  setIsSiteDropdownOpen(true)
+                }}
+                onFocus={() => setIsSiteDropdownOpen(true)}
+                placeholder="現場を検索..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+
+              <button
+                type="button"
+                onClick={() => setIsSiteDropdownOpen(!isSiteDropdownOpen)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {isSiteDropdownOpen && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                  {filteredSites.length > 0 ? (
+                    <ul>
+                      {filteredSites.map(site => (
+                        <li key={site.id}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData({...formData, site_id: site.id})
+                              setSiteSearchQuery('')
+                              setIsSiteDropdownOpen(false)
+                            }}
+                            className="w-full text-left px-4 py-2 hover:bg-blue-50 flex flex-col"
+                          >
+                            <span className="font-medium">{site.site_name}</span>
+                            <span className="text-xs text-gray-500">
+                              {site.site_code}
+                              {site.address && ` / ${site.address}`}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="px-4 py-3 text-sm text-gray-500">
+                      該当する現場が見つかりません
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            {formData.site_id && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData({...formData, site_id: ''})
+                  setSiteSearchQuery('')
+                }}
+                className="mt-1 text-xs text-blue-600 hover:text-blue-700"
+              >
+                選択をクリア
+              </button>
+            )}
+            <p className="mt-1 text-xs text-gray-500">
+              ※ 工事が実施される現場を選択できます（任意）
+            </p>
           </div>
         </div>
       </div>

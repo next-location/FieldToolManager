@@ -4339,3 +4339,112 @@ ALTER TABLE consumable_orders DROP COLUMN IF EXISTS document_id;
 - 発注書生成機能は Phase 6 で実装予定
 - フル機能パック以外のユーザーはこの機能にアクセスできません（PackageGate で制御）
 
+
+---
+
+### 20260119120000_add_site_id_to_projects.sql ✅
+
+**実施日**: 2026-01-19
+**目的**: 工事と現場の関連付け（プロジェクト/現場統合計画 Phase 1）
+**対象**: `projects` テーブル
+**関連ドキュメント**: `docs/PROJECT_SITE_INTEGRATION_PLAN.md`
+
+#### 変更内容
+
+1. **site_id カラム追加**
+   - 工事が実施される現場への参照
+   - NULL 許可（現場に紐付かない工事も許可）
+   - 外部キー制約: sites.id（ON DELETE SET NULL）
+
+2. **インデックス追加**
+   - `idx_projects_site_id` - 現場から工事を検索する際のパフォーマンス向上
+
+3. **デバッグ用ビュー作成**
+   - `v_projects_without_site` - 現場に紐付いていない工事の一覧を確認
+
+#### SQL
+
+```sql
+-- 以下のファイルの内容を実行
+-- supabase/migrations/20260119120000_add_site_id_to_projects.sql
+
+-- Step 1: site_id カラムを追加（NULL許可、外部キー制約付き）
+ALTER TABLE projects
+ADD COLUMN IF NOT EXISTS site_id UUID REFERENCES sites(id) ON DELETE SET NULL;
+
+-- Step 2: インデックス作成（検索パフォーマンス向上）
+CREATE INDEX IF NOT EXISTS idx_projects_site_id ON projects(site_id);
+
+-- Step 3: コメント追加（カラムの目的を明確化）
+COMMENT ON COLUMN projects.site_id IS '関連する現場ID（sites テーブル参照）。工事が特定の現場で行われる場合に設定。NULL 許可（現場に紐付かない工事も存在可能）';
+
+-- Step 4: 既存データの整合性確認用ビュー（デバッグ用）
+CREATE OR REPLACE VIEW v_projects_without_site AS
+SELECT
+  p.id,
+  p.project_name,
+  p.project_code,
+  p.status,
+  p.organization_id,
+  o.name as organization_name
+FROM projects p
+LEFT JOIN organizations o ON p.organization_id = o.id
+WHERE p.site_id IS NULL;
+
+COMMENT ON VIEW v_projects_without_site IS '現場に紐付いていない工事の一覧（デバッグ・運用確認用）';
+```
+
+#### 検証クエリ
+
+実行後、以下のクエリで確認:
+```sql
+-- カラムが追加されたことを確認
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'projects'
+  AND column_name = 'site_id';
+
+-- インデックスが作成されたことを確認
+SELECT indexname, indexdef
+FROM pg_indexes
+WHERE tablename = 'projects'
+  AND indexname = 'idx_projects_site_id';
+
+-- 外部キー制約が作成されたことを確認
+SELECT
+  tc.constraint_name,
+  tc.table_name,
+  kcu.column_name,
+  ccu.table_name AS foreign_table_name,
+  ccu.column_name AS foreign_column_name
+FROM information_schema.table_constraints AS tc
+JOIN information_schema.key_column_usage AS kcu
+  ON tc.constraint_name = kcu.constraint_name
+JOIN information_schema.constraint_column_usage AS ccu
+  ON ccu.constraint_name = tc.constraint_name
+WHERE tc.table_name = 'projects'
+  AND tc.constraint_type = 'FOREIGN KEY'
+  AND kcu.column_name = 'site_id';
+
+-- デバッグ用ビューをテスト
+SELECT * FROM v_projects_without_site;
+```
+
+#### ロールバック
+
+```sql
+-- ビュー削除
+DROP VIEW IF EXISTS v_projects_without_site;
+
+-- インデックス削除
+DROP INDEX IF EXISTS idx_projects_site_id;
+
+-- カラム削除（外部キー制約も自動削除される）
+ALTER TABLE projects DROP COLUMN IF EXISTS site_id;
+```
+
+#### 注意事項
+- **重要**: site_id を持つ工事が存在する場合、ロールバックは推奨されません
+- 既存の工事データ（site_id = NULL）はそのまま残ります
+- Phase 2 で工事フォームに現場選択ドロップダウンを追加予定
+- Phase 3 で発注書・作業報告への自動連携を実装予定

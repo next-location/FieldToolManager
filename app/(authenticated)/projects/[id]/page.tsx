@@ -16,7 +16,8 @@ export default async function ProjectDetailPage({
     .select(`
       *,
       client:clients(id, name, client_code),
-      project_manager:users!project_manager_id(id, name, role)
+      project_manager:users!project_manager_id(id, name, role),
+      site:sites(id, site_name, site_code, address, client:clients(id, name))
     `)
     .eq('id', id)
     .eq('organization_id', organizationId)
@@ -151,6 +152,34 @@ export default async function ProjectDetailPage({
                     {getRoleLabel(project.project_manager.role)}
                   </span>
                 </>
+              ) : (
+                <span className="text-gray-400">未設定</span>
+              )}
+            </p>
+          </div>
+
+          {/* 現場情報 */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-500 mb-1">関連現場</label>
+            <p className="text-gray-900">
+              {project.site ? (
+                <span className="inline-flex items-center gap-2">
+                  <Link
+                    href={`/sites/${project.site.id}`}
+                    className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+                  >
+                    {project.site.site_name}
+                  </Link>
+                  <span className="text-sm text-gray-500">({project.site.site_code})</span>
+                  {project.site.address && (
+                    <span className="text-sm text-gray-600 ml-2">📍 {project.site.address}</span>
+                  )}
+                  {project.site.client && (
+                    <span className="text-xs ml-2 px-2 py-0.5 rounded bg-blue-50 text-blue-700">
+                      {project.site.client.name}
+                    </span>
+                  )}
+                </span>
               ) : (
                 <span className="text-gray-400">未設定</span>
               )}

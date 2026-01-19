@@ -91,7 +91,12 @@ export default function NewPurchaseOrderPage() {
   const fetchProjects = async () => {
     const { data } = await supabase
       .from('projects')
-      .select('id, project_name, project_code')
+      .select(`
+        id,
+        project_name,
+        project_code,
+        site:sites(id, site_name, address)
+      `)
       .order('project_name')
 
     if (data) setProjects(data)
@@ -203,6 +208,21 @@ export default function NewPurchaseOrderPage() {
 
   const handleProjectChange = (projectId: string) => {
     setFormData({ ...formData, project_id: projectId })
+
+    // 工事に紐づいた現場の住所を納品場所に自動設定
+    const selectedProject = projects.find(p => p.id === projectId)
+    if (selectedProject?.site?.address) {
+      setFormData(prev => ({
+        ...prev,
+        project_id: projectId,
+        delivery_location: selectedProject.site.address
+      }))
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        project_id: projectId
+      }))
+    }
   }
 
   const handleSupplierChange = (clientId: string) => {

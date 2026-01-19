@@ -13,7 +13,8 @@ async function ProjectList() {
     .from('projects')
     .select(`
       *,
-      client:clients(name)
+      client:clients(name),
+      site:sites(site_name, site_code)
     `)
     .eq('organization_id', organizationId)
     .is('deleted_at', null)

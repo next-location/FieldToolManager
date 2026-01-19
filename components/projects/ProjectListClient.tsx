@@ -14,6 +14,7 @@ interface Project {
   contract_amount: number | null
   status: string
   client?: { name: string }
+  site?: { site_name: string; site_code: string }
 }
 
 interface ProjectListClientProps {
@@ -203,6 +204,9 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   取引先
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  現場
+                </th>
                 <th
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('start_date')}
@@ -234,6 +238,16 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {project.client?.name || '-'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {project.site ? (
+                      <div>
+                        <div className="font-medium text-gray-900">{project.site.site_name}</div>
+                        <div className="text-xs text-gray-500">{project.site.site_code}</div>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {project.start_date && project.end_date
@@ -333,6 +347,19 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
                   <div className="font-medium text-gray-900">{project.client?.name || '-'}</div>
                 </div>
                 <div>
+                  <div className="text-xs text-gray-500 mb-1">現場</div>
+                  <div className="font-medium text-gray-900">
+                    {project.site ? (
+                      <div>
+                        <div>{project.site.site_name}</div>
+                        <div className="text-xs text-gray-500">{project.site.site_code}</div>
+                      </div>
+                    ) : (
+                      '-'
+                    )}
+                  </div>
+                </div>
+                <div>
                   <div className="text-xs text-gray-500 mb-1">契約金額</div>
                   <div className="font-medium text-gray-900">
                     {project.contract_amount
@@ -340,7 +367,7 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
                       : '-'}
                   </div>
                 </div>
-                <div className="col-span-2">
+                <div>
                   <div className="text-xs text-gray-500 mb-1">工期</div>
                   <div className="font-medium text-gray-900">
                     {project.start_date && project.end_date
