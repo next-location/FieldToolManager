@@ -7,6 +7,11 @@ export function MobileKeyboardEnterHint() {
     // Enterキー押下時にキーボードを閉じる処理
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
+        // IME入力中（日本語変換中）はスキップ
+        if (e.isComposing) {
+          return
+        }
+
         const type = e.target.getAttribute('type')
         // input要素（textarea以外）でEnterキーが押されたらblur
         if (['text', 'email', 'password', 'number', 'tel', 'url'].includes(type || '')) {
