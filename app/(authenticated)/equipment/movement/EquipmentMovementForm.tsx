@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { createEquipmentMovement } from './actions'
 
 interface Equipment {
   id: string
@@ -230,77 +231,21 @@ export default function EquipmentMovementForm({
         }
       }
 
-      // 選択された重機の組織IDを取得
-      const { data: equipmentData } = await supabase
-        .from('heavy_equipment')
-        .select('organization_id')
-        .eq('id', formData.equipment_id)
-        .single()
-
-      if (!equipmentData) {
-        throw new Error('重機データの取得に失敗しました')
-      }
-
-      // 使用記録を作成
-      const usageRecordData = {
-        organization_id: equipmentData.organization_id,
+      // Server Actionを使用して移動記録を作成
+      const result = await createEquipmentMovement({
         equipment_id: formData.equipment_id,
-        user_id: currentUserId,
         action_type: formData.action_type,
-        from_location_id: formData.from_location_id === 'other' ? null : (formData.from_location_id || null),
-        to_location_id: formData.to_location_id === 'other' ? null : (formData.to_location_id || null),
-        other_location_name: formData.from_location_id === 'other'
-          ? formData.from_other_location
-          : (formData.to_location_id === 'other' ? formData.to_other_location : null),
+        from_location_id: formData.from_location_id || null,
+        to_location_id: formData.to_location_id || null,
+        from_other_location: formData.from_other_location || null,
+        to_other_location: formData.to_other_location || null,
         hour_meter_reading: formData.hour_meter_reading ? parseFloat(formData.hour_meter_reading) : null,
         notes: formData.notes || null,
-        action_at: new Date().toISOString(),
+      })
+
+      if (!result.success) {
+        throw new Error(result.error || '移動記録の登録に失敗しました')
       }
-
-      const { error: insertError } = await supabase
-        .from('heavy_equipment_usage_records')
-        .insert(usageRecordData)
-
-      if (insertError) throw insertError
-
-      // 重機の現在地とステータスを更新
-      let newStatus = selectedEquipment?.status
-      let newLocationId: string | null = selectedEquipment?.current_location_id || null
-      let newUserId: string | null = currentUserId
-
-      if (formData.action_type === 'checkout') {
-        newStatus = 'in_use'
-        // 持出: 目的地を現在地に設定（その他の場所の場合はnull）
-        newLocationId = formData.to_location_id === 'other' ? null : formData.to_location_id
-        newUserId = currentUserId
-      } else if (formData.action_type === 'checkin') {
-        newStatus = 'available'
-        // 返却: 自社拠点に戻すのでnull
-        newLocationId = null
-        newUserId = null
-      } else if (formData.action_type === 'transfer') {
-        // 移動: 移動先を現在地に設定（その他の場所の場合はnull）
-        newLocationId = formData.to_location_id === 'other' ? null : formData.to_location_id
-      }
-
-      const updateData: any = {
-        current_location_id: newLocationId,
-        status: newStatus,
-        current_user_id: newUserId,
-        updated_at: new Date().toISOString(),
-      }
-
-      // メーター記録がある場合は更新
-      if (formData.hour_meter_reading && selectedEquipment?.enable_hour_meter) {
-        updateData.current_hour_meter = parseFloat(formData.hour_meter_reading)
-      }
-
-      const { error: updateError } = await supabase
-        .from('heavy_equipment')
-        .update(updateData)
-        .eq('id', formData.equipment_id)
-
-      if (updateError) throw updateError
 
       // 移動履歴ページへリダイレクト（成功メッセージ付き）
       router.push('/movements?success=重機の移動記録を登録しました&tab=equipment')

@@ -54,7 +54,9 @@
       "Bash(npm run type-check:*)",
       "Bash(if [ -z \"$DATABASE_URL\" ])",
       "Bash(then echo \"DATABASE_URL is not set\")",
-      "Bash(else echo \"DATABASE_URL is set\")"
+      "Bash(else echo \"DATABASE_URL is set\")",
+      "Bash(for i in {1..5})",
+      "Bash(do echo \"試行 $i/5...\")"
     ],
     "deny": [],
     "ask": []
