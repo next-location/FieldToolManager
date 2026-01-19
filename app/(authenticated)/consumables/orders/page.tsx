@@ -31,6 +31,12 @@ export default async function ConsumableOrdersPage() {
         id,
         name,
         email
+      ),
+      clients:client_id (
+        id,
+        name,
+        client_code,
+        payment_terms
       )
     `)
     .eq('organization_id', organizationId)

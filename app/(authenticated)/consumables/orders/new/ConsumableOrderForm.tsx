@@ -12,12 +12,20 @@ interface Tool {
   unit: string
 }
 
+interface Supplier {
+  id: string
+  name: string
+  client_code: string | null
+  payment_terms: string | null
+}
+
 interface Props {
   consumables: Tool[]
+  suppliers: Supplier[]
   suggestedOrderNumber: string
 }
 
-export default function ConsumableOrderForm({ consumables, suggestedOrderNumber }: Props) {
+export default function ConsumableOrderForm({ consumables, suppliers, suggestedOrderNumber }: Props) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -271,31 +279,27 @@ export default function ConsumableOrderForm({ consumables, suggestedOrderNumber 
                 </p>
               </div>
 
-              {/* 仕入れ先名 */}
-              <div>
-                <label htmlFor="supplier_name" className="block text-sm font-medium text-gray-700 mb-1">
-                  仕入れ先名
+              {/* 仕入れ先 */}
+              <div className="md:col-span-2">
+                <label htmlFor="client_id" className="block text-sm font-medium text-gray-700 mb-1">
+                  仕入れ先
                 </label>
-                <input
-                  type="text"
-                  name="supplier_name"
-                  id="supplier_name"
+                <select
+                  name="client_id"
+                  id="client_id"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              {/* 仕入れ先連絡先 */}
-              <div>
-                <label htmlFor="supplier_contact" className="block text-sm font-medium text-gray-700 mb-1">
-                  仕入れ先連絡先
-                </label>
-                <input
-                  type="text"
-                  name="supplier_contact"
-                  id="supplier_contact"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="電話番号、メール、担当者名など"
-                />
+                >
+                  <option value="">選択してください</option>
+                  {suppliers.map((supplier) => (
+                    <option key={supplier.id} value={supplier.id}>
+                      {supplier.name}
+                      {supplier.client_code && ` (${supplier.client_code})`}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-[10px] sm:text-xs text-gray-500">
+                  取引先管理から仕入れ先を選択できます
+                </p>
               </div>
 
               {/* メモ */}

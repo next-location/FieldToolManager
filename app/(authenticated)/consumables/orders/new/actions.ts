@@ -35,8 +35,7 @@ export async function createConsumableOrder(formData: FormData) {
   const quantity = parseInt(formData.get('quantity') as string, 10)
   const unitPrice = formData.get('unit_price') as string
   const totalPrice = formData.get('total_price') as string
-  const supplierName = formData.get('supplier_name') as string
-  const supplierContact = formData.get('supplier_contact') as string
+  const clientId = formData.get('client_id') as string
   const notes = formData.get('notes') as string
 
   // 新規消耗品の場合は先に消耗品を登録
@@ -100,8 +99,7 @@ export async function createConsumableOrder(formData: FormData) {
     quantity,
     unit_price: unitPrice ? parseFloat(unitPrice) : null,
     total_price: totalPrice ? parseFloat(totalPrice) : null,
-    supplier_name: supplierName || null,
-    supplier_contact: supplierContact || null,
+    client_id: clientId || null,
     notes: notes || null,
     status: '下書き中',
     ordered_by: user.id,

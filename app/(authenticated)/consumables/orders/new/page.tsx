@@ -26,6 +26,15 @@ export default async function NewConsumableOrderPage() {
     .is('deleted_at', null)
     .order('name')
 
+  // 取引先（仕入れ先）一覧を取得
+  const { data: suppliers } = await supabase
+    .from('clients')
+    .select('id, name, client_code, payment_terms')
+    .eq('organization_id', organizationId)
+    .in('client_type', ['supplier', 'both'])
+    .eq('is_active', true)
+    .order('name')
+
   // 最後の発注番号を取得して次の番号を生成
   const { data: lastOrder } = await supabase
     .from('consumable_orders')
@@ -61,6 +70,7 @@ export default async function NewConsumableOrderPage() {
 
         <ConsumableOrderForm
           consumables={consumables || []}
+          suppliers={suppliers || []}
           suggestedOrderNumber={suggestedOrderNumber}
         />
       </div>

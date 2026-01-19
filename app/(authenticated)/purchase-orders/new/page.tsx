@@ -166,11 +166,13 @@ export default function NewPurchaseOrderPage() {
       order_date: order.order_date || prev.order_date,
       delivery_date: order.expected_delivery_date || prev.delivery_date,
       notes: order.notes || '',
-      internal_memo: `消耗品発注管理から作成 (発注番号: ${order.order_number})`
+      internal_memo: `消耗品発注管理から作成 (発注番号: ${order.order_number})`,
+      // client_idを直接使用（後方互換性のためsupplier_nameも確認）
+      client_id: order.client_id || prev.client_id
     }))
 
-    // 仕入れ先が設定されている場合は検索して設定
-    if (order.supplier_name) {
+    // client_idがなく、supplier_nameがある場合は検索（後方互換性）
+    if (!order.client_id && order.supplier_name) {
       const { data: client } = await supabase
         .from('clients')
         .select('id')

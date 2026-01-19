@@ -19,8 +19,9 @@ export interface ConsumableOrder {
   total_price: number | null
 
   // 発注先
-  supplier_name: string | null
-  supplier_contact: string | null
+  client_id: string | null // 取引先ID
+  supplier_name: string | null // 後方互換性のため保持
+  supplier_contact: string | null // 後方互換性のため保持
 
   // ステータス
   status: OrderStatus
@@ -56,6 +57,12 @@ export interface ConsumableOrderWithRelations extends ConsumableOrder {
     name: string
     email: string
   } | null
+  clients: {
+    id: string
+    name: string
+    client_code: string | null
+    payment_terms: string | null
+  } | null
 }
 
 // 発注作成用の入力データ
@@ -67,8 +74,9 @@ export interface CreateConsumableOrderInput {
   quantity: number
   unit_price?: number
   total_price?: number
-  supplier_name?: string
-  supplier_contact?: string
+  client_id?: string // 取引先ID
+  supplier_name?: string // 後方互換性のため保持
+  supplier_contact?: string // 後方互換性のため保持
   notes?: string
 }
 
