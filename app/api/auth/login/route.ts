@@ -252,6 +252,12 @@ export async function POST(request: Request) {
   await recordLoginAttempt(email, ipAddress, userAgent, true)
 
   // 監査ログを記録
+  console.log('[LOGIN API] About to log login audit:', {
+    userId: data.user.id,
+    organizationId: userData.organization_id,
+    email,
+    role: userData.role,
+  })
   await logLogin(
     data.user.id,
     {
@@ -262,6 +268,7 @@ export async function POST(request: Request) {
     data.user.id,
     userData.organization_id
   )
+  console.log('[LOGIN API] Login audit log completed')
 
   // 2FAが必要な場合（デモユーザーはスキップ）
   if (!isDemo && userData.two_factor_enabled) {

@@ -11,6 +11,14 @@ export async function createAuditLog(
   organizationId?: string
 ): Promise<void> {
   try {
+    console.log('[AuditLog] createAuditLog called:', {
+      action: params.action,
+      entity_type: params.entity_type,
+      entity_id: params.entity_id,
+      userId,
+      organizationId,
+    })
+
     const supabase = await createClient()
 
     // ユーザーIDと組織IDが渡されていない場合は取得を試みる
@@ -18,10 +26,13 @@ export async function createAuditLog(
     let finalOrganizationId = organizationId
 
     if (!finalUserId || !finalOrganizationId) {
+      console.log('[AuditLog] userId or organizationId not provided, fetching from auth')
       // 現在のユーザー情報を取得
       const {
         data: { user },
       } = await supabase.auth.getUser()
+
+      console.log('[AuditLog] getUser result:', user ? `User ID: ${user.id}` : 'No user')
 
       if (!user) {
         console.warn('[AuditLog] No authenticated user and no userId provided, skipping audit log')
@@ -37,6 +48,8 @@ export async function createAuditLog(
         .eq('id', user.id)
         .single()
 
+      console.log('[AuditLog] userData result:', userData)
+
       if (!userData) {
         console.warn('[AuditLog] User data not found, skipping audit log')
         return
@@ -44,6 +57,11 @@ export async function createAuditLog(
 
       finalOrganizationId = userData.organization_id
     }
+
+    console.log('[AuditLog] Final values:', {
+      finalUserId,
+      finalOrganizationId,
+    })
 
     // IPアドレスとUser Agentを取得（Server Actionsでは取得できないのでnullにする）
     let ip_address = params.ip_address || null
