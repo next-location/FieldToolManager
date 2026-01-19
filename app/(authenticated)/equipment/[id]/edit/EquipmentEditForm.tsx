@@ -309,9 +309,6 @@ export function EquipmentEditForm({
             <label htmlFor="default_location_id" className="block text-sm font-medium text-gray-700">
               デフォルト保管場所 <span className="text-red-500">*</span>
             </label>
-            <p className="mt-1 text-xs text-gray-500">
-              返却時に自動的にこの場所に戻ります
-            </p>
             <select
               id="default_location_id"
               name="default_location_id"
@@ -331,6 +328,9 @@ export function EquipmentEditForm({
                 <option value="" disabled>自社拠点が登録されていません</option>
               )}
             </select>
+            <p className="mt-1 text-xs text-gray-500">
+              返却時に自動的にこの場所に戻ります
+            </p>
           </div>
 
           <div>

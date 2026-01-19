@@ -53,10 +53,10 @@ export default async function EditEquipmentPage({
     .eq('is_active', true)
     .order('sort_order')
 
-  // 現場一覧を取得
+  // 現場一覧を取得（is_own_locationフラグも取得）
   const { data: sites } = await supabase
     .from('sites')
-    .select('id, name')
+    .select('id, name, is_own_location')
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('name')
