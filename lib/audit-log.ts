@@ -54,7 +54,7 @@ export async function createAuditLog(params: CreateAuditLogParams): Promise<void
       entity_id: params.entity_id,
     })
 
-    const { error } = await supabase.from('audit_logs').insert({
+    const insertData = {
       organization_id: userData.organization_id,
       user_id: user.id,
       action: params.action,
@@ -64,12 +64,18 @@ export async function createAuditLog(params: CreateAuditLogParams): Promise<void
       new_values: params.new_values || null,
       ip_address,
       user_agent,
-    })
+    }
+
+    console.log('[AuditLog] About to insert:', JSON.stringify(insertData, null, 2))
+
+    const { data, error } = await supabase.from('audit_logs').insert(insertData).select()
 
     if (error) {
       console.error('[AuditLog] Failed to create audit log:', error)
+      console.error('[AuditLog] Error details:', JSON.stringify(error, null, 2))
     } else {
       console.log(`[AuditLog] SUCCESS: ${params.action} ${params.entity_type} ${params.entity_id || ''}`)
+      console.log('[AuditLog] Inserted data:', JSON.stringify(data, null, 2))
     }
   } catch (error) {
     console.error('[AuditLog] Unexpected error:', error)
