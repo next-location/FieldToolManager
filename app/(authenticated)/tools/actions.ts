@@ -515,6 +515,32 @@ export async function createToolWithItems(formData: {
     }
   }
 
+  // 監査ログを記録
+  await logToolCreated(toolId, {
+    name: toolData.name,
+    model_number: toolData.model_number,
+    manufacturer: toolData.manufacturer,
+    quantity: parseInt(formData.quantity),
+    minimum_stock: toolData.minimum_stock,
+    management_type: toolData.management_type,
+  })
+
+  // 通知を作成
+  await notifyToolCreated(toolId, toolData.name)
+
+  // 低在庫チェック
+  const currentQuantity = toolData.management_type === 'consumable'
+    ? parseInt(formData.quantity)
+    : parseInt(formData.quantity)
+  if (currentQuantity < toolData.minimum_stock) {
+    await notifyLowStock(
+      toolId,
+      toolData.name,
+      currentQuantity,
+      toolData.minimum_stock
+    )
+  }
+
   revalidatePath('/tools')
   return { success: true }
 }
