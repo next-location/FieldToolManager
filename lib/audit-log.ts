@@ -383,3 +383,15 @@ export async function logPasswordReset(userId: string, metadata?: Record<string,
     new_values: metadata,
   })
 }
+
+/**
+ * 道具移動の監査ログ
+ */
+export async function logToolMovement(movementId: string, movementData: Record<string, any>) {
+  await createAuditLog({
+    action: 'create',
+    entity_type: 'tool_movements',
+    entity_id: movementId,
+    new_values: movementData,
+  })
+}

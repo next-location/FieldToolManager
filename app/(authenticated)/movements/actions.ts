@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { logToolMovement } from '@/lib/audit-log'
 
 export async function createMovement(formData: FormData) {
   const supabase = await createClient()
@@ -71,12 +72,28 @@ export async function createMovement(formData: FormData) {
 
   console.log('[MOVEMENT INSERT DATA]', JSON.stringify(insertData, null, 2))
 
-  const { error } = await supabase.from('tool_movements').insert(insertData)
+  const { data: movementData, error } = await supabase
+    .from('tool_movements')
+    .insert(insertData)
+    .select('id')
+    .single()
 
   if (error) {
     console.error('[MOVEMENT INSERT ERROR]', error)
     throw new Error(`移動の登録に失敗しました: ${error.message}`)
   }
+
+  // 監査ログを記録
+  await logToolMovement(movementData.id, {
+    tool_item_id,
+    movement_type,
+    from_location: from_site_id ? 'site' : 'warehouse',
+    to_location,
+    from_site_id,
+    to_site_id,
+    quantity,
+    notes,
+  })
 
   // 個別アイテムの現在地を更新
   let updateData: any = {}

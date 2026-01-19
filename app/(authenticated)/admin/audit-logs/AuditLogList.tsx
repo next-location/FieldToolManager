@@ -52,6 +52,8 @@ export function AuditLogList({ initialAuditLogs }: AuditLogListProps) {
       view: '閲覧',
       login: 'ログイン',
       logout: 'ログアウト',
+      password_change: 'パスワード変更',
+      password_reset: 'パスワードリセット',
       export: 'エクスポート',
     }
     return labels[action] || action
@@ -81,12 +83,17 @@ export function AuditLogList({ initialAuditLogs }: AuditLogListProps) {
     const labels: Record<string, string> = {
       tools: '道具',
       tool_items: '道具個体',
+      tool_movements: '道具移動',
       users: 'ユーザー',
       organizations: '組織',
       sites: '現場',
+      clients: '取引先',
+      equipment: '重機',
+      consumables: '消耗品',
       movements: '移動履歴',
       warehouse_locations: '倉庫位置',
       tool_sets: '道具セット',
+      auth: '認証',
     }
     return labels[entityType] || entityType
   }
