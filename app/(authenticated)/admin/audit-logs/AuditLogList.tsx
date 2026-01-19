@@ -272,7 +272,17 @@ export function AuditLogList({
             <select
               id="action"
               value={actionFilter}
-              onChange={(e) => setActionFilter(e.target.value)}
+              onChange={(e) => {
+                const newValue = e.target.value
+                setActionFilter(newValue)
+                // 即座にサーバーサイドフィルタリングを実行
+                const params = new URLSearchParams()
+                if (newValue !== 'all') params.set('action', newValue)
+                if (entityFilter !== 'all') params.set('entity', entityFilter)
+                if (searchTerm) params.set('search', searchTerm)
+                params.set('page', '1')
+                router.push(`/admin/audit-logs?${params.toString()}`)
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
             >
               <option value="all">すべて</option>
@@ -292,7 +302,17 @@ export function AuditLogList({
             <select
               id="entity"
               value={entityFilter}
-              onChange={(e) => setEntityFilter(e.target.value)}
+              onChange={(e) => {
+                const newValue = e.target.value
+                setEntityFilter(newValue)
+                // 即座にサーバーサイドフィルタリングを実行
+                const params = new URLSearchParams()
+                if (actionFilter !== 'all') params.set('action', actionFilter)
+                if (newValue !== 'all') params.set('entity', newValue)
+                if (searchTerm) params.set('search', searchTerm)
+                params.set('page', '1')
+                router.push(`/admin/audit-logs?${params.toString()}`)
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
             >
               <option value="all">すべて</option>
