@@ -23,7 +23,7 @@ export default async function SitesPage({
 
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  // すべての現場を取得（フィルタリングはクライアント側でも可能だが、ここではサーバー側で処理）
+  // 顧客現場のみを取得（自社倉庫や資材置き場は除外）
   let query = supabase
     .from('sites')
     .select(
@@ -35,6 +35,8 @@ export default async function SitesPage({
       )
     `
     )
+    .eq('organization_id', organizationId)
+    .eq('type', 'customer_site')
     .is('deleted_at', null)
 
   // ステータスフィルター
