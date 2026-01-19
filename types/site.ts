@@ -1,6 +1,6 @@
 // 拠点（現場・自社拠点）の型定義
 
-export type SiteType = 'customer_site' | 'own_warehouse' | 'branch' | 'storage_yard' | 'other'
+export type SiteType = 'customer_site' | 'own_warehouse' | 'branch' | 'storage_yard' | 'equipment_yard' | 'parking' | 'other'
 
 export interface Site {
   id: string
@@ -16,6 +16,8 @@ export const SITE_TYPE_LABELS: Record<SiteType, string> = {
   own_warehouse: '自社倉庫',
   branch: '支店',
   storage_yard: '資材置き場',
+  equipment_yard: '重機置き場',
+  parking: '駐車場',
   other: 'その他',
 }
 
@@ -24,5 +26,7 @@ export const OWN_LOCATION_TYPES: SiteType[] = [
   'own_warehouse',
   'branch',
   'storage_yard',
+  'equipment_yard',
+  'parking',
   'other',
 ]

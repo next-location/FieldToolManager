@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
-import { Building2, Warehouse, MapPin, Plus } from 'lucide-react'
+import { Building2, Warehouse, MapPin, Plus, Truck, ParkingCircle } from 'lucide-react'
 import { SITE_TYPE_LABELS } from '@/types/site'
 import type { SiteType } from '@/types/site'
 
@@ -29,6 +29,8 @@ export default async function LocationsSettingsPage() {
     own_warehouse: [],
     branch: [],
     storage_yard: [],
+    equipment_yard: [],
+    parking: [],
     other: [],
   }
 
@@ -48,6 +50,10 @@ export default async function LocationsSettingsPage() {
         return <Building2 className="w-5 h-5" />
       case 'storage_yard':
         return <MapPin className="w-5 h-5" />
+      case 'equipment_yard':
+        return <Truck className="w-5 h-5" />
+      case 'parking':
+        return <ParkingCircle className="w-5 h-5" />
       default:
         return <MapPin className="w-5 h-5" />
     }
@@ -92,7 +98,7 @@ export default async function LocationsSettingsPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            {(['own_warehouse', 'branch', 'storage_yard', 'other'] as SiteType[]).map((type) => {
+            {(['own_warehouse', 'branch', 'storage_yard', 'equipment_yard', 'parking', 'other'] as SiteType[]).map((type) => {
               const typeLocations = locationsByType[type]
               if (typeLocations.length === 0) return null
 
