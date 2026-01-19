@@ -115,10 +115,11 @@ export async function createEquipmentMovement(params: CreateEquipmentMovementPar
 
     if (updateError) throw updateError
 
-    // 監査ログを記録
-    const { logEquipmentUpdated } = await import('@/lib/audit-log')
-    await logEquipmentUpdated(
+    // 監査ログを記録（移動専用のログ関数を使用）
+    const { logEquipmentMovement } = await import('@/lib/audit-log')
+    await logEquipmentMovement(
       params.equipment_id,
+      params.action_type,
       {
         current_location_id: equipmentData.current_location_id,
         status: equipmentData.status,
@@ -128,7 +129,6 @@ export async function createEquipmentMovement(params: CreateEquipmentMovementPar
         current_location_id: newLocationId,
         status: newStatus,
         current_user_id: newUserId,
-        action_type: params.action_type,
         movement_record_id: usageRecord.id,
       },
       user.id,

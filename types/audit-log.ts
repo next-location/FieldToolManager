@@ -14,6 +14,15 @@ export type AuditAction =
   | 'approve'
   | 'reject'
   | 'submit'
+  | 'move'
+  | 'checkout'
+  | 'checkin'
+  | 'transfer'
+  | 'adjust'
+  | 'add'
+  | 'remove'
+  | 'receive'
+  | 'pay'
 
 export interface AuditLog {
   id: string

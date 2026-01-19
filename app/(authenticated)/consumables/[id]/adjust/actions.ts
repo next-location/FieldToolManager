@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { logConsumableUpdated } from '@/lib/audit-log'
+import { logConsumableAdjusted } from '@/lib/audit-log'
 
 export async function adjustConsumableInventory({
   consumableId,
@@ -128,13 +128,12 @@ export async function adjustConsumableInventory({
     console.error('Movement record error:', movementError)
   }
 
-  // 監査ログを記録
-  await logConsumableUpdated(
+  // 監査ログを記録（在庫調整専用関数を使用）
+  await logConsumableAdjusted(
     consumableId,
     { quantity: inventory?.quantity || 0 },
     {
       quantity: newQuantity,
-      action: 'adjust',
       adjustment_type: adjustmentType,
       adjustment_quantity: quantity,
       unit_price: unitPrice,

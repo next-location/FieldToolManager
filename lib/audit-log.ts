@@ -473,6 +473,27 @@ export async function logEquipmentDeleted(
   )
 }
 
+export async function logEquipmentMovement(
+  equipmentId: string,
+  actionType: 'checkout' | 'checkin' | 'transfer',
+  oldData: Record<string, any>,
+  newData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: actionType, // checkout, checkin, transfer
+      entity_type: 'equipment',
+      entity_id: equipmentId,
+      old_values: oldData,
+      new_values: newData,
+    },
+    userId,
+    organizationId
+  )
+}
+
 /**
  * 消耗品の監査ログ
  */
@@ -526,6 +547,26 @@ export async function logConsumableDeleted(
       entity_type: 'consumables',
       entity_id: consumableId,
       old_values: consumableData,
+    },
+    userId,
+    organizationId
+  )
+}
+
+export async function logConsumableAdjusted(
+  consumableId: string,
+  oldData: Record<string, any>,
+  newData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'adjust',
+      entity_type: 'consumables',
+      entity_id: consumableId,
+      old_values: oldData,
+      new_values: newData,
     },
     userId,
     organizationId
@@ -616,9 +657,19 @@ export async function logToolMovement(
   userId?: string,
   organizationId?: string
 ) {
+  // movement_typeから適切なアクションを判定
+  let action: 'move' | 'checkout' | 'checkin' | 'transfer' = 'move'
+  if (movementData.movement_type === 'check_out') {
+    action = 'checkout'
+  } else if (movementData.movement_type === 'check_in') {
+    action = 'checkin'
+  } else if (movementData.movement_type === 'transfer') {
+    action = 'transfer'
+  }
+
   await createAuditLog(
     {
-      action: 'create',
+      action,
       entity_type: 'tool_movements',
       entity_id: movementId,
       new_values: movementData,

@@ -33,7 +33,7 @@ export function AuditLogList({
 }: AuditLogListProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [auditLogs] = useState(initialAuditLogs)
+  // サーバーから受け取った絞り込み済みデータをそのまま使用（useStateは不要）
   const [actionFilter, setActionFilter] = useState<string>(searchParams.get('action') || 'all')
   const [entityFilter, setEntityFilter] = useState<string>(searchParams.get('entity') || 'all')
   const [userFilter, setUserFilter] = useState<string>(searchParams.get('user_id') || 'all')
@@ -55,8 +55,8 @@ export function AuditLogList({
     router.push(`/admin/audit-logs?${params.toString()}`)
   }
 
-  // クライアントサイドではフィルタリングしない（サーバーサイドで済んでいる）
-  const filteredLogs = auditLogs
+  // サーバーサイドで絞り込み済みのデータをそのまま使用
+  const filteredLogs = initialAuditLogs
 
   const getActionLabel = (action: string) => {
     const labels: Record<string, string> = {
@@ -76,6 +76,13 @@ export function AuditLogList({
       send: '送信',
       receive: '受領',
       pay: '支払',
+      move: '移動',
+      checkout: '持出',
+      checkin: '返却',
+      transfer: '移動',
+      adjust: '在庫調整',
+      add: '追加',
+      remove: '削除',
     }
     return labels[action.toLowerCase()] || action
   }
@@ -85,10 +92,12 @@ export function AuditLogList({
     switch (lowerAction) {
       case 'create':
       case 'insert':
+      case 'add':
         return 'bg-green-100 text-green-800'
       case 'update':
         return 'bg-blue-100 text-blue-800'
       case 'delete':
+      case 'remove':
         return 'bg-red-100 text-red-800'
       case 'view':
         return 'bg-gray-100 text-gray-800'
@@ -106,6 +115,13 @@ export function AuditLogList({
       case 'receive':
       case 'pay':
         return 'bg-blue-100 text-blue-800'
+      case 'move':
+      case 'checkout':
+      case 'checkin':
+      case 'transfer':
+        return 'bg-orange-100 text-orange-800'
+      case 'adjust':
+        return 'bg-yellow-100 text-yellow-800'
       default:
         return 'bg-gray-100 text-gray-800'
     }
