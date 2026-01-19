@@ -297,69 +297,133 @@ export function PurchaseOrderListClient({
           <div key={order.id} className="bg-white border border-gray-300 rounded-lg shadow-sm">
             {/* クリック可能なカード本体 */}
             <div
-              className="px-6 py-5 cursor-pointer hover:bg-gray-50 transition-colors relative"
+              className="cursor-pointer hover:bg-gray-50 transition-colors"
               onClick={() => router.push(`/purchase-orders/${order.id}`)}
             >
-              {/* ステータスと発注番号（左上） */}
-              <div className="absolute top-2 left-2 flex items-center gap-2">
-                {getStatusBadge(order.status)}
-                <span className="text-xs font-bold text-gray-700 whitespace-nowrap">{order.order_number}</span>
-              </div>
-
-              {/* 発注日・納期（右上・横並び） */}
-              <div className="absolute top-2 right-2 flex items-center gap-4 text-xs text-gray-500">
-                <div className="whitespace-nowrap">
-                  発注日: {new Date(order.order_date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
-                </div>
-                {order.delivery_date && (
-                  <div className="whitespace-nowrap">
-                    納期: {new Date(order.delivery_date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between pt-6">
-                {/* 左側：仕入先・工事名（横並び） */}
-                <div className="flex-1 min-w-0 flex items-center gap-8">
-                  <div className="min-w-0">
-                    <div className="text-xs text-gray-500 mb-0.5">仕入先</div>
-                    <div className="font-bold text-gray-900 truncate">
-                      {order.client?.name || '-'}
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs text-gray-500 mb-0.5">工事名</div>
-                    <div className="text-sm text-gray-900 truncate">
-                      {order.project?.project_name || '-'}
-                    </div>
-                  </div>
+              {/* スマホ表示 */}
+              <div className="sm:hidden p-4 space-y-3">
+                {/* 発注番号とステータス */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-gray-700">{order.order_number}</span>
+                  {getStatusBadge(order.status)}
                 </div>
 
-                {/* 中央：作成者・承認者（縦並び） */}
-                <div className="mx-8">
-                  {isManagerOrAdmin && order.created_by_user && (
-                    <div className="mb-1">
-                      <span className="text-xs text-gray-500">作成者: </span>
-                      <span className="text-xs font-bold text-gray-900">
-                        {order.created_by_user.name}
-                      </span>
-                    </div>
-                  )}
-                  {order.approved_at && (
+                {/* 仕入先 */}
+                <div>
+                  <div className="text-xs text-gray-500">仕入先</div>
+                  <div className="font-semibold text-gray-900">{order.client?.name || '-'}</div>
+                </div>
+
+                {/* 工事名 */}
+                <div>
+                  <div className="text-xs text-gray-500">工事名</div>
+                  <div className="text-sm text-gray-900">{order.project?.project_name || '-'}</div>
+                </div>
+
+                {/* 日付情報 */}
+                <div className="flex gap-4 text-xs text-gray-600">
+                  <div>
+                    <span className="text-gray-500">発注日: </span>
+                    {new Date(order.order_date).toLocaleDateString('ja-JP')}
+                  </div>
+                  {order.delivery_date && (
                     <div>
-                      <span className="text-xs text-gray-500">承認者: </span>
-                      <span className="text-xs font-bold text-gray-900">
-                        {order.approved_by_user?.name}
-                      </span>
+                      <span className="text-gray-500">納期: </span>
+                      {new Date(order.delivery_date).toLocaleDateString('ja-JP')}
                     </div>
                   )}
                 </div>
 
-                {/* 右側：金額 */}
-                <div className="text-right ml-8">
-                  <div className="text-xs text-gray-500 mb-0.5">金額（税込）</div>
-                  <div className="text-2xl font-bold text-gray-900 whitespace-nowrap">
+                {/* 作成者・承認者 */}
+                {(isManagerOrAdmin && order.created_by_user) || order.approved_at ? (
+                  <div className="text-xs space-y-1">
+                    {isManagerOrAdmin && order.created_by_user && (
+                      <div>
+                        <span className="text-gray-500">作成者: </span>
+                        <span className="font-semibold text-gray-900">{order.created_by_user.name}</span>
+                      </div>
+                    )}
+                    {order.approved_at && (
+                      <div>
+                        <span className="text-gray-500">承認者: </span>
+                        <span className="font-semibold text-gray-900">{order.approved_by_user?.name}</span>
+                      </div>
+                    )}
+                  </div>
+                ) : null}
+
+                {/* 金額 */}
+                <div className="pt-2 border-t border-gray-200">
+                  <div className="text-xs text-gray-500 mb-1">金額（税込）</div>
+                  <div className="text-xl font-bold text-gray-900">
                     ¥{Math.floor(order.total_amount).toLocaleString()}
+                  </div>
+                </div>
+              </div>
+
+              {/* PC表示 */}
+              <div className="hidden sm:block px-6 py-5 relative">
+                {/* ステータスと発注番号（左上） */}
+                <div className="absolute top-2 left-2 flex items-center gap-2">
+                  {getStatusBadge(order.status)}
+                  <span className="text-xs font-bold text-gray-700 whitespace-nowrap">{order.order_number}</span>
+                </div>
+
+                {/* 発注日・納期（右上・横並び） */}
+                <div className="absolute top-2 right-2 flex items-center gap-4 text-xs text-gray-500">
+                  <div className="whitespace-nowrap">
+                    発注日: {new Date(order.order_date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </div>
+                  {order.delivery_date && (
+                    <div className="whitespace-nowrap">
+                      納期: {new Date(order.delivery_date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between pt-6">
+                  {/* 左側：仕入先・工事名（横並び） */}
+                  <div className="flex-1 min-w-0 flex items-center gap-8">
+                    <div className="min-w-0">
+                      <div className="text-xs text-gray-500 mb-0.5">仕入先</div>
+                      <div className="font-bold text-gray-900 truncate">
+                        {order.client?.name || '-'}
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs text-gray-500 mb-0.5">工事名</div>
+                      <div className="text-sm text-gray-900 truncate">
+                        {order.project?.project_name || '-'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 中央：作成者・承認者（縦並び） */}
+                  <div className="mx-8">
+                    {isManagerOrAdmin && order.created_by_user && (
+                      <div className="mb-1">
+                        <span className="text-xs text-gray-500">作成者: </span>
+                        <span className="text-xs font-bold text-gray-900">
+                          {order.created_by_user.name}
+                        </span>
+                      </div>
+                    )}
+                    {order.approved_at && (
+                      <div>
+                        <span className="text-xs text-gray-500">承認者: </span>
+                        <span className="text-xs font-bold text-gray-900">
+                          {order.approved_by_user?.name}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 右側：金額 */}
+                  <div className="text-right ml-8">
+                    <div className="text-xs text-gray-500 mb-0.5">金額（税込）</div>
+                    <div className="text-2xl font-bold text-gray-900 whitespace-nowrap">
+                      ¥{Math.floor(order.total_amount).toLocaleString()}
+                    </div>
                   </div>
                 </div>
               </div>
