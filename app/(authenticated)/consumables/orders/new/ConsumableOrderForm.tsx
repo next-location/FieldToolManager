@@ -298,7 +298,7 @@ export default function ConsumableOrderForm({ consumables, suppliers, suggestedO
                   ))}
                 </select>
                 <p className="mt-1 text-[10px] sm:text-xs text-gray-500">
-                  取引先管理から仕入れ先を選択できます
+                  ※ 仕入れ先は取引先マスタで登録してください
                 </p>
               </div>
 

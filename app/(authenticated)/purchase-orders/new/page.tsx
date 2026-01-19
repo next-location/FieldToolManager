@@ -364,6 +364,9 @@ export default function NewPurchaseOrderPage() {
                   </option>
                 ))}
               </select>
+              <p className="mt-1 text-[10px] sm:text-xs text-gray-500">
+                ※ 仕入れ先は取引先マスタで登録してください
+              </p>
             </div>
 
             <div>

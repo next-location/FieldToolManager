@@ -26,12 +26,12 @@ export function ClientTabs({ clients, initialTab = 'all', isImpersonating }: Cli
     {
       id: 'customer' as TabType,
       name: '顧客',
-      count: clients.filter((c) => c.client_type === 'customer').length,
+      count: clients.filter((c) => c.client_type === 'customer' || c.client_type === 'both').length,
     },
     {
       id: 'supplier' as TabType,
       name: '仕入先',
-      count: clients.filter((c) => c.client_type === 'supplier').length,
+      count: clients.filter((c) => c.client_type === 'supplier' || c.client_type === 'both').length,
     },
     {
       id: 'partner' as TabType,
@@ -66,8 +66,17 @@ export function ClientTabs({ clients, initialTab = 'all', isImpersonating }: Cli
 
   // リアルタイム検索用のフィルター
   const filteredClients = clients.filter((client) => {
-    // タブフィルター
-    const matchesTab = activeTab === 'all' || client.client_type === activeTab
+    // タブフィルター（顧客タブと仕入先タブは'both'も含む）
+    let matchesTab = false
+    if (activeTab === 'all') {
+      matchesTab = true
+    } else if (activeTab === 'customer') {
+      matchesTab = client.client_type === 'customer' || client.client_type === 'both'
+    } else if (activeTab === 'supplier') {
+      matchesTab = client.client_type === 'supplier' || client.client_type === 'both'
+    } else {
+      matchesTab = client.client_type === activeTab
+    }
 
     // 検索クエリフィルター
     if (!searchQuery) return matchesTab
