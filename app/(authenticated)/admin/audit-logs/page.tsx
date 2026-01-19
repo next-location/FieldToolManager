@@ -5,7 +5,7 @@ import { AuditLogList } from './AuditLogList'
 export default async function AuditLogsPage({
   searchParams,
 }: {
-  searchParams: { page?: string; action?: string; entity?: string; search?: string }
+  searchParams: Promise<{ page?: string; action?: string; entity?: string; search?: string }>
 }) {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
@@ -14,8 +14,11 @@ export default async function AuditLogsPage({
     redirect('/')
   }
 
+  // searchParamsをawait
+  const params = await searchParams
+
   // ページネーション設定
-  const page = parseInt(searchParams.page || '1')
+  const page = parseInt(params.page || '1')
   const pageSize = 50 // 1ページあたり50件
   const offset = (page - 1) * pageSize
 
@@ -48,15 +51,16 @@ export default async function AuditLogsPage({
     .eq('organization_id', organizationId)
 
   // フィルター適用
-  if (searchParams.action && searchParams.action !== 'all') {
-    query = query.eq('action', searchParams.action)
+  if (params.action && params.action !== 'all') {
+    query = query.eq('action', params.action)
   }
-  if (searchParams.entity && searchParams.entity !== 'all') {
-    query = query.eq('entity_type', searchParams.entity)
+  if (params.entity && params.entity !== 'all') {
+    query = query.eq('entity_type', params.entity)
   }
-  if (searchParams.search) {
-    // 検索: entity_idまたはuser email/nameで部分一致
-    // Note: JOINしたテーブルでの検索は複雑なので、クライアント側でフィルタリング
+
+  // サーバーサイド検索（entity_idで部分一致）
+  if (params.search) {
+    query = query.ilike('entity_id', `%${params.search}%`)
   }
 
   // ページネーションとソート

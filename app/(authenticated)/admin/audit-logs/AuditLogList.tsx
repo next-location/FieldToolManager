@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { SlidersHorizontal } from 'lucide-react'
 import { AuditLog } from '@/types/audit-log'
 import AuditLogFiltersModal from '@/components/admin/AuditLogFiltersModal'
@@ -24,28 +25,28 @@ export function AuditLogList({
   totalPages,
   totalCount,
 }: AuditLogListProps) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [auditLogs] = useState(initialAuditLogs)
-  const [actionFilter, setActionFilter] = useState<string>('all')
-  const [entityFilter, setEntityFilter] = useState<string>('all')
-  const [searchTerm, setSearchTerm] = useState('')
+  const [actionFilter, setActionFilter] = useState<string>(searchParams.get('action') || 'all')
+  const [entityFilter, setEntityFilter] = useState<string>(searchParams.get('entity') || 'all')
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '')
   const [expandedLog, setExpandedLog] = useState<string | null>(null)
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
 
-  // フィルタリングされた監査ログ
-  const filteredLogs = auditLogs.filter((log) => {
-    if (actionFilter !== 'all' && log.action !== actionFilter) return false
-    if (entityFilter !== 'all' && log.entity_type !== entityFilter) return false
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase()
-      return (
-        log.entity_type.toLowerCase().includes(searchLower) ||
-        log.entity_id?.toLowerCase().includes(searchLower) ||
-        log.users?.name?.toLowerCase().includes(searchLower) ||
-        log.users?.email?.toLowerCase().includes(searchLower)
-      )
-    }
-    return true
-  })
+  // サーバーサイドフィルタリング用の関数
+  const applyFilters = () => {
+    const params = new URLSearchParams()
+    if (actionFilter !== 'all') params.set('action', actionFilter)
+    if (entityFilter !== 'all') params.set('entity', entityFilter)
+    if (searchTerm) params.set('search', searchTerm)
+    params.set('page', '1') // フィルター変更時は1ページ目に戻る
+
+    router.push(`/admin/audit-logs?${params.toString()}`)
+  }
+
+  // クライアントサイドではフィルタリングしない（サーバーサイドで済んでいる）
+  const filteredLogs = auditLogs
 
   // ユニークなアクション一覧
   const uniqueActions = Array.from(new Set(auditLogs.map((log) => log.action)))
@@ -154,16 +155,29 @@ export function AuditLogList({
   }
 
   const handleApplyFilters = () => {
-    // フィルターは既にstateで管理されているので、特に処理不要
+    applyFilters()
   }
 
   const handleResetFilters = () => {
     setActionFilter('all')
     setEntityFilter('all')
+    setSearchTerm('')
+    router.push('/admin/audit-logs')
   }
 
   // フィルター数をカウント（検索ワード以外）
   const filterCount = [actionFilter !== 'all' ? 1 : 0, entityFilter !== 'all' ? 1 : 0].reduce((a, b) => a + b, 0)
+
+  // ページ遷移関数
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams()
+    if (actionFilter !== 'all') params.set('action', actionFilter)
+    if (entityFilter !== 'all') params.set('entity', entityFilter)
+    if (searchTerm) params.set('search', searchTerm)
+    params.set('page', newPage.toString())
+
+    router.push(`/admin/audit-logs?${params.toString()}`)
+  }
 
   return (
     <div>
@@ -199,7 +213,12 @@ export function AuditLogList({
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="ユーザー名、エンティティなど"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  applyFilters()
+                }
+              }}
+              placeholder="エンティティIDで検索（Enterで実行）"
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
             />
           </div>
@@ -235,7 +254,12 @@ export function AuditLogList({
               id="search"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="ユーザー名、エンティティなど"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  applyFilters()
+                }
+              }}
+              placeholder="エンティティIDで検索（Enterで実行）"
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
             />
           </div>
@@ -282,9 +306,16 @@ export function AuditLogList({
         </div>
       </div>
 
-      {/* 結果件数表示 */}
-      <div className="mb-4 text-sm text-gray-600">
-        {filteredLogs.length}件の記録
+      {/* 結果件数表示とページ情報 */}
+      <div className="mb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+        <div className="text-sm text-gray-600">
+          全 {totalCount} 件中 {filteredLogs.length} 件を表示
+        </div>
+        {totalPages > 1 && (
+          <div className="text-sm text-gray-600">
+            ページ {currentPage} / {totalPages}
+          </div>
+        )}
       </div>
 
       {/* 監査ログリスト */}
@@ -388,6 +419,61 @@ export function AuditLogList({
           </div>
         )}
       </div>
+
+      {/* ページネーションコントロール */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex justify-center items-center gap-2">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            前へ
+          </button>
+
+          {/* ページ番号ボタン */}
+          <div className="hidden sm:flex gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((page) => {
+                // 最初、最後、現在ページ前後2ページを表示
+                return (
+                  page === 1 ||
+                  page === totalPages ||
+                  (page >= currentPage - 2 && page <= currentPage + 2)
+                )
+              })
+              .map((page, index, arr) => {
+                // ... で省略表示
+                const showEllipsisBefore = index > 0 && page - arr[index - 1] > 1
+                return (
+                  <div key={page} className="flex items-center gap-1">
+                    {showEllipsisBefore && (
+                      <span className="px-2 text-gray-500">...</span>
+                    )}
+                    <button
+                      onClick={() => handlePageChange(page)}
+                      className={`px-3 py-2 text-sm font-medium rounded-md ${
+                        page === currentPage
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  </div>
+                )
+              })}
+          </div>
+
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            次へ
+          </button>
+        </div>
+      )}
 
       {/* モバイル用フィルターモーダル */}
       <AuditLogFiltersModal
