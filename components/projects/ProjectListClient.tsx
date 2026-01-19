@@ -189,198 +189,158 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
         </div>
       </div>
 
-      {/* PC表示：テーブル */}
-      <div className="hidden sm:block bg-white shadow-sm rounded-lg">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  工事番号
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  工事名
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  取引先
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  現場
-                </th>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('start_date')}
-                >
-                  工期 <SortIcon field="start_date" />
-                </th>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('contract_amount')}
-                >
-                  契約金額 <SortIcon field="contract_amount" />
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ステータス
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  操作
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredAndSortedProjects.map((project) => (
-                <tr key={project.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {project.project_code}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {project.project_name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {project.client?.name || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {project.site ? (
-                      <div className="font-medium text-gray-900">{project.site.name}</div>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {project.start_date && project.end_date
-                      ? `${new Date(project.start_date).toLocaleDateString('ja-JP')} ～ ${new Date(project.end_date).toLocaleDateString('ja-JP')}`
-                      : '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {project.contract_amount
-                      ? `¥${project.contract_amount.toLocaleString()}`
-                      : '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 text-xs leading-5 font-semibold rounded-full ${
-                      project.status === 'planning'
-                        ? 'bg-gray-100 text-gray-800'
-                        : project.status === 'in_progress'
-                        ? 'bg-blue-100 text-blue-800'
-                        : project.status === 'completed'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {project.status === 'planning' ? '計画中'
-                        : project.status === 'in_progress' ? '進行中'
-                        : project.status === 'completed' ? '完了'
-                        : 'キャンセル'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <Link
-                      href={`/projects/${project.id}`}
-                      className="text-blue-600 hover:text-blue-900 mr-3"
-                    >
-                      詳細
-                    </Link>
-                    <Link
-                      href={`/projects/${project.id}/edit`}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      編集
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {filteredAndSortedProjects.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              {searchQuery || statusFilter !== 'all'
-                ? '検索条件に一致する工事がありません'
-                : '工事データがありません'}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* モバイル表示：カードレイアウト */}
-      <div className="sm:hidden space-y-3">
+      {/* カードレイアウト（PC・モバイル共通） */}
+      <div className="space-y-4">
         {filteredAndSortedProjects.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-12 text-gray-500 bg-white rounded-lg shadow-sm">
             {searchQuery || statusFilter !== 'all'
               ? '検索条件に一致する工事がありません'
               : '工事データがありません'}
           </div>
         ) : (
           filteredAndSortedProjects.map((project) => (
-            <div key={project.id} className="bg-white border border-gray-200 rounded-lg p-4 relative">
-              {/* ステータスバッジ（右上） */}
-              <div className="absolute top-3 right-3">
-                <span className={`inline-flex px-2 text-xs leading-5 font-semibold rounded-full ${
-                  project.status === 'planning'
-                    ? 'bg-gray-100 text-gray-800'
-                    : project.status === 'in_progress'
-                    ? 'bg-blue-100 text-blue-800'
-                    : project.status === 'completed'
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {project.status === 'planning' ? '計画中'
-                    : project.status === 'in_progress' ? '進行中'
-                    : project.status === 'completed' ? '完了'
-                    : 'キャンセル'}
-                </span>
-              </div>
-
-              {/* 工事番号・工事名 */}
-              <div className="pr-20 mb-3">
-                <div className="text-xs text-gray-500">工事番号</div>
-                <div className="font-medium text-gray-900">{project.project_code}</div>
-                <div className="text-sm font-medium text-gray-900 mt-1">{project.project_name}</div>
-              </div>
-
-              {/* 詳細情報 2x2グリッド */}
-              <div className="grid grid-cols-2 gap-3 text-sm mb-3">
-                <div>
-                  <div className="text-xs text-gray-500 mb-1">取引先</div>
-                  <div className="font-medium text-gray-900">{project.client?.name || '-'}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-gray-500 mb-1">現場</div>
-                  <div className="font-medium text-gray-900">
-                    {project.site ? project.site.name : '-'}
+            <div key={project.id} className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              {/* PC表示 */}
+              <div className="hidden sm:block p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900">{project.project_name}</h3>
+                      <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
+                        project.status === 'planning'
+                          ? 'bg-gray-100 text-gray-800'
+                          : project.status === 'in_progress'
+                          ? 'bg-blue-100 text-blue-800'
+                          : project.status === 'completed'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {project.status === 'planning' ? '計画中'
+                          : project.status === 'in_progress' ? '進行中'
+                          : project.status === 'completed' ? '完了'
+                          : 'キャンセル'}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600">工事番号: {project.project_code}</p>
+                  </div>
+                  <div className="flex gap-2 ml-4">
+                    <Link
+                      href={`/projects/${project.id}`}
+                      className="px-4 py-2 border border-blue-600 text-blue-600 rounded-md text-sm font-medium hover:bg-blue-50 transition-colors"
+                    >
+                      詳細
+                    </Link>
+                    <Link
+                      href={`/projects/${project.id}/edit`}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      編集
+                    </Link>
                   </div>
                 </div>
-                <div>
-                  <div className="text-xs text-gray-500 mb-1">契約金額</div>
-                  <div className="font-medium text-gray-900">
-                    {project.contract_amount
-                      ? `¥${project.contract_amount.toLocaleString()}`
-                      : '-'}
+
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">取引先</div>
+                    <div className="font-medium text-gray-900">{project.client?.name || '-'}</div>
                   </div>
-                </div>
-                <div>
-                  <div className="text-xs text-gray-500 mb-1">工期</div>
-                  <div className="font-medium text-gray-900">
-                    {project.start_date && project.end_date
-                      ? `${new Date(project.start_date).toLocaleDateString('ja-JP')} ～ ${new Date(project.end_date).toLocaleDateString('ja-JP')}`
-                      : '-'}
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">現場</div>
+                    <div className="font-medium text-gray-900">
+                      {project.site ? project.site.name : '-'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">契約金額</div>
+                    <div className="font-medium text-gray-900">
+                      {project.contract_amount
+                        ? `¥${project.contract_amount.toLocaleString()}`
+                        : '-'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">工期</div>
+                    <div className="font-medium text-gray-900 text-sm">
+                      {project.start_date && project.end_date
+                        ? `${new Date(project.start_date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })} ～ ${new Date(project.end_date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}`
+                        : '-'}
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* ボタン */}
-              <div className="flex gap-2 pt-3 border-t border-gray-200">
-                <Link
-                  href={`/projects/${project.id}`}
-                  className="flex-1 text-center px-3 py-2 border border-blue-600 text-blue-600 rounded-md text-sm font-medium hover:bg-blue-50 transition-colors"
-                >
-                  詳細
-                </Link>
-                <Link
-                  href={`/projects/${project.id}/edit`}
-                  className="flex-1 text-center px-3 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
-                >
-                  編集
-                </Link>
+              {/* モバイル表示 */}
+              <div className="sm:hidden p-4 relative">
+                {/* ステータスバッジ（右上） */}
+                <div className="absolute top-3 right-3">
+                  <span className={`inline-flex px-2 text-xs leading-5 font-semibold rounded-full ${
+                    project.status === 'planning'
+                      ? 'bg-gray-100 text-gray-800'
+                      : project.status === 'in_progress'
+                      ? 'bg-blue-100 text-blue-800'
+                      : project.status === 'completed'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {project.status === 'planning' ? '計画中'
+                      : project.status === 'in_progress' ? '進行中'
+                      : project.status === 'completed' ? '完了'
+                      : 'キャンセル'}
+                  </span>
+                </div>
+
+                {/* 工事番号・工事名 */}
+                <div className="pr-20 mb-3">
+                  <div className="text-xs text-gray-500">工事番号</div>
+                  <div className="font-medium text-gray-900">{project.project_code}</div>
+                  <div className="text-sm font-medium text-gray-900 mt-1">{project.project_name}</div>
+                </div>
+
+                {/* 詳細情報 2x2グリッド */}
+                <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">取引先</div>
+                    <div className="font-medium text-gray-900">{project.client?.name || '-'}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">現場</div>
+                    <div className="font-medium text-gray-900">
+                      {project.site ? project.site.name : '-'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">契約金額</div>
+                    <div className="font-medium text-gray-900">
+                      {project.contract_amount
+                        ? `¥${project.contract_amount.toLocaleString()}`
+                        : '-'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">工期</div>
+                    <div className="font-medium text-gray-900 text-xs">
+                      {project.start_date && project.end_date
+                        ? `${new Date(project.start_date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })} ～ ${new Date(project.end_date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}`
+                        : '-'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ボタン */}
+                <div className="flex gap-2 pt-3 border-t border-gray-200">
+                  <Link
+                    href={`/projects/${project.id}`}
+                    className="flex-1 text-center px-3 py-2 border border-blue-600 text-blue-600 rounded-md text-sm font-medium hover:bg-blue-50 transition-colors"
+                  >
+                    詳細
+                  </Link>
+                  <Link
+                    href={`/projects/${project.id}/edit`}
+                    className="flex-1 text-center px-3 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                  >
+                    編集
+                  </Link>
+                </div>
               </div>
             </div>
           ))
