@@ -17,7 +17,7 @@ export default async function ProjectDetailPage({
       *,
       client:clients(id, name, client_code),
       project_manager:users!project_manager_id(id, name, role),
-      site:sites(id, site_name, site_code, address, client:clients(id, name))
+      site:sites(id, name, address, client:clients(id, name))
     `)
     .eq('id', id)
     .eq('organization_id', organizationId)
@@ -168,9 +168,8 @@ export default async function ProjectDetailPage({
                     href={`/sites/${project.site.id}`}
                     className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
                   >
-                    {project.site.site_name}
+                    {project.site.name}
                   </Link>
-                  <span className="text-sm text-gray-500">({project.site.site_code})</span>
                   {project.site.address && (
                     <span className="text-sm text-gray-600 ml-2">📍 {project.site.address}</span>
                   )}

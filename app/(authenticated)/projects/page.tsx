@@ -14,7 +14,7 @@ async function ProjectList() {
     .select(`
       *,
       client:clients(name),
-      site:sites(site_name, site_code)
+      site:sites(id, name, address)
     `)
     .eq('organization_id', organizationId)
     .is('deleted_at', null)

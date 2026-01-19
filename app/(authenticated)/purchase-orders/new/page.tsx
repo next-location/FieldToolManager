@@ -95,7 +95,7 @@ export default function NewPurchaseOrderPage() {
         id,
         project_name,
         project_code,
-        site:sites(id, site_name, address)
+        site:sites(id, name, address)
       `)
       .order('project_name')
 

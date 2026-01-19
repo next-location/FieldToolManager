@@ -14,7 +14,7 @@ interface Project {
   contract_amount: number | null
   status: string
   client?: { name: string }
-  site?: { site_name: string; site_code: string }
+  site?: { id: string; name: string; address: string | null }
 }
 
 interface ProjectListClientProps {
@@ -241,10 +241,7 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {project.site ? (
-                      <div>
-                        <div className="font-medium text-gray-900">{project.site.site_name}</div>
-                        <div className="text-xs text-gray-500">{project.site.site_code}</div>
-                      </div>
+                      <div className="font-medium text-gray-900">{project.site.name}</div>
                     ) : (
                       <span className="text-gray-400">-</span>
                     )}
@@ -349,14 +346,7 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
                 <div>
                   <div className="text-xs text-gray-500 mb-1">現場</div>
                   <div className="font-medium text-gray-900">
-                    {project.site ? (
-                      <div>
-                        <div>{project.site.site_name}</div>
-                        <div className="text-xs text-gray-500">{project.site.site_code}</div>
-                      </div>
-                    ) : (
-                      '-'
-                    )}
+                    {project.site ? project.site.name : '-'}
                   </div>
                 </div>
                 <div>
