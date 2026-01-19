@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createEstimateHistory } from '@/lib/estimate-history'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
+import { logEstimateCreated } from '@/lib/audit-log'
 
 export async function GET(request: NextRequest) {
   try {
@@ -202,6 +203,15 @@ export async function POST(request: NextRequest) {
       actionType,
       performedBy: user.id,
       performedByName: userData.name || 'Unknown',
+    })
+
+    // 監査ログを記録
+    await logEstimateCreated(estimate.id, {
+      estimate_number: body.estimate_number,
+      client_id: body.client_id,
+      project_id: body.project_id,
+      status: body.status || 'draft',
+      total_amount: body.total_amount,
     })
 
     return NextResponse.json({ data: estimate }, { status: 201 })

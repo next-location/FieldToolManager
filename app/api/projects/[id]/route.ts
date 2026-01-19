@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
+import { logProjectUpdated } from '@/lib/audit-log'
 
 // PATCH /api/projects/[id] - 工事更新
 export async function PATCH(
@@ -43,6 +44,18 @@ export async function PATCH(
       return NextResponse.json({ error: '権限がありません' }, { status: 403 })
     }
 
+    // 更新前のデータを取得（監査ログ用）
+    const { data: oldProject } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', id)
+      .eq('organization_id', userData.organization_id)
+      .single()
+
+    if (!oldProject) {
+      return NextResponse.json({ error: '工事が見つかりません' }, { status: 404 })
+    }
+
     // リクエストボディ取得
     const body = await request.json()
 
@@ -73,6 +86,31 @@ export async function PATCH(
     if (!project) {
       return NextResponse.json({ error: '工事が見つかりません' }, { status: 404 })
     }
+
+    // 監査ログを記録
+    await logProjectUpdated(
+      project.id,
+      {
+        project_name: oldProject.project_name,
+        client_id: oldProject.client_id,
+        start_date: oldProject.start_date,
+        end_date: oldProject.end_date,
+        contract_amount: oldProject.contract_amount,
+        budget_amount: oldProject.budget_amount,
+        status: oldProject.status,
+        project_manager_id: oldProject.project_manager_id,
+      },
+      {
+        project_name: project.project_name,
+        client_id: project.client_id,
+        start_date: project.start_date,
+        end_date: project.end_date,
+        contract_amount: project.contract_amount,
+        budget_amount: project.budget_amount,
+        status: project.status,
+        project_manager_id: project.project_manager_id,
+      }
+    )
 
     return NextResponse.json({ data: project })
   } catch (error) {

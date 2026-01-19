@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
+import { logPurchaseOrderUpdated } from '@/lib/audit-log'
 
 // POST /api/purchase-orders/:id/update - 発注書更新（履歴記録なし）
 export async function POST(
@@ -36,6 +37,14 @@ export async function POST(
     }
 
     console.log('[UPDATE API] organization_id:', userData.organization_id)
+
+    // 既存の発注書を取得（監査ログ用）
+    const { data: existingOrder } = await supabase
+      .from('purchase_orders')
+      .select('*')
+      .eq('id', id)
+      .eq('organization_id', userData.organization_id)
+      .single()
 
     // リクエストボディを取得
     const body = await request.json()
@@ -100,6 +109,13 @@ export async function POST(
     }
 
     console.log('[UPDATE API] 明細挿入成功')
+
+    // 監査ログ記録
+    await logPurchaseOrderUpdated(id, existingOrder || {}, {
+      ...orderData,
+      items_count: items.length
+    })
+
     console.log('[UPDATE API] ===== 更新完了（履歴記録なし） =====')
 
     return NextResponse.json({ success: true })

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
+import { logInvoiceUpdated } from '@/lib/audit-log'
 
 export async function POST(
   request: NextRequest,
@@ -103,6 +104,22 @@ export async function POST(
       performed_by_name: userData.name || 'Unknown',
       notes: `入金額: ¥${amount.toLocaleString()}${isPaid ? ' (完済)' : ' (一部入金)'}${notes ? `\n備考: ${notes}` : ''}`
     })
+
+    // 監査ログを記録
+    await logInvoiceUpdated(
+      id,
+      {
+        paid_amount: invoice.paid_amount || 0,
+        status: invoice.status,
+      },
+      {
+        paid_amount: newPaidAmount,
+        status: isPaid ? 'paid' : invoice.status,
+        payment_amount: amount,
+        payment_method: payment_method,
+        is_paid: isPaid,
+      }
+    )
 
     // 完済時、作成者に通知を送信
     if (isPaid && invoice.created_by && invoice.created_by !== userData.id) {

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
+import { logProjectCreated } from '@/lib/audit-log'
 
 // GET /api/projects - 工事一覧取得
 export async function GET(request: NextRequest) {
@@ -153,6 +154,19 @@ export async function POST(request: NextRequest) {
       }
       return NextResponse.json({ error: '工事の作成に失敗しました' }, { status: 500 })
     }
+
+    // 監査ログを記録
+    await logProjectCreated(project.id, {
+      project_code: project.project_code,
+      project_name: project.project_name,
+      client_id: project.client_id,
+      start_date: project.start_date,
+      end_date: project.end_date,
+      contract_amount: project.contract_amount,
+      budget_amount: project.budget_amount,
+      status: project.status,
+      project_manager_id: project.project_manager_id,
+    })
 
     return NextResponse.json({ data: project }, { status: 201 })
   } catch (error) {

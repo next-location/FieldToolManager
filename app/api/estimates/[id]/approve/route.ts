@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createEstimateHistory } from '@/lib/estimate-history'
+import { logEstimateApproved } from '@/lib/audit-log'
 
 // POST - 見積書を承認
 export async function POST(
@@ -82,6 +83,15 @@ export async function POST(
       actionType: 'approved',
       performedBy: userData.id,
       performedByName: userData.name || 'Unknown',
+      notes: notes || undefined,
+    })
+
+    // 監査ログを記録
+    await logEstimateApproved(id, {
+      estimate_number: estimate.estimate_number,
+      approved_by: userData.name || 'Unknown',
+      approved_by_id: userData.id,
+      approved_at: new Date().toISOString(),
       notes: notes || undefined,
     })
 

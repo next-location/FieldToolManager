@@ -42,7 +42,12 @@
       "Bash(source .env.local)",
       "Bash(chmod:*)",
       "Bash(./test-integration-simple.sh:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(wait $!)",
+      "Bash(if [ -d /Users/youichiakashi/FieldToolManager/.next/server/app/api/purchase-orders ])",
+      "Bash(then echo \"Build successful - purchase orders API compiled\")",
+      "Bash(else echo \"Build failed or in progress\")",
+      "Bash(fi)"
     ],
     "deny": [],
     "ask": []

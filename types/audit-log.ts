@@ -10,6 +10,10 @@ export type AuditAction =
   | 'export'
   | 'password_change'
   | 'password_reset'
+  | 'send'
+  | 'approve'
+  | 'reject'
+  | 'submit'
 
 export interface AuditLog {
   id: string

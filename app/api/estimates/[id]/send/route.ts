@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { createEstimateHistory } from '@/lib/estimate-history'
+import { logEstimateSent } from '@/lib/audit-log'
 
 export async function POST(
   request: NextRequest,
@@ -81,6 +82,13 @@ export async function POST(
       actionType: 'sent',
       performedBy: userData.id,
       performedByName: userData.name || 'Unknown',
+    })
+
+    // 監査ログを記録
+    await logEstimateSent(id, {
+      estimate_number: estimate.estimate_number,
+      sent_by: userData.name || 'Unknown',
+      sent_at: new Date().toISOString(),
     })
 
     return NextResponse.json({

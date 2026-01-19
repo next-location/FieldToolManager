@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { notifyPurchaseOrderRejected } from '@/lib/notification'
 import { createPurchaseOrderHistory } from '@/lib/purchase-order-history'
+import { logPurchaseOrderRejected } from '@/lib/audit-log'
 
 // POST /api/purchase-orders/:id/reject - 発注書差戻し
 export async function POST(
@@ -86,6 +87,15 @@ export async function POST(
       performedBy: user.id,
       performedByName: userData.name,
       notes: body.comment,
+    })
+
+    // 監査ログ記録
+    await logPurchaseOrderRejected(id, {
+      rejected_by: user.id,
+      rejected_by_name: userData.name,
+      rejected_at: new Date().toISOString(),
+      order_number: order.order_number,
+      reason: body.comment
     })
 
     // 作成者に通知

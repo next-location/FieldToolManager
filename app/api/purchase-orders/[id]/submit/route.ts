@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { createPurchaseOrderHistory } from '@/lib/purchase-order-history'
+import { logPurchaseOrderUpdated, logPurchaseOrderApproved } from '@/lib/audit-log'
 
 // POST /api/purchase-orders/:id/submit - 発注書承認申請
 export async function POST(
@@ -127,6 +128,32 @@ export async function POST(
       notes: isManagerOrAdmin ? 'マネージャーによる自動承認' : '承認申請を提出しました',
     })
     console.log('[SUBMIT PURCHASE ORDER API] 履歴記録成功')
+
+    // 監査ログ記録
+    if (isManagerOrAdmin) {
+      // マネージャー以上の場合は自動承認ログ
+      await logPurchaseOrderApproved(id, {
+        approved_by: userData.id,
+        approved_by_name: userData.name,
+        approved_at: new Date().toISOString(),
+        order_number: order.order_number,
+        total_amount: order.total_amount,
+        auto_approved: true,
+        comment: 'マネージャーによる自動承認'
+      })
+    } else {
+      // リーダーの場合は提出ログ
+      await logPurchaseOrderUpdated(id, {
+        status: order.status
+      }, {
+        status: 'submitted',
+        submitted_by: userData.id,
+        submitted_by_name: userData.name,
+        submitted_at: new Date().toISOString(),
+        order_number: order.order_number,
+        total_amount: order.total_amount
+      })
+    }
 
     // 通知作成（リーダーが提出した場合のみ承認者に通知）
     if (!isManagerOrAdmin) {

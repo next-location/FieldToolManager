@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { createEstimateHistory } from '@/lib/estimate-history'
+import { logEstimateUpdated } from '@/lib/audit-log'
 
 // DELETE - 見積書削除
 export async function DELETE(
@@ -183,6 +184,19 @@ export async function PUT(
       performedBy: user.id,
       performedByName: userData?.name || 'Unknown',
     })
+
+    // 監査ログを記録
+    await logEstimateUpdated(
+      id,
+      {},
+      {
+        estimate_number: body.estimate_number,
+        client_id: body.client_id,
+        project_id: body.project_id,
+        status: body.status,
+        total_amount: body.total_amount,
+      }
+    )
 
     console.log('[見積書更新API] 更新成功')
     return NextResponse.json({ message: '見積書を更新しました' }, { status: 200 })

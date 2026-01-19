@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { createPurchaseOrderHistory } from '@/lib/purchase-order-history'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
+import { logPurchaseOrderCreated } from '@/lib/audit-log'
 
 // GET /api/purchase-orders - 発注書一覧取得
 export async function GET(request: NextRequest) {
@@ -267,6 +268,16 @@ export async function POST(request: NextRequest) {
       notes: status === 'draft' ? '発注書を下書きとして保存しました' :
              purchaseOrderStatus === 'approved' ? '発注書を作成し承認しました' :
              '発注書を作成し提出しました'
+    })
+
+    // 監査ログ記録
+    await logPurchaseOrderCreated(order.id, {
+      order_number: newOrderNumber,
+      client_id: body.client_id,
+      project_id: body.project_id,
+      status: purchaseOrderStatus,
+      total_amount: totalAmount,
+      items_count: items.length
     })
 
     return NextResponse.json({ data: order }, { status: 201 })

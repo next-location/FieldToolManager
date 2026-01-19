@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { createPurchaseOrderHistory } from '@/lib/purchase-order-history'
+import { logPurchaseOrderUpdated } from '@/lib/audit-log'
 
 export async function POST(
   request: NextRequest,
@@ -35,6 +36,14 @@ export async function POST(
     }
 
     console.log('[UPDATE DRAFT API] organization_id:', userData.organization_id)
+
+    // 既存の発注書を取得（監査ログ用）
+    const { data: existingOrder } = await supabase
+      .from('purchase_orders')
+      .select('*')
+      .eq('id', id)
+      .eq('organization_id', userData.organization_id)
+      .single()
 
     // リクエストボディを取得
     const body = await request.json()
@@ -117,6 +126,14 @@ export async function POST(
     })
 
     console.log('[UPDATE DRAFT API] ===== 履歴記録が完了しました =====')
+
+    // 監査ログ記録
+    await logPurchaseOrderUpdated(id, existingOrder || {}, {
+      ...orderData,
+      items_count: items.length,
+      draft_saved: true
+    })
+
     console.log('[UPDATE DRAFT API] ===== 下書き保存完了 =====')
 
     return NextResponse.json({ success: true })

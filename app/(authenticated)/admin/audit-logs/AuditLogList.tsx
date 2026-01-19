@@ -94,6 +94,12 @@ export function AuditLogList({ initialAuditLogs }: AuditLogListProps) {
       warehouse_locations: '倉庫位置',
       tool_sets: '道具セット',
       auth: '認証',
+      projects: 'プロジェクト',
+      purchase_orders: '発注書',
+      invoices: '請求書',
+      estimates: '見積書',
+      work_reports: '作業報告',
+      settings: '設定',
     }
     return labels[entityType] || entityType
   }

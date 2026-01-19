@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { WorkReportFilter } from '@/types/work-reports'
 import { notifyWorkReportSubmitted } from '@/lib/notifications/work-report-notifications'
 import { generateWorkReportNumber } from '@/lib/work-reports/report-number'
+import { logWorkReportCreated } from '@/lib/audit-log'
 
 // GET /api/work-reports - 作業報告書一覧取得
 export async function GET(request: NextRequest) {
@@ -241,6 +242,19 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Work report fetch error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    // 監査ログを記録
+    try {
+      await logWorkReportCreated(data.id, {
+        site_id: data.site_id,
+        report_date: data.report_date,
+        status: data.status,
+        created_by: data.created_by,
+      })
+    } catch (auditError) {
+      console.error('Audit log error:', auditError)
+      // 監査ログエラーは報告書作成の成功を妨げない
     }
 
     // 提出された場合は通知を送信

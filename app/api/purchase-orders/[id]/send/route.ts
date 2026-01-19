@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { createPurchaseOrderHistory } from '@/lib/purchase-order-history'
+import { logPurchaseOrderUpdated } from '@/lib/audit-log'
 
 // POST /api/purchase-orders/:id/send - 仕入先送付
 export async function POST(
@@ -93,6 +94,17 @@ export async function POST(
       notes: '仕入先へ発注書を送付しました',
     })
     console.log('[SEND PURCHASE ORDER API] 履歴記録成功')
+
+    // 監査ログ記録
+    await logPurchaseOrderUpdated(id, {
+      status: 'approved'
+    }, {
+      status: 'ordered',
+      ordered_at: new Date().toISOString(),
+      sent_by: user.id,
+      sent_by_name: userData.name,
+      order_number: order.order_number
+    })
 
     console.log('[SEND PURCHASE ORDER API] ===== 送付完了 =====')
     return NextResponse.json({ message: '発注書を送付しました' })

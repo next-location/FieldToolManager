@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { logPurchaseOrderApproved } from '@/lib/audit-log'
 
 // POST /api/purchase-orders/bulk-approve - 発注書一括承認
 export async function POST(request: NextRequest) {
@@ -132,6 +133,17 @@ export async function POST(request: NextRequest) {
             created_at: now,
           })
         }
+
+        // 監査ログ記録
+        await logPurchaseOrderApproved(order.id, {
+          approved_by: user.id,
+          approved_by_name: userData.name,
+          approved_at: now,
+          order_number: order.order_number,
+          total_amount: order.total_amount,
+          bulk_approval: true,
+          comment: comment || '一括承認'
+        })
 
         approvedIds.push(order.id)
       } catch (error) {

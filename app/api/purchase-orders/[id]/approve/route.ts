@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { notifyPurchaseOrderApproved } from '@/lib/notification'
 import { createPurchaseOrderHistory } from '@/lib/purchase-order-history'
+import { logPurchaseOrderApproved } from '@/lib/audit-log'
 
 // POST /api/purchase-orders/:id/approve - 発注書承認
 export async function POST(
@@ -86,6 +87,16 @@ export async function POST(
       performedBy: user.id,
       performedByName: userData.name,
       notes: body.comment || '承認しました',
+    })
+
+    // 監査ログ記録
+    await logPurchaseOrderApproved(id, {
+      approved_by: user.id,
+      approved_by_name: userData.name,
+      approved_at: new Date().toISOString(),
+      order_number: order.order_number,
+      total_amount: order.total_amount,
+      comment: body.comment
     })
 
     // 作成者に通知

@@ -5,6 +5,7 @@ import {
   notifyWorkReportApproved,
   notifyWorkReportRejected,
 } from '@/lib/notifications/work-report-notifications'
+import { logWorkReportApproved } from '@/lib/audit-log'
 
 interface Params {
   params: Promise<{ id: string }>
@@ -133,7 +134,21 @@ export async function POST(request: NextRequest, { params }: Params) {
       )
     }
 
-    // 3. 通知を送信
+    // 3. 監査ログを記録（承認の場合のみ）
+    if (action === 'approved') {
+      try {
+        await logWorkReportApproved(id, {
+          approved_by: user.id,
+          approved_at: now,
+          approver_name: userData.name,
+        })
+      } catch (auditError) {
+        console.error('Audit log error:', auditError)
+        // 監査ログエラーは承認処理の成功を妨げない
+      }
+    }
+
+    // 4. 通知を送信
     try {
       const notifyParams = {
         organizationId: userData?.organization_id,

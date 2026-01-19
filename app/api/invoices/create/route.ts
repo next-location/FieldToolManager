@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
+import { logInvoiceCreated } from '@/lib/audit-log'
 
 export async function POST(request: NextRequest) {
   // CSRF検証（セキュリティ強化）
@@ -106,6 +107,15 @@ export async function POST(request: NextRequest) {
                invoiceStatus === 'approved' ? '請求書を作成し承認しました' :
                '請求書を作成し提出しました'
       })
+
+    // 監査ログを記録
+    await logInvoiceCreated(invoice.id, {
+      invoice_number: invoiceData.invoice_number,
+      client_id: invoiceData.client_id,
+      project_id: invoiceData.project_id,
+      status: invoiceStatus,
+      total_amount: invoiceData.total_amount,
+    })
 
     return NextResponse.json({ success: true, invoice })
   } catch (error: any) {

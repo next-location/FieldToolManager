@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
+import { logInvoiceApproved } from '@/lib/audit-log'
 
 export async function POST(
   request: NextRequest,
@@ -75,6 +76,14 @@ export async function POST(
       performed_by: userData.id,
       performed_by_name: userData.name || 'Unknown',
       notes: null
+    })
+
+    // 監査ログを記録
+    await logInvoiceApproved(id, {
+      invoice_number: invoice.invoice_number,
+      approved_by: userData.name || 'Unknown',
+      approved_by_id: userData.id,
+      approved_at: new Date().toISOString(),
     })
 
     // 提出者に通知を送信（承認者本人でない場合）

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { createClient } from '@/lib/supabase/server'
 import { notifyWorkReportSubmitted } from '@/lib/notifications/work-report-notifications'
+import { logWorkReportSubmitted } from '@/lib/audit-log'
 
 interface Params {
   params: Promise<{ id: string }>
@@ -65,13 +66,14 @@ export async function POST(request: NextRequest, { params }: Params) {
     }
 
     // 報告書を提出状態に更新
+    const now = new Date().toISOString()
     const { error: updateError } = await supabase
       .from('work_reports')
       .update({
         status: 'submitted',
-        submitted_at: new Date().toISOString(),
+        submitted_at: now,
         submitted_by: user.id,
-        updated_at: new Date().toISOString(),
+        updated_at: now,
       })
       .eq('id', id)
 
@@ -80,6 +82,18 @@ export async function POST(request: NextRequest, { params }: Params) {
         { error: '報告書の提出に失敗しました' },
         { status: 500 }
       )
+    }
+
+    // 監査ログを記録
+    try {
+      await logWorkReportSubmitted(id, {
+        submitted_by: user.id,
+        submitted_at: now,
+        previous_status: report.status,
+      })
+    } catch (auditError) {
+      console.error('Audit log error:', auditError)
+      // 監査ログエラーは提出処理の成功を妨げない
     }
 
     // 通知を送信

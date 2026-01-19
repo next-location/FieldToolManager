@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { createPurchaseOrderHistory } from '@/lib/purchase-order-history'
+import { logPurchaseOrderUpdated } from '@/lib/audit-log'
 
 // POST /api/purchase-orders/:id/mark-received - 受領登録
 export async function POST(
@@ -76,6 +77,17 @@ export async function POST(
       performedBy: user.id,
       performedByName: userData.name,
       notes: '商品・サービスを受領しました',
+    })
+
+    // 監査ログ記録
+    await logPurchaseOrderUpdated(id, {
+      status: 'ordered'
+    }, {
+      status: 'received',
+      delivered_at: new Date().toISOString(),
+      received_by: user.id,
+      received_by_name: userData.name,
+      order_number: order.order_number
     })
 
     console.log('[MARK RECEIVED API] ===== 受領登録完了 =====')

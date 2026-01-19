@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { notifyWorkReportSubmitted } from '@/lib/notifications/work-report-notifications'
+import { logWorkReportUpdated } from '@/lib/audit-log'
 
 // GET /api/work-reports/[id] - 作業報告書詳細取得
 export async function GET(
@@ -94,10 +95,10 @@ export async function PATCH(
     console.log('workers:', body.workers)
     console.log('custom_fields_data:', body.custom_fields_data)
 
-    // 既存の報告書を取得
+    // 既存の報告書を取得（監査ログ用に古い値を保存）
     const { data: existingReport } = await supabase
       .from('work_reports')
-      .select('created_by, status, workers, organization_id')
+      .select('*')
       .eq('id', id)
       .is('deleted_at', null)
       .single()
@@ -229,6 +230,28 @@ export async function PATCH(
     console.log('tools_used:', data?.tools_used)
     console.log('special_notes:', data?.special_notes)
     console.log('remarks:', data?.remarks)
+
+    // 監査ログを記録
+    try {
+      await logWorkReportUpdated(
+        id,
+        {
+          status: existingReport.status,
+          site_id: existingReport.site_id,
+          report_date: existingReport.report_date,
+          description: existingReport.description,
+        },
+        {
+          status: data.status,
+          site_id: data.site_id,
+          report_date: data.report_date,
+          description: data.description,
+        }
+      )
+    } catch (auditError) {
+      console.error('Audit log error:', auditError)
+      // 監査ログエラーは更新の成功を妨げない
+    }
 
     // 再提出された場合は通知を送信
     if (existingReport.status === 'rejected' && updateData.status === 'submitted' && data) {

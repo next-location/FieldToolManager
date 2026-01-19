@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { createPurchaseOrderHistory } from '@/lib/purchase-order-history'
+import { logPurchaseOrderUpdated } from '@/lib/audit-log'
 
 // POST /api/purchase-orders/:id/mark-paid - 支払登録
 export async function POST(
@@ -99,6 +100,18 @@ export async function POST(
       performedBy: user.id,
       performedByName: userData.name,
       notes: '支払を完了しました',
+    })
+
+    // 監査ログ記録
+    await logPurchaseOrderUpdated(id, {
+      status: 'received'
+    }, {
+      status: 'paid',
+      paid_at: new Date().toISOString(),
+      paid_by: user.id,
+      paid_by_name: userData.name,
+      order_number: order.order_number,
+      total_amount: order.total_amount
     })
 
     console.log('[MARK PAID API] ===== 支払登録完了 =====')
