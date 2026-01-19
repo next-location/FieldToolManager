@@ -215,7 +215,7 @@ export async function POST(request: NextRequest) {
       phone: client.phone,
       address: client.address,
       is_active: client.is_active,
-    })
+    }, user.id, userData.organization_id)
 
     return NextResponse.json({ data: client }, { status: 201 })
   } catch (error) {

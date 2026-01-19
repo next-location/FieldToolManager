@@ -53,7 +53,7 @@ export async function createEquipment(equipmentData: any) {
       registration_number: data.registration_number,
       ownership_type: data.ownership_type,
       status: data.status,
-    })
+    }, user.id, userData.organization_id)
 
     // キャッシュを再検証
     revalidatePath('/equipment')
@@ -77,6 +77,17 @@ export async function updateEquipment(equipmentId: string, equipmentData: any) {
   } = await supabase.auth.getUser()
   if (!user) {
     return { success: false, error: 'Unauthorized' }
+  }
+
+  // ユーザーの組織IDを取得
+  const { data: userData } = await supabase
+    .from('users')
+    .select('organization_id')
+    .eq('id', user.id)
+    .single()
+
+  if (!userData) {
+    return { success: false, error: 'User data not found' }
   }
 
   try {
@@ -135,7 +146,7 @@ export async function updateEquipment(equipmentId: string, equipmentData: any) {
     })
 
     if (Object.keys(newValues).length > 0) {
-      await logEquipmentUpdated(equipmentId, oldValues, newValues)
+      await logEquipmentUpdated(equipmentId, oldValues, newValues, user.id, userData.organization_id)
     }
 
     // キャッシュを再検証
@@ -161,6 +172,17 @@ export async function deleteEquipment(equipmentId: string) {
   } = await supabase.auth.getUser()
   if (!user) {
     return { success: false, error: 'Unauthorized' }
+  }
+
+  // ユーザーの組織IDを取得
+  const { data: userData } = await supabase
+    .from('users')
+    .select('organization_id')
+    .eq('id', user.id)
+    .single()
+
+  if (!userData) {
+    return { success: false, error: 'User data not found' }
   }
 
   try {
@@ -196,7 +218,7 @@ export async function deleteEquipment(equipmentId: string) {
       registration_number: equipmentData.registration_number,
       ownership_type: equipmentData.ownership_type,
       status: equipmentData.status,
-    })
+    }, user.id, userData.organization_id)
 
     // キャッシュを再検証
     revalidatePath('/equipment')

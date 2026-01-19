@@ -47,7 +47,11 @@
       "Bash(if [ -d /Users/youichiakashi/FieldToolManager/.next/server/app/api/purchase-orders ])",
       "Bash(then echo \"Build successful - purchase orders API compiled\")",
       "Bash(else echo \"Build failed or in progress\")",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(for file in app/api/purchase-orders/route.ts app/api/invoices/create/route.ts app/api/estimates/route.ts)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(done)",
+      "Bash(npm run type-check:*)"
     ],
     "deny": [],
     "ask": []

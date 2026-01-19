@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
     await logPasswordChanged(user.id, {
       email: userData.email,
       name: userData.name,
-    });
+    }, user.id, userData.organization_id);
 
     // 全セッションを無効化（セキュリティ強化）
     // Supabase Authは自動的に他のセッションを無効化するため、特別な処理は不要

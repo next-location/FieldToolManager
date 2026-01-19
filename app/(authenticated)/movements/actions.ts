@@ -84,16 +84,21 @@ export async function createMovement(formData: FormData) {
   }
 
   // 監査ログを記録
-  await logToolMovement(movementData.id, {
-    tool_item_id,
-    movement_type,
-    from_location: from_site_id ? 'site' : 'warehouse',
-    to_location,
-    from_site_id,
-    to_site_id,
-    quantity,
-    notes,
-  })
+  await logToolMovement(
+    movementData.id,
+    {
+      tool_item_id,
+      movement_type,
+      from_location: from_site_id ? 'site' : 'warehouse',
+      to_location,
+      from_site_id,
+      to_site_id,
+      quantity,
+      notes,
+    },
+    user.id,
+    userData.organization_id
+  )
 
   // 個別アイテムの現在地を更新
   let updateData: any = {}

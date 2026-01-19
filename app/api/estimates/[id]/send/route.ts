@@ -89,7 +89,7 @@ export async function POST(
       estimate_number: estimate.estimate_number,
       sent_by: userData.name || 'Unknown',
       sent_at: new Date().toISOString(),
-    })
+    }, user.id, userData.organization_id)
 
     return NextResponse.json({
       message: '見積書を顧客に送付しました',

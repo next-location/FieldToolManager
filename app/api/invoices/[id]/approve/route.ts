@@ -84,7 +84,7 @@ export async function POST(
       approved_by: userData.name || 'Unknown',
       approved_by_id: userData.id,
       approved_at: new Date().toISOString(),
-    })
+    }, user.id, userData.organization_id)
 
     // 提出者に通知を送信（承認者本人でない場合）
     if (invoice.submitted_by && invoice.submitted_by !== userData.id) {

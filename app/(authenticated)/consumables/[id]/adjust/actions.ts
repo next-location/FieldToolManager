@@ -140,7 +140,9 @@ export async function adjustConsumableInventory({
       unit_price: unitPrice,
       total_amount: totalAmount,
       reason: reason
-    }
+    },
+    user.id,
+    userData.organization_id
   )
 
   revalidatePath('/consumables')

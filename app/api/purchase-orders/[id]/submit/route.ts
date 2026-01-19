@@ -140,7 +140,7 @@ export async function POST(
         total_amount: order.total_amount,
         auto_approved: true,
         comment: 'マネージャーによる自動承認'
-      })
+      }, user.id, userData.organization_id)
     } else {
       // リーダーの場合は提出ログ
       await logPurchaseOrderUpdated(id, {
@@ -152,7 +152,7 @@ export async function POST(
         submitted_at: new Date().toISOString(),
         order_number: order.order_number,
         total_amount: order.total_amount
-      })
+      }, user.id, userData.organization_id)
     }
 
     // 通知作成（リーダーが提出した場合のみ承認者に通知）

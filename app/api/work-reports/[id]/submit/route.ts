@@ -90,7 +90,7 @@ export async function POST(request: NextRequest, { params }: Params) {
         submitted_by: user.id,
         submitted_at: now,
         previous_status: report.status,
-      })
+      }, user.id, userData.organization_id)
     } catch (auditError) {
       console.error('Audit log error:', auditError)
       // 監査ログエラーは提出処理の成功を妨げない

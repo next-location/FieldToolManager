@@ -109,7 +109,9 @@ export async function PATCH(
         budget_amount: project.budget_amount,
         status: project.status,
         project_manager_id: project.project_manager_id,
-      }
+      },
+      user.id,
+      userData.organization_id
     )
 
     return NextResponse.json({ data: project })

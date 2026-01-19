@@ -212,7 +212,7 @@ export async function POST(request: NextRequest) {
       project_id: body.project_id,
       status: body.status || 'draft',
       total_amount: body.total_amount,
-    })
+    }, user.id, userData.organization_id)
 
     return NextResponse.json({ data: estimate }, { status: 201 })
   } catch (error) {

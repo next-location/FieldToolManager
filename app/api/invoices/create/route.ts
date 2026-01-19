@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
       project_id: invoiceData.project_id,
       status: invoiceStatus,
       total_amount: invoiceData.total_amount,
-    })
+    }, user.id, userData?.organization_id)
 
     return NextResponse.json({ success: true, invoice })
   } catch (error: any) {

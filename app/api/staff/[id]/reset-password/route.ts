@@ -89,7 +89,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         name: targetUser.name,
         email: targetUser.email,
         password_reset_requested: true,
-      }
+      },
+      user.id,
+      userData.organization_id
     )
 
     // メール送信（実装は環境に応じて）

@@ -88,7 +88,7 @@ export async function POST(
       received_by: user.id,
       received_by_name: userData.name,
       order_number: order.order_number
-    })
+    }, user.id, userData.organization_id)
 
     console.log('[MARK RECEIVED API] ===== 受領登録完了 =====')
     return NextResponse.json({ message: '受領登録しました' })

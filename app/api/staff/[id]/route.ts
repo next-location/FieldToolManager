@@ -165,7 +165,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         department,
         employee_id,
         phone,
-      }
+      },
+      user.id,
+      userData.organization_id
     )
 
     return NextResponse.json({ data: newData })
@@ -281,7 +283,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       department: targetUser.department,
       employee_id: targetUser.employee_id,
       phone: targetUser.phone,
-    })
+    }, user.id, userData.organization_id)
 
     return NextResponse.json({ success: true })
   } catch (error) {

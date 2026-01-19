@@ -97,7 +97,7 @@ export async function POST(
       order_number: order.order_number,
       total_amount: order.total_amount,
       comment: body.comment
-    })
+    }, user.id, userData.organization_id)
 
     // 作成者に通知
     if (order.created_by) {

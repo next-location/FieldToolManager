@@ -77,7 +77,7 @@ export async function createConsumableOrder(formData: FormData) {
       unit: newConsumableUnit,
       management_type: 'consumable',
       qr_code: qrCode
-    })
+    }, user.id, userData.organization_id)
 
     toolId = newConsumable.id
   }

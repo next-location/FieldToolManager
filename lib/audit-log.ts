@@ -3,32 +3,46 @@ import { headers } from 'next/headers'
 import type { AuditAction, CreateAuditLogParams } from '@/types/audit-log'
 
 /**
- * 監査ログを記録する
+ * 監査ログを記録する（既存のSupabaseクライアントと認証情報を受け取る）
  */
-export async function createAuditLog(params: CreateAuditLogParams): Promise<void> {
+export async function createAuditLog(
+  params: CreateAuditLogParams,
+  userId?: string,
+  organizationId?: string
+): Promise<void> {
   try {
     const supabase = await createClient()
 
-    // 現在のユーザー情報を取得
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    // ユーザーIDと組織IDが渡されていない場合は取得を試みる
+    let finalUserId = userId
+    let finalOrganizationId = organizationId
 
-    if (!user) {
-      console.warn('[AuditLog] No authenticated user, skipping audit log')
-      return
-    }
+    if (!finalUserId || !finalOrganizationId) {
+      // 現在のユーザー情報を取得
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
 
-    // ユーザーの組織IDを取得
-    const { data: userData } = await supabase
-      .from('users')
-      .select('organization_id')
-      .eq('id', user.id)
-      .single()
+      if (!user) {
+        console.warn('[AuditLog] No authenticated user and no userId provided, skipping audit log')
+        return
+      }
 
-    if (!userData) {
-      console.warn('[AuditLog] User data not found, skipping audit log')
-      return
+      finalUserId = user.id
+
+      // ユーザーの組織IDを取得
+      const { data: userData } = await supabase
+        .from('users')
+        .select('organization_id')
+        .eq('id', user.id)
+        .single()
+
+      if (!userData) {
+        console.warn('[AuditLog] User data not found, skipping audit log')
+        return
+      }
+
+      finalOrganizationId = userData.organization_id
     }
 
     // IPアドレスとUser Agentを取得（Server Actionsでは取得できないのでnullにする）
@@ -47,16 +61,16 @@ export async function createAuditLog(params: CreateAuditLogParams): Promise<void
 
     // 監査ログを挿入
     console.log('[AuditLog] Inserting audit log:', {
-      organization_id: userData.organization_id,
-      user_id: user.id,
+      organization_id: finalOrganizationId,
+      user_id: finalUserId,
       action: params.action,
       entity_type: params.entity_type,
       entity_id: params.entity_id,
     })
 
     const insertData = {
-      organization_id: userData.organization_id,
-      user_id: user.id,
+      organization_id: finalOrganizationId,
+      user_id: finalUserId,
       action: params.action,
       entity_type: params.entity_type,
       entity_id: params.entity_id || null,
@@ -124,14 +138,23 @@ export async function createAuditLogFromRequest(
 /**
  * 道具作成の監査ログ
  */
-export async function logToolCreated(toolId: string, toolData: Record<string, any>) {
+export async function logToolCreated(
+  toolId: string,
+  toolData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
   console.log('[logToolCreated] Called with toolId:', toolId)
-  await createAuditLog({
-    action: 'create',
-    entity_type: 'tools',
-    entity_id: toolId,
-    new_values: toolData,
-  })
+  await createAuditLog(
+    {
+      action: 'create',
+      entity_type: 'tools',
+      entity_id: toolId,
+      new_values: toolData,
+    },
+    userId,
+    organizationId
+  )
   console.log('[logToolCreated] Completed')
 }
 
@@ -141,39 +164,63 @@ export async function logToolCreated(toolId: string, toolData: Record<string, an
 export async function logToolUpdated(
   toolId: string,
   oldData: Record<string, any>,
-  newData: Record<string, any>
+  newData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
 ) {
-  await createAuditLog({
-    action: 'update',
-    entity_type: 'tools',
-    entity_id: toolId,
-    old_values: oldData,
-    new_values: newData,
-  })
+  await createAuditLog(
+    {
+      action: 'update',
+      entity_type: 'tools',
+      entity_id: toolId,
+      old_values: oldData,
+      new_values: newData,
+    },
+    userId,
+    organizationId
+  )
 }
 
 /**
  * 道具削除の監査ログ
  */
-export async function logToolDeleted(toolId: string, toolData: Record<string, any>) {
-  await createAuditLog({
-    action: 'delete',
-    entity_type: 'tools',
-    entity_id: toolId,
-    old_values: toolData,
-  })
+export async function logToolDeleted(
+  toolId: string,
+  toolData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'delete',
+      entity_type: 'tools',
+      entity_id: toolId,
+      old_values: toolData,
+    },
+    userId,
+    organizationId
+  )
 }
 
 /**
  * ユーザー作成の監査ログ
  */
-export async function logUserCreated(userId: string, userData: Record<string, any>) {
-  await createAuditLog({
-    action: 'create',
-    entity_type: 'users',
-    entity_id: userId,
-    new_values: userData,
-  })
+export async function logUserCreated(
+  userId: string,
+  userData: Record<string, any>,
+  actorUserId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'create',
+      entity_type: 'users',
+      entity_id: userId,
+      new_values: userData,
+    },
+    actorUserId,
+    organizationId
+  )
 }
 
 /**
@@ -182,440 +229,762 @@ export async function logUserCreated(userId: string, userData: Record<string, an
 export async function logUserUpdated(
   userId: string,
   oldData: Record<string, any>,
-  newData: Record<string, any>
+  newData: Record<string, any>,
+  actorUserId?: string,
+  organizationId?: string
 ) {
-  await createAuditLog({
-    action: 'update',
-    entity_type: 'users',
-    entity_id: userId,
-    old_values: oldData,
-    new_values: newData,
-  })
+  await createAuditLog(
+    {
+      action: 'update',
+      entity_type: 'users',
+      entity_id: userId,
+      old_values: oldData,
+      new_values: newData,
+    },
+    actorUserId,
+    organizationId
+  )
 }
 
 /**
  * ユーザー削除の監査ログ
  */
-export async function logUserDeleted(userId: string, userData: Record<string, any>) {
-  await createAuditLog({
-    action: 'delete',
-    entity_type: 'users',
-    entity_id: userId,
-    old_values: userData,
-  })
+export async function logUserDeleted(
+  userId: string,
+  userData: Record<string, any>,
+  actorUserId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'delete',
+      entity_type: 'users',
+      entity_id: userId,
+      old_values: userData,
+    },
+    actorUserId,
+    organizationId
+  )
 }
 
 /**
  * 現場の監査ログ
  */
-export async function logSiteCreated(siteId: string, siteData: Record<string, any>) {
-  await createAuditLog({
-    action: 'create',
-    entity_type: 'sites',
-    entity_id: siteId,
-    new_values: siteData,
-  })
+export async function logSiteCreated(
+  siteId: string,
+  siteData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'create',
+      entity_type: 'sites',
+      entity_id: siteId,
+      new_values: siteData,
+    },
+    userId,
+    organizationId
+  )
 }
 
 export async function logSiteUpdated(
   siteId: string,
   oldData: Record<string, any>,
-  newData: Record<string, any>
+  newData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
 ) {
-  await createAuditLog({
-    action: 'update',
-    entity_type: 'sites',
-    entity_id: siteId,
-    old_values: oldData,
-    new_values: newData,
-  })
+  await createAuditLog(
+    {
+      action: 'update',
+      entity_type: 'sites',
+      entity_id: siteId,
+      old_values: oldData,
+      new_values: newData,
+    },
+    userId,
+    organizationId
+  )
 }
 
-export async function logSiteDeleted(siteId: string, siteData: Record<string, any>) {
-  await createAuditLog({
-    action: 'delete',
-    entity_type: 'sites',
-    entity_id: siteId,
-    old_values: siteData,
-  })
+export async function logSiteDeleted(
+  siteId: string,
+  siteData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'delete',
+      entity_type: 'sites',
+      entity_id: siteId,
+      old_values: siteData,
+    },
+    userId,
+    organizationId
+  )
 }
 
 /**
  * 取引先の監査ログ
  */
-export async function logClientCreated(clientId: string, clientData: Record<string, any>) {
-  await createAuditLog({
-    action: 'create',
-    entity_type: 'clients',
-    entity_id: clientId,
-    new_values: clientData,
-  })
+export async function logClientCreated(
+  clientId: string,
+  clientData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'create',
+      entity_type: 'clients',
+      entity_id: clientId,
+      new_values: clientData,
+    },
+    userId,
+    organizationId
+  )
 }
 
 export async function logClientUpdated(
   clientId: string,
   oldData: Record<string, any>,
-  newData: Record<string, any>
+  newData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
 ) {
-  await createAuditLog({
-    action: 'update',
-    entity_type: 'clients',
-    entity_id: clientId,
-    old_values: oldData,
-    new_values: newData,
-  })
+  await createAuditLog(
+    {
+      action: 'update',
+      entity_type: 'clients',
+      entity_id: clientId,
+      old_values: oldData,
+      new_values: newData,
+    },
+    userId,
+    organizationId
+  )
 }
 
-export async function logClientDeleted(clientId: string, clientData: Record<string, any>) {
-  await createAuditLog({
-    action: 'delete',
-    entity_type: 'clients',
-    entity_id: clientId,
-    old_values: clientData,
-  })
+export async function logClientDeleted(
+  clientId: string,
+  clientData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'delete',
+      entity_type: 'clients',
+      entity_id: clientId,
+      old_values: clientData,
+    },
+    userId,
+    organizationId
+  )
 }
 
 /**
  * 重機の監査ログ
  */
-export async function logEquipmentCreated(equipmentId: string, equipmentData: Record<string, any>) {
-  await createAuditLog({
-    action: 'create',
-    entity_type: 'equipment',
-    entity_id: equipmentId,
-    new_values: equipmentData,
-  })
+export async function logEquipmentCreated(
+  equipmentId: string,
+  equipmentData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'create',
+      entity_type: 'equipment',
+      entity_id: equipmentId,
+      new_values: equipmentData,
+    },
+    userId,
+    organizationId
+  )
 }
 
 export async function logEquipmentUpdated(
   equipmentId: string,
   oldData: Record<string, any>,
-  newData: Record<string, any>
+  newData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
 ) {
-  await createAuditLog({
-    action: 'update',
-    entity_type: 'equipment',
-    entity_id: equipmentId,
-    old_values: oldData,
-    new_values: newData,
-  })
+  await createAuditLog(
+    {
+      action: 'update',
+      entity_type: 'equipment',
+      entity_id: equipmentId,
+      old_values: oldData,
+      new_values: newData,
+    },
+    userId,
+    organizationId
+  )
 }
 
-export async function logEquipmentDeleted(equipmentId: string, equipmentData: Record<string, any>) {
-  await createAuditLog({
-    action: 'delete',
-    entity_type: 'equipment',
-    entity_id: equipmentId,
-    old_values: equipmentData,
-  })
+export async function logEquipmentDeleted(
+  equipmentId: string,
+  equipmentData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'delete',
+      entity_type: 'equipment',
+      entity_id: equipmentId,
+      old_values: equipmentData,
+    },
+    userId,
+    organizationId
+  )
 }
 
 /**
  * 消耗品の監査ログ
  */
-export async function logConsumableCreated(consumableId: string, consumableData: Record<string, any>) {
-  await createAuditLog({
-    action: 'create',
-    entity_type: 'consumables',
-    entity_id: consumableId,
-    new_values: consumableData,
-  })
+export async function logConsumableCreated(
+  consumableId: string,
+  consumableData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'create',
+      entity_type: 'consumables',
+      entity_id: consumableId,
+      new_values: consumableData,
+    },
+    userId,
+    organizationId
+  )
 }
 
 export async function logConsumableUpdated(
   consumableId: string,
   oldData: Record<string, any>,
-  newData: Record<string, any>
+  newData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
 ) {
-  await createAuditLog({
-    action: 'update',
-    entity_type: 'consumables',
-    entity_id: consumableId,
-    old_values: oldData,
-    new_values: newData,
-  })
+  await createAuditLog(
+    {
+      action: 'update',
+      entity_type: 'consumables',
+      entity_id: consumableId,
+      old_values: oldData,
+      new_values: newData,
+    },
+    userId,
+    organizationId
+  )
 }
 
-export async function logConsumableDeleted(consumableId: string, consumableData: Record<string, any>) {
-  await createAuditLog({
-    action: 'delete',
-    entity_type: 'consumables',
-    entity_id: consumableId,
-    old_values: consumableData,
-  })
+export async function logConsumableDeleted(
+  consumableId: string,
+  consumableData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'delete',
+      entity_type: 'consumables',
+      entity_id: consumableId,
+      old_values: consumableData,
+    },
+    userId,
+    organizationId
+  )
 }
 
 /**
  * 認証・セキュリティの監査ログ
  */
-export async function logLogin(userId: string, metadata?: Record<string, any>) {
-  await createAuditLog({
-    action: 'login',
-    entity_type: 'auth',
-    entity_id: userId,
-    new_values: metadata,
-  })
+export async function logLogin(
+  userId: string,
+  metadata?: Record<string, any>,
+  actorUserId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'login',
+      entity_type: 'auth',
+      entity_id: userId,
+      new_values: metadata,
+    },
+    actorUserId,
+    organizationId
+  )
 }
 
-export async function logLogout(userId: string, metadata?: Record<string, any>) {
-  await createAuditLog({
-    action: 'logout',
-    entity_type: 'auth',
-    entity_id: userId,
-    new_values: metadata,
-  })
+export async function logLogout(
+  userId: string,
+  metadata?: Record<string, any>,
+  actorUserId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'logout',
+      entity_type: 'auth',
+      entity_id: userId,
+      new_values: metadata,
+    },
+    actorUserId,
+    organizationId
+  )
 }
 
-export async function logPasswordChanged(userId: string, metadata?: Record<string, any>) {
-  await createAuditLog({
-    action: 'password_change',
-    entity_type: 'auth',
-    entity_id: userId,
-    new_values: metadata,
-  })
+export async function logPasswordChanged(
+  userId: string,
+  metadata?: Record<string, any>,
+  actorUserId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'password_change',
+      entity_type: 'auth',
+      entity_id: userId,
+      new_values: metadata,
+    },
+    actorUserId,
+    organizationId
+  )
 }
 
-export async function logPasswordReset(userId: string, metadata?: Record<string, any>) {
-  await createAuditLog({
-    action: 'password_reset',
-    entity_type: 'auth',
-    entity_id: userId,
-    new_values: metadata,
-  })
+export async function logPasswordReset(
+  userId: string,
+  metadata?: Record<string, any>,
+  actorUserId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'password_reset',
+      entity_type: 'auth',
+      entity_id: userId,
+      new_values: metadata,
+    },
+    actorUserId,
+    organizationId
+  )
 }
 
 /**
  * 道具移動の監査ログ
  */
-export async function logToolMovement(movementId: string, movementData: Record<string, any>) {
-  await createAuditLog({
-    action: 'create',
-    entity_type: 'tool_movements',
-    entity_id: movementId,
-    new_values: movementData,
-  })
+export async function logToolMovement(
+  movementId: string,
+  movementData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'create',
+      entity_type: 'tool_movements',
+      entity_id: movementId,
+      new_values: movementData,
+    },
+    userId,
+    organizationId
+  )
 }
 
 /**
  * プロジェクトの監査ログ
  */
-export async function logProjectCreated(projectId: string, projectData: Record<string, any>) {
-  await createAuditLog({
-    action: 'create',
-    entity_type: 'projects',
-    entity_id: projectId,
-    new_values: projectData,
-  })
+export async function logProjectCreated(
+  projectId: string,
+  projectData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'create',
+      entity_type: 'projects',
+      entity_id: projectId,
+      new_values: projectData,
+    },
+    userId,
+    organizationId
+  )
 }
 
 export async function logProjectUpdated(
   projectId: string,
   oldData: Record<string, any>,
-  newData: Record<string, any>
+  newData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
 ) {
-  await createAuditLog({
-    action: 'update',
-    entity_type: 'projects',
-    entity_id: projectId,
-    old_values: oldData,
-    new_values: newData,
-  })
+  await createAuditLog(
+    {
+      action: 'update',
+      entity_type: 'projects',
+      entity_id: projectId,
+      old_values: oldData,
+      new_values: newData,
+    },
+    userId,
+    organizationId
+  )
 }
 
-export async function logProjectDeleted(projectId: string, projectData: Record<string, any>) {
-  await createAuditLog({
-    action: 'delete',
-    entity_type: 'projects',
-    entity_id: projectId,
-    old_values: projectData,
-  })
+export async function logProjectDeleted(
+  projectId: string,
+  projectData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'delete',
+      entity_type: 'projects',
+      entity_id: projectId,
+      old_values: projectData,
+    },
+    userId,
+    organizationId
+  )
 }
 
 /**
  * 発注の監査ログ
  */
-export async function logPurchaseOrderCreated(orderId: string, orderData: Record<string, any>) {
-  await createAuditLog({
-    action: 'create',
-    entity_type: 'purchase_orders',
-    entity_id: orderId,
-    new_values: orderData,
-  })
+export async function logPurchaseOrderCreated(
+  orderId: string,
+  orderData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'create',
+      entity_type: 'purchase_orders',
+      entity_id: orderId,
+      new_values: orderData,
+    },
+    userId,
+    organizationId
+  )
 }
 
 export async function logPurchaseOrderUpdated(
   orderId: string,
   oldData: Record<string, any>,
-  newData: Record<string, any>
+  newData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
 ) {
-  await createAuditLog({
-    action: 'update',
-    entity_type: 'purchase_orders',
-    entity_id: orderId,
-    old_values: oldData,
-    new_values: newData,
-  })
+  await createAuditLog(
+    {
+      action: 'update',
+      entity_type: 'purchase_orders',
+      entity_id: orderId,
+      old_values: oldData,
+      new_values: newData,
+    },
+    userId,
+    organizationId
+  )
 }
 
-export async function logPurchaseOrderApproved(orderId: string, metadata: Record<string, any>) {
-  await createAuditLog({
-    action: 'approve',
-    entity_type: 'purchase_orders',
-    entity_id: orderId,
-    new_values: metadata,
-  })
+export async function logPurchaseOrderApproved(
+  orderId: string,
+  metadata: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'approve',
+      entity_type: 'purchase_orders',
+      entity_id: orderId,
+      new_values: metadata,
+    },
+    userId,
+    organizationId
+  )
 }
 
-export async function logPurchaseOrderRejected(orderId: string, metadata: Record<string, any>) {
-  await createAuditLog({
-    action: 'reject',
-    entity_type: 'purchase_orders',
-    entity_id: orderId,
-    new_values: metadata,
-  })
+export async function logPurchaseOrderRejected(
+  orderId: string,
+  metadata: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'reject',
+      entity_type: 'purchase_orders',
+      entity_id: orderId,
+      new_values: metadata,
+    },
+    userId,
+    organizationId
+  )
 }
 
 /**
  * 見積・請求の監査ログ
  */
-export async function logInvoiceCreated(invoiceId: string, invoiceData: Record<string, any>) {
-  await createAuditLog({
-    action: 'create',
-    entity_type: 'invoices',
-    entity_id: invoiceId,
-    new_values: invoiceData,
-  })
+export async function logInvoiceCreated(
+  invoiceId: string,
+  invoiceData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'create',
+      entity_type: 'invoices',
+      entity_id: invoiceId,
+      new_values: invoiceData,
+    },
+    userId,
+    organizationId
+  )
 }
 
 export async function logInvoiceUpdated(
   invoiceId: string,
   oldData: Record<string, any>,
-  newData: Record<string, any>
+  newData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
 ) {
-  await createAuditLog({
-    action: 'update',
-    entity_type: 'invoices',
-    entity_id: invoiceId,
-    old_values: oldData,
-    new_values: newData,
-  })
+  await createAuditLog(
+    {
+      action: 'update',
+      entity_type: 'invoices',
+      entity_id: invoiceId,
+      old_values: oldData,
+      new_values: newData,
+    },
+    userId,
+    organizationId
+  )
 }
 
-export async function logInvoiceSent(invoiceId: string, metadata: Record<string, any>) {
-  await createAuditLog({
-    action: 'send',
-    entity_type: 'invoices',
-    entity_id: invoiceId,
-    new_values: metadata,
-  })
+export async function logInvoiceSent(
+  invoiceId: string,
+  metadata: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'send',
+      entity_type: 'invoices',
+      entity_id: invoiceId,
+      new_values: metadata,
+    },
+    userId,
+    organizationId
+  )
 }
 
-export async function logInvoiceApproved(invoiceId: string, metadata: Record<string, any>) {
-  await createAuditLog({
-    action: 'approve',
-    entity_type: 'invoices',
-    entity_id: invoiceId,
-    new_values: metadata,
-  })
+export async function logInvoiceApproved(
+  invoiceId: string,
+  metadata: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'approve',
+      entity_type: 'invoices',
+      entity_id: invoiceId,
+      new_values: metadata,
+    },
+    userId,
+    organizationId
+  )
 }
 
 /**
  * 見積書の監査ログ
  */
-export async function logEstimateCreated(estimateId: string, estimateData: Record<string, any>) {
-  await createAuditLog({
-    action: 'create',
-    entity_type: 'estimates',
-    entity_id: estimateId,
-    new_values: estimateData,
-  })
+export async function logEstimateCreated(
+  estimateId: string,
+  estimateData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'create',
+      entity_type: 'estimates',
+      entity_id: estimateId,
+      new_values: estimateData,
+    },
+    userId,
+    organizationId
+  )
 }
 
 export async function logEstimateUpdated(
   estimateId: string,
   oldData: Record<string, any>,
-  newData: Record<string, any>
+  newData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
 ) {
-  await createAuditLog({
-    action: 'update',
-    entity_type: 'estimates',
-    entity_id: estimateId,
-    old_values: oldData,
-    new_values: newData,
-  })
+  await createAuditLog(
+    {
+      action: 'update',
+      entity_type: 'estimates',
+      entity_id: estimateId,
+      old_values: oldData,
+      new_values: newData,
+    },
+    userId,
+    organizationId
+  )
 }
 
-export async function logEstimateSent(estimateId: string, metadata: Record<string, any>) {
-  await createAuditLog({
-    action: 'send',
-    entity_type: 'estimates',
-    entity_id: estimateId,
-    new_values: metadata,
-  })
+export async function logEstimateSent(
+  estimateId: string,
+  metadata: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'send',
+      entity_type: 'estimates',
+      entity_id: estimateId,
+      new_values: metadata,
+    },
+    userId,
+    organizationId
+  )
 }
 
-export async function logEstimateApproved(estimateId: string, metadata: Record<string, any>) {
-  await createAuditLog({
-    action: 'approve',
-    entity_type: 'estimates',
-    entity_id: estimateId,
-    new_values: metadata,
-  })
+export async function logEstimateApproved(
+  estimateId: string,
+  metadata: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'approve',
+      entity_type: 'estimates',
+      entity_id: estimateId,
+      new_values: metadata,
+    },
+    userId,
+    organizationId
+  )
 }
 
 /**
  * 作業報告の監査ログ
  */
-export async function logWorkReportCreated(reportId: string, reportData: Record<string, any>) {
-  await createAuditLog({
-    action: 'create',
-    entity_type: 'work_reports',
-    entity_id: reportId,
-    new_values: reportData,
-  })
+export async function logWorkReportCreated(
+  reportId: string,
+  reportData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'create',
+      entity_type: 'work_reports',
+      entity_id: reportId,
+      new_values: reportData,
+    },
+    userId,
+    organizationId
+  )
 }
 
 export async function logWorkReportUpdated(
   reportId: string,
   oldData: Record<string, any>,
-  newData: Record<string, any>
+  newData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
 ) {
-  await createAuditLog({
-    action: 'update',
-    entity_type: 'work_reports',
-    entity_id: reportId,
-    old_values: oldData,
-    new_values: newData,
-  })
+  await createAuditLog(
+    {
+      action: 'update',
+      entity_type: 'work_reports',
+      entity_id: reportId,
+      old_values: oldData,
+      new_values: newData,
+    },
+    userId,
+    organizationId
+  )
 }
 
-export async function logWorkReportSubmitted(reportId: string, metadata: Record<string, any>) {
-  await createAuditLog({
-    action: 'submit',
-    entity_type: 'work_reports',
-    entity_id: reportId,
-    new_values: metadata,
-  })
+export async function logWorkReportSubmitted(
+  reportId: string,
+  metadata: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'submit',
+      entity_type: 'work_reports',
+      entity_id: reportId,
+      new_values: metadata,
+    },
+    userId,
+    organizationId
+  )
 }
 
-export async function logWorkReportApproved(reportId: string, metadata: Record<string, any>) {
-  await createAuditLog({
-    action: 'approve',
-    entity_type: 'work_reports',
-    entity_id: reportId,
-    new_values: metadata,
-  })
+export async function logWorkReportApproved(
+  reportId: string,
+  metadata: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'approve',
+      entity_type: 'work_reports',
+      entity_id: reportId,
+      new_values: metadata,
+    },
+    userId,
+    organizationId
+  )
 }
 
 /**
  * 設定変更の監査ログ
  */
-export async function logSettingsChanged(settingType: string, oldData: Record<string, any>, newData: Record<string, any>) {
-  await createAuditLog({
-    action: 'update',
-    entity_type: 'settings',
-    entity_id: settingType,
-    old_values: oldData,
-    new_values: newData,
-  })
+export async function logSettingsChanged(
+  settingType: string,
+  oldData: Record<string, any>,
+  newData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'update',
+      entity_type: 'settings',
+      entity_id: settingType,
+      old_values: oldData,
+      new_values: newData,
+    },
+    userId,
+    organizationId
+  )
 }

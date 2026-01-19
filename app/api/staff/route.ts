@@ -309,7 +309,7 @@ export async function POST(request: NextRequest) {
       employee_id,
       phone,
       is_active: true,
-    })
+    }, user.id, userData.organization_id)
 
     // 組織情報を取得（ウェルカムメール送信用）
     const { data: orgData } = await supabase

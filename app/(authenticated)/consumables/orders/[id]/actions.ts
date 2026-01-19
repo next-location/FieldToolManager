@@ -154,7 +154,9 @@ export async function markAsDelivered(formData: FormData) {
       delivered_quantity: order.quantity,
       delivery_date: actualDeliveryDate,
       notes: deliveryNotes
-    }
+    },
+    user.id,
+    userData.organization_id
   )
 
   revalidatePath(`/consumables/orders/${orderId}`)

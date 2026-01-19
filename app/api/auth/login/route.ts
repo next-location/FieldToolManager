@@ -252,11 +252,16 @@ export async function POST(request: Request) {
   await recordLoginAttempt(email, ipAddress, userAgent, true)
 
   // 監査ログを記録
-  await logLogin(data.user.id, {
-    email,
-    role: userData.role,
-    two_factor_enabled: userData.two_factor_enabled,
-  })
+  await logLogin(
+    data.user.id,
+    {
+      email,
+      role: userData.role,
+      two_factor_enabled: userData.two_factor_enabled,
+    },
+    data.user.id,
+    userData.organization_id
+  )
 
   // 2FAが必要な場合（デモユーザーはスキップ）
   if (!isDemo && userData.two_factor_enabled) {

@@ -141,7 +141,7 @@ export async function POST(request: NextRequest, { params }: Params) {
           approved_by: user.id,
           approved_at: now,
           approver_name: userData.name,
-        })
+        }, user.id, userData.organization_id)
       } catch (auditError) {
         console.error('Audit log error:', auditError)
         // 監査ログエラーは承認処理の成功を妨げない

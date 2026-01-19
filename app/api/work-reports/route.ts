@@ -251,7 +251,7 @@ export async function POST(request: NextRequest) {
         report_date: data.report_date,
         status: data.status,
         created_by: data.created_by,
-      })
+      }, user.id, userData.organization_id)
     } catch (auditError) {
       console.error('Audit log error:', auditError)
       // 監査ログエラーは報告書作成の成功を妨げない

@@ -246,7 +246,9 @@ export async function PATCH(
           site_id: data.site_id,
           report_date: data.report_date,
           description: data.description,
-        }
+        },
+        user.id,
+        userData.organization_id
       )
     } catch (auditError) {
       console.error('Audit log error:', auditError)

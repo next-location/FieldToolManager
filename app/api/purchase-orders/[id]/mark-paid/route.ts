@@ -112,7 +112,7 @@ export async function POST(
       paid_by_name: userData.name,
       order_number: order.order_number,
       total_amount: order.total_amount
-    })
+    }, user.id, userData.organization_id)
 
     console.log('[MARK PAID API] ===== 支払登録完了 =====')
     return NextResponse.json({ message: '支払登録しました' })

@@ -114,7 +114,7 @@ export async function POST(
     await logPurchaseOrderUpdated(id, existingOrder || {}, {
       ...orderData,
       items_count: items.length
-    })
+    }, user.id, userData.organization_id)
 
     console.log('[UPDATE API] ===== 更新完了（履歴記録なし） =====')
 

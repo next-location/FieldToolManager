@@ -278,7 +278,7 @@ export async function POST(request: NextRequest) {
       status: purchaseOrderStatus,
       total_amount: totalAmount,
       items_count: items.length
-    })
+    }, user.id, userDataWithName.organization_id)
 
     return NextResponse.json({ data: order }, { status: 201 })
   } catch (error) {

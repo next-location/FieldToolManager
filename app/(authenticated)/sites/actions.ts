@@ -68,7 +68,7 @@ export async function createSite(formData: FormData) {
       address: siteData.address,
       manager_id: siteData.manager_id,
       client_id: siteData.client_id,
-    })
+    }, user.id, userData.organization_id)
 
     revalidatePath('/sites')
     redirect('/sites')
@@ -80,6 +80,25 @@ export async function createSite(formData: FormData) {
 
 export async function updateSite(id: string, formData: FormData) {
   const supabase = await createClient()
+
+  // ユーザー情報と組織IDを取得
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('認証が必要です')
+  }
+
+  const { data: userData } = await supabase
+    .from('users')
+    .select('organization_id')
+    .eq('id', user.id)
+    .single()
+
+  if (!userData) {
+    throw new Error('ユーザー情報が見つかりません')
+  }
 
   // 更新前のデータを取得
   const { data: oldData } = await supabase
@@ -117,7 +136,7 @@ export async function updateSite(id: string, formData: FormData) {
 
   // 監査ログを記録
   if (oldData) {
-    await logSiteUpdated(id, oldData, newData)
+    await logSiteUpdated(id, oldData, newData, user.id, userData.organization_id)
   }
 
   revalidatePath('/sites')

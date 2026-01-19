@@ -93,7 +93,7 @@ export async function POST(
       approved_by_id: userData.id,
       approved_at: new Date().toISOString(),
       notes: notes || undefined,
-    })
+    }, user.id, userData.organization_id)
 
     // 通知を作成（作成者に通知）
     if (estimate.created_by && estimate.created_by !== userData.id) {

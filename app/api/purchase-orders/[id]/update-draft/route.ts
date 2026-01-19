@@ -132,7 +132,7 @@ export async function POST(
       ...orderData,
       items_count: items.length,
       draft_saved: true
-    })
+    }, user.id, userData.organization_id)
 
     console.log('[UPDATE DRAFT API] ===== 下書き保存完了 =====')
 

@@ -201,7 +201,7 @@ export async function PATCH(
     })
 
     if (Object.keys(newData).length > 0) {
-      await logClientUpdated(id, oldData, newData)
+      await logClientUpdated(id, oldData, newData, user.id, userData.organization_id)
     }
 
     return NextResponse.json({ data: client })
@@ -306,7 +306,7 @@ export async function DELETE(
       phone: clientToDelete.phone,
       address: clientToDelete.address,
       is_active: clientToDelete.is_active,
-    })
+    }, user.id, userData.organization_id)
 
     return NextResponse.json({ message: '取引先を削除しました' })
   } catch (error) {

@@ -96,7 +96,7 @@ export async function POST(
       rejected_at: new Date().toISOString(),
       order_number: order.order_number,
       reason: body.comment
-    })
+    }, user.id, userData.organization_id)
 
     // 作成者に通知
     if (order.created_by) {

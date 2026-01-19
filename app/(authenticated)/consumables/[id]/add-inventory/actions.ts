@@ -101,7 +101,9 @@ export async function addConsumableInventory({
       unit_price: unitPrice,
       total_amount: totalAmount,
       location: locationText
-    }
+    },
+    user.id,
+    userData.organization_id
   )
 
   revalidatePath(`/consumables/${consumableId}`)

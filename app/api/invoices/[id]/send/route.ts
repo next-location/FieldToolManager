@@ -88,7 +88,7 @@ export async function POST(
       invoice_number: invoice.invoice_number,
       sent_by: userData.name || 'Unknown',
       sent_at: new Date().toISOString(),
-    })
+    }, user.id, userData.organization_id)
 
     return NextResponse.json({ success: true })
   } catch (error: any) {

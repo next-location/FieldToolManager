@@ -214,7 +214,7 @@ export async function POST(request: NextRequest) {
           phone: s.phone,
           is_active: true,
           bulk_import: true,
-        })
+        }, user.id, userData.organization_id)
 
         results.success++
       } catch (error: any) {

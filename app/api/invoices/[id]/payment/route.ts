@@ -118,7 +118,9 @@ export async function POST(
         payment_amount: amount,
         payment_method: payment_method,
         is_paid: isPaid,
-      }
+      },
+      user.id,
+      userData.organization_id
     )
 
     // 完済時、作成者に通知を送信

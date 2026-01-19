@@ -111,7 +111,7 @@ export async function deleteConsumableMaster(masterId: string) {
 
   const { data: userData } = await supabase
     .from('users')
-    .select('role')
+    .select('organization_id, role')
     .eq('id', user.id)
     .single()
 
@@ -137,7 +137,7 @@ export async function deleteConsumableMaster(masterId: string) {
 
   // 監査ログを記録
   if (consumableData) {
-    await logConsumableDeleted(masterId, consumableData)
+    await logConsumableDeleted(masterId, consumableData, user.id, userData.organization_id)
   }
 
   revalidatePath('/master/tools-consumables')
@@ -246,7 +246,7 @@ export async function createOrUpdateConsumableMaster(data: {
 
   const { data: userData } = await supabase
     .from('users')
-    .select('role')
+    .select('organization_id, role')
     .eq('id', user.id)
     .single()
 
@@ -283,7 +283,7 @@ export async function createOrUpdateConsumableMaster(data: {
 
     // 監査ログを記録
     if (oldData) {
-      await logConsumableUpdated(data.id, oldData, data)
+      await logConsumableUpdated(data.id, oldData, data, user.id, userData.organization_id)
     }
   } else {
     // 新規作成
@@ -310,7 +310,7 @@ export async function createOrUpdateConsumableMaster(data: {
 
     // 監査ログを記録
     if (newConsumable) {
-      await logConsumableCreated(newConsumable.id, data)
+      await logConsumableCreated(newConsumable.id, data, user.id, userData.organization_id)
     }
   }
 

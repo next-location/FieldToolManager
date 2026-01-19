@@ -14,7 +14,16 @@ export async function POST() {
 
   // 監査ログを記録
   if (user) {
-    await logLogout(user.id)
+    // ユーザーの組織IDを取得
+    const { data: userData } = await supabase
+      .from('users')
+      .select('organization_id')
+      .eq('id', user.id)
+      .single()
+
+    if (userData) {
+      await logLogout(user.id, undefined, user.id, userData.organization_id)
+    }
   }
 
   return NextResponse.json({ success: true })

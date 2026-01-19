@@ -98,7 +98,7 @@ export async function createTool(formData: {
     manufacturer: toolData.manufacturer,
     quantity: toolData.quantity,
     minimum_stock: toolData.minimum_stock,
-  })
+  }, user.id, userData.organization_id)
 
   // 低在庫チェック
   if (toolData.quantity < toolData.minimum_stock) {
@@ -184,7 +184,16 @@ export async function updateTool(
 
   // 監査ログを記録
   if (oldData) {
-    await logToolUpdated(toolId, oldData, newData)
+    // ユーザーの組織IDを取得
+    const { data: userData } = await supabase
+      .from('users')
+      .select('organization_id')
+      .eq('id', user.id)
+      .single()
+
+    if (userData) {
+      await logToolUpdated(toolId, oldData, newData, user.id, userData.organization_id)
+    }
   }
 
   // 低在庫チェック
@@ -520,7 +529,7 @@ export async function createToolWithItems(formData: {
     quantity: parseInt(formData.quantity),
     minimum_stock: toolData.minimum_stock,
     management_type: toolData.management_type,
-  })
+  }, user.id, userData.organization_id)
 
   // 低在庫チェック
   const currentQuantity = toolData.management_type === 'consumable'

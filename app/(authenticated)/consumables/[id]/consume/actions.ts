@@ -110,7 +110,9 @@ export async function consumeConsumable({
       action: 'consume',
       consumed_quantity: quantity,
       location: locationText
-    }
+    },
+    user.id,
+    userData.organization_id
   )
 
   revalidatePath(`/consumables/${consumableId}`)

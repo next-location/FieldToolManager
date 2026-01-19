@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
           total_amount: order.total_amount,
           bulk_approval: true,
           comment: comment || '一括承認'
-        })
+        }, user.id, userData.organization_id)
 
         approvedIds.push(order.id)
       } catch (error) {

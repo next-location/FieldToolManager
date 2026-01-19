@@ -104,7 +104,7 @@ export async function POST(
       sent_by: user.id,
       sent_by_name: userData.name,
       order_number: order.order_number
-    })
+    }, user.id, userData.organization_id)
 
     console.log('[SEND PURCHASE ORDER API] ===== 送付完了 =====')
     return NextResponse.json({ message: '発注書を送付しました' })

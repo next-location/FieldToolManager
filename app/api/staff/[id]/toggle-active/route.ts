@@ -99,7 +99,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         email: targetUser.email,
         role: targetUser.role,
         is_active: newStatus,
-      }
+      },
+      user.id,
+      userData.organization_id
     )
 
     return NextResponse.json({ success: true, is_active: newStatus })
