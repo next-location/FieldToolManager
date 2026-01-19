@@ -38,7 +38,10 @@
       "Bash(node:*)",
       "Bash(tee:*)",
       "Bash(git reset:*)",
-      "Bash(git revert:*)"
+      "Bash(git revert:*)",
+      "Bash(source .env.local)",
+      "Bash(chmod:*)",
+      "Bash(./test-integration-simple.sh:*)"
     ],
     "deny": [],
     "ask": []

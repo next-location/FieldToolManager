@@ -9,7 +9,7 @@ import { LoadingSpinner } from '@/components/LoadingSpinner'
 async function ProjectList() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  const { data: projects } = await supabase
+  const { data: projects, error } = await supabase
     .from('projects')
     .select(`
       *,
@@ -19,6 +19,11 @@ async function ProjectList() {
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
+
+  // デバッグ用
+  if (error) {
+    console.error('Projects query error:', error)
+  }
 
   return <ProjectListClient projects={projects || []} />
 }
