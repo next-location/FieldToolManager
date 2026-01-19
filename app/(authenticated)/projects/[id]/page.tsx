@@ -84,30 +84,30 @@ export default async function ProjectDetailPage({
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
-      {/* ヘッダー */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold mb-2">{project.project_name}</h1>
-          <p className="text-gray-600">工事番号: {project.project_code}</p>
-        </div>
-        <div className="flex gap-3">
-          <Link
-            href="/projects"
-            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-          >
-            一覧に戻る
-          </Link>
-          {['admin', 'leader'].includes(userRole) && (
+      <div className="px-4 pb-6 sm:px-0 sm:py-6">
+        {/* ヘッダー */}
+        <div className="mb-6">
+          <div className="mb-4">
+            <h1 className="text-lg sm:text-2xl font-bold mb-2">{project.project_name}</h1>
+            <p className="text-gray-600">工事番号: {project.project_code}</p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
             <Link
-              href={`/projects/${id}/edit`}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              href="/projects"
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 text-center"
             >
-              編集
+              一覧に戻る
             </Link>
-          )}
+            {['admin', 'leader'].includes(userRole) && (
+              <Link
+                href={`/projects/${id}/edit`}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-center"
+              >
+                編集
+              </Link>
+            )}
+          </div>
         </div>
-      </div>
 
       {/* 基本情報 */}
       <div className="bg-white shadow-sm rounded-lg p-6 mb-6">
