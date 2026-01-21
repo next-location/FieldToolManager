@@ -60,12 +60,12 @@ lastUpdated: "2026-01-22"
 
 <div style="display: flex; gap: 1.5rem; margin: 2rem 0; flex-wrap: wrap;">
   <div style="flex: 1; min-width: 250px;">
-    <h3 style="margin-top: 0;">PCの場合</h3>
-    <img src="/images/manual/login/login-screen-pc.png" alt="ログイン画面（PC）" style="width: 100%; height: auto; display: block;" />
+    <div style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: #374151;">PCの場合</div>
+    <img src="/images/manual/login/login-screen-pc.png" alt="ログイン画面（PC）" style="width: 100%; height: auto; display: block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
   </div>
   <div style="flex: 0 0 auto; min-width: 150px; max-width: 250px;">
-    <h3 style="margin-top: 0;">スマートフォンの場合</h3>
-    <img src="/images/manual/login/login-screen-mobile.png" alt="ログイン画面（スマホ）" style="width: 100%; height: auto; display: block;" />
+    <div style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: #374151;">スマートフォンの場合</div>
+    <img src="/images/manual/login/login-screen-mobile.png" alt="ログイン画面（スマホ）" style="width: 100%; height: auto; display: block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
   </div>
 </div>
 
@@ -95,17 +95,17 @@ lastUpdated: "2026-01-22"
 
 <div style="display: flex; gap: 1.5rem; margin: 2rem 0; flex-wrap: wrap;">
   <div style="flex: 1; min-width: 250px;">
-    <h4 style="margin-top: 0;">PCの場合</h4>
-    <img src="/images/manual/login/dashboard-after-login.png" alt="ダッシュボード画面（PC）" style="width: 100%; height: auto; display: block;" />
-    <ul style="margin-top: 1rem;">
+    <div style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: #374151;">PCの場合</div>
+    <img src="/images/manual/login/dashboard-after-login.png" alt="ダッシュボード画面（PC）" style="width: 100%; height: auto; display: block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
+    <ul style="margin-top: 0.75rem; font-size: 0.875rem; color: #4b5563;">
       <li>サイドメニューが左側に表示されます</li>
       <li>ダッシュボードに各機能へのショートカットが表示されます</li>
     </ul>
   </div>
   <div style="flex: 0 0 auto; min-width: 150px; max-width: 250px;">
-    <h4 style="margin-top: 0;">スマートフォンの場合</h4>
-    <img src="/images/manual/login/dashboard-after-login-mobile.png" alt="ダッシュボード画面（スマホ）" style="width: 100%; height: auto; display: block;" />
-    <ul style="margin-top: 1rem;">
+    <div style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: #374151;">スマートフォンの場合</div>
+    <img src="/images/manual/login/dashboard-after-login-mobile.png" alt="ダッシュボード画面（スマホ）" style="width: 100%; height: auto; display: block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
+    <ul style="margin-top: 0.75rem; font-size: 0.875rem; color: #4b5563;">
       <li>下部に固定ナビゲーションが表示されます</li>
       <li>メニューアイコンから各機能にアクセスできます</li>
     </ul>
@@ -185,7 +185,7 @@ lastUpdated: "2026-01-22"
 1. **ログイン画面の「パスワードをお忘れですか？」リンクをクリック**
 
 <div style="text-align: center; margin: 2rem 0;">
-  <img src="/images/manual/login/password-forgot-form.png" alt="パスワード忘れフォーム" style="max-width: 600px; width: 100%;" />
+  <img src="/images/manual/login/password-forgot-form.png" alt="パスワード忘れフォーム" style="max-width: 600px; width: 100%; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
 </div>
 
 2. **登録されているメールアドレスを入力**
@@ -195,7 +195,7 @@ lastUpdated: "2026-01-22"
 4. **届いたメールからパスワードをリセット**
 
 <div style="text-align: center; margin: 2rem 0;">
-  <img src="/images/manual/login/password-reset-form.png" alt="パスワードリセットフォーム" style="max-width: 600px; width: 100%;" />
+  <img src="/images/manual/login/password-reset-form.png" alt="パスワードリセットフォーム" style="max-width: 600px; width: 100%; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
 </div>
 
    - メール内のリンクをクリック
