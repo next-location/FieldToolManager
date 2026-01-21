@@ -184,7 +184,7 @@ lastUpdated: "2026-01-22"
 
 1. **ログイン画面の「パスワードをお忘れですか？」リンクをクリック**
 
-<div style="text-align: center; margin: 2rem 0;">
+<div style="text-align: center; margin-bottom: 2rem;">
   <img src="/images/manual/login/password-forgot-form.png" alt="パスワード忘れフォーム" style="max-width: 600px; width: 100%; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
 </div>
 
@@ -194,7 +194,7 @@ lastUpdated: "2026-01-22"
 
 4. **届いたメールからパスワードをリセット**
 
-<div style="text-align: center; margin: 2rem 0;">
+<div style="text-align: center; margin-bottom: 2rem;">
   <img src="/images/manual/login/password-reset-form.png" alt="パスワードリセットフォーム" style="max-width: 600px; width: 100%; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
 </div>
 
