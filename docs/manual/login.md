@@ -60,11 +60,11 @@ lastUpdated: "2026-01-22"
 
 <div style="display: flex; gap: 1.5rem; margin: 2rem 0; flex-wrap: wrap;">
   <div style="flex: 1; min-width: 250px;">
-    <div style="font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.375rem; padding: 0.25rem 0.5rem; background: linear-gradient(to right, #eff6ff, transparent); border-left: 3px solid #3b82f6; color: #1e40af;">💻 PCの場合</div>
+    <div style="font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.375rem; color: #374151;">PCの場合</div>
     <img src="/images/manual/login/login-screen-pc.png" alt="ログイン画面（PC）" style="width: 100%; height: auto; display: block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
   </div>
   <div style="flex: 0 0 auto; min-width: 150px; max-width: 250px;">
-    <div style="font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.375rem; padding: 0.25rem 0.5rem; background: linear-gradient(to right, #f0fdf4, transparent); border-left: 3px solid #10b981; color: #047857;">📱 スマートフォンの場合</div>
+    <div style="font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.375rem; color: #374151;">スマートフォンの場合</div>
     <img src="/images/manual/login/login-screen-mobile.png" alt="ログイン画面（スマホ）" style="width: 100%; height: auto; display: block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
   </div>
 </div>
@@ -95,7 +95,7 @@ lastUpdated: "2026-01-22"
 
 <div style="display: flex; gap: 1.5rem; margin: 2rem 0; flex-wrap: wrap;">
   <div style="flex: 1; min-width: 250px;">
-    <div style="font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.375rem; padding: 0.25rem 0.5rem; background: linear-gradient(to right, #eff6ff, transparent); border-left: 3px solid #3b82f6; color: #1e40af;">💻 PCの場合</div>
+    <div style="font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.375rem; color: #374151;">PCの場合</div>
     <img src="/images/manual/login/dashboard-after-login.png" alt="ダッシュボード画面（PC）" style="width: 100%; height: auto; display: block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
     <ul style="margin-top: 0.5rem; margin-bottom: 0; font-size: 0.8125rem; color: #6b7280; line-height: 1.5;">
       <li>サイドメニューが左側に表示されます</li>
@@ -103,7 +103,7 @@ lastUpdated: "2026-01-22"
     </ul>
   </div>
   <div style="flex: 0 0 auto; min-width: 150px; max-width: 250px;">
-    <div style="font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.375rem; padding: 0.25rem 0.5rem; background: linear-gradient(to right, #f0fdf4, transparent); border-left: 3px solid #10b981; color: #047857;">📱 スマートフォンの場合</div>
+    <div style="font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.375rem; color: #374151;">スマートフォンの場合</div>
     <img src="/images/manual/login/dashboard-after-login-mobile.png" alt="ダッシュボード画面（スマホ）" style="width: 100%; height: auto; display: block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
     <ul style="margin-top: 0.5rem; margin-bottom: 0; font-size: 0.8125rem; color: #6b7280; line-height: 1.5;">
       <li>下部に固定ナビゲーションが表示されます</li>
