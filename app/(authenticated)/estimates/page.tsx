@@ -6,6 +6,7 @@ import { EstimateListClient } from '@/components/estimates/EstimateListClient'
 import { checkAndUpdateExpiredEstimates } from '@/lib/estimate-expiry'
 import EstimatePageFAB from '@/components/estimates/EstimatePageFAB'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { ExportButton } from '@/components/export/ExportButton'
 
 // キャッシュを無効化
 export const dynamic = 'force-dynamic'
@@ -79,12 +80,15 @@ export default async function EstimatesPage() {
       <div className="px-4 pb-6 sm:px-0 sm:py-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-lg sm:text-2xl font-bold text-gray-900">見積書管理</h1>
-          <Link
-            href="/estimates/new"
-            className="hidden sm:inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-          >
-            + 新規見積書作成
-          </Link>
+          <div className="hidden sm:flex gap-3">
+            <ExportButton endpoint="/api/estimates/export" filename="estimates" />
+            <Link
+              href="/estimates/new"
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+            >
+              + 新規見積書作成
+            </Link>
+          </div>
         </div>
 
         <Suspense fallback={<LoadingSpinner inline />}>

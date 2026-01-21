@@ -20,6 +20,8 @@ export default async function DataExportPage() {
     { count: movementsCount },
     { count: equipmentCount },
     { count: purchaseOrdersCount },
+    { count: estimatesCount },
+    { count: invoicesCount },
   ] = await Promise.all([
     supabase
       .from('clients')
@@ -61,6 +63,16 @@ export default async function DataExportPage() {
       .select('*', { count: 'exact', head: true })
       .eq('organization_id', organizationId)
       .is('deleted_at', null),
+    supabase
+      .from('estimates')
+      .select('*', { count: 'exact', head: true })
+      .eq('organization_id', organizationId)
+      .is('deleted_at', null),
+    supabase
+      .from('billing_invoices')
+      .select('*', { count: 'exact', head: true })
+      .eq('organization_id', organizationId)
+      .is('deleted_at', null),
   ])
 
   return (
@@ -83,6 +95,8 @@ export default async function DataExportPage() {
             movements: movementsCount || 0,
             equipment: equipmentCount || 0,
             purchaseOrders: purchaseOrdersCount || 0,
+            estimates: estimatesCount || 0,
+            invoices: invoicesCount || 0,
           }}
         />
       </div>

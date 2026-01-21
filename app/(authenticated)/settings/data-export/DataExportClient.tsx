@@ -13,6 +13,8 @@ interface DataExportClientProps {
     equipment: number
     clients: number
     purchaseOrders: number
+    estimates: number
+    invoices: number
   }
 }
 
@@ -122,10 +124,22 @@ export function DataExportClient({ counts }: DataExportClientProps) {
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-medium text-gray-900">取引・履歴データ</h2>
           <p className="mt-1 text-sm text-gray-500">
-            発注書、操作履歴や移動記録をエクスポートします
+            見積書、請求書、発注書、操作履歴や移動記録をエクスポートします
           </p>
         </div>
         <div className="divide-y divide-gray-200">
+          <ExportRow
+            label="見積書一覧"
+            count={counts.estimates}
+            onExport={() => handleExport('estimates', '見積書一覧')}
+            disabled={exporting}
+          />
+          <ExportRow
+            label="請求書一覧"
+            count={counts.invoices}
+            onExport={() => handleExport('invoices', '請求書一覧')}
+            disabled={exporting}
+          />
           <ExportRow
             label="発注書一覧"
             count={counts.purchaseOrders}
