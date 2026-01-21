@@ -58,12 +58,12 @@ lastUpdated: "2026-01-22"
 
 ## ログイン手順
 
-<div style="display: flex; gap: 1.5rem; margin: 2rem 0; flex-wrap: wrap;">
+<div style="display: flex; gap: 1.5rem; margin-bottom: 2rem; flex-wrap: wrap;">
   <div style="flex: 1; min-width: 250px;">
     <div style="font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.375rem; color: #374151;">PCの場合</div>
     <img src="/images/manual/login/login-screen-pc.png" alt="ログイン画面（PC）" style="width: 100%; height: auto; display: block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
   </div>
-  <div style="flex: 0 0 auto; min-width: 150px; max-width: 250px;">
+  <div style="flex: 0 0 auto; min-width: 120px; max-width: 180px;">
     <div style="font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.375rem; color: #374151;">スマートフォンの場合</div>
     <img src="/images/manual/login/login-screen-mobile.png" alt="ログイン画面（スマホ）" style="width: 100%; height: auto; display: block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
   </div>
@@ -93,7 +93,7 @@ lastUpdated: "2026-01-22"
 
 ログインに成功すると、ダッシュボード画面が表示されます。
 
-<div style="display: flex; gap: 1.5rem; margin: 2rem 0; flex-wrap: wrap;">
+<div style="display: flex; gap: 1.5rem; margin-bottom: 2rem; flex-wrap: wrap;">
   <div style="flex: 1; min-width: 250px;">
     <div style="font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.375rem; color: #374151;">PCの場合</div>
     <img src="/images/manual/login/dashboard-after-login.png" alt="ダッシュボード画面（PC）" style="width: 100%; height: auto; display: block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
@@ -102,7 +102,7 @@ lastUpdated: "2026-01-22"
       <li>ダッシュボードに各機能へのショートカットが表示されます</li>
     </ul>
   </div>
-  <div style="flex: 0 0 auto; min-width: 150px; max-width: 250px;">
+  <div style="flex: 0 0 auto; min-width: 120px; max-width: 180px;">
     <div style="font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.375rem; color: #374151;">スマートフォンの場合</div>
     <img src="/images/manual/login/dashboard-after-login-mobile.png" alt="ダッシュボード画面（スマホ）" style="width: 100%; height: auto; display: block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
     <ul style="margin-top: 0.5rem; margin-bottom: 0; font-size: 0.8125rem; color: #6b7280; line-height: 1.5;">

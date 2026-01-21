@@ -16,21 +16,19 @@ export default async function HelpLoginPage() {
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Image
-                src="/images/zairoku-logo.png"
-                alt="ザイロク"
-                width={120}
-                height={30}
-                className="h-8 w-auto"
-              />
-              <span className="text-sm text-gray-600">ヘルプセンター</span>
-            </div>
+            <Image
+              src="/images/zairoku-logo.png"
+              alt="ザイロク"
+              width={120}
+              height={30}
+              className="h-8 w-auto"
+            />
             <Link
               href="/login"
               className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
             >
-              ログインページに戻る
+              <span className="hidden sm:inline">ログインページに戻る</span>
+              <span className="sm:hidden">戻る</span>
             </Link>
           </div>
         </div>
