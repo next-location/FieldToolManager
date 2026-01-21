@@ -59,11 +59,9 @@ export default async function HelpLoginPage() {
               margin-bottom: 1rem;
             }
             .help-article h3 {
-              font-size: 1.25rem;
+              font-size: 1.125rem;
               font-weight: 600;
-              color: #4b5563;
-              padding-left: 0.5rem;
-              border-left: 3px solid #9ca3af;
+              color: #3b82f6;
               margin-top: 1.5rem;
               margin-bottom: 0.75rem;
             }
