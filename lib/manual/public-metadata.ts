@@ -3,9 +3,31 @@ import path from 'path'
 import matter from 'gray-matter'
 import { remark } from 'remark'
 import remarkGfm from 'remark-gfm'
-import remarkSlug from 'remark-slug'
 import remarkHtml from 'remark-html'
 import type { ManualFrontmatter, ManualArticle } from './types'
+
+/**
+ * 日本語テキストをURLフレンドリーなIDに変換
+ */
+function slugify(text: string): string {
+  return encodeURIComponent(
+    text
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w\-\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]+/g, '')
+  )
+}
+
+/**
+ * HTMLの見出しタグにIDを追加
+ */
+function addHeadingIds(html: string): string {
+  return html.replace(/<h([2-4])>(.*?)<\/h\1>/g, (match, level, content) => {
+    const textContent = content.replace(/<[^>]+>/g, '') // HTMLタグを除去
+    const id = slugify(textContent)
+    return `<h${level} id="${id}">${content}</h${level}>`
+  })
+}
 
 /**
  * MarkdownをHTMLに変換
@@ -13,10 +35,11 @@ import type { ManualFrontmatter, ManualArticle } from './types'
 async function markdownToHtml(markdown: string): Promise<string> {
   const result = await remark()
     .use(remarkGfm)
-    .use(remarkSlug)
     .use(remarkHtml, { sanitize: false })
     .process(markdown)
-  return result.toString()
+
+  // 見出しにIDを追加
+  return addHeadingIds(result.toString())
 }
 
 /**

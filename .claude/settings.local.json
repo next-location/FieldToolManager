@@ -64,7 +64,8 @@
       "Bash(awk:*)",
       "Bash(xargs:*)",
       "Bash(while read f)",
-      "Bash(do [ -f \"docs/manual/$f\" ])"
+      "Bash(do [ -f \"docs/manual/$f\" ])",
+      "Bash(npm uninstall:*)"
     ],
     "deny": [],
     "ask": []
