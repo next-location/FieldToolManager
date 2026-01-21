@@ -1023,7 +1023,10 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                           : 'text-gray-600 hover:bg-gray-50'
                       }`}
                     >
-                      自社拠点管理
+                      <span className="flex items-center justify-between">
+                        <span>自社拠点管理</span>
+                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      </span>
                     </Link>
                   </>
                 )}
