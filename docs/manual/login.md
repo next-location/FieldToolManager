@@ -5,10 +5,8 @@ permission: 0
 plans: ["basic"]
 category: "manual"
 tags: ["ログイン","基本操作","パスワード"]
-lastUpdated: "2026-01-21"
+lastUpdated: "2026-01-22"
 ---
-
-# ログイン方法
 
 **最終更新日**: 2026-01-22
 **対象**: 全ユーザー（未登録者含む）
@@ -60,13 +58,16 @@ lastUpdated: "2026-01-21"
 
 ## ログイン手順
 
-### PCの場合
-
-![ログイン画面（PC）](/images/manual/login/login-screen-pc.png)
-
-### スマートフォンの場合
-
-![ログイン画面（スマホ）](/images/manual/login/login-screen-mobile.png)
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin: 2rem 0;">
+  <div>
+    <h3 style="margin-top: 0;">PCの場合</h3>
+    <img src="/images/manual/login/login-screen-pc.png" alt="ログイン画面（PC）" style="width: 100%; border: 1px solid #e5e7eb; border-radius: 0.5rem;" />
+  </div>
+  <div>
+    <h3 style="margin-top: 0;">スマートフォンの場合</h3>
+    <img src="/images/manual/login/login-screen-mobile.png" alt="ログイン画面（スマホ）" style="width: 100%; border: 1px solid #e5e7eb; border-radius: 0.5rem;" />
+  </div>
+</div>
 
 ### 1. メールアドレスを入力
 
@@ -92,19 +93,24 @@ lastUpdated: "2026-01-21"
 
 ログインに成功すると、ダッシュボード画面が表示されます。
 
-#### PCの場合
-
-![ダッシュボード画面（PC）](/images/manual/login/dashboard-after-login.png)
-
-- サイドメニューが左側に表示されます
-- ダッシュボードに各機能へのショートカットが表示されます
-
-#### スマートフォンの場合
-
-![ダッシュボード画面（スマホ）](/images/manual/login/dashboard-after-login-mobile.png)
-
-- 下部に固定ナビゲーションが表示されます
-- メニューアイコンから各機能にアクセスできます
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin: 2rem 0;">
+  <div>
+    <h4 style="margin-top: 0;">PCの場合</h4>
+    <img src="/images/manual/login/dashboard-after-login.png" alt="ダッシュボード画面（PC）" style="width: 100%; border: 1px solid #e5e7eb; border-radius: 0.5rem;" />
+    <ul style="margin-top: 1rem;">
+      <li>サイドメニューが左側に表示されます</li>
+      <li>ダッシュボードに各機能へのショートカットが表示されます</li>
+    </ul>
+  </div>
+  <div>
+    <h4 style="margin-top: 0;">スマートフォンの場合</h4>
+    <img src="/images/manual/login/dashboard-after-login-mobile.png" alt="ダッシュボード画面（スマホ）" style="width: 100%; border: 1px solid #e5e7eb; border-radius: 0.5rem;" />
+    <ul style="margin-top: 1rem;">
+      <li>下部に固定ナビゲーションが表示されます</li>
+      <li>メニューアイコンから各機能にアクセスできます</li>
+    </ul>
+  </div>
+</div>
 
 ---
 
@@ -178,7 +184,9 @@ lastUpdated: "2026-01-21"
 
 1. **ログイン画面の「パスワードをお忘れですか？」リンクをクリック**
 
-![パスワード忘れフォーム](/images/manual/login/password-forgot-form.png)
+<div style="text-align: center; margin: 2rem 0;">
+  <img src="/images/manual/login/password-forgot-form.png" alt="パスワード忘れフォーム" style="max-width: 600px; width: 100%; border: 1px solid #e5e7eb; border-radius: 0.5rem;" />
+</div>
 
 2. **登録されているメールアドレスを入力**
 
@@ -186,7 +194,9 @@ lastUpdated: "2026-01-21"
 
 4. **届いたメールからパスワードをリセット**
 
-![パスワードリセットフォーム](/images/manual/login/password-reset-form.png)
+<div style="text-align: center; margin: 2rem 0;">
+  <img src="/images/manual/login/password-reset-form.png" alt="パスワードリセットフォーム" style="max-width: 600px; width: 100%; border: 1px solid #e5e7eb; border-radius: 0.5rem;" />
+</div>
 
    - メール内のリンクをクリック
    - 新しいパスワードを設定
