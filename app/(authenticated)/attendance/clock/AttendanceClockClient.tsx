@@ -43,6 +43,9 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
   const [location, setLocation] = useState<'office' | 'site' | ''>('')
   const [selectedSiteId, setSelectedSiteId] = useState<string>('')
 
+  // 勤務時間表示用の状態（1分ごとに更新）
+  const [currentTime, setCurrentTime] = useState(new Date())
+
   const canUseManual = orgSettings?.allow_manual || false
   const canUseQR = orgSettings?.allow_qr || false
 
@@ -50,6 +53,18 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
   useEffect(() => {
     fetchTodayRecord()
   }, [])
+
+  // 勤務時間を1分ごとに更新（出勤中のみ）
+  useEffect(() => {
+    const isWorking = todayRecord?.clock_in_time && !todayRecord?.clock_out_time
+    if (!isWorking) return
+
+    const interval = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 60000) // 1分ごと
+
+    return () => clearInterval(interval)
+  }, [todayRecord])
 
   const fetchTodayRecord = async () => {
     try {
@@ -204,12 +219,12 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
     }
   }
 
-  // 勤務時間を計算
+  // 勤務時間を計算（currentTimeを使用して1分ごとに更新）
   const getWorkDuration = () => {
     if (!todayRecord?.clock_in_time) return null
 
     const clockIn = new Date(todayRecord.clock_in_time)
-    const clockOut = todayRecord.clock_out_time ? new Date(todayRecord.clock_out_time) : new Date()
+    const clockOut = todayRecord.clock_out_time ? new Date(todayRecord.clock_out_time) : currentTime
 
     const diffMs = clockOut.getTime() - clockIn.getTime()
     const diffMinutes = Math.floor(diffMs / (1000 * 60))
@@ -221,7 +236,7 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
   }
 
   const duration = getWorkDuration()
-  const today = new Date()
+  const today = currentTime
   const isWorking = todayRecord?.clock_in_time && !todayRecord?.clock_out_time
 
   if (loading) {
