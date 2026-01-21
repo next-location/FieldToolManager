@@ -5,6 +5,7 @@ import crypto from 'crypto'
 export async function POST(request: NextRequest) {
   try {
     const { email } = await request.json()
+    console.log('[FORGOT PASSWORD] Request received for email:', email)
 
     if (!email) {
       return NextResponse.json(
@@ -22,8 +23,11 @@ export async function POST(request: NextRequest) {
       .eq('email', email)
       .single()
 
+    console.log('[FORGOT PASSWORD] User lookup result:', { found: !!user, error: userError?.message })
+
     // セキュリティ上、ユーザーが存在しない場合でも成功レスポンスを返す
     if (userError || !user) {
+      console.log('[FORGOT PASSWORD] User not found, returning success anyway')
       return NextResponse.json({
         message: 'パスワードリセットのリンクをメールで送信しました。メールをご確認ください。'
       })
