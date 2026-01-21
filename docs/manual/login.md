@@ -9,7 +9,7 @@ lastUpdated: "2026-01-22"
 ---
 
 **最終更新日**: 2026-01-22
-**対象**: 全ユーザー（未登録者含む）
+**対象**: 全ユーザー(未登録者含む)
 
 ---
 
@@ -51,21 +51,21 @@ lastUpdated: "2026-01-22"
 - **組織専用URL**: `https://あなたの会社名.zairoku.com`
 
 **推奨ブラウザ**:
-- **PC**: Google Chrome、Microsoft Edge、Safari（最新版）
-- **スマートフォン**: Safari（iOS）、Chrome（Android）
+- **PC**: Google Chrome、Microsoft Edge、Safari(最新版)
+- **スマートフォン**: Safari(iOS)、Chrome(Android)
 
 ---
 
 ## ログイン手順
 
-<div style="display: flex; gap: 1.5rem; margin-bottom: 2rem; flex-wrap: wrap;">
-  <div style="flex: 1; min-width: 250px;">
-    <div style="font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.375rem; color: #374151;">PCの場合</div>
-    <img src="/images/manual/login/login-screen-pc.png" alt="ログイン画面（PC）" style="width: 100%; height: auto; display: block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
+<div class="image-row">
+  <div class="image-pc">
+    <div class="image-label">PCの場合</div>
+    <img src="/images/manual/login/login-screen-pc.png" alt="ログイン画面(PC)" class="manual-image" />
   </div>
-  <div style="flex: 0 0 auto; min-width: 120px; max-width: 180px;">
-    <div style="font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.375rem; color: #374151;">スマートフォンの場合</div>
-    <img src="/images/manual/login/login-screen-mobile.png" alt="ログイン画面（スマホ）" style="width: 100%; height: auto; display: block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
+  <div class="image-mobile">
+    <div class="image-label">スマートフォンの場合</div>
+    <img src="/images/manual/login/login-screen-mobile.png" alt="ログイン画面(スマホ)" class="manual-image" />
   </div>
 </div>
 
@@ -93,18 +93,18 @@ lastUpdated: "2026-01-22"
 
 ログインに成功すると、ダッシュボード画面が表示されます。
 
-<div style="display: flex; gap: 1.5rem; margin-bottom: 2rem; flex-wrap: wrap;">
-  <div style="flex: 1; min-width: 250px;">
-    <div style="font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.375rem; color: #374151;">PCの場合</div>
-    <img src="/images/manual/login/dashboard-after-login.png" alt="ダッシュボード画面（PC）" style="width: 100%; height: auto; display: block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
+<div class="image-row">
+  <div class="image-pc">
+    <div class="image-label">PCの場合</div>
+    <img src="/images/manual/login/dashboard-after-login.png" alt="ダッシュボード画面(PC)" class="manual-image" />
     <ul style="margin-top: 0.5rem; margin-bottom: 0; font-size: 0.8125rem; color: #6b7280; line-height: 1.5;">
       <li>サイドメニューが左側に表示されます</li>
       <li>ダッシュボードに各機能へのショートカットが表示されます</li>
     </ul>
   </div>
-  <div style="flex: 0 0 auto; min-width: 120px; max-width: 180px;">
-    <div style="font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.375rem; color: #374151;">スマートフォンの場合</div>
-    <img src="/images/manual/login/dashboard-after-login-mobile.png" alt="ダッシュボード画面（スマホ）" style="width: 100%; height: auto; display: block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
+  <div class="image-mobile">
+    <div class="image-label">スマートフォンの場合</div>
+    <img src="/images/manual/login/dashboard-after-login-mobile.png" alt="ダッシュボード画面(スマホ)" class="manual-image" />
     <ul style="margin-top: 0.5rem; margin-bottom: 0; font-size: 0.8125rem; color: #6b7280; line-height: 1.5;">
       <li>下部に固定ナビゲーションが表示されます</li>
       <li>メニューアイコンから各機能にアクセスできます</li>
@@ -127,7 +127,7 @@ lastUpdated: "2026-01-22"
    - 送信元: `noreply@zairoku.com`
 
 2. **新しいパスワードを入力**
-   - パスワード要件を満たす必要があります（下記参照）
+   - パスワード要件を満たす必要があります(下記参照)
 
 3. **パスワードを再入力して確認**
    - 1回目と同じパスワードを入力してください
@@ -145,7 +145,7 @@ lastUpdated: "2026-01-22"
 **推奨**:
 - 大文字・小文字・数字・記号を組み合わせる
 - 他のサービスと同じパスワードを使わない
-- 定期的に変更する（3ヶ月に1回程度）
+- 定期的に変更する(3ヶ月に1回程度)
 
 **禁止**:
 - 簡単に推測できるパスワード
@@ -171,8 +171,8 @@ lastUpdated: "2026-01-22"
 2. **パスワードの確認**
    - 大文字・小文字を確認
    - Caps Lockがオンになっていないか確認
-   - 数字の `0`（ゼロ）と文字の `O`（オー）の間違いに注意
-   - 数字の `1`（いち）と文字の `l`（エル）の間違いに注意
+   - 数字の `0`(ゼロ)と文字の `O`(オー)の間違いに注意
+   - 数字の `1`(いち)と文字の `l`(エル)の間違いに注意
 
 3. **パスワード表示機能を使う**
    - パスワード入力欄の「👁️」アイコンをクリック
@@ -184,8 +184,8 @@ lastUpdated: "2026-01-22"
 
 1. **ログイン画面の「パスワードをお忘れですか？」リンクをクリック**
 
-<div style="text-align: center; margin-bottom: 2rem;">
-  <img src="/images/manual/login/password-forgot-form.png" alt="パスワード忘れフォーム" style="max-width: 600px; width: 100%; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
+<div class="image-single">
+  <img src="/images/manual/login/password-forgot-form.png" alt="パスワード忘れフォーム" class="manual-image" />
 </div>
 
 2. **登録されているメールアドレスを入力**
@@ -194,8 +194,8 @@ lastUpdated: "2026-01-22"
 
 4. **届いたメールからパスワードをリセット**
 
-<div style="text-align: center; margin-bottom: 2rem;">
-  <img src="/images/manual/login/password-reset-form.png" alt="パスワードリセットフォーム" style="max-width: 600px; width: 100%; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.25rem;" />
+<div class="image-single">
+  <img src="/images/manual/login/password-reset-form.png" alt="パスワードリセットフォーム" class="manual-image" />
 </div>
 
    - メール内のリンクをクリック
@@ -221,7 +221,7 @@ lastUpdated: "2026-01-22"
 
 #### 対処法
 
-**方法1: 待機する（推奨）**
+**方法1: 待機する(推奨)**
 - 15分待ってから再度ログインを試す
 - ロック解除後、正しいパスワードでログインしてください
 
@@ -253,7 +253,7 @@ lastUpdated: "2026-01-22"
    - 他のウェブサイトにアクセスできるか確認
 
 2. **ブラウザのキャッシュをクリア**
-   - **Chrome**: Ctrl+Shift+Delete（Windows）、Cmd+Shift+Delete（Mac）
+   - **Chrome**: Ctrl+Shift+Delete(Windows)、Cmd+Shift+Delete(Mac)
    - **Edge**: Ctrl+Shift+Delete
    - **Safari**: Cmd+Option+E
 

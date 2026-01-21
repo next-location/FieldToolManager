@@ -70,6 +70,46 @@ export default async function HelpLoginPage() {
               margin-top: 1.25rem;
               margin-bottom: 0.5rem;
             }
+            .help-article img {
+              margin-top: 0 !important;
+              margin-bottom: 2rem !important;
+            }
+            .image-row {
+              display: flex;
+              gap: 1.5rem;
+              margin-bottom: 2rem;
+              flex-wrap: wrap;
+            }
+            .image-pc {
+              flex: 1;
+              min-width: 250px;
+            }
+            .image-mobile {
+              flex: 0 0 auto;
+              min-width: 120px;
+              max-width: 180px;
+            }
+            .image-label {
+              font-size: 0.8125rem;
+              font-weight: 600;
+              margin-bottom: 0.375rem;
+              color: #374151;
+            }
+            .manual-image {
+              width: 100%;
+              height: auto;
+              display: block;
+              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+              border-radius: 0.25rem;
+            }
+            .image-single {
+              text-align: center;
+              margin-bottom: 2rem;
+            }
+            .image-single img {
+              max-width: 600px;
+              width: 100%;
+            }
           `
         }} />
         <article className="help-article prose prose-blue max-w-none bg-white rounded-lg shadow-sm p-8">
