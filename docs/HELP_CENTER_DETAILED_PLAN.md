@@ -100,284 +100,429 @@ docs/qa/
 
 ## 画像リスト（ページ別・詳細版）
 
-### 📖 マニュアル別 画像一覧
+### 🔐 1. ログイン関連（6枚）✅
 
-#### 1. ログイン方法（`login.md`）
+#### 画像1: login-screen-pc.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/login`
+- **撮影内容**: ログイン画面全体（メールアドレス・パスワード入力フォーム）
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/login/login-screen-pc.png`
 
-**ページURL**:
-- ログイン前: `/help/login`
-- ログイン後: `/manual/login`
+#### 画像2: login-screen-mobile.jpg
+- **撮影デバイス**: スマホ
+- **撮影URL**: `https://サブドメイン.zairoku.com/login`
+- **撮影内容**: モバイル版ログイン画面
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/login/login-screen-mobile.jpg`
 
-**必要な画像**:
+#### 画像3: dashboard-after-login.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/`
+- **撮影内容**: ログイン直後のダッシュボード画面
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/login/dashboard-after-login.png`
 
-| # | ファイル名 | 保存先 | 表示箇所 | サイズ | 優先度 |
-|---|----------|--------|----------|--------|--------|
-| 1-1 | `login-screen-pc.png` | `/public/images/manual/login/` | 「ログイン画面へのアクセス > PCの場合」セクション | 1200×800px | 🔴 最優先 |
-| 1-2 | `login-screen-mobile.png` | `/public/images/manual/login/` | 「ログイン画面へのアクセス > スマートフォンの場合」セクション | 375×667px | 🔴 最優先 |
-| 1-3 | `dashboard-after-login.png` | `/public/images/manual/login/` | 「ログイン手順 > 4. ログイン完了」セクション（PC） | 1200×800px | 🔴 最優先 |
-| 1-4 | `dashboard-after-login-mobile.png` | `/public/images/manual/login/` | 「ログイン手順 > 4. ログイン完了」セクション（スマホ） | 375×667px | 🔴 最優先 |
-| 1-5 | `password-reset.png` | `/public/images/manual/login/` | 「ログインできない場合 > ケース2: パスワードを忘れた」セクション | 800×600px | 🔴 最優先 |
-| 1-6 | `password-set-email.png` | `/public/images/manual/login/` | 「初回ログイン時の注意点 > パスワード設定」セクション（招待メール画面） | 600×400px | 🟡 高 |
-| 1-7 | `password-set-form.png` | `/public/images/manual/login/` | 「初回ログイン時の注意点 > パスワード設定」セクション（パスワード設定フォーム） | 600×500px | 🟡 高 |
+#### 画像4: dashboard-after-login-mobile.jpg
+- **撮影デバイス**: スマホ
+- **撮影URL**: `https://サブドメイン.zairoku.com/`
+- **撮影内容**: モバイル版ダッシュボード
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/login/dashboard-after-login-mobile.jpg`
 
-**スクリーンショット撮影手順**:
-1. `login-screen-pc.png`: `https://zairoku.com/login` をPC（1920×1080）で開き、ログインフォーム全体をキャプチャ
-2. `login-screen-mobile.png`: 同じページをスマホ（iPhone 13サイズ）で開き、縦向きでキャプチャ
-3. `dashboard-after-login.png`: ログイン後のダッシュボード画面（PC）をキャプチャ
-4. `dashboard-after-login-mobile.png`: ダッシュボード画面（スマホ）をキャプチャ
-5. `password-reset.png`: ログイン画面の「パスワードをお忘れですか？」リンクをクリック後の画面
-6. `password-set-email.png`: 招待メールのサンプル（Supabase Auth メール画面）
-7. `password-set-form.png`: パスワード設定画面（新規パスワード入力フォーム）
+#### 画像5: password-forgot-form.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/auth/forgot-password`
+- **撮影内容**: パスワードリセット申請画面（メールアドレス入力）
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/login/password-forgot-form.png`
 
----
-
-#### 2. QRスキャン（`qr_scan.md`）
-
-**ページURL**: `/manual/qr_scan`
-
-**必要な画像**:
-
-| # | ファイル名 | 保存先 | 表示箇所 | サイズ | 優先度 |
-|---|----------|--------|----------|--------|--------|
-| 2-1 | `qr-scan-button.png` | `/public/images/manual/qr/` | 「QRスキャンボタンの場所」セクション（ホーム画面） | 375×667px | 🔴 最優先 |
-| 2-2 | `qr-scan-camera.png` | `/public/images/manual/qr/` | 「QRスキャン手順 > 2. カメラ起動」セクション | 375×667px | 🔴 最優先 |
-| 2-3 | `qr-scan-success.png` | `/public/images/manual/qr/` | 「QRスキャン手順 > 4. スキャン成功」セクション | 375×667px | 🔴 最優先 |
-| 2-4 | `qr-code-sample-tool.png` | `/public/images/manual/qr/` | 「QRコードの種類 > 道具QR」セクション | 200×200px | 🔴 最優先 |
-| 2-5 | `qr-code-sample-warehouse.png` | `/public/images/manual/qr/` | 「QRコードの種類 > 倉庫QR」セクション | 200×200px | 🟡 高 |
-| 2-6 | `qr-scan-result-movement.png` | `/public/images/manual/qr/` | 「スキャン後の画面」セクション（移動登録画面） | 375×667px | 🟡 高 |
-| 2-7 | `camera-permission-ios.png` | `/public/images/manual/qr/` | 「トラブルシューティング > カメラ権限」セクション（iOS設定画面） | 375×667px | 🟢 中 |
-| 2-8 | `camera-permission-android.png` | `/public/images/manual/qr/` | 「トラブルシューティング > カメラ権限」セクション（Android設定画面） | 375×667px | 🟢 中 |
-
-**スクリーンショット撮影手順**:
-1. `qr-scan-button.png`: ホーム画面でQRスキャンボタンが表示されている状態をキャプチャ
-2. `qr-scan-camera.png`: QRスキャンボタン押下後、カメラが起動した画面
-3. `qr-scan-success.png`: QRコードをスキャンした直後の成功メッセージ画面
-4. `qr-code-sample-tool.png`: 道具QRコードのサンプル（印刷またはPDF）
-5. `qr-code-sample-warehouse.png`: 倉庫QRコードのサンプル
-6. `qr-scan-result-movement.png`: スキャン後の移動登録画面
-7. `camera-permission-ios.png`: iOSの設定 > Safari > カメラ画面
-8. `camera-permission-android.png`: Androidの設定 > アプリ > Chrome > 権限画面
+#### 画像6: password-reset-form.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/reset-password?token=...`
+- **撮影内容**: 新しいパスワード設定画面
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/login/password-reset-form.png`
 
 ---
 
-#### 3. 道具管理（`tool_management.md`）
+### 📱 2. QR関連（8枚）
 
-**ページURL**: `/manual/tool_management`
+#### 画像7: qr-scan-button.jpg
+- **撮影デバイス**: スマホ
+- **撮影URL**: `https://サブドメイン.zairoku.com/` (ホーム画面)
+- **撮影内容**: ホーム画面でQRスキャンボタンが表示されている状態
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/qr/qr-scan-button.jpg`
 
-**必要な画像**:
+#### 画像8: qr-scan-camera.jpg
+- **撮影デバイス**: スマホ
+- **撮影URL**: `https://サブドメイン.zairoku.com/` (QRスキャン画面)
+- **撮影内容**: QRスキャンボタン押下後、カメラが起動した画面
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/qr/qr-scan-camera.jpg`
 
-| # | ファイル名 | 保存先 | 表示箇所 | サイズ | 優先度 |
-|---|----------|--------|----------|--------|--------|
-| 3-1 | `tool-list.png` | `/public/images/manual/tools/` | 「道具一覧画面」セクション | 1200×800px | 🔴 最優先 |
-| 3-2 | `tool-register-button.png` | `/public/images/manual/tools/` | 「道具登録の手順 > 1. 登録ボタンをクリック」セクション | 1200×800px | 🔴 最優先 |
-| 3-3 | `tool-register-form.png` | `/public/images/manual/tools/` | 「道具登録の手順 > 2. 登録フォーム」セクション | 1200×800px | 🔴 最優先 |
-| 3-4 | `tool-edit.png` | `/public/images/manual/tools/` | 「道具編集の手順」セクション | 1200×800px | 🟡 高 |
-| 3-5 | `tool-detail.png` | `/public/images/manual/tools/` | 「道具詳細画面」セクション | 1200×800px | 🟡 高 |
-| 3-6 | `tool-movement-history.png` | `/public/images/manual/tools/` | 「移動履歴の確認」セクション | 1200×800px | 🔴 最優先 |
-| 3-7 | `tool-category-select.png` | `/public/images/manual/tools/` | 「カテゴリ選択」セクション | 600×400px | 🟢 中 |
-| 3-8 | `tool-filter.png` | `/public/images/manual/tools/` | 「フィルター機能」セクション | 1200×800px | 🟢 中 |
+#### 画像9: qr-scan-success.jpg
+- **撮影デバイス**: スマホ
+- **撮影URL**: `https://サブドメイン.zairoku.com/` (QRスキャン成功画面)
+- **撮影内容**: QRコードをスキャンした直後の成功メッセージ画面
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/qr/qr-scan-success.jpg`
 
-**スクリーンショット撮影手順**:
-1. `tool-list.png`: 道具管理 > 道具一覧ページ全体
-2. `tool-register-button.png`: 道具一覧ページの「+ 新規登録」ボタンが見える状態
-3. `tool-register-form.png`: 道具登録フォーム（全項目表示）
-4. `tool-edit.png`: 既存道具の編集画面
-5. `tool-detail.png`: 道具詳細モーダルまたはページ
-6. `tool-movement-history.png`: 道具詳細内の「移動履歴」タブ
-7. `tool-category-select.png`: カテゴリ選択ドロップダウンが開いた状態
-8. `tool-filter.png`: フィルターパネルが展開された状態
+#### 画像10: qr-code-sample-tool.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/tools` (道具詳細 > QR印刷プレビュー)
+- **撮影内容**: 道具QRコードのサンプル（印刷プレビューまたはPDF）
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/qr/qr-code-sample-tool.png`
 
----
+#### 画像11: qr-code-sample-warehouse.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/warehouses` (倉庫詳細 > QR印刷プレビュー)
+- **撮影内容**: 倉庫QRコードのサンプル（印刷プレビューまたはPDF）
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/qr/qr-code-sample-warehouse.png`
 
-#### 4. QRコード印刷（`scenarios/mobile/qr_code_guide.md`）
+#### 画像12: qr-scan-result-movement.jpg
+- **撮影デバイス**: スマホ
+- **撮影URL**: `https://サブドメイン.zairoku.com/` (QRスキャン後の移動登録画面)
+- **撮影内容**: QRスキャン後の移動登録画面
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/qr/qr-scan-result-movement.jpg`
 
-**ページURL**: `/manual/scenarios/mobile/qr_code_guide`
+#### 画像13: camera-permission-ios.jpg
+- **撮影デバイス**: スマホ (iPhone)
+- **撮影URL**: `iPhone設定アプリ` (設定 > Safari > カメラ)
+- **撮影内容**: iOSの設定画面でカメラ権限許可の設定箇所
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/qr/camera-permission-ios.jpg`
 
-**必要な画像**:
-
-| # | ファイル名 | 保存先 | 表示箇所 | サイズ | 優先度 |
-|---|----------|--------|----------|--------|--------|
-| 4-1 | `qr-print-settings.png` | `/public/images/manual/qr/` | 「QRコード印刷設定」セクション | 1200×800px | 🔴 最優先 |
-| 4-2 | `qr-size-selection.png` | `/public/images/manual/qr/` | 「QRサイズ選択」セクション（運用設定 > 組織情報） | 1200×800px | 🔴 最優先 |
-| 4-3 | `qr-bulk-print-select.png` | `/public/images/manual/qr/` | 「一括印刷 > 道具選択」セクション | 1200×800px | 🟡 高 |
-| 4-4 | `qr-bulk-print-preview.png` | `/public/images/manual/qr/` | 「一括印刷 > プレビュー」セクション（A4レイアウト表示） | 1200×1600px | 🔴 最優先 |
-| 4-5 | `qr-print-result-sample.png` | `/public/images/manual/qr/` | 「印刷結果サンプル」セクション（実際に印刷したQRコード） | 800×1000px | 🟡 高 |
-| 4-6 | `qr-attached-tool.jpg` | `/public/images/manual/qr/` | 「QRコードの貼り付け例」セクション（工具にQR貼付した写真） | 800×600px | 🟢 中 |
-
-**スクリーンショット撮影手順**:
-1. `qr-print-settings.png`: 道具詳細 > QRコード印刷ボタンをクリック後の設定画面
-2. `qr-size-selection.png`: 運用設定 > 組織情報 > QRコード印刷サイズ設定画面
-3. `qr-bulk-print-select.png`: 道具管理 > 道具QR一括印刷 > 道具選択画面
-4. `qr-bulk-print-preview.png`: 一括印刷のプレビュー画面（A4レイアウト）
-5. `qr-print-result-sample.png`: 実際に印刷したQRコードをスキャン（または写真撮影）
-6. `qr-attached-tool.jpg`: 工具にQRコードを貼り付けた状態の写真（現場で撮影）
+#### 画像14: camera-permission-android.jpg
+- **撮影デバイス**: スマホ (Android)
+- **撮影URL**: `Android設定アプリ` (設定 > アプリ > Chrome > 権限)
+- **撮影内容**: Androidの設定画面でカメラ権限許可の設定箇所
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/qr/camera-permission-android.jpg`
 
 ---
 
-#### 5. 出退勤打刻（`attendance_clock.md`）
+### 🔧 3. 備品管理（8枚）
 
-**ページURL**: `/manual/attendance_clock`
+#### 画像15: tool-list.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/tools`
+- **撮影内容**: 道具管理一覧ページ全体（テーブル表示）
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/tools/tool-list.png`
 
-**必要な画像**:
+#### 画像16: tool-register-button.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/tools`
+- **撮影内容**: 道具一覧ページの「+ 新規登録」ボタンが見える状態
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/tools/tool-register-button.png`
 
-| # | ファイル名 | 保存先 | 表示箇所 | サイズ | 優先度 |
-|---|----------|--------|----------|--------|--------|
-| 5-1 | `attendance-home-button.png` | `/public/images/manual/attendance/` | 「出退勤ボタンの場所」セクション（ホーム画面） | 375×667px | 🔴 最優先 |
-| 5-2 | `attendance-clock-in-before.png` | `/public/images/manual/attendance/` | 「出勤打刻前の画面」セクション | 375×667px | 🔴 最優先 |
-| 5-3 | `attendance-clock-in-success.png` | `/public/images/manual/attendance/` | 「出勤打刻成功」セクション | 375×667px | 🔴 最優先 |
-| 5-4 | `attendance-clock-out-button.png` | `/public/images/manual/attendance/` | 「退勤打刻ボタン」セクション（出勤済み状態） | 375×667px | 🟡 高 |
-| 5-5 | `attendance-clock-out-success.png` | `/public/images/manual/attendance/` | 「退勤打刻成功」セクション | 375×667px | 🟡 高 |
-| 5-6 | `attendance-list-staff.png` | `/public/images/manual/attendance/` | 「勤怠一覧の確認」セクション（スタッフ本人の一覧） | 1200×800px | 🔴 最優先 |
-| 5-7 | `attendance-qr-scan.png` | `/public/images/manual/attendance/` | 「QRコードでの出退勤」セクション（QRスキャン画面） | 375×667px | 🟡 高 |
+#### 画像17: tool-register-form.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/tools/new`
+- **撮影内容**: 道具登録フォーム（全項目表示）
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/tools/tool-register-form.png`
 
-**スクリーンショット撮影手順**:
-1. `attendance-home-button.png`: モバイルホーム画面で「出退勤」ボタンが見える状態
-2. `attendance-clock-in-before.png`: 出退勤ページ（出勤前、「出勤」ボタンが表示）
-3. `attendance-clock-in-success.png`: 出勤ボタンを押した直後の成功メッセージ
-4. `attendance-clock-out-button.png`: 出勤済み状態（「退勤」ボタンが表示）
-5. `attendance-clock-out-success.png`: 退勤ボタンを押した直後の成功メッセージ
-6. `attendance-list-staff.png`: 出退勤管理 > 自分の勤怠一覧画面
-7. `attendance-qr-scan.png`: 出退勤QRコードをスキャンしている画面
+#### 画像18: tool-edit.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/tools/[id]/edit`
+- **撮影内容**: 既存道具の編集画面
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/tools/tool-edit.png`
 
----
+#### 画像19: tool-detail.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/tools/[id]`
+- **撮影内容**: 道具詳細モーダルまたはページ
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/tools/tool-detail.png`
 
-#### 6. 見積書作成（`estimates_create.md`）
+#### 画像20: tool-movement-history.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/tools/[id]` (移動履歴タブ)
+- **撮影内容**: 道具詳細内の「移動履歴」タブ
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/tools/tool-movement-history.png`
 
-**ページURL**: `/manual/estimates_create`
+#### 画像21: tool-category-select.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/tools/new`
+- **撮影内容**: カテゴリ選択ドロップダウンが開いた状態
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/tools/tool-category-select.png`
 
-**必要な画像**:
-
-| # | ファイル名 | 保存先 | 表示箇所 | サイズ | 優先度 |
-|---|----------|--------|----------|--------|--------|
-| 6-1 | `estimate-list.png` | `/public/images/manual/documents/` | 「見積書一覧画面」セクション | 1200×800px | 🔴 最優先 |
-| 6-2 | `estimate-create-button.png` | `/public/images/manual/documents/` | 「新規作成ボタン」セクション | 1200×800px | 🔴 最優先 |
-| 6-3 | `estimate-create-form-basic.png` | `/public/images/manual/documents/` | 「基本情報入力」セクション | 1200×800px | 🔴 最優先 |
-| 6-4 | `estimate-create-form-items.png` | `/public/images/manual/documents/` | 「明細入力」セクション | 1200×800px | 🟡 高 |
-| 6-5 | `estimate-preview.png` | `/public/images/manual/documents/` | 「プレビュー」セクション | 1200×1600px | 🟡 高 |
-| 6-6 | `estimate-pdf-output.png` | `/public/images/manual/documents/` | 「PDF出力」セクション | 800×1000px | 🟢 中 |
-
-**スクリーンショット撮影手順**:
-1. `estimate-list.png`: 書類管理 > 見積書一覧ページ
-2. `estimate-create-button.png`: 見積書一覧の「+ 新規見積書」ボタンが見える状態
-3. `estimate-create-form-basic.png`: 見積書作成フォーム（基本情報タブ）
-4. `estimate-create-form-items.png`: 見積書作成フォーム（明細タブ）
-5. `estimate-preview.png`: 見積書プレビュー画面
-6. `estimate-pdf-output.png`: PDF出力後のプレビュー
-
----
-
-#### 7. 請求書作成（`invoices_create.md`）
-
-**ページURL**: `/manual/invoices_create`
-
-**必要な画像**:
-
-| # | ファイル名 | 保存先 | 表示箇所 | サイズ | 優先度 |
-|---|----------|--------|----------|--------|--------|
-| 7-1 | `invoice-list.png` | `/public/images/manual/documents/` | 「請求書一覧画面」セクション | 1200×800px | 🔴 最優先 |
-| 7-2 | `invoice-create-from-estimate.png` | `/public/images/manual/documents/` | 「見積書から変換」セクション（見積書詳細の変換ボタン） | 1200×800px | 🔴 最優先 |
-| 7-3 | `invoice-create-form.png` | `/public/images/manual/documents/` | 「請求書作成フォーム」セクション | 1200×800px | 🟡 高 |
-| 7-4 | `invoice-preview.png` | `/public/images/manual/documents/` | 「プレビュー」セクション | 1200×1600px | 🟡 高 |
-
-**スクリーンショット撮影手順**:
-1. `invoice-list.png`: 書類管理 > 請求書一覧ページ
-2. `invoice-create-from-estimate.png`: 見積書詳細 > 「請求書に変換」ボタン
-3. `invoice-create-form.png`: 請求書作成フォーム
-4. `invoice-preview.png`: 請求書プレビュー画面
+#### 画像22: tool-filter.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/tools`
+- **撮影内容**: フィルターパネルが展開された状態
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/tools/tool-filter.png`
 
 ---
 
-#### 8. スタッフ管理（`staff_management.md`）
+### 🖨️ 4. QR印刷（6枚）
 
-**ページURL**: `/manual/staff_management`
+#### 画像23: qr-print-settings.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/tools/[id]` (QR印刷モーダル)
+- **撮影内容**: 道具詳細 > QRコード印刷ボタンをクリック後の設定画面
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/print/qr-print-settings.png`
 
-**必要な画像**:
+#### 画像24: qr-size-selection.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/settings/organization`
+- **撮影内容**: 運用設定 > 組織情報 > QRコード印刷サイズ設定画面
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/print/qr-size-selection.png`
 
-| # | ファイル名 | 保存先 | 表示箇所 | サイズ | 優先度 |
-|---|----------|--------|----------|--------|--------|
-| 8-1 | `staff-list.png` | `/public/images/manual/settings/` | 「スタッフ一覧画面」セクション | 1200×800px | 🔴 最優先 |
-| 8-2 | `staff-add-button.png` | `/public/images/manual/settings/` | 「スタッフ追加ボタン」セクション | 1200×800px | 🟡 高 |
-| 8-3 | `staff-add-form.png` | `/public/images/manual/settings/` | 「スタッフ追加フォーム」セクション | 1200×800px | 🟡 高 |
-| 8-4 | `staff-detail.png` | `/public/images/manual/settings/` | 「スタッフ詳細画面」セクション | 1200×800px | 🟢 中 |
-| 8-5 | `staff-edit.png` | `/public/images/manual/settings/` | 「スタッフ編集画面」セクション | 1200×800px | 🟢 中 |
+#### 画像25: qr-bulk-print-select.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/tools/bulk-qr-print`
+- **撮影内容**: 道具管理 > 道具QR一括印刷 > 道具選択画面
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/print/qr-bulk-print-select.png`
 
-**スクリーンショット撮影手順**:
-1. `staff-list.png`: 設定 > スタッフ管理 > 一覧ページ
-2. `staff-add-button.png`: スタッフ一覧の「+ スタッフを追加」ボタン
-3. `staff-add-form.png`: スタッフ追加フォーム
-4. `staff-detail.png`: スタッフ詳細画面
-5. `staff-edit.png`: スタッフ編集画面
+#### 画像26: qr-bulk-print-preview.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/tools/bulk-qr-print` (プレビュー)
+- **撮影内容**: 一括印刷のプレビュー画面（A4レイアウト表示）
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/print/qr-bulk-print-preview.png`
 
----
+#### 画像27: qr-print-result-sample.jpg
+- **撮影デバイス**: スマホ
+- **撮影URL**: `実物撮影` (印刷したQRコードを撮影)
+- **撮影内容**: 実際に印刷したQRコードの写真
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/print/qr-print-result-sample.jpg`
 
-#### 9. データエクスポート（`data_export.md`）
-
-**ページURL**: `/manual/data_export`
-
-**必要な画像**:
-
-| # | ファイル名 | 保存先 | 表示箇所 | サイズ | 優先度 |
-|---|----------|--------|----------|--------|--------|
-| 9-1 | `data-export-page.png` | `/public/images/manual/settings/` | 「データエクスポート画面」セクション | 1200×800px | 🔴 最優先 |
-| 9-2 | `data-export-button.png` | `/public/images/manual/settings/` | 「エクスポートボタン」セクション（拡大） | 800×400px | 🟡 高 |
-| 9-3 | `data-export-success.png` | `/public/images/manual/settings/` | 「エクスポート成功メッセージ」セクション | 1200×800px | 🟡 高 |
-| 9-4 | `data-export-csv-sample.png` | `/public/images/manual/settings/` | 「CSVファイルサンプル」セクション（Excelで開いた画面） | 1200×800px | 🟢 中 |
-
-**スクリーンショット撮影手順**:
-1. `data-export-page.png`: 設定 > データエクスポートページ全体
-2. `data-export-button.png`: 「CSVエクスポート」ボタンのクローズアップ
-3. `data-export-success.png`: エクスポート成功後の緑色メッセージ
-4. `data-export-csv-sample.png`: エクスポートしたCSVファイルをExcelで開いた画面
+#### 画像28: qr-attached-tool.jpg
+- **撮影デバイス**: スマホ
+- **撮影URL**: `実物撮影` (現場で工具を撮影)
+- **撮影内容**: 工具にQRコードを貼り付けた状態の写真
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/print/qr-attached-tool.jpg`
 
 ---
 
-#### 10. モバイル画面（`scenarios/mobile/mobile_usage.md`）
+### ⏰ 5. 勤怠管理（7枚）
 
-**ページURL**: `/manual/scenarios/mobile/mobile_usage`
+#### 画像29: attendance-home-button.jpg
+- **撮影デバイス**: スマホ
+- **撮影URL**: `https://サブドメイン.zairoku.com/` (ホーム画面)
+- **撮影内容**: モバイルホーム画面で「出退勤」ボタンが見える状態
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/attendance/attendance-home-button.jpg`
 
-**必要な画像**:
+#### 画像30: attendance-clock-in-before.jpg
+- **撮影デバイス**: スマホ
+- **撮影URL**: `https://サブドメイン.zairoku.com/attendance/clock`
+- **撮影内容**: 出退勤ページ（出勤前、「出勤」ボタンが表示）
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/attendance/attendance-clock-in-before.jpg`
 
-| # | ファイル名 | 保存先 | 表示箇所 | サイズ | 優先度 |
-|---|----------|--------|----------|--------|--------|
-| 10-1 | `mobile-bottom-nav-asset.png` | `/public/images/manual/mobile/` | 「現場資産パック > 下部ナビ」セクション | 375×667px | 🔴 最優先 |
-| 10-2 | `mobile-bottom-nav-dx.png` | `/public/images/manual/mobile/` | 「DX効率化パック > 下部ナビ」セクション | 375×667px | 🟡 高 |
-| 10-3 | `mobile-bottom-nav-full.png` | `/public/images/manual/mobile/` | 「フル機能統合パック > 下部ナビ」セクション | 375×667px | 🟡 高 |
-| 10-4 | `mobile-sidebar-menu.png` | `/public/images/manual/mobile/` | 「サイドバーメニュー」セクション | 375×667px | 🔴 最優先 |
-| 10-5 | `mobile-home-shortcuts.png` | `/public/images/manual/mobile/` | 「ホーム画面ショートカット」セクション | 375×667px | 🟡 高 |
-| 10-6 | `mobile-notifications.png` | `/public/images/manual/mobile/` | 「通知画面」セクション | 375×667px | 🟢 中 |
+#### 画像31: attendance-clock-in-success.jpg
+- **撮影デバイス**: スマホ
+- **撮影URL**: `https://サブドメイン.zairoku.com/attendance/clock` (出勤後)
+- **撮影内容**: 出勤ボタンを押した直後の成功メッセージ
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/attendance/attendance-clock-in-success.jpg`
 
-**スクリーンショット撮影手順**:
-1. `mobile-bottom-nav-asset.png`: 現場資産パック契約組織でモバイル画面下部ナビ
-2. `mobile-bottom-nav-dx.png`: DX効率化パック契約組織でモバイル画面下部ナビ
-3. `mobile-bottom-nav-full.png`: フル機能統合パック契約組織でモバイル画面下部ナビ
-4. `mobile-sidebar-menu.png`: 左上メニューアイコンをタップ後のサイドバー
-5. `mobile-home-shortcuts.png`: モバイルホーム画面のショートカットカード
-6. `mobile-notifications.png`: 右上の通知アイコンをタップ後の通知一覧
+#### 画像32: attendance-clock-out-button.jpg
+- **撮影デバイス**: スマホ
+- **撮影URL**: `https://サブドメイン.zairoku.com/attendance/clock` (出勤済み)
+- **撮影内容**: 出勤済み状態（「退勤」ボタンが表示）
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/attendance/attendance-clock-out-button.jpg`
+
+#### 画像33: attendance-clock-out-success.jpg
+- **撮影デバイス**: スマホ
+- **撮影URL**: `https://サブドメイン.zairoku.com/attendance/clock` (退勤後)
+- **撮影内容**: 退勤ボタンを押した直後の成功メッセージ
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/attendance/attendance-clock-out-success.jpg`
+
+#### 画像34: attendance-list-staff.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/attendance`
+- **撮影内容**: 出退勤管理 > 自分の勤怠一覧画面
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/attendance/attendance-list-staff.png`
+
+#### 画像35: attendance-qr-scan.jpg
+- **撮影デバイス**: スマホ
+- **撮影URL**: `https://サブドメイン.zairoku.com/` (QRスキャン)
+- **撮影内容**: 出退勤QRコードをスキャンしている画面
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/attendance/attendance-qr-scan.jpg`
+
+---
+
+### 📋 6. 見積書（6枚）
+
+#### 画像36: estimate-list.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/estimates`
+- **撮影内容**: 書類管理 > 見積書一覧ページ全体
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/documents/estimate-list.png`
+
+#### 画像37: estimate-create-button.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/estimates`
+- **撮影内容**: 見積書一覧の「+ 新規見積書」ボタンが見える状態
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/documents/estimate-create-button.png`
+
+#### 画像38: estimate-create-form-basic.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/estimates/new`
+- **撮影内容**: 見積書作成フォーム（基本情報タブ）
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/documents/estimate-create-form-basic.png`
+
+#### 画像39: estimate-create-form-items.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/estimates/new` (明細タブ)
+- **撮影内容**: 見積書作成フォーム（明細入力セクション）
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/documents/estimate-create-form-items.png`
+
+#### 画像40: estimate-preview.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/estimates/[id]/preview`
+- **撮影内容**: 見積書プレビュー画面
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/documents/estimate-preview.png`
+
+#### 画像41: estimate-pdf-output.png
+- **撮影デバイス**: PC
+- **撮影URL**: `PDF表示画面` (見積書PDF出力後)
+- **撮影内容**: PDF出力後のプレビュー
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/documents/estimate-pdf-output.png`
+
+---
+
+### 📄 7. 請求書（4枚）
+
+#### 画像42: invoice-list.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/invoices`
+- **撮影内容**: 書類管理 > 請求書一覧ページ
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/documents/invoice-list.png`
+
+#### 画像43: invoice-create-from-estimate.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/estimates/[id]`
+- **撮影内容**: 見積書詳細 > 「請求書に変換」ボタンが見える画面
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/documents/invoice-create-from-estimate.png`
+
+#### 画像44: invoice-create-form.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/invoices/new`
+- **撮影内容**: 請求書作成フォーム
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/documents/invoice-create-form.png`
+
+#### 画像45: invoice-preview.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/invoices/[id]/preview`
+- **撮影内容**: 請求書プレビュー画面
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/documents/invoice-preview.png`
+
+---
+
+### 👥 8. 従業員管理（5枚）
+
+#### 画像46: staff-list.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/settings/staff`
+- **撮影内容**: 設定 > スタッフ管理 > 一覧ページ
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/settings/staff-list.png`
+
+#### 画像47: staff-add-button.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/settings/staff`
+- **撮影内容**: スタッフ一覧の「+ スタッフを追加」ボタンが見える状態
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/settings/staff-add-button.png`
+
+#### 画像48: staff-add-form.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/settings/staff/new`
+- **撮影内容**: スタッフ追加フォーム
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/settings/staff-add-form.png`
+
+#### 画像49: staff-detail.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/settings/staff/[id]`
+- **撮影内容**: スタッフ詳細画面
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/settings/staff-detail.png`
+
+#### 画像50: staff-edit.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/settings/staff/[id]/edit`
+- **撮影内容**: スタッフ編集画面
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/settings/staff-edit.png`
+
+---
+
+### 📊 9. データエクスポート（4枚）
+
+#### 画像51: data-export-page.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/settings/export`
+- **撮影内容**: 設定 > データエクスポートページ全体
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/settings/data-export-page.png`
+
+#### 画像52: data-export-button.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/settings/export`
+- **撮影内容**: 「CSVエクスポート」ボタンのクローズアップ
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/settings/data-export-button.png`
+
+#### 画像53: data-export-success.png
+- **撮影デバイス**: PC
+- **撮影URL**: `https://サブドメイン.zairoku.com/settings/export` (エクスポート後)
+- **撮影内容**: エクスポート成功後の緑色メッセージ
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/settings/data-export-success.png`
+
+#### 画像54: data-export-csv-sample.png
+- **撮影デバイス**: PC
+- **撮影URL**: `Excelアプリ` (エクスポートしたCSVを開く)
+- **撮影内容**: エクスポートしたCSVファイルをExcelで開いた画面
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/settings/data-export-csv-sample.png`
+
+---
+
+### 📱 10. モバイル版（5枚）
+
+#### 画像55: mobile-bottom-nav-asset.jpg
+- **撮影デバイス**: スマホ
+- **撮影URL**: `https://サブドメイン.zairoku.com/` (現場資産パック契約組織)
+- **撮影内容**: 現場資産パック契約組織でモバイル画面下部ナビ
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/mobile/mobile-bottom-nav-asset.jpg`
+
+#### 画像56: mobile-bottom-nav-dx.jpg
+- **撮影デバイス**: スマホ
+- **撮影URL**: `https://サブドメイン.zairoku.com/` (DX効率化パック契約組織)
+- **撮影内容**: DX効率化パック契約組織でモバイル画面下部ナビ
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/mobile/mobile-bottom-nav-dx.jpg`
+
+#### 画像57: mobile-sidebar-menu.jpg
+- **撮影デバイス**: スマホ
+- **撮影URL**: `https://サブドメイン.zairoku.com/` (サイドバー展開)
+- **撮影内容**: 左上メニューアイコンをタップ後のサイドバー
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/mobile/mobile-sidebar-menu.jpg`
+
+#### 画像58: mobile-home-shortcuts.jpg
+- **撮影デバイス**: スマホ
+- **撮影URL**: `https://サブドメイン.zairoku.com/`
+- **撮影内容**: モバイルホーム画面のショートカットカード
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/mobile/mobile-home-shortcuts.jpg`
+
+#### 画像59: mobile-notifications.jpg
+- **撮影デバイス**: スマホ
+- **撮影URL**: `https://サブドメイン.zairoku.com/` (通知パネル)
+- **撮影内容**: 右上の通知アイコンをタップ後の通知一覧
+- **保存先**: `/Users/youichiakashi/FieldToolManager/public/images/manual/mobile/mobile-notifications.jpg`
 
 ---
 
 ### 📊 画像リスト統計
 
-**合計画像数**: 60枚
+**合計画像数**: 59枚
 
-**優先度別**:
-- 🔴 最優先: 30枚
-- 🟡 高: 20枚
-- 🟢 中: 10枚
-
-**サイズ別**:
-- PC画面（1200px幅）: 35枚
-- スマホ画面（375px幅）: 20枚
-- その他（サンプル等）: 5枚
+**デバイス別**:
+- PC (PNG): 34枚
+- スマホ (JPG): 25枚
 
 **カテゴリ別**:
-- ログイン・基本: 7枚
-- QR関連: 14枚
-- 道具管理: 8枚
-- 勤怠管理: 7枚
-- 書類管理: 10枚
-- 設定・管理: 9枚
-- モバイル: 6枚
+- 🔐 ログイン関連: 6枚
+- 📱 QR関連: 8枚
+- 🔧 備品管理: 8枚
+- 🖨️ QR印刷: 6枚
+- ⏰ 勤怠管理: 7枚
+- 📋 見積書: 6枚
+- 📄 請求書: 4枚
+- 👥 従業員管理: 5枚
+- 📊 データエクスポート: 4枚
+- 📱 モバイル版: 5枚
+
+**ディレクトリ別**:
+- `/public/images/manual/login/`: 6枚
+- `/public/images/manual/qr/`: 8枚
+- `/public/images/manual/tools/`: 8枚
+- `/public/images/manual/print/`: 6枚
+- `/public/images/manual/attendance/`: 7枚
+- `/public/images/manual/documents/`: 10枚
+- `/public/images/manual/settings/`: 9枚
+- `/public/images/manual/mobile/`: 5枚
 
 ---
 

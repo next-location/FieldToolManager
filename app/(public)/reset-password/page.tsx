@@ -112,7 +112,12 @@ function ResetPasswordContent() {
       if (response.ok) {
         setSuccess(true)
         setTimeout(() => {
-          router.push('/login')
+          // subdomainがあればそのサブドメインのログイン画面へ、なければデフォルトのログイン画面へ
+          if (data.subdomain) {
+            window.location.href = `https://${data.subdomain}.zairoku.com/login`
+          } else {
+            router.push('/login')
+          }
         }, 3000)
       } else {
         setError(data.error || 'パスワードの更新に失敗しました')

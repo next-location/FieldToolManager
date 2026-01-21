@@ -21,6 +21,14 @@ export interface WarrantyExpirationEmailData {
   dashboardUrl: string
 }
 
+export interface PasswordChangedEmailData {
+  userName: string
+  changedAt: string
+  ipAddress?: string
+  organizationName: string
+  supportEmail: string
+}
+
 /**
  * 低在庫アラートメールを送信
  */
@@ -415,6 +423,213 @@ ${isExpired
     return { success: true }
   } catch (error: any) {
     console.error('Warranty expiration email sending error:', error)
+    return {
+      success: false,
+      error: error.message || 'メール送信に失敗しました',
+    }
+  }
+}
+
+/**
+ * パスワード変更完了メールを送信
+ */
+export async function sendPasswordChangedEmail(
+  to: string,
+  data: PasswordChangedEmailData
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { userName, changedAt, ipAddress, organizationName, supportEmail } = data
+
+    const subject = `[ザイロク] パスワードが変更されました`
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      color: white;
+      padding: 30px 20px;
+      border-radius: 8px 8px 0 0;
+      text-align: center;
+    }
+    .content {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-top: none;
+      padding: 30px;
+      border-radius: 0 0 8px 8px;
+    }
+    .success-box {
+      background: #d1fae5;
+      border-left: 4px solid #10b981;
+      padding: 16px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    .warning-box {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 16px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    .info-box {
+      background: #f9fafb;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    .label {
+      font-weight: 600;
+      color: #6b7280;
+    }
+    .value {
+      color: #111827;
+      font-weight: 500;
+    }
+    .button {
+      display: inline-block;
+      background: #dc2626;
+      color: white !important;
+      padding: 12px 24px;
+      text-decoration: none;
+      border-radius: 6px;
+      margin: 20px 0;
+      font-weight: 600;
+    }
+    .footer {
+      text-align: center;
+      color: #6b7280;
+      font-size: 0.875rem;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 style="margin: 0; font-size: 24px;">🔒 パスワード変更完了</h1>
+    <p style="margin: 10px 0 0 0; opacity: 0.9;">${organizationName}</p>
+  </div>
+
+  <div class="content">
+    <p>こんにちは、${userName}様</p>
+
+    <div class="success-box">
+      <strong>✅ パスワードが正常に変更されました</strong><br>
+      お使いのザイロクアカウントのパスワードが変更されました。
+    </div>
+
+    <div class="info-box">
+      <div class="info-row">
+        <span class="label">変更日時</span>
+        <span class="value">${changedAt}</span>
+      </div>
+      ${ipAddress ? `
+      <div class="info-row">
+        <span class="label">IPアドレス</span>
+        <span class="value">${ipAddress}</span>
+      </div>
+      ` : ''}
+    </div>
+
+    <p><strong>この変更に心当たりがある場合</strong></p>
+    <p>このメールは無視していただいて構いません。アカウントは安全に保護されています。</p>
+
+    <div class="warning-box">
+      <strong>⚠️ この変更に心当たりがない場合</strong><br>
+      アカウントが不正にアクセスされた可能性があります。直ちに以下の対応を行ってください：
+      <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+        <li>すぐにサポートチームにご連絡ください</li>
+        <li>他のサービスで同じパスワードを使用している場合は、そちらも変更してください</li>
+        <li>二要素認証の設定をご検討ください</li>
+      </ul>
+    </div>
+
+    <div style="text-align: center;">
+      <a href="mailto:${supportEmail}" class="button">サポートに連絡</a>
+    </div>
+
+    <div class="footer">
+      <p>このメールはザイロクから自動送信されています。</p>
+      <p>このメールに返信しても受信されません。</p>
+      <p style="margin-top: 15px;">
+        <strong>ザイロク サポートチーム</strong><br>
+        ${supportEmail}
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+`
+
+    const text = `
+[ザイロク] パスワードが変更されました
+
+${organizationName}
+
+こんにちは、${userName}様
+
+お使いのザイロクアカウントのパスワードが変更されました。
+
+変更日時: ${changedAt}
+${ipAddress ? `IPアドレス: ${ipAddress}\n` : ''}
+✅ この変更に心当たりがある場合
+このメールは無視していただいて構いません。アカウントは安全に保護されています。
+
+⚠️ この変更に心当たりがない場合
+アカウントが不正にアクセスされた可能性があります。直ちに以下の対応を行ってください：
+• すぐにサポートチームにご連絡ください
+• 他のサービスで同じパスワードを使用している場合は、そちらも変更してください
+• 二要素認証の設定をご検討ください
+
+サポート連絡先: ${supportEmail}
+
+---
+このメールはザイロクから自動送信されています。
+このメールに返信しても受信されません。
+
+ザイロク サポートチーム
+${supportEmail}
+`
+
+    if (!resend) {
+      console.warn('Resend not configured')
+      return { success: false, error: 'メールサービスが設定されていません' }
+    }
+
+    await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'noreply@zairoku.com',
+      to,
+      subject,
+      html,
+      text,
+    })
+
+    return { success: true }
+  } catch (error: any) {
+    console.error('Password changed email sending error:', error)
     return {
       success: false,
       error: error.message || 'メール送信に失敗しました',

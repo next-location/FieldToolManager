@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validatePassword, DEFAULT_PASSWORD_POLICY } from '@/lib/password-policy'
+import { sendPasswordChangedEmail } from '@/lib/email'
 
 // POST /api/reset-password/update - パスワードを更新
 export async function POST(request: NextRequest) {
@@ -51,10 +52,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'トークンの有効期限が切れています' }, { status: 400 })
     }
 
-    // ユーザー情報を取得
+    // ユーザー情報と組織情報を取得
     const { data: user } = await supabaseAdmin
       .from('users')
-      .select('id, email, organization_id')
+      .select('id, email, name, organization_id, organizations(subdomain, name)')
       .eq('id', resetToken.user_id)
       .is('deleted_at', null)
       .single()
@@ -62,6 +63,9 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'ユーザーが見つかりません' }, { status: 404 })
     }
+
+    const subdomain = (user.organizations as any)?.subdomain
+    const organizationName = (user.organizations as any)?.name || 'ザイロク'
 
     // Supabase Authでパスワードを更新
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
@@ -93,7 +97,30 @@ export async function POST(request: NextRequest) {
       notes: 'パスワードリセットが完了しました',
     })
 
-    return NextResponse.json({ success: true, message: 'パスワードが更新されました' })
+    // パスワード変更完了メールを送信
+    const clientIp = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined
+    const changedAt = new Date().toLocaleString('ja-JP', {
+      timeZone: 'Asia/Tokyo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+
+    await sendPasswordChangedEmail(user.email, {
+      userName: user.name || user.email,
+      changedAt,
+      ipAddress: clientIp,
+      organizationName,
+      supportEmail: 'support@zairoku.com'
+    })
+
+    return NextResponse.json({
+      success: true,
+      message: 'パスワードが更新されました',
+      subdomain: subdomain || null
+    })
   } catch (error) {
     console.error('Password reset error:', error)
     return NextResponse.json({ error: '予期しないエラーが発生しました' }, { status: 500 })
