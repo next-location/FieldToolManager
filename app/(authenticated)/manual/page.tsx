@@ -36,15 +36,6 @@ export default async function ManualPage() {
         article.frontmatter.plans.includes(mappedPlan as 'basic' | 'asset_pack' | 'dx_pack'))
   )
 
-  // 最近更新された記事（上位5件）
-  const recentArticles = [...accessibleArticles]
-    .sort((a, b) => {
-      const dateA = new Date(a.frontmatter.lastUpdated).getTime()
-      const dateB = new Date(b.frontmatter.lastUpdated).getTime()
-      return dateB - dateA
-    })
-    .slice(0, 5)
-
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 pb-6 sm:px-0 sm:py-6">
@@ -89,56 +80,6 @@ export default async function ManualPage() {
             </div>
           </Link>
         </div>
-
-        {/* 最近更新された記事 */}
-        {recentArticles.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">最近更新された記事</h2>
-            <div className="bg-white rounded-lg shadow border border-gray-200 divide-y divide-gray-200">
-              {recentArticles.map((article) => (
-                <Link
-                  key={article.slug}
-                  href={`/${article.slug}`}
-                  className="block px-6 py-4 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-medium text-gray-900">{article.frontmatter.title}</h3>
-                        <span
-                          className={`text-xs px-2 py-0.5 rounded-full ${
-                            article.frontmatter.category === 'manual'
-                              ? 'bg-blue-100 text-blue-700'
-                              : 'bg-green-100 text-green-700'
-                          }`}
-                        >
-                          {article.frontmatter.category === 'manual' ? 'マニュアル' : 'Q&A'}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600">{article.frontmatter.description}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        更新日: {article.frontmatter.lastUpdated}
-                      </p>
-                    </div>
-                    <svg
-                      className="ml-4 h-5 w-5 text-gray-400 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* マニュアル記事一覧 */}
         <div className="space-y-8">

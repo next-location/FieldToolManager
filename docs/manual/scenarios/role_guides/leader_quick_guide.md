@@ -1,11 +1,11 @@
 ---
-title: "Leader Quick Guide"
-description: "Leader Quick Guideに関するガイド"
+title: "リーダー向けクイックガイド"
+description: "リーダーが最初に押さえるべき基本操作と重要機能を説明します"
 permission: 2
 plans: ["basic"]
 category: "manual"
-tags: ["基本操作"]
-lastUpdated: "2026-01-21"
+tags: ["基本操作","リーダー向け","クイックガイド"]
+lastUpdated: "2026-01-22"
 ---
 
 # リーダー向けクイックガイド

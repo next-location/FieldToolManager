@@ -1,11 +1,11 @@
 ---
-title: "Admin Quick Guide"
-description: "Admin Quick Guideに関するガイド"
+title: "管理者向けクイックガイド"
+description: "管理者が最初に押さえるべき基本操作と重要機能を説明します"
 permission: 4
 plans: ["basic"]
 category: "manual"
-tags: ["基本操作"]
-lastUpdated: "2026-01-21"
+tags: ["基本操作","管理者向け","クイックガイド"]
+lastUpdated: "2026-01-22"
 ---
 
 # 管理者向けクイックガイド

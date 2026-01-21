@@ -1,11 +1,11 @@
 ---
-title: "Qr Code Guide"
-description: "Qr Code Guideに関するガイド"
+title: "QRコード活用ガイド"
+description: "QRコードを使った道具の管理と効率的な運用方法を説明します"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["QRコード"]
-lastUpdated: "2026-01-21"
+tags: ["QRコード","基本操作","スタッフ向け"]
+lastUpdated: "2026-01-22"
 ---
 
 # QRコード活用ガイド

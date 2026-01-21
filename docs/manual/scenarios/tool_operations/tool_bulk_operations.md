@@ -1,11 +1,11 @@
 ---
-title: "Tool Bulk Operations"
-description: "Tool Bulk Operationsに関するガイド"
+title: "道具の一括操作マニュアル"
+description: "複数の道具をまとめて登録・移動・削除する方法を説明します"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["備品管理"]
-lastUpdated: "2026-01-21"
+tags: ["備品管理","一括操作","管理者向け"]
+lastUpdated: "2026-01-22"
 ---
 
 # 道具の一括操作マニュアル

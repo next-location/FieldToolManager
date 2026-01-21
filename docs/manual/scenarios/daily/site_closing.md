@@ -1,11 +1,11 @@
 ---
-title: "Site Closing"
-description: "Site Closingに関するガイド"
+title: "現場完了・片付け手順"
+description: "現場作業完了時の片付けと道具返却の手順を説明します"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["基本操作"]
-lastUpdated: "2026-01-21"
+tags: ["基本操作","現場管理","片付け"]
+lastUpdated: "2026-01-22"
 ---
 
 # 現場完了・片付け手順

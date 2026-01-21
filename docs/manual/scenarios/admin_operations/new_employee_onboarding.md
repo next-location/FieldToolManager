@@ -1,11 +1,11 @@
 ---
-title: "New Employee Onboarding"
-description: "New Employee Onboardingに関するガイド"
+title: "新入社員の受け入れマニュアル"
+description: "新入社員がザイロクを使い始めるために必要な、アカウント作成から初期設定までの手順を説明します"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["基本操作"]
-lastUpdated: "2026-01-21"
+tags: ["基本操作","管理者向け","新入社員"]
+lastUpdated: "2026-01-22"
 ---
 
 # 新入社員の受け入れマニュアル

@@ -1,11 +1,11 @@
 ---
-title: "Quotation To Invoice Flow"
-description: "Quotation To Invoice Flowに関するガイド"
+title: "見積→契約→請求の一連の流れ"
+description: "見積書作成から請求書発行・入金確認までの一連のフローを説明します"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["請求書"]
-lastUpdated: "2026-01-21"
+tags: ["請求書","見積書","業務フロー","DXパック"]
+lastUpdated: "2026-01-22"
 ---
 
 # 見積→契約→請求の一連の流れ

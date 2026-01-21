@@ -1,11 +1,11 @@
 ---
-title: "Tool Handover"
-description: "Tool Handoverに関するガイド"
+title: "道具の引き継ぎ手順マニュアル"
+description: "スタッフ間で道具を引き継ぐ際の手順と注意点を説明します"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["備品管理"]
-lastUpdated: "2026-01-21"
+tags: ["備品管理","引き継ぎ","スタッフ向け"]
+lastUpdated: "2026-01-22"
 ---
 
 # 道具の引き継ぎ手順マニュアル

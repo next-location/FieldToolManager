@@ -1,11 +1,11 @@
 ---
-title: "Mobile Usage"
-description: "Mobile Usageに関するガイド"
+title: "スマートフォンでの使い方"
+description: "スマートフォンでザイロクを効果的に使う方法を説明します"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["モバイル"]
-lastUpdated: "2026-01-21"
+tags: ["モバイル","基本操作","スタッフ向け"]
+lastUpdated: "2026-01-22"
 ---
 
 # スマートフォンでの使い方

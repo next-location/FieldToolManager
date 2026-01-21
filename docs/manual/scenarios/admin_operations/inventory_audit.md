@@ -1,11 +1,11 @@
 ---
-title: "Inventory Audit"
-description: "Inventory Auditに関するガイド"
+title: "棚卸し作業マニュアル"
+description: "定期的な棚卸し作業により、システム上のデータと実際の在庫を照合する方法を説明します"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["基本操作"]
-lastUpdated: "2026-01-21"
+tags: ["基本操作","棚卸し","在庫管理"]
+lastUpdated: "2026-01-22"
 ---
 
 # 棚卸し作業マニュアル

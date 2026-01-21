@@ -1,11 +1,11 @@
 ---
-title: "Daily Workflow"
-description: "Daily Workflowに関するガイド"
+title: "現場スタッフの1日の流れ"
+description: "現場スタッフが1日の業務でザイロクをどう活用するかを時系列で説明します"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["基本操作"]
-lastUpdated: "2026-01-21"
+tags: ["基本操作","スタッフ向け","業務フロー"]
+lastUpdated: "2026-01-22"
 ---
 
 # 現場スタッフの1日の流れ

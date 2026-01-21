@@ -1,11 +1,11 @@
 ---
-title: "Tool Lost Or Damaged"
-description: "Tool Lost Or Damagedに関するガイド"
+title: "道具の紛失・破損対応マニュアル"
+description: "道具を紛失または破損した際の対応手順と報告方法を説明します"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["備品管理"]
-lastUpdated: "2026-01-21"
+tags: ["備品管理","トラブル対応","全ユーザー向け"]
+lastUpdated: "2026-01-22"
 ---
 
 # 道具の紛失・破損対応マニュアル

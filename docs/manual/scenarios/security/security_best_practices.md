@@ -1,11 +1,11 @@
 ---
-title: "Security Best Practices"
-description: "Security Best Practicesに関するガイド"
+title: "セキュリティのベストプラクティス"
+description: "ザイロクを安全に使うためのセキュリティ対策とベストプラクティスを説明します"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["基本操作"]
-lastUpdated: "2026-01-21"
+tags: ["基本操作","セキュリティ","全ユーザー向け"]
+lastUpdated: "2026-01-22"
 ---
 
 # セキュリティのベストプラクティス

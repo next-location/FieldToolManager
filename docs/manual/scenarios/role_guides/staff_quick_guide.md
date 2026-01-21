@@ -1,11 +1,11 @@
 ---
-title: "Staff Quick Guide"
-description: "Staff Quick Guideに関するガイド"
+title: "スタッフ向けクイックガイド"
+description: "スタッフが最初に押さえるべき基本操作と重要機能を説明します"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["従業員管理"]
-lastUpdated: "2026-01-21"
+tags: ["基本操作","スタッフ向け","クイックガイド"]
+lastUpdated: "2026-01-22"
 ---
 
 # スタッフ向けクイックガイド

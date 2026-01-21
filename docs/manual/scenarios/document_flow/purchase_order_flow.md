@@ -1,11 +1,11 @@
 ---
-title: "Purchase Order Flow"
-description: "Purchase Order Flowに関するガイド"
+title: "発注から支払いまでの流れ"
+description: "発注書作成から支払い完了までの一連のフローを説明します"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["発注書"]
-lastUpdated: "2026-01-21"
+tags: ["発注書","業務フロー","DXパック"]
+lastUpdated: "2026-01-22"
 ---
 
 # 発注から支払いまでの流れ

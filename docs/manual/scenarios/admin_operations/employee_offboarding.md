@@ -1,11 +1,11 @@
 ---
-title: "Employee Offboarding"
-description: "Employee Offboardingに関するガイド"
+title: "退職者の対応マニュアル"
+description: "社員が退職する際にザイロク上で実施すべき手続きを説明します"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["基本操作"]
-lastUpdated: "2026-01-21"
+tags: ["基本操作","管理者向け","退職"]
+lastUpdated: "2026-01-22"
 ---
 
 # 退職者の対応マニュアル

@@ -1,11 +1,11 @@
 ---
-title: "Emergency Response"
-description: "Emergency Responseに関するガイド"
+title: "緊急時の対応マニュアル"
+description: "システム障害や緊急事態が発生した際の対応手順を説明します"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["基本操作"]
-lastUpdated: "2026-01-21"
+tags: ["基本操作","緊急対応","トラブルシューティング"]
+lastUpdated: "2026-01-22"
 ---
 
 # 緊急時の対応マニュアル

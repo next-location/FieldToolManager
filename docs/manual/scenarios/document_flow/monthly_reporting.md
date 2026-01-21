@@ -1,11 +1,11 @@
 ---
-title: "Monthly Reporting"
-description: "Monthly Reportingに関するガイド"
+title: "月次報告業務"
+description: "月次でのデータ集計とレポート作成の手順を説明します"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["基本操作"]
-lastUpdated: "2026-01-21"
+tags: ["基本操作","報告","マネージャー向け"]
+lastUpdated: "2026-01-22"
 ---
 
 # 月次報告業務

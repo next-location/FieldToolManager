@@ -1,11 +1,11 @@
 ---
-title: "Troubleshooting Common"
-description: "Troubleshooting Commonに関するガイド"
+title: "よくあるトラブルと解決方法"
+description: "ザイロク利用時によくあるトラブルとその解決方法を説明します"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["トラブルシューティング"]
-lastUpdated: "2026-01-21"
+tags: ["トラブルシューティング","基本操作","全ユーザー向け"]
+lastUpdated: "2026-01-22"
 ---
 
 # よくあるトラブルと解決方法

@@ -1,11 +1,11 @@
 ---
-title: "System Health Check"
-description: "System Health Checkに関するガイド"
+title: "システム健全性チェックマニュアル"
+description: "システムの動作とデータの整合性を定期的にチェックする方法を説明します"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["基本操作"]
-lastUpdated: "2026-01-21"
+tags: ["基本操作","管理者向け","メンテナンス"]
+lastUpdated: "2026-01-22"
 ---
 
 # システム健全性チェックマニュアル
