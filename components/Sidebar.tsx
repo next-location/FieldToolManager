@@ -1077,7 +1077,10 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                           : 'text-gray-600 hover:bg-gray-50'
                       }`}
                     >
-                      データエクスポート
+                      <span className="flex items-center justify-between">
+                        <span>データエクスポート</span>
+                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      </span>
                     </Link>
                     {hasDxPackage && (
                       <>
