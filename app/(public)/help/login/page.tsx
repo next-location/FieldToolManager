@@ -39,6 +39,42 @@ export default async function HelpLoginPage() {
       {/* コンテンツ */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <article className="prose prose-blue max-w-none bg-white rounded-lg shadow-sm p-8">
+          <style jsx>{`
+            article :global(h1) {
+              font-size: 1.875rem;
+              font-weight: 700;
+              color: #1f2937;
+              border-bottom: 3px solid #3b82f6;
+              padding-bottom: 0.5rem;
+              margin-top: 2rem;
+              margin-bottom: 1.5rem;
+            }
+            article :global(h2) {
+              font-size: 1.5rem;
+              font-weight: 600;
+              color: #374151;
+              border-left: 4px solid #3b82f6;
+              padding-left: 0.75rem;
+              margin-top: 2rem;
+              margin-bottom: 1rem;
+            }
+            article :global(h3) {
+              font-size: 1.25rem;
+              font-weight: 600;
+              color: #4b5563;
+              padding-left: 0.5rem;
+              border-left: 3px solid #9ca3af;
+              margin-top: 1.5rem;
+              margin-bottom: 0.75rem;
+            }
+            article :global(h4) {
+              font-size: 1.125rem;
+              font-weight: 600;
+              color: #6b7280;
+              margin-top: 1.25rem;
+              margin-bottom: 0.5rem;
+            }
+          `}</style>
           <h1>{article.frontmatter.title}</h1>
           <div dangerouslySetInnerHTML={{ __html: article.content }} />
         </article>
