@@ -1,4 +1,3 @@
-import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 // GET /api/reset-password/validate?token=xxx - トークンの有効性を確認
@@ -11,10 +10,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'トークンが指定されていません' }, { status: 400 })
     }
 
-    const supabase = await createClient()
+    // Service Role Keyでデータ取得（RLS回避）
+    const { createClient } = await import('@supabase/supabase-js')
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
 
     // トークンをpassword_reset_tokensテーブルから検索
-    const { data: resetToken, error } = await supabase
+    const { data: resetToken, error } = await supabaseAdmin
       .from('password_reset_tokens')
       .select('id, user_id, expires_at, used')
       .eq('token', token)
@@ -38,7 +42,7 @@ export async function GET(request: NextRequest) {
     }
 
     // ユーザー情報を取得
-    const { data: user } = await supabase
+    const { data: user } = await supabaseAdmin
       .from('users')
       .select('email')
       .eq('id', resetToken.user_id)

@@ -1,4 +1,3 @@
-import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { validatePassword, DEFAULT_PASSWORD_POLICY } from '@/lib/password-policy'
 
@@ -21,10 +20,15 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const supabase = await createClient()
+    // Service Role Keyでデータ取得・更新（RLS回避）
+    const { createClient } = await import('@supabase/supabase-js')
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
 
     // トークンをpassword_reset_tokensテーブルから検索
-    const { data: resetToken, error: tokenError } = await supabase
+    const { data: resetToken, error: tokenError } = await supabaseAdmin
       .from('password_reset_tokens')
       .select('id, user_id, expires_at, used')
       .eq('token', token)
@@ -48,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ユーザー情報を取得
-    const { data: user } = await supabase
+    const { data: user } = await supabaseAdmin
       .from('users')
       .select('id, email, organization_id')
       .eq('id', resetToken.user_id)
@@ -60,7 +64,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Supabase Authでパスワードを更新
-    const { error: updateError } = await supabase.auth.admin.updateUserById(user.id, {
+    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
       password: password,
     })
 
@@ -70,7 +74,7 @@ export async function POST(request: NextRequest) {
     }
 
     // トークンを使用済みにする
-    await supabase
+    await supabaseAdmin
       .from('password_reset_tokens')
       .update({
         used: true,
@@ -79,7 +83,7 @@ export async function POST(request: NextRequest) {
       .eq('id', resetToken.id)
 
     // 変更履歴記録
-    await supabase.from('user_history').insert({
+    await supabaseAdmin.from('user_history').insert({
       organization_id: user.organization_id,
       user_id: user.id,
       changed_by: user.id, // 自分自身
