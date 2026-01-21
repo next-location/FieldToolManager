@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import crypto from 'crypto'
 
 export async function POST(request: NextRequest) {
@@ -14,10 +13,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = await createClient()
+    // Service Role Keyでユーザー情報を取得（RLS回避）
+    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
+    const supabaseAdmin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
 
     // ユーザーを検索
-    const { data: user, error: userError } = await supabase
+    const { data: user, error: userError } = await supabaseAdmin
       .from('users')
       .select('id, email, name, organization_id')
       .eq('email', email)
@@ -39,7 +43,7 @@ export async function POST(request: NextRequest) {
     expiresAt.setHours(expiresAt.getHours() + 1) // 1時間有効
 
     // トークンをデータベースに保存
-    const { error: tokenError } = await supabase
+    const { error: tokenError } = await supabaseAdmin
       .from('password_reset_tokens')
       .insert({
         user_id: user.id,
