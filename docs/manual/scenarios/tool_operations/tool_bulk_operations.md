@@ -1,3 +1,13 @@
+---
+title: "Tool Bulk Operations"
+description: "Tool Bulk Operationsに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["備品管理"]
+lastUpdated: "2026-01-21"
+---
+
 # 道具の一括操作マニュアル
 
 ## 1. 概要

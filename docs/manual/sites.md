@@ -1,3 +1,13 @@
+---
+title: "現場管理"
+description: "現場管理に関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["基本操作"]
+lastUpdated: "2026-01-21"
+---
+
 # 現場管理
 
 ## 概要

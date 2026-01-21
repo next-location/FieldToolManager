@@ -1,3 +1,13 @@
+---
+title: "Security Best Practices"
+description: "Security Best Practicesに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["基本操作"]
+lastUpdated: "2026-01-21"
+---
+
 # セキュリティのベストプラクティス
 
 ## 1. 概要

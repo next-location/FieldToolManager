@@ -1,3 +1,13 @@
+---
+title: "Purchase Orders Create Issues"
+description: "Purchase Orders Create Issuesに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "qa"
+tags: ["発注書","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 発注書作成 Q&A
 
 ## 基本的な質問

@@ -1,3 +1,13 @@
+---
+title: "勤怠設定"
+description: "勤怠設定に関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["勤怠管理","設定"]
+lastUpdated: "2026-01-21"
+---
+
 # 勤怠設定マニュアル
 
 ## 1. 概要

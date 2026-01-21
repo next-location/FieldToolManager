@@ -1,3 +1,13 @@
+---
+title: "従業員管理"
+description: "従業員管理に関するガイド"
+permission: 2
+plans: ["basic"]
+category: "manual"
+tags: ["従業員管理"]
+lastUpdated: "2026-01-21"
+---
+
 # スタッフ管理マニュアル
 
 **最終更新日**: 2026-01-21

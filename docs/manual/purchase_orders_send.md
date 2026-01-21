@@ -1,3 +1,13 @@
+---
+title: "発注書送付"
+description: "発注書送付に関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["発注書"]
+lastUpdated: "2026-01-21"
+---
+
 # 発注書送付
 
 **最終更新日**: 2026-01-21

@@ -1,3 +1,13 @@
+---
+title: "勤怠管理"
+description: "勤怠管理に関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["勤怠管理"]
+lastUpdated: "2026-01-21"
+---
+
 # 勤怠管理マニュアル
 
 ## 対象者

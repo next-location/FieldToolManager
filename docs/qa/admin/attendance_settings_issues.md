@@ -1,3 +1,13 @@
+---
+title: "Attendance Settings Issues"
+description: "Attendance Settings Issuesに関するガイド"
+permission: 2
+plans: ["basic"]
+category: "qa"
+tags: ["勤怠管理","設定","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # Q&A: 勤怠設定
 
 ## 基本的な質問

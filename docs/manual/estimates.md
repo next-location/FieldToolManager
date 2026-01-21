@@ -1,3 +1,13 @@
+---
+title: "見積書管理"
+description: "見積書管理に関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["見積書"]
+lastUpdated: "2026-01-21"
+---
+
 # 見積書管理
 
 ## 概要

@@ -1,3 +1,13 @@
+---
+title: "備品セット管理"
+description: "備品セット管理に関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["備品管理"]
+lastUpdated: "2026-01-21"
+---
+
 # 道具セット管理マニュアル
 
 ## 対象者

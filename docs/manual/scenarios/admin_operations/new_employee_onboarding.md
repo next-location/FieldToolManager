@@ -1,3 +1,13 @@
+---
+title: "New Employee Onboarding"
+description: "New Employee Onboardingに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["基本操作"]
+lastUpdated: "2026-01-21"
+---
+
 # 新入社員の受け入れマニュアル
 
 ## 1. 概要

@@ -1,3 +1,13 @@
+---
+title: "Purchase Order Flow"
+description: "Purchase Order Flowに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["発注書"]
+lastUpdated: "2026-01-21"
+---
+
 # 発注から支払いまでの流れ
 
 ## 概要

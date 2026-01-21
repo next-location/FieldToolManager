@@ -1,3 +1,13 @@
+---
+title: "Purchase Orders Issues"
+description: "Purchase Orders Issuesに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "qa"
+tags: ["発注書","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 発注書のトラブルシューティング
 
 ## Q1. 発注書は誰が作成できますか？

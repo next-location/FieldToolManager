@@ -1,3 +1,13 @@
+---
+title: "Consumable Management Issues"
+description: "Consumable Management Issuesに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "qa"
+tags: ["消耗品管理","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # Q&A: 消耗品登録・在庫調整
 
 ## 基本的な質問

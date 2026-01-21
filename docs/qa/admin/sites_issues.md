@@ -1,3 +1,13 @@
+---
+title: "Sites Issues"
+description: "Sites Issuesに関するガイド"
+permission: 2
+plans: ["basic"]
+category: "qa"
+tags: ["トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 現場管理のトラブルシューティング
 
 ## Q1. 現場管理は誰が利用できますか？

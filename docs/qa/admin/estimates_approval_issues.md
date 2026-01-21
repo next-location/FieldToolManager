@@ -1,3 +1,13 @@
+---
+title: "Estimates Approval Issues"
+description: "Estimates Approval Issuesに関するガイド"
+permission: 2
+plans: ["basic"]
+category: "qa"
+tags: ["見積書","承認","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 見積書提出・承認（Q&A）
 
 **最終更新日**: 2026-01-21

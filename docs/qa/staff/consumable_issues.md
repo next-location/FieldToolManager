@@ -1,3 +1,13 @@
+---
+title: "Consumable Issues"
+description: "Consumable Issuesに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "qa"
+tags: ["消耗品管理","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 消耗品管理のトラブルシューティング
 
 ## Q1. 消耗品が一覧に表示されません。どうすれば見つけられますか?

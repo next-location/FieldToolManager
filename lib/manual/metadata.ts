@@ -37,7 +37,7 @@ export async function parseMDXFile(filePath: string): Promise<ManualArticle | nu
     // ファイルパスからslugを生成
     const slug = filePath
       .replace(process.cwd(), '')
-      .replace(/^\/content\//, '')
+      .replace(/^\/docs\//, '')
       .replace(/\/page\.mdx?$/, '')
       .replace(/\.mdx?$/, '')
 
@@ -82,8 +82,8 @@ export function getAllMDXFiles(dir: string): string[] {
  * マニュアルディレクトリから全記事を取得
  */
 export async function getAllManualArticles(): Promise<ManualArticle[]> {
-  const manualDir = path.join(process.cwd(), 'content', 'manual')
-  const qaDir = path.join(process.cwd(), 'content', 'qa')
+  const manualDir = path.join(process.cwd(), 'docs', 'manual')
+  const qaDir = path.join(process.cwd(), 'docs', 'qa')
 
   const manualFiles = getAllMDXFiles(manualDir)
   const qaFiles = getAllMDXFiles(qaDir)

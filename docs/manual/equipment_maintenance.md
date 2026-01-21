@@ -1,3 +1,13 @@
+---
+title: "重機メンテナンス記録"
+description: "重機のメンテナンス履歴を記録する方法"
+permission: 2
+plans: ["basic"]
+category: "manual"
+tags: ["重機管理","メンテナンス"]
+lastUpdated: "2026-01-21"
+---
+
 # 重機メンテナンス記録マニュアル
 
 ## 1. 概要

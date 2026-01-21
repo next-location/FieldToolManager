@@ -1,3 +1,13 @@
+---
+title: "データエクスポート"
+description: "システムのデータをCSVファイルでエクスポートする方法"
+permission: 2
+plans: ["basic"]
+category: "manual"
+tags: ["データ管理","エクスポート","CSV"]
+lastUpdated: "2026-01-21"
+---
+
 # データエクスポート
 
 **最終更新日**: 2026-01-22

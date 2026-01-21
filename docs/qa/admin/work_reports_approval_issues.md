@@ -1,3 +1,13 @@
+---
+title: "Work Reports Approval Issues"
+description: "Work Reports Approval Issuesに関するガイド"
+permission: 2
+plans: ["basic"]
+category: "qa"
+tags: ["作業報告","承認","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # Q&A: 作業報告書承認
 
 ## 基本的な質問

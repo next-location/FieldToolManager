@@ -1,3 +1,13 @@
+---
+title: "Clients Issues"
+description: "Clients Issuesに関するガイド"
+permission: 2
+plans: ["basic"]
+category: "qa"
+tags: ["トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 取引先管理のトラブルシューティング
 
 ## Q1. 取引先管理は誰が利用できますか？

@@ -1,3 +1,13 @@
+---
+title: "Work Reports Create Issues"
+description: "Work Reports Create Issuesに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "qa"
+tags: ["作業報告","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 作業報告書作成（Q&A）
 
 **最終更新日**: 2026-01-21

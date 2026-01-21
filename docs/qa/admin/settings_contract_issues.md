@@ -1,3 +1,13 @@
+---
+title: "Settings Contract Issues"
+description: "Settings Contract Issuesに関するガイド"
+permission: 2
+plans: ["basic"]
+category: "qa"
+tags: ["設定","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 契約について Q&A
 
 ## 基本

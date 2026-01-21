@@ -1,3 +1,13 @@
+---
+title: "Mobile Usage"
+description: "Mobile Usageに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "qa"
+tags: ["モバイル"]
+lastUpdated: "2026-01-21"
+---
+
 # スマートフォン・タブレット利用
 
 ## Q1. スマートフォンで使えますか？

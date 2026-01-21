@@ -1,3 +1,13 @@
+---
+title: "Work Reports Issues"
+description: "Work Reports Issuesに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "qa"
+tags: ["作業報告","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 作業報告書のトラブルシューティング
 
 ## Q1. 作業報告書は誰が作成できますか？

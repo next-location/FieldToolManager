@@ -1,3 +1,13 @@
+---
+title: "Mobile Usage"
+description: "Mobile Usageに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["モバイル"]
+lastUpdated: "2026-01-21"
+---
+
 # スマートフォンでの使い方
 
 **最終更新日**: 2026-01-22

@@ -1,3 +1,13 @@
+---
+title: "作業報告設定"
+description: "作業報告設定に関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["作業報告","設定"]
+lastUpdated: "2026-01-21"
+---
+
 # 作業報告書設定
 
 **最終更新日**: 2026-01-21

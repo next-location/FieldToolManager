@@ -1,3 +1,13 @@
+---
+title: "Invoices Issues"
+description: "Invoices Issuesに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "qa"
+tags: ["請求書","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 請求書のトラブルシューティング
 
 ## Q1. 請求書は誰が作成できますか？

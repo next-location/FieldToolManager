@@ -1,3 +1,13 @@
+---
+title: "見積書送付"
+description: "見積書をPDFで出力して顧客に送付する方法"
+permission: 2
+plans: ["basic"]
+category: "manual"
+tags: ["見積書","送付"]
+lastUpdated: "2026-01-21"
+---
+
 # 見積書送付
 
 **最終更新日**: 2026-01-21

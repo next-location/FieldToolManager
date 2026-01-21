@@ -1,3 +1,13 @@
+---
+title: "Qr Code Guide"
+description: "Qr Code Guideに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["QRコード"]
+lastUpdated: "2026-01-21"
+---
+
 # QRコード活用ガイド
 
 **最終更新日**: 2026-01-22

@@ -1,3 +1,13 @@
+---
+title: "見積書承認フロー"
+description: "見積書の承認申請と承認処理の手順"
+permission: 2
+plans: ["basic"]
+category: "manual"
+tags: ["見積書","承認"]
+lastUpdated: "2026-01-21"
+---
+
 # 見積書提出・承認マニュアル
 
 **最終更新日**: 2026-01-21

@@ -1,3 +1,13 @@
+---
+title: "Daily Workflow Issues"
+description: "Daily Workflow Issuesに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "qa"
+tags: ["トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 現場スタッフの1日の流れのトラブルシューティング
 
 ## Q1. 初めてザイロクを使います。何から始めればいいですか?

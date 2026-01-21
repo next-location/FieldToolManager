@@ -1,3 +1,13 @@
+---
+title: "Warehouse Issues"
+description: "Warehouse Issuesに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "qa"
+tags: ["トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 倉庫位置管理のトラブルシューティング
 
 ## Q1. 倉庫位置管理とは何ですか?

@@ -1,3 +1,13 @@
+---
+title: "Consumable Orders Issues"
+description: "Consumable Orders Issuesに関するガイド"
+permission: 2
+plans: ["basic"]
+category: "qa"
+tags: ["消耗品管理","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 消耗品発注管理（Q&A）
 
 **最終更新日**: 2026-01-21

@@ -1,3 +1,13 @@
+---
+title: "Estimates Issues"
+description: "Estimates Issuesに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "qa"
+tags: ["見積書","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 見積書のトラブルシューティング
 
 ## Q1. 見積書は誰が作成できますか？

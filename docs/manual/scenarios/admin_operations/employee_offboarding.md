@@ -1,3 +1,13 @@
+---
+title: "Employee Offboarding"
+description: "Employee Offboardingに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["基本操作"]
+lastUpdated: "2026-01-21"
+---
+
 # 退職者の対応マニュアル
 
 ## 1. 概要

@@ -1,3 +1,13 @@
+---
+title: "契約設定"
+description: "契約設定に関するガイド"
+permission: 4
+plans: ["basic"]
+category: "manual"
+tags: ["設定"]
+lastUpdated: "2026-01-21"
+---
+
 # 契約について マニュアル
 
 ## 概要

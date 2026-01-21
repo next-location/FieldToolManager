@@ -1,3 +1,13 @@
+---
+title: "Attendance Leader Qr Issues"
+description: "Attendance Leader Qr Issuesに関するガイド"
+permission: 2
+plans: ["basic"]
+category: "qa"
+tags: ["QRコード","勤怠管理","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # リーダー用QR発行（Q&A）
 
 **最終更新日**: 2026-01-21

@@ -1,3 +1,13 @@
+---
+title: "請求書管理"
+description: "請求書管理に関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["請求書"]
+lastUpdated: "2026-01-21"
+---
+
 # 請求書管理
 
 ## 概要

@@ -1,3 +1,13 @@
+---
+title: "Qr Scan Issues"
+description: "Qr Scan Issuesに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "qa"
+tags: ["QRコード","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # QRスキャンのトラブルシューティング
 
 ## Q1. QRコードが読み取れません

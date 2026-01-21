@@ -1,3 +1,13 @@
+---
+title: "重機管理"
+description: "重機の登録と管理方法"
+permission: 2
+plans: ["basic"]
+category: "manual"
+tags: ["重機管理","登録"]
+lastUpdated: "2026-01-21"
+---
+
 # 重機管理マニュアル
 
 ## 対象者

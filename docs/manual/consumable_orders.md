@@ -1,3 +1,13 @@
+---
+title: "消耗品発注"
+description: "消耗品発注に関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["消耗品管理"]
+lastUpdated: "2026-01-21"
+---
+
 # 消耗品発注管理マニュアル
 
 **最終更新日**: 2026-01-21

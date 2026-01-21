@@ -1,3 +1,13 @@
+---
+title: "データエクスポートに関するQ&A"
+description: "CSVエクスポート機能に関する質問"
+permission: 2
+plans: ["basic"]
+category: "qa"
+tags: ["エクスポート","CSV"]
+lastUpdated: "2026-01-21"
+---
+
 # データエクスポートのよくある質問（Q&A）
 
 **最終更新日**: 2026-01-22

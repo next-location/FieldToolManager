@@ -1,3 +1,13 @@
+---
+title: "Monthly Reporting Issues"
+description: "Monthly Reporting Issuesに関するガイド"
+permission: 2
+plans: ["basic"]
+category: "qa"
+tags: ["トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 月次報告業務 Q&A
 
 ## カテゴリ1: 基本的な流れ

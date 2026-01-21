@@ -1,3 +1,13 @@
+---
+title: "Tool Handover"
+description: "Tool Handoverに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["備品管理"]
+lastUpdated: "2026-01-21"
+---
+
 # 道具の引き継ぎ手順マニュアル
 
 ## 1. 概要

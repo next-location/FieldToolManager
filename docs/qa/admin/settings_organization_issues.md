@@ -1,3 +1,13 @@
+---
+title: "Settings Organization Issues"
+description: "Settings Organization Issuesに関するガイド"
+permission: 2
+plans: ["basic"]
+category: "qa"
+tags: ["設定","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 組織情報設定 Q&A
 
 ## 基本

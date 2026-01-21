@@ -1,3 +1,13 @@
+---
+title: "従業員管理に関するQ&A"
+description: "従業員の追加・編集・権限設定に関する質問"
+permission: 3
+plans: ["basic"]
+category: "qa"
+tags: ["従業員管理"]
+lastUpdated: "2026-01-21"
+---
+
 # スタッフ管理のよくある質問（Q&A）
 
 **最終更新日**: 2026-01-21

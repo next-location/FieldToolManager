@@ -1,3 +1,13 @@
+---
+title: "Equipment Issues"
+description: "Equipment Issuesに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "qa"
+tags: ["重機管理","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 重機管理のトラブルシューティング
 
 ## Q1. 重機が一覧に表示されません。どうすれば見つけられますか?

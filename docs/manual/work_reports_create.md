@@ -1,3 +1,13 @@
+---
+title: "作業報告書作成"
+description: "作業報告書作成に関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["作業報告"]
+lastUpdated: "2026-01-21"
+---
+
 # 作業報告書作成マニュアル
 
 **最終更新日**: 2026-01-21

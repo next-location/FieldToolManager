@@ -1,3 +1,13 @@
+---
+title: "Troubleshooting Common"
+description: "Troubleshooting Commonに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # よくあるトラブルと解決方法
 
 ## 1. 概要

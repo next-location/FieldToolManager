@@ -1,3 +1,13 @@
+---
+title: "保管場所管理"
+description: "保管場所管理に関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["基本操作"]
+lastUpdated: "2026-01-21"
+---
+
 # 倉庫位置管理マニュアル
 
 ## 対象者

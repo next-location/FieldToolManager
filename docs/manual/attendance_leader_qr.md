@@ -1,3 +1,13 @@
+---
+title: "リーダー用QR勤怠管理"
+description: "リーダー用QR勤怠管理に関するガイド"
+permission: 2
+plans: ["basic"]
+category: "manual"
+tags: ["QRコード","勤怠管理"]
+lastUpdated: "2026-01-21"
+---
+
 # リーダー用QR発行マニュアル
 
 **最終更新日**: 2026-01-21

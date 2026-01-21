@@ -1,3 +1,13 @@
+---
+title: "Invoices Approval Issues"
+description: "Invoices Approval Issuesに関するガイド"
+permission: 2
+plans: ["basic"]
+category: "qa"
+tags: ["請求書","承認","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 請求書提出・承認 Q&A
 
 ## 基本的な質問

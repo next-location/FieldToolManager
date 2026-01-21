@@ -1,3 +1,13 @@
+---
+title: "自社拠点管理"
+description: "自社拠点管理に関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["基本操作"]
+lastUpdated: "2026-01-21"
+---
+
 # 自社拠点管理
 
 **最終更新日**: 2026-01-21

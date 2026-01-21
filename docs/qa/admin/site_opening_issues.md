@@ -1,3 +1,13 @@
+---
+title: "Site Opening Issues"
+description: "Site Opening Issuesに関するガイド"
+permission: 2
+plans: ["basic"]
+category: "qa"
+tags: ["トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 新規現場立ち上げのトラブルシューティング
 
 ## Q1. 現場を登録したいのですが、取引先が選択肢に表示されません。

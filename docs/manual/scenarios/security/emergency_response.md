@@ -1,3 +1,13 @@
+---
+title: "Emergency Response"
+description: "Emergency Responseに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["基本操作"]
+lastUpdated: "2026-01-21"
+---
+
 # 緊急時の対応マニュアル
 
 ## 1. 概要

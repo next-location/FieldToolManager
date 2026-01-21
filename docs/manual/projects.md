@@ -1,3 +1,13 @@
+---
+title: "案件管理"
+description: "案件管理に関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["基本操作"]
+lastUpdated: "2026-01-21"
+---
+
 # 工事管理マニュアル
 
 **最終更新日**: 2026-01-21

@@ -1,3 +1,13 @@
+---
+title: "Site Closing"
+description: "Site Closingに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["基本操作"]
+lastUpdated: "2026-01-21"
+---
+
 # 現場完了・片付け手順
 
 **最終更新日**: 2026-01-21

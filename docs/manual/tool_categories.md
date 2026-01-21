@@ -1,3 +1,13 @@
+---
+title: "備品カテゴリ管理"
+description: "備品カテゴリ管理に関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["備品管理"]
+lastUpdated: "2026-01-21"
+---
+
 # 道具カテゴリ管理マニュアル
 
 ## 概要

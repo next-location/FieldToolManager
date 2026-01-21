@@ -1,3 +1,13 @@
+---
+title: "QRコードスキャン"
+description: "スマートフォンでQRコードをスキャンして備品の貸出・返却を行う方法"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["QRコード","スキャン","基本操作"]
+lastUpdated: "2026-01-21"
+---
+
 # QRスキャンマニュアル
 
 **最終更新日**: 2026-01-21

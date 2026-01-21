@@ -1,3 +1,13 @@
+---
+title: "Staff Quick Guide"
+description: "Staff Quick Guideに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["従業員管理"]
+lastUpdated: "2026-01-21"
+---
+
 # スタッフ向けクイックガイド
 
 **最終更新日**: 2026-01-22

@@ -1,3 +1,13 @@
+---
+title: "Settings Issues"
+description: "Settings Issuesに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "qa"
+tags: ["設定","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 設定のよくある質問（Q&A）
 
 **最終更新日**: 2026-01-21

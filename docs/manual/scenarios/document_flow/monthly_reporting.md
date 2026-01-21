@@ -1,3 +1,13 @@
+---
+title: "Monthly Reporting"
+description: "Monthly Reportingに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["基本操作"]
+lastUpdated: "2026-01-21"
+---
+
 # 月次報告業務
 
 ## 概要

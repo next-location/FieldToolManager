@@ -1,3 +1,13 @@
+---
+title: "Settings Attendance Issues"
+description: "Settings Attendance Issuesに関するガイド"
+permission: 2
+plans: ["basic"]
+category: "qa"
+tags: ["勤怠管理","設定","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 出退勤設定 Q&A
 
 ## 基本

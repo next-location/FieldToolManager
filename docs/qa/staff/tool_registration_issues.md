@@ -1,3 +1,13 @@
+---
+title: "Tool Registration Issues"
+description: "Tool Registration Issuesに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "qa"
+tags: ["備品管理","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 道具登録のよくある質問（Q&A）
 
 ## Q1. 共通マスタと自社マスタの違いは何ですか?

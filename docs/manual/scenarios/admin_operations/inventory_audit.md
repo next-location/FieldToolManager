@@ -1,3 +1,13 @@
+---
+title: "Inventory Audit"
+description: "Inventory Auditに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["基本操作"]
+lastUpdated: "2026-01-21"
+---
+
 # 棚卸し作業マニュアル
 
 ## 1. 概要

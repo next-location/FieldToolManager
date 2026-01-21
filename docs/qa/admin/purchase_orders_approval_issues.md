@@ -1,3 +1,13 @@
+---
+title: "Purchase Orders Approval Issues"
+description: "Purchase Orders Approval Issuesに関するガイド"
+permission: 2
+plans: ["basic"]
+category: "qa"
+tags: ["発注書","承認","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 発注書承認フロー（金額別） Q&A
 
 ## 基本的な質問

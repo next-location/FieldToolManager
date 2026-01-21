@@ -1,3 +1,13 @@
+---
+title: "勤怠打刻"
+description: "勤怠打刻に関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["勤怠管理"]
+lastUpdated: "2026-01-21"
+---
+
 # 出退勤打刻マニュアル
 
 **最終更新日**: 2026-01-21

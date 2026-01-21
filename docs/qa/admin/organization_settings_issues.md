@@ -1,3 +1,13 @@
+---
+title: "組織設定に関するQ&A"
+description: "組織情報やプラン設定に関する質問"
+permission: 4
+plans: ["basic"]
+category: "qa"
+tags: ["設定","組織"]
+lastUpdated: "2026-01-21"
+---
+
 # 運用設定・自社拠点管理のよくある質問（Q&A）
 
 **最終更新日**: 2026-01-21

@@ -1,3 +1,13 @@
+---
+title: "Attendance Issues"
+description: "Attendance Issuesに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "qa"
+tags: ["勤怠管理","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 勤怠管理のトラブルシューティング
 
 ## Q1. 出勤打刻はどこでできますか?

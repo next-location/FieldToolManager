@@ -1,3 +1,13 @@
+---
+title: "Leader Quick Guide"
+description: "Leader Quick Guideに関するガイド"
+permission: 2
+plans: ["basic"]
+category: "manual"
+tags: ["基本操作"]
+lastUpdated: "2026-01-21"
+---
+
 # リーダー向けクイックガイド
 
 **最終更新日**: 2026-01-22

@@ -1,3 +1,13 @@
+---
+title: "消耗品発注承認フロー"
+description: "消耗品発注承認フローに関するガイド"
+permission: 3
+plans: ["basic"]
+category: "manual"
+tags: ["消耗品管理","承認"]
+lastUpdated: "2026-01-21"
+---
+
 # 消耗品発注の承認フロー
 
 **最終更新日**: 2026-01-21

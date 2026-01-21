@@ -1,3 +1,13 @@
+---
+title: "Projects Issues"
+description: "Projects Issuesに関するガイド"
+permission: 2
+plans: ["basic"]
+category: "qa"
+tags: ["トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 工事管理のよくある質問（Q&A）
 
 **最終更新日**: 2026-01-21

@@ -1,3 +1,13 @@
+---
+title: "作業報告書承認"
+description: "作業報告書承認に関するガイド"
+permission: 3
+plans: ["basic"]
+category: "manual"
+tags: ["作業報告","承認"]
+lastUpdated: "2026-01-21"
+---
+
 # 作業報告書承認マニュアル
 
 ## 1. 概要

@@ -1,3 +1,13 @@
+---
+title: "Admin Quick Guide"
+description: "Admin Quick Guideに関するガイド"
+permission: 4
+plans: ["basic"]
+category: "manual"
+tags: ["基本操作"]
+lastUpdated: "2026-01-21"
+---
+
 # 管理者向けクイックガイド
 
 **最終更新日**: 2026-01-22

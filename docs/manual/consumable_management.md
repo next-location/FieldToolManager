@@ -1,3 +1,13 @@
+---
+title: "消耗品管理"
+description: "消耗品管理に関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["消耗品管理"]
+lastUpdated: "2026-01-21"
+---
+
 # 消耗品登録（在庫調整）マニュアル
 
 ## 1. 概要

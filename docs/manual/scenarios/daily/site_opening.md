@@ -1,3 +1,13 @@
+---
+title: "Site Opening"
+description: "Site Openingに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["基本操作"]
+lastUpdated: "2026-01-21"
+---
+
 # 新規現場の立ち上げ手順
 
 **最終更新日**: 2026-01-21

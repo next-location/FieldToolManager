@@ -1,3 +1,13 @@
+---
+title: "設定"
+description: "設定に関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["設定"]
+lastUpdated: "2026-01-21"
+---
+
 # 設定マニュアル
 
 **最終更新日**: 2026-01-21

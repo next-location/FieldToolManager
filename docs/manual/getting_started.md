@@ -1,3 +1,13 @@
+---
+title: "はじめに"
+description: "はじめにに関するガイド"
+permission: 0
+plans: ["basic"]
+category: "manual"
+tags: ["基本操作"]
+lastUpdated: "2026-01-21"
+---
+
 # はじめに - ザイロク（Zairoku）ユーザーマニュアル
 
 ## ザイロクへようこそ

@@ -1,3 +1,13 @@
+---
+title: "見積書作成"
+description: "新しい見積書を作成する手順"
+permission: 2
+plans: ["basic"]
+category: "manual"
+tags: ["見積書","作成"]
+lastUpdated: "2026-01-21"
+---
+
 # 見積書作成マニュアル
 
 **最終更新日**: 2026-01-21

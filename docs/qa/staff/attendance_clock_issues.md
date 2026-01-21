@@ -1,3 +1,13 @@
+---
+title: "Attendance Clock Issues"
+description: "Attendance Clock Issuesに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "qa"
+tags: ["勤怠管理","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # 出退勤打刻のよくある質問（Q&A）
 
 ## Q1. 出退勤打刻はどこからアクセスできますか?

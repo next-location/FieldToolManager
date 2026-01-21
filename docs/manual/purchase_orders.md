@@ -1,3 +1,13 @@
+---
+title: "発注書管理"
+description: "発注書の作成と管理方法"
+permission: 3
+plans: ["basic"]
+category: "manual"
+tags: ["発注書","管理"]
+lastUpdated: "2026-01-21"
+---
+
 # 発注書管理
 
 ## 概要

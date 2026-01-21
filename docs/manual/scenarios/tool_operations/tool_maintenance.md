@@ -1,3 +1,13 @@
+---
+title: "Tool Maintenance"
+description: "Tool Maintenanceに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "manual"
+tags: ["備品管理"]
+lastUpdated: "2026-01-21"
+---
+
 # 道具のメンテナンス・点検マニュアル
 
 ## 1. 概要

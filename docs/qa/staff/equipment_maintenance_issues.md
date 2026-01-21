@@ -1,3 +1,13 @@
+---
+title: "Equipment Maintenance Issues"
+description: "Equipment Maintenance Issuesに関するガイド"
+permission: 1
+plans: ["basic"]
+category: "qa"
+tags: ["重機管理","トラブルシューティング"]
+lastUpdated: "2026-01-21"
+---
+
 # Q&A: 重機メンテナンス記録
 
 ## 基本的な質問

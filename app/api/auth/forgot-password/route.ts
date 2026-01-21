@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import crypto from 'crypto'
-import { Resend } from 'resend'
-
-// メール機能は一時的に無効化（本番環境でResend APIキー設定後に有効化）
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
 export async function POST(request: NextRequest) {
   try {
@@ -60,16 +56,11 @@ export async function POST(request: NextRequest) {
 
     // メール送信
     try {
-      if (!resend) {
-        console.warn('Resend not configured, skipping email');
-        return NextResponse.json({
-          success: true,
-          message: 'メールサービスが設定されていません。管理者にお問い合わせください。'
-        })
-      }
+      const { Resend } = await import('resend')
+      const resend = new Resend(process.env.RESEND_API_KEY!)
 
       await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL || 'noreply@zairoku.com',
+        from: 'ザイロク <noreply@zairoku.com>',
         to: email,
         subject: 'パスワードリセットのご案内 - ザイロク',
         html: `
