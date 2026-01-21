@@ -305,12 +305,4 @@ lastUpdated: "2026-01-22"
 
 ---
 
-## 関連機能
-
-- [はじめに](getting_started.md) - ザイロクの基本的な使い方
-- [設定](settings.md) - パスワード変更、プロフィール設定
-- [よくあるトラブルと解決方法](scenarios/security/troubleshooting_common.md) - トラブルシューティング
-
----
-
 **最終更新日**: 2026-01-22
