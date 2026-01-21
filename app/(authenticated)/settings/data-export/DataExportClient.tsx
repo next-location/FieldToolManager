@@ -87,33 +87,33 @@ export function DataExportClient({ counts }: DataExportClientProps) {
             disabled={exporting}
           />
           <ExportRow
-            label="道具マスタ"
+            label="道具マスタ管理"
             count={counts.tools}
-            onExport={() => handleExport('tools', '道具マスタ')}
+            onExport={() => handleExport('tools', '道具マスタ管理')}
             disabled={exporting}
           />
           <ExportRow
-            label="消耗品マスタ"
+            label="消耗品一覧"
             count={counts.consumables}
-            onExport={() => handleExport('consumables', '消耗品マスタ')}
+            onExport={() => handleExport('consumables', '消耗品一覧')}
             disabled={exporting}
           />
           <ExportRow
-            label="スタッフ情報"
+            label="スタッフ管理"
             count={counts.staff}
-            onExport={() => handleExport('staff', 'スタッフ情報')}
+            onExport={() => handleExport('staff', 'スタッフ管理')}
             disabled={exporting}
           />
           <ExportRow
-            label="現場情報"
+            label="現場マスタ"
             count={counts.sites}
-            onExport={() => handleExport('sites', '現場情報')}
+            onExport={() => handleExport('sites', '現場マスタ')}
             disabled={exporting}
           />
           <ExportRow
-            label="設備管理"
+            label="重機一覧"
             count={counts.equipment}
-            onExport={() => handleExport('equipment', '設備管理')}
+            onExport={() => handleExport('equipment', '重機一覧')}
             disabled={exporting}
           />
         </div>
@@ -129,15 +129,15 @@ export function DataExportClient({ counts }: DataExportClientProps) {
         </div>
         <div className="divide-y divide-gray-200">
           <ExportRow
-            label="見積書一覧"
+            label="見積書管理"
             count={counts.estimates}
-            onExport={() => handleExport('estimates', '見積書一覧')}
+            onExport={() => handleExport('estimates', '見積書管理')}
             disabled={exporting}
           />
           <ExportRow
-            label="請求書一覧"
+            label="請求書管理"
             count={counts.invoices}
-            onExport={() => handleExport('invoices', '請求書一覧')}
+            onExport={() => handleExport('invoices', '請求書管理')}
             disabled={exporting}
           />
           <ExportRow
