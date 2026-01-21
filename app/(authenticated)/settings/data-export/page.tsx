@@ -12,13 +12,20 @@ export default async function DataExportPage() {
 
   // 各データの件数を取得
   const [
+    { count: clientsCount },
     { count: toolsCount },
     { count: consumablesCount },
     { count: staffCount },
     { count: sitesCount },
     { count: movementsCount },
     { count: equipmentCount },
+    { count: purchaseOrdersCount },
   ] = await Promise.all([
+    supabase
+      .from('clients')
+      .select('*', { count: 'exact', head: true })
+      .eq('organization_id', organizationId)
+      .is('deleted_at', null),
     supabase
       .from('tools')
       .select('*', { count: 'exact', head: true })
@@ -49,6 +56,11 @@ export default async function DataExportPage() {
       .select('*', { count: 'exact', head: true })
       .eq('organization_id', organizationId)
       .is('deleted_at', null),
+    supabase
+      .from('purchase_orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('organization_id', organizationId)
+      .is('deleted_at', null),
   ])
 
   return (
@@ -63,12 +75,14 @@ export default async function DataExportPage() {
 
         <DataExportClient
           counts={{
+            clients: clientsCount || 0,
             tools: toolsCount || 0,
             consumables: consumablesCount || 0,
             staff: staffCount || 0,
             sites: sitesCount || 0,
             movements: movementsCount || 0,
             equipment: equipmentCount || 0,
+            purchaseOrders: purchaseOrdersCount || 0,
           }}
         />
       </div>

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { copyPresetToOrganization, deleteToolMaster } from './actions'
 import { ToolMasterForm } from './ToolMasterForm'
+import { ToolsExportButton } from './ExportButton'
 
 type Preset = {
   id: string
@@ -137,27 +138,33 @@ export function ToolMasterClient({
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">道具マスタ管理</h1>
-        {isAdmin && (
-          <div className="flex space-x-3">
-            <Link
-              href="/master/tools/import"
-              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-            >
-              📥 CSVインポート
-            </Link>
-            <button
-              onClick={() => {
-                setEditingMaster(null)
-                setShowForm(true)
-              }}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
-            >
-              + 新規登録
-            </button>
-          </div>
-        )}
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">道具マスタ管理</h1>
+          {isAdmin && (
+            <div className="hidden sm:flex gap-3">
+              <ToolsExportButton />
+              <Link
+                href="/master/tools/import"
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              >
+                📥 CSVインポート
+              </Link>
+              <button
+                onClick={() => {
+                  setEditingMaster(null)
+                  setShowForm(true)
+                }}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+              >
+                + 新規登録
+              </button>
+            </div>
+          )}
+        </div>
+        <p className="text-sm text-gray-600">
+          道具の基本情報を管理します
+        </p>
       </div>
 
       {/* エラー・成功メッセージ */}

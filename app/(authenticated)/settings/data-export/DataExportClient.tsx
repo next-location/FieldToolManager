@@ -11,6 +11,8 @@ interface DataExportClientProps {
     sites: number
     movements: number
     equipment: number
+    clients: number
+    purchaseOrders: number
   }
 }
 
@@ -77,6 +79,12 @@ export function DataExportClient({ counts }: DataExportClientProps) {
         </div>
         <div className="divide-y divide-gray-200">
           <ExportRow
+            label="取引先マスタ"
+            count={counts.clients}
+            onExport={() => handleExport('clients', '取引先マスタ')}
+            disabled={exporting}
+          />
+          <ExportRow
             label="道具マスタ"
             count={counts.tools}
             onExport={() => handleExport('tools', '道具マスタ')}
@@ -109,15 +117,21 @@ export function DataExportClient({ counts }: DataExportClientProps) {
         </div>
       </div>
 
-      {/* 履歴データ */}
+      {/* 取引・履歴データ */}
       <div className="bg-white rounded-lg shadow">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-medium text-gray-900">履歴データ</h2>
+          <h2 className="text-lg font-medium text-gray-900">取引・履歴データ</h2>
           <p className="mt-1 text-sm text-gray-500">
-            操作履歴や移動記録をエクスポートします（直近1000件）
+            発注書、操作履歴や移動記録をエクスポートします
           </p>
         </div>
         <div className="divide-y divide-gray-200">
+          <ExportRow
+            label="発注書一覧"
+            count={counts.purchaseOrders}
+            onExport={() => handleExport('purchase-orders', '発注書一覧')}
+            disabled={exporting}
+          />
           <ExportRow
             label="在庫移動履歴"
             count={Math.min(counts.movements, 1000)}

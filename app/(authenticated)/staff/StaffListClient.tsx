@@ -12,6 +12,7 @@ import { PlanUpgradeModal } from './PlanUpgradeModal'
 import StaffPageMobileMenu from '@/components/staff/StaffPageMobileMenu'
 import StaffFilterModal from '@/components/staff/StaffFilterModal'
 import StaffPageFAB from '@/components/staff/StaffPageFAB'
+import { ExportButton } from '@/components/export/ExportButton'
 
 interface User {
   id: string
@@ -252,7 +253,8 @@ export function StaffListClient({ userRole, organization, departments, isImperso
           {isAdmin && (
             <>
               {/* PC表示: 従来通り横並び */}
-              <div className="hidden sm:flex space-x-2">
+              <div className="hidden sm:flex gap-3">
+                <ExportButton endpoint="/api/staff/export" filename="staff" />
                 {isImpersonating && (
                   <button
                     onClick={() => setIsBulkImportModalOpen(true)}
