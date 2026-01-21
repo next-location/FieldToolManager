@@ -61,11 +61,11 @@ lastUpdated: "2026-01-22"
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin: 2rem 0;">
   <div>
     <h3 style="margin-top: 0;">PCの場合</h3>
-    <img src="/images/manual/login/login-screen-pc.png" alt="ログイン画面（PC）" style="width: 100%; height: 400px; object-fit: contain; border: 1px solid #e5e7eb; border-radius: 0.5rem; background: #f9fafb;" />
+    <img src="/images/manual/login/login-screen-pc.png" alt="ログイン画面（PC）" style="width: 100%; height: 400px; object-fit: contain;" />
   </div>
   <div>
     <h3 style="margin-top: 0;">スマートフォンの場合</h3>
-    <img src="/images/manual/login/login-screen-mobile.png" alt="ログイン画面（スマホ）" style="width: 100%; height: 400px; object-fit: contain; border: 1px solid #e5e7eb; border-radius: 0.5rem; background: #f9fafb;" />
+    <img src="/images/manual/login/login-screen-mobile.png" alt="ログイン画面（スマホ）" style="width: 100%; height: 400px; object-fit: contain;" />
   </div>
 </div>
 
@@ -96,7 +96,7 @@ lastUpdated: "2026-01-22"
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin: 2rem 0;">
   <div>
     <h4 style="margin-top: 0;">PCの場合</h4>
-    <img src="/images/manual/login/dashboard-after-login.png" alt="ダッシュボード画面（PC）" style="width: 100%; height: 400px; object-fit: contain; border: 1px solid #e5e7eb; border-radius: 0.5rem; background: #f9fafb;" />
+    <img src="/images/manual/login/dashboard-after-login.png" alt="ダッシュボード画面（PC）" style="width: 100%; height: 400px; object-fit: contain;" />
     <ul style="margin-top: 1rem;">
       <li>サイドメニューが左側に表示されます</li>
       <li>ダッシュボードに各機能へのショートカットが表示されます</li>
@@ -104,7 +104,7 @@ lastUpdated: "2026-01-22"
   </div>
   <div>
     <h4 style="margin-top: 0;">スマートフォンの場合</h4>
-    <img src="/images/manual/login/dashboard-after-login-mobile.png" alt="ダッシュボード画面（スマホ）" style="width: 100%; height: 400px; object-fit: contain; border: 1px solid #e5e7eb; border-radius: 0.5rem; background: #f9fafb;" />
+    <img src="/images/manual/login/dashboard-after-login-mobile.png" alt="ダッシュボード画面（スマホ）" style="width: 100%; height: 400px; object-fit: contain;" />
     <ul style="margin-top: 1rem;">
       <li>下部に固定ナビゲーションが表示されます</li>
       <li>メニューアイコンから各機能にアクセスできます</li>
@@ -185,7 +185,7 @@ lastUpdated: "2026-01-22"
 1. **ログイン画面の「パスワードをお忘れですか？」リンクをクリック**
 
 <div style="text-align: center; margin: 2rem 0;">
-  <img src="/images/manual/login/password-forgot-form.png" alt="パスワード忘れフォーム" style="max-width: 600px; width: 100%; border: 1px solid #e5e7eb; border-radius: 0.5rem;" />
+  <img src="/images/manual/login/password-forgot-form.png" alt="パスワード忘れフォーム" style="max-width: 600px; width: 100%;" />
 </div>
 
 2. **登録されているメールアドレスを入力**
@@ -195,7 +195,7 @@ lastUpdated: "2026-01-22"
 4. **届いたメールからパスワードをリセット**
 
 <div style="text-align: center; margin: 2rem 0;">
-  <img src="/images/manual/login/password-reset-form.png" alt="パスワードリセットフォーム" style="max-width: 600px; width: 100%; border: 1px solid #e5e7eb; border-radius: 0.5rem;" />
+  <img src="/images/manual/login/password-reset-form.png" alt="パスワードリセットフォーム" style="max-width: 600px; width: 100%;" />
 </div>
 
    - メール内のリンクをクリック
