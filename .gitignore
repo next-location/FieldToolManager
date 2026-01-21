@@ -91,6 +91,7 @@ temp/
 # Backup files
 *.backup
 *.bak
+backups/
 
 # Lock files (keep package-lock.json)
 yarn.lock

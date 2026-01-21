@@ -1068,6 +1068,17 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                         <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                       </span>
                     </Link>
+                    <Link
+                      href="/settings/data-export"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive('/settings/data-export')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      データエクスポート
+                    </Link>
                     {hasDxPackage && (
                       <>
                         <Link

@@ -57,7 +57,14 @@
       "Bash(else echo \"DATABASE_URL is set\")",
       "Bash(for i in {1..5})",
       "Bash(do echo \"試行 $i/5...\")",
-      "Bash(git diff:*)"
+      "Bash(git diff:*)",
+      "Bash(mkdir:*)",
+      "Bash(for file in docs/manual/equipment_maintenance.md docs/manual/equipment_management.md docs/manual/estimates.md docs/manual/estimates_approval.md docs/manual/estimates_send.md)",
+      "Bash(for:*)",
+      "Bash(awk:*)",
+      "Bash(xargs:*)",
+      "Bash(while read f)",
+      "Bash(do [ -f \"docs/manual/$f\" ])"
     ],
     "deny": [],
     "ask": []
