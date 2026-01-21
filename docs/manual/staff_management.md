@@ -4,8 +4,8 @@ description: "従業員管理に関するガイド"
 permission: 2
 plans: ["basic"]
 category: "manual"
-tags: ["従業員管理"]
-lastUpdated: "2026-01-21"
+tags: ["従業員管理","スタッフ管理","社員管理","ユーザー管理","アカウント","権限","ロール","招待","登録","メンバー","人事","組織"]
+lastUpdated: "2026-01-22"
 ---
 
 # スタッフ管理マニュアル

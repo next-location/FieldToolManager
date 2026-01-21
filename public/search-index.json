@@ -1,40 +1,1464 @@
 [
   {
-    "slug": "manual/00_public/login",
+    "slug": "manual/attendance",
+    "title": "勤怠管理",
+    "description": "勤怠管理に関するガイド",
+    "content": "<h1>勤怠管理マニュアル</h1>\n<h2>対象者</h2>\n<p>このマニュアルは、出退勤管理を行うすべてのユーザーを対象としています。</p>\n<ul>\n<li><strong>Staff（スタッフ）</strong>: 自分の出退勤打刻、休憩登録、自分の勤怠記録閲覧</li>\n<li><strong>Leader（リーダー）</strong>: スタッフの業務 + 現場QR発行</li>\n<li><strong>Manager（マネージャー）</strong>: リーダーの業務 + 全員の勤怠管理、月次集計</li>\n<li><strong>Admin（管理者）</strong>: 全機能 + 勤怠設定、手動修正</li>\n</ul>\n<hr>\n<h2>前提条件</h2>\n<p>勤怠管理を使用する前に、以下を確認してください。</p>\n<ol>\n<li><strong>契約プラン</strong>: 現場DX業務効率化パック、または フル機能統合パックが契約済みであること</li>\n<li><strong>勤怠設定</strong>: 管理者が勤怠設定を完了していること</li",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "勤怠管理",
+      "出勤",
+      "退勤",
+      "打刻",
+      "勤務時間",
+      "労働時間",
+      "タイムカード",
+      "出退勤",
+      "休憩",
+      "勤怠記録",
+      "勤務記録",
+      "出勤簿"
+    ]
+  },
+  {
+    "slug": "manual/attendance_clock",
+    "title": "勤怠打刻",
+    "description": "勤怠打刻に関するガイド",
+    "content": "<h1>出退勤打刻マニュアル</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: 全ユーザー（Staff、Leader、Manager、Admin）</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E6%A6%82%E8%A6%81\">概要</a></li>\n<li><a href=\"#%E5%87%BA%E5%8B%A4%E6%89%93%E5%88%BB%E3%81%AE%E6%96%B9%E6%B3%95\">出勤打刻の方法</a></li>\n<li><a href=\"#%E9%80%80%E5%8B%A4%E6%89%93%E5%88%BB%E3%81%AE%E6%96%B9%E6%B3%95\">退勤打刻の方法</a></li>\n<li><a href=\"#qr%E3%82%B3%E3%83%BC%E3%83%89%E3%81%A7%E3%81%AE%E6%89%93%E5%88%BB\">QRコードでの打刻</a></li>\n<li><a href=\"#%E6%89%8B",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "勤怠管理"
+    ]
+  },
+  {
+    "slug": "manual/attendance_leader_qr",
+    "title": "リーダー用QR勤怠管理",
+    "description": "リーダー用QR勤怠管理に関するガイド",
+    "content": "<h1>リーダー用QR発行マニュアル</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: Leader、Manager、Admin</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#qr%E7%99%BA%E8%A1%8C%E3%81%AE%E6%A6%82%E8%A6%81\">QR発行の概要</a></li>\n<li><a href=\"#%E4%BC%9A%E7%A4%BEqr%E7%99%BA%E8%A1%8C%E7%AE%A1%E7%90%86%E8%80%85%E5%B0%82%E7%94%A8\">会社QR発行（管理者専用）</a></li>\n<li><a href=\"#%E7%8F%BE%E5%A0%B4qr%E7%99%BA%E8%A1%8C%E3%83%AA%E3%83%BC%E3%83%80%E3%83%BC%E7%AE%A1%E7%90%86%E8%80%85\">現場QR発行（リーダー・管理者）</a></li>\n<li><a href=\"#qr%E6%9B%B4",
+    "category": "manual",
+    "permission": 2,
+    "tags": [
+      "QRコード",
+      "勤怠管理"
+    ]
+  },
+  {
+    "slug": "manual/attendance_settings",
+    "title": "勤怠設定",
+    "description": "勤怠設定に関するガイド",
+    "content": "<h1>勤怠設定マニュアル</h1>\n<h2>1. 概要</h2>\n<p>出退勤管理システムの動作を組織に合わせてカスタマイズする機能です。打刻方法、休憩時間管理、リマインダー通知など、組織の運用に合わせて詳細に設定できます。</p>\n<p><strong>主な設定項目</strong>:</p>\n<ul>\n<li>打刻方法（手動打刻、QRコード打刻）</li>\n<li>QRコード更新頻度（1日、3日、7日、30日）</li>\n<li>休憩時間モード（なし、簡易、詳細）</li>\n<li>休憩時間自動差し引き</li>\n<li>出勤・退勤リマインダー</li>\n<li>管理者向け日次レポート</li>\n<li>長時間労働アラート</li>\n</ul>\n<hr>\n<h2>2. 対象者</h2>\n<table>\n<thead>\n<tr>\n<th>権限レベル</th>\n<th>勤怠設定変更</th>\n<th>設定閲覧</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>一般スタッフ</td>\n<td>❌</td>\n<td>❌</td>\n</tr>\n<tr>\n<td>リー",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "勤怠管理",
+      "設定"
+    ]
+  },
+  {
+    "slug": "manual/clients",
+    "title": "取引先管理",
+    "description": "取引先管理に関するガイド",
+    "content": "<h1>取引先管理</h1>\n<h2>概要</h2>\n<p>取引先管理機能は、顧客・仕入先・協力会社などの取引先情報を一元管理するための機能です。\n見積書、請求書、発注書などすべての帳票機能の基盤となる重要なマスタデータです。</p>\n<p><strong>主な機能</strong>:</p>\n<ul>\n<li>取引先の登録・編集・削除</li>\n<li>取引先分類（顧客/仕入先/協力会社/両方）</li>\n<li>連絡先・担当者情報の管理</li>\n<li>支払条件・銀行情報の管理</li>\n<li>CSV一括インポート・エクスポート</li>\n<li>取引先統計・分析</li>\n</ul>\n<hr>\n<h2>対象者</h2>\n<p>取引先管理機能は <strong>管理者（Admin）のみ</strong> が利用できます。</p>\n<ul>\n<li><strong>管理者（Admin）</strong>: 取引先の登録・編集・削除、CSV操作、統計閲覧</li>\n</ul>\n<p><strong>注意</strong>: スタッフ、リーダー、マネージャーは取引先管理機能を利用でき",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "基本操作"
+    ]
+  },
+  {
+    "slug": "manual/company_sites",
+    "title": "自社拠点管理",
+    "description": "自社拠点管理に関するガイド",
+    "content": "<h1>自社拠点管理</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: 管理者のみ</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E6%A6%82%E8%A6%81\">概要</a></li>\n<li><a href=\"#%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E6%96%B9%E6%B3%95\">アクセス方法</a></li>\n<li><a href=\"#%E6%8B%A0%E7%82%B9%E3%82%BF%E3%82%A4%E3%83%97\">拠点タイプ</a></li>\n<li><a href=\"#%E6%96%B0%E8%A6%8F%E7%99%BB%E9%8C%B2\">新規登録</a></li>\n<li><a href=\"#%E7%B7%A8%E9%9B%86%E5%89%8A%E9%99%A4\">編集・削除</a></li>\n<li><a href=\"#%E6%8B%A0%E7%82%B9%E3%81%AE%E6%B4%BB%E",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "基本操作"
+    ]
+  },
+  {
+    "slug": "manual/consumable_management",
+    "title": "消耗品管理",
+    "description": "消耗品管理に関するガイド",
+    "content": "<h1>消耗品登録（在庫調整）マニュアル</h1>\n<h2>1. 概要</h2>\n<p>消耗品（ボルト、ネジ、ケーブルなど）の登録と在庫調整を行う機能です。消耗品マスタを登録後、数量の追加・減少・設定ができます。</p>\n<p><strong>主な機能</strong>:</p>\n<ul>\n<li>消耗品マスタの新規登録（名称、型番、メーカー、単位、最小在庫など）</li>\n<li>初期在庫の設定（登録時に数量を入力可能）</li>\n<li>在庫調整（追加・減らす・設定の3種類）</li>\n<li>権限別の調整制限（一般スタッフ・リーダーは±100個まで）</li>\n<li>調整理由の記録（監査証跡として保存）</li>\n</ul>\n<hr>\n<h2>2. 対象者</h2>\n<table>\n<thead>\n<tr>\n<th>権限レベル</th>\n<th>消耗品登録</th>\n<th>在庫調整（±100個まで）</th>\n<th>在庫調整（制限なし※）</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>一般スタッフ</td>\n<td>❌</td>\n<td>✅</t",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "消耗品管理"
+    ]
+  },
+  {
+    "slug": "manual/consumable_order_approval_flow",
+    "title": "消耗品発注承認フロー",
+    "description": "消耗品発注承認フローに関するガイド",
+    "content": "<h1>消耗品発注の承認フロー</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: Staff、Leader、Manager、Admin（全権限）</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E6%89%BF%E8%AA%8D%E3%83%95%E3%83%AD%E3%83%BC%E3%81%AE%E6%A6%82%E8%A6%81\">承認フローの概要</a></li>\n<li><a href=\"#%E7%B0%A1%E6%98%93%E7%99%BA%E6%B3%A8%E3%83%95%E3%83%AD%E3%83%BC%E6%B6%88%E8%80%97%E5%93%81%E7%99%BA%E6%B3%A8\">簡易発注フロー（消耗品発注）</a></li>\n<li><a href=\"#%E6%AD%A3%E5%BC%8F%E3%81%AA%E7%99%BA%E6%B3%A8%E3%83%95%E3%83%AD%E3%83%BC%E7%99%BA%E6%B3%A8%E6%",
+    "category": "manual",
+    "permission": 3,
+    "tags": [
+      "消耗品管理",
+      "承認"
+    ]
+  },
+  {
+    "slug": "manual/consumable_orders",
+    "title": "消耗品発注",
+    "description": "消耗品発注に関するガイド",
+    "content": "<h1>消耗品発注管理マニュアル</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: Staff、Leader、Manager、Admin（全権限）</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E6%A6%82%E8%A6%81\">概要</a></li>\n<li><a href=\"#%E7%99%BA%E6%B3%A8%E3%81%AE%E6%96%B0%E8%A6%8F%E7%99%BB%E9%8C%B2\">発注の新規登録</a></li>\n<li><a href=\"#%E7%99%BA%E6%B3%A8%E4%B8%80%E8%A6%A7%E3%81%AE%E7%A2%BA%E8%AA%8D\">発注一覧の確認</a></li>\n<li><a href=\"#%E7%99%BA%E6%B3%A8%E3%82%B9%E3%83%86%E3%83%BC%E3%82%BF%E3%82%B9%E3%81%AE%E7%AE%A1%E7%90%86\">発注ステータスの管理</a></l",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "消耗品管理"
+    ]
+  },
+  {
+    "slug": "manual/data_export",
+    "title": "データエクスポート",
+    "description": "システムのデータをCSVファイルでエクスポートする方法",
+    "content": "<h1>データエクスポート</h1>\n<p><strong>最終更新日</strong>: 2026-01-22\n<strong>対象</strong>: 管理者（Admin）</p>\n<hr>\n<h2>📋 目次</h2>\n<ol>\n<li><a href=\"#%E6%A6%82%E8%A6%81\">概要</a></li>\n<li><a href=\"#%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E6%96%B9%E6%B3%95\">アクセス方法</a></li>\n<li><a href=\"#%E3%82%A8%E3%82%AF%E3%82%B9%E3%83%9D%E3%83%BC%E3%83%88%E5%8F%AF%E8%83%BD%E3%81%AA%E3%83%87%E3%83%BC%E3%82%BF\">エクスポート可能なデータ</a></li>\n<li><a href=\"#%E3%82%A8%E3%82%AF%E3%82%B9%E3%83%9D%E3%83%BC%E3%83%88%E6%89%8B%E9%A0%86\">エクスポート手順</a></li",
+    "category": "manual",
+    "permission": 2,
+    "tags": [
+      "データ管理",
+      "エクスポート",
+      "CSV"
+    ]
+  },
+  {
+    "slug": "manual/equipment_maintenance",
+    "title": "重機メンテナンス記録",
+    "description": "重機のメンテナンス履歴を記録する方法",
+    "content": "<h1>重機メンテナンス記録マニュアル</h1>\n<h2>1. 概要</h2>\n<p>重機（ショベルカー、クレーン、ダンプカーなど）の点検・修理記録を管理する機能です。車検、保険更新、修理、その他のメンテナンス履歴を記録し、次回予定日を管理できます。</p>\n<p><strong>主な機能</strong>:</p>\n<ul>\n<li>4種類のメンテナンスタイプ（車検、保険更新、修理、その他）</li>\n<li>点検記録の登録（実施日、実施者、費用、次回予定日）</li>\n<li>領収書・報告書URLの保存</li>\n<li>車検・保険更新時の自動マスタ更新</li>\n<li>点検履歴の一覧表示</li>\n</ul>\n<hr>\n<h2>2. 対象者</h2>\n<table>\n<thead>\n<tr>\n<th>権限レベル</th>\n<th>点検記録登録</th>\n<th>点検履歴閲覧</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>一般スタッフ</td>\n<td>✅</td>\n<td>✅</td>\n</tr>\n<tr>\n<td>リーダー</td>\n<td>✅</",
+    "category": "manual",
+    "permission": 2,
+    "tags": [
+      "重機管理",
+      "メンテナンス"
+    ]
+  },
+  {
+    "slug": "manual/equipment_management",
+    "title": "重機管理",
+    "description": "重機の登録と管理方法",
+    "content": "<h1>重機管理マニュアル</h1>\n<h2>対象者</h2>\n<p>このマニュアルは、重機（建設機械）の登録・管理を行う以下の権限のユーザーを対象としています。</p>\n<ul>\n<li><strong>Manager（マネージャー）</strong>: 重機の登録・編集・メンテナンス記録が可能</li>\n<li><strong>Admin（管理者）</strong>: 全機能が利用可能</li>\n</ul>\n<p>※ Staff、Leaderは重機情報の閲覧とQRスキャン、移動登録のみ可能です。重機の新規登録・編集はできません。</p>\n<hr>\n<h2>前提条件</h2>\n<p>重機管理を始める前に、以下を確認してください。</p>\n<ol>\n<li><strong>契約プラン</strong>: 現場資産パック、または フル機能統合パックが契約済みであること</li>\n<li><strong>重機機能の有効化</strong>: 管理者が設定で重機管理機能を有効にしていること</li>\n</ol>\n<hr>\n<h2>重機管理の基本概念</h2>\n<h3>1. 重機とは</h3>",
+    "category": "manual",
+    "permission": 2,
+    "tags": [
+      "重機管理",
+      "登録"
+    ]
+  },
+  {
+    "slug": "manual/estimates",
+    "title": "見積書管理",
+    "description": "見積書管理に関するガイド",
+    "content": "<h1>見積書管理</h1>\n<h2>概要</h2>\n<p>見積書機能は、顧客への見積書を作成・管理するための機能です。\n承認フロー、顧客送付、顧客判断（承認/却下）まで、見積書のライフサイクル全体を管理できます。</p>\n<p><strong>主な機能</strong>:</p>\n<ul>\n<li>見積書の作成・編集（リーダー以上）</li>\n<li>承認ワークフロー（マネージャー以上が承認）</li>\n<li>顧客への送付管理</li>\n<li>顧客判断の記録（承認/却下）</li>\n<li>承認済み見積書から請求書作成</li>\n<li>操作履歴の記録</li>\n<li>PDF出力</li>\n</ul>\n<hr>\n<h2>対象者</h2>\n<h3>作成・編集</h3>\n<ul>\n<li><strong>リーダー（Leader）</strong>: 自分が作成した見積書のみ作成・編集</li>\n<li><strong>マネージャー（Manager）</strong>: 全ての見積書を作成・編集</li>\n<li><strong>管理者（Admin）</strong>: 全ての見積書",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "見積書",
+      "見積",
+      "見積作成",
+      "見積管理",
+      "見積もり",
+      "積算",
+      "金額",
+      "DXパック",
+      "書類作成",
+      "発注",
+      "契約",
+      "クライアント",
+      "取引先"
+    ]
+  },
+  {
+    "slug": "manual/estimates_approval",
+    "title": "見積書承認フロー",
+    "description": "見積書の承認申請と承認処理の手順",
+    "content": "<h1>見積書提出・承認マニュアル</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: Leader（提出）、Manager/Admin（承認）</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E6%89%BF%E8%AA%8D%E3%83%95%E3%83%AD%E3%83%BC%E3%81%AE%E6%A6%82%E8%A6%81\">承認フローの概要</a></li>\n<li><a href=\"#%E8%A6%8B%E7%A9%8D%E6%9B%B8%E3%81%AE%E6%8F%90%E5%87%BAleader\">見積書の提出（Leader）</a></li>\n<li><a href=\"#%E8%A6%8B%E7%A9%8D%E6%9B%B8%E3%81%AE%E6%89%BF%E8%AA%8Dmanageradmin\">見積書の承認（Manager/Admin）</a></li>\n<li><a href=\"#%E8%A6%8B%E7%A9%8D%E6%9B%B8%E3",
+    "category": "manual",
+    "permission": 2,
+    "tags": [
+      "見積書",
+      "承認"
+    ]
+  },
+  {
+    "slug": "manual/estimates_create",
+    "title": "見積書作成",
+    "description": "新しい見積書を作成する手順",
+    "content": "<h1>見積書作成マニュアル</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: Leader、Manager、Admin</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E8%A6%8B%E7%A9%8D%E6%9B%B8%E4%BD%9C%E6%88%90%E3%81%AE%E6%A6%82%E8%A6%81\">見積書作成の概要</a></li>\n<li><a href=\"#%E8%A6%8B%E7%A9%8D%E6%9B%B8%E4%BD%9C%E6%88%90%E3%81%AE%E6%B5%81%E3%82%8C\">見積書作成の流れ</a></li>\n<li><a href=\"#%E5%9F%BA%E6%9C%AC%E6%83%85%E5%A0%B1%E3%81%AE%E5%85%A5%E5%8A%9B\">基本情報の入力</a></li>\n<li><a href=\"#%E6%98%8E%E7%B4%B0%E3%81%AE%E5%85%A5%E5%8A%9B\">明細の入力",
+    "category": "manual",
+    "permission": 2,
+    "tags": [
+      "見積書",
+      "作成"
+    ]
+  },
+  {
+    "slug": "manual/estimates_send",
+    "title": "見積書送付",
+    "description": "見積書をPDFで出力して顧客に送付する方法",
+    "content": "<h1>見積書送付</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: マネージャー以上、またはリーダー（自分が作成した見積書のみ）</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E6%A6%82%E8%A6%81\">概要</a></li>\n<li><a href=\"#%E5%89%8D%E6%8F%90%E6%9D%A1%E4%BB%B6\">前提条件</a></li>\n<li><a href=\"#%E9%80%81%E4%BB%98%E6%89%8B%E9%A0%86\">送付手順</a></li>\n<li><a href=\"#%E9%80%81%E4%BB%98%E5%BE%8C%E3%81%AE%E6%93%8D%E4%BD%9C\">送付後の操作</a></li>\n<li><a href=\"#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A0%85\">注意事項</a></li>\n</ol>\n<hr>\n<h2>概要</h2>\n<p>見積書送付機能は、承認済み",
+    "category": "manual",
+    "permission": 2,
+    "tags": [
+      "見積書",
+      "送付"
+    ]
+  },
+  {
+    "slug": "manual/getting_started",
+    "title": "はじめに",
+    "description": "はじめにに関するガイド",
+    "content": "<h1>はじめに - ザイロク（Zairoku）ユーザーマニュアル</h1>\n<h2>ザイロクへようこそ</h2>\n<p>ザイロク（Zairoku）は、建設現場や工事業向けの現場管理システムです。\n道具・消耗品・重機の在庫管理から、出退勤管理、作業報告書、見積・請求書まで、現場業務を一元管理できます。</p>\n<hr>\n<h2>このマニュアルの使い方</h2>\n<h3>対象者</h3>\n<p>このマニュアルは、ザイロクを初めて使う方、または基本的な使い方を確認したい方を対象としています。</p>\n<ul>\n<li><strong>現場スタッフ（Staff）</strong>: QRスキャン、出退勤、作業報告書の作成</li>\n<li><strong>リーダー（Leader）</strong>: スタッフの業務 + 見積・請求・発注書作成、チーム管理</li>\n<li><strong>マネージャー（Manager）</strong>: リーダーの業務 + 承認、道具・消耗品登録、分析レポート</li>\n<li><strong>管理者（Admin）</strong>: 全機能 + 組織設定",
+    "category": "manual",
+    "permission": 0,
+    "tags": [
+      "基本操作"
+    ]
+  },
+  {
+    "slug": "manual/invoices",
+    "title": "請求書管理",
+    "description": "請求書管理に関するガイド",
+    "content": "<h1>請求書管理</h1>\n<h2>概要</h2>\n<p>請求書機能は、顧客への請求書を作成・管理するための機能です。\n承認フロー、顧客送付、入金管理まで、請求書のライフサイクル全体を管理できます。</p>\n<p><strong>主な機能</strong>:</p>\n<ul>\n<li>請求書の作成・編集（リーダー以上）</li>\n<li>承認ワークフロー（マネージャー以上が承認）</li>\n<li>顧客への送付管理</li>\n<li>入金記録・管理（一部入金・全額入金）</li>\n<li>承認済み見積書からの請求書作成</li>\n<li>操作履歴の記録</li>\n<li>PDF出力</li>\n</ul>\n<hr>\n<h2>対象者</h2>\n<h3>作成・編集</h3>\n<ul>\n<li><strong>リーダー（Leader）</strong>: 自分が作成した請求書のみ作成・編集</li>\n<li><strong>マネージャー（Manager）</strong>: 全ての請求書を作成・編集</li>\n<li><strong>管理者（Admin）</strong>: 全ての請求書を作",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "請求書",
+      "請求",
+      "請求作成",
+      "請求管理",
+      "入金",
+      "支払い",
+      "売上",
+      "DXパック",
+      "書類作成",
+      "経理",
+      "会計",
+      "取引先",
+      "クライアント"
+    ]
+  },
+  {
+    "slug": "manual/invoices_approval",
+    "title": "請求書承認",
+    "description": "請求書承認に関するガイド",
+    "content": "<h1>請求書提出・承認マニュアル</h1>\n<h2>📋 概要</h2>\n<p>請求書提出・承認機能では、作成された請求書をリーダーが提出し、マネージャー以上が承認するワークフローを実現します。承認・差し戻しの履歴が記録され、適切な承認プロセスを管理できます。</p>\n<h2>👥 対象者と権限</h2>\n<table>\n<thead>\n<tr>\n<th>役割</th>\n<th>提出</th>\n<th>承認</th>\n<th>差し戻し</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>スタッフ</td>\n<td>×</td>\n<td>×</td>\n<td>×</td>\n</tr>\n<tr>\n<td>リーダー</td>\n<td>○</td>\n<td>×</td>\n<td>×</td>\n</tr>\n<tr>\n<td>マネージャー</td>\n<td>○</td>\n<td>○</td>\n<td>○</td>\n</tr>\n<tr>\n<td>管理者</td>\n<td>○</td>\n<td>○</td>\n<td>○</td>\n</tr>\n</tbody>\n</table>\n",
+    "category": "manual",
+    "permission": 3,
+    "tags": [
+      "請求書",
+      "承認"
+    ]
+  },
+  {
+    "slug": "manual/invoices_create",
+    "title": "請求書作成",
+    "description": "見積書から請求書を作成する手順",
+    "content": "<h1>請求書作成マニュアル</h1>\n<h2>📋 概要</h2>\n<p>請求書作成機能では、取引先への請求書を作成し、提出・承認フローに進むことができます。見積書から自動変換することも、新規作成することも可能です。</p>\n<h2>👥 対象者</h2>\n<ul>\n<li><strong>リーダー以上</strong>: 請求書の作成・提出が可能</li>\n<li><strong>マネージャー以上</strong>: 請求書の作成・提出・承認が可能</li>\n<li><strong>管理者</strong>: すべての請求書操作が可能</li>\n</ul>\n<p><strong>注意</strong>: スタッフは請求書を作成できません。</p>\n<h2>📍 アクセス方法</h2>\n<ol>\n<li>左メニューから「請求書」をクリック</li>\n<li>「+ 新規請求書」ボタンをクリック</li>\n</ol>\n<p>または</p>\n<ol>\n<li>見積書詳細画面から「請求書に変換」ボタンをクリック（見積書承認後）</li>\n</ol>\n<h2>🔄 請求書作成の流れ</h2>\n",
+    "category": "manual",
+    "permission": 3,
+    "tags": [
+      "請求書",
+      "作成"
+    ]
+  },
+  {
+    "slug": "manual/invoices_payment",
+    "title": "請求書支払い管理",
+    "description": "請求書支払い管理に関するガイド",
+    "content": "<h1>入金記録マニュアル</h1>\n<h2>概要</h2>\n<p>入金記録機能は、請求書に対する顧客からの入金を記録する機能です。部分入金や全額入金に対応し、入金が完了すると請求書のステータスが自動的に「支払済み」に更新されます。</p>\n<h2>対象者</h2>\n<ul>\n<li>リーダー（Leader）</li>\n<li>マネージャー（Manager）</li>\n<li>管理者（Admin）</li>\n</ul>\n<p>※ 一般スタッフは入金記録機能にアクセスできません。</p>\n<h2>アクセス方法</h2>\n<h3>1. 請求書詳細ページから</h3>\n<ol>\n<li>ダッシュボードまたはサイドメニューから「請求書」をクリック</li>\n<li>入金を記録したい請求書をクリック</li>\n<li>請求書詳細ページの右上にある「入金登録」ボタンをクリック</li>\n</ol>\n<p>※ 「入金登録」ボタンは以下の条件を満たす場合にのみ表示されます：</p>\n<ul>\n<li>請求書のステータスが「送付済み（sent）」である</li>\n<li>請求額が未払い（または一部入金）",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "請求書"
+    ]
+  },
+  {
+    "slug": "manual/login",
     "title": "ログイン方法",
-    "description": "ザイロクへのログイン手順を説明します",
-    "content": "<h1>ログイン方法</h1>\n<p>ザイロクにログインする方法を説明します。</p>\n<h2>ログイン画面へのアクセス</h2>\n<h3>PCの場合</h3>\n<p>ブラウザで以下のURLにアクセスしてください:</p>\n<ul>\n<li>本番環境: <code>https://あなたの会社名.zairoku.com</code></li>\n<li>または: <code>https://zairoku.com</code> からログイン</li>\n</ul>\n<img src=\"/images/manual/login-screen-pc.png\" width=\"700\" alt=\"PC版ログイン画面\" />\n<h3>スマホの場合</h3>\n<p>ブラウザで <code>https://あなたの会社名.zairoku.com</code> にアクセスしてください。</p>\n<img src=\"/images/manual/login-screen-mobile.png\" width=\"300\" alt=\"スマホ版ログイン画面\" />\n<hr>\n<h2>ログイン手順</h2>\n<h3>",
+    "description": "ザイロクへのログイン手順とパスワードリセット方法を説明します",
+    "content": "<p><strong>最終更新日</strong>: 2026-01-22\n<strong>対象</strong>: 全ユーザー(未登録者含む)</p>\n<hr>\n<h2>📋 目次</h2>\n<ol>\n<li><a href=\"#%E6%A6%82%E8%A6%81\">概要</a></li>\n<li><a href=\"#%E3%83%AD%E3%82%B0%E3%82%A4%E3%83%B3%E7%94%BB%E9%9D%A2%E3%81%B8%E3%81%AE%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9\">ログイン画面へのアクセス</a></li>\n<li><a href=\"#%E3%83%AD%E3%82%B0%E3%82%A4%E3%83%B3%E6%89%8B%E9%A0%86\">ログイン手順</a></li>\n<li><a href=\"#%E5%88%9D%E5%9B%9E%E3%83%AD%E3%82%B0%E3%82%A4%E3%83%B3%E6%99%82%E3%81%AE%E6%B3%A8%E6%84%8F%E7%82%B9\">初回ログイ",
     "category": "manual",
     "permission": 0,
     "tags": [
       "ログイン",
+      "基本操作",
+      "パスワード",
+      "アカウント",
+      "認証",
+      "サインイン",
+      "メールアドレス",
+      "初回ログイン",
+      "パスワードリセット",
+      "パスワード忘れ"
+    ]
+  },
+  {
+    "slug": "manual/projects",
+    "title": "案件管理",
+    "description": "案件管理に関するガイド",
+    "content": "<h1>工事管理マニュアル</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: 管理者、マネージャー</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E6%A6%82%E8%A6%81\">概要</a></li>\n<li><a href=\"#%E5%B7%A5%E4%BA%8B%E4%B8%80%E8%A6%A7%E3%81%AE%E7%A2%BA%E8%AA%8D\">工事一覧の確認</a></li>\n<li><a href=\"#%E6%96%B0%E8%A6%8F%E5%B7%A5%E4%BA%8B%E3%81%AE%E7%99%BB%E9%8C%B2\">新規工事の登録</a></li>\n<li><a href=\"#%E5%B7%A5%E4%BA%8B%E8%A9%B3%E7%B4%B0%E3%81%AE%E7%A2%BA%E8%AA%8D\">工事詳細の確認</a></li>\n<li><a href=\"#%E5%B7%A5%E4%BA%8B%E6%83%85%E5%A0%B1%",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
       "基本操作"
     ]
   },
   {
-    "slug": "manual/01_staff/qr-scan",
+    "slug": "manual/purchase_orders",
+    "title": "発注書管理",
+    "description": "発注書の作成と管理方法",
+    "content": "<h1>発注書管理</h1>\n<h2>概要</h2>\n<p>発注書機能は、仕入先（サプライヤー）への発注を作成・管理するための機能です。\n材料の仕入れ、外注作業の依頼、機器の購入などを体系的に管理し、承認フロー、発注送付、納品管理、支払管理まで、発注のライフサイクル全体を管理できます。</p>\n<p><strong>主な機能</strong>:</p>\n<ul>\n<li>発注書の作成・編集（リーダー以上）</li>\n<li>承認ワークフロー（マネージャー以上が承認）</li>\n<li>仕入先への送付管理</li>\n<li>納品記録</li>\n<li>支払記録・管理</li>\n<li>操作履歴の記録</li>\n<li>PDF出力</li>\n<li>発注分析・レポート</li>\n</ul>\n<hr>\n<h2>対象者</h2>\n<h3>作成・編集</h3>\n<ul>\n<li><strong>リーダー（Leader）</strong>: 自分が作成した発注書のみ作成・編集</li>\n<li><strong>マネージャー（Manager）</strong>: 全ての発注書を作成・編集</li>\n",
+    "category": "manual",
+    "permission": 3,
+    "tags": [
+      "発注書",
+      "管理"
+    ]
+  },
+  {
+    "slug": "manual/purchase_orders_approval",
+    "title": "発注書承認",
+    "description": "発注書承認に関するガイド",
+    "content": "<h1>発注書承認フロー（金額別）マニュアル</h1>\n<h2>📋 概要</h2>\n<p>発注書承認フロー機能では、作成された発注書をリーダーが提出し、金額に応じて適切な承認者が承認するワークフローを実現します。10万円未満は自動承認、10万円以上は段階的な承認フローが適用されます。</p>\n<h2>👥 対象者と権限</h2>\n<table>\n<thead>\n<tr>\n<th>役割</th>\n<th>提出</th>\n<th>承認（10万円未満）</th>\n<th>承認（10万円以上）</th>\n<th>差し戻し</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>スタッフ</td>\n<td>×</td>\n<td>×</td>\n<td>×</td>\n<td>×</td>\n</tr>\n<tr>\n<td>リーダー</td>\n<td>○</td>\n<td>○</td>\n<td>×</td>\n<td>×</td>\n</tr>\n<tr>\n<td>マネージャー</td>\n<td>○</td>\n<td>○</td>\n<td>○</td>\n<td>○</td>\n</tr>\n<t",
+    "category": "manual",
+    "permission": 3,
+    "tags": [
+      "発注書",
+      "承認"
+    ]
+  },
+  {
+    "slug": "manual/purchase_orders_create",
+    "title": "発注書作成",
+    "description": "発注書作成に関するガイド",
+    "content": "<h1>発注書作成マニュアル</h1>\n<h2>📋 概要</h2>\n<p>発注書作成機能では、仕入先への発注書を作成し、提出・承認フローに進むことができます。消耗品発注管理から自動変換することも、新規作成することも可能です。</p>\n<h2>👥 対象者</h2>\n<ul>\n<li><strong>リーダー以上</strong>: 発注書の作成・提出が可能</li>\n<li><strong>マネージャー以上</strong>: 発注書の作成・提出・承認が可能</li>\n<li><strong>管理者</strong>: すべての発注書操作が可能</li>\n</ul>\n<p><strong>注意</strong>: スタッフは発注書を作成できません。</p>\n<h2>📍 アクセス方法</h2>\n<ol>\n<li>左メニューから「発注書」をクリック</li>\n<li>「+ 新規発注書」ボタンをクリック</li>\n</ol>\n<p>または</p>\n<ol>\n<li>消耗品発注管理から「発注書を作成」ボタンをクリック</li>\n</ol>\n<h2>🔄 発注書作成の流れ</h2>\n<h3>",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "発注書"
+    ]
+  },
+  {
+    "slug": "manual/purchase_orders_send",
+    "title": "発注書送付",
+    "description": "発注書送付に関するガイド",
+    "content": "<h1>発注書送付</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: マネージャー以上</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E6%A6%82%E8%A6%81\">概要</a></li>\n<li><a href=\"#%E5%89%8D%E6%8F%90%E6%9D%A1%E4%BB%B6\">前提条件</a></li>\n<li><a href=\"#%E9%80%81%E4%BB%98%E6%89%8B%E9%A0%86\">送付手順</a></li>\n<li><a href=\"#%E9%80%81%E4%BB%98%E5%BE%8C%E3%81%AE%E6%93%8D%E4%BD%9C\">送付後の操作</a></li>\n<li><a href=\"#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A0%85\">注意事項</a></li>\n</ol>\n<hr>\n<h2>概要</h2>\n<p>発注書送付機能は、承認済みの発注書を仕入先に送付した際に、ステータスを",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "発注書"
+    ]
+  },
+  {
+    "slug": "manual/qr_scan",
     "title": "QRコードスキャン",
-    "description": "QRコードを使った道具の情報確認方法",
-    "content": "<h1>QRコードスキャン</h1>\n<p>QRコードを使って道具の情報を確認する方法を説明します。</p>\n<h2>使用シーン</h2>\n<ul>\n<li>道具の現在位置を確認したい</li>\n<li>道具のステータスを確認したい</li>\n<li>道具の詳細情報を見たい</li>\n</ul>\n<h2>操作手順</h2>\n<h3>1. QRスキャン画面を開く</h3>\n<p>画面下部の「<strong>QR</strong>」ボタンをタップします。</p>\n<img src=\"/images/manual/qr-button.png\" width=\"300\" alt=\"QRボタン\" />\n<h3>2. QRコードをスキャン</h3>\n<p>カメラが起動したら、道具に貼られたQRコードを枠内に収めます。</p>\n<p><strong>ポイント:</strong></p>\n<ul>\n<li>明るい場所でスキャンしてください</li>\n<li>QRコードに汚れがある場合は拭き取ってください</li>\n<li>距離は10cm〜30cm程度が最適です</li>\n</ul>\n<h3>3. 道具情",
+    "description": "スマートフォンでQRコードをスキャンして備品の貸出・返却を行う方法",
+    "content": "<h1>QRスキャンマニュアル</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: 全ユーザー（Staff、Leader、Manager、Admin）</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E6%A6%82%E8%A6%81\">概要</a></li>\n<li><a href=\"#qr%E3%82%B9%E3%82%AD%E3%83%A3%E3%83%B3%E3%81%AE3%E3%81%A4%E3%81%AE%E3%83%A2%E3%83%BC%E3%83%89\">QRスキャンの3つのモード</a></li>\n<li><a href=\"#%E9%81%93%E5%85%B7%E3%82%92%E7%A7%BB%E5%8B%95%E4%B8%80%E6%8B%AC%E3%82%B9%E3%82%AD%E3%83%A3%E3%83%B3\">道具を移動（一括スキャン）</a></li>\n<li><a href=\"#%E9%81%93%E5%85%B7%E7%A2%BA%E8",
     "category": "manual",
     "permission": 1,
     "tags": [
       "QRコード",
-      "スマホ",
+      "スキャン",
+      "基本操作",
+      "スマートフォン",
+      "モバイル",
+      "バーコード",
+      "貸出",
+      "返却",
+      "チェックイン",
+      "チェックアウト",
+      "カメラ",
+      "読み取り"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/admin_operations/employee_offboarding",
+    "title": "退職者の対応マニュアル",
+    "description": "社員が退職する際にザイロク上で実施すべき手続きを説明します",
+    "content": "<h1>退職者の対応マニュアル</h1>\n<h2>1. 概要</h2>\n<p>社員が退職する際に、ザイロク上で実施すべき手続きを説明します。セキュリティを保ちながら、過去のデータを適切に保持するための手順を網羅しています。</p>\n<p><strong>このマニュアルで解決できること</strong>:</p>\n<ul>\n<li>退職者のアカウントを安全に無効化</li>\n<li>退職者が保有していた道具を回収</li>\n<li>過去のデータを保持しながらアクセスを遮断</li>\n<li>退職者の操作履歴を確認</li>\n</ul>\n<p><strong>対象者</strong>: Admin（管理者）のみ</p>\n<hr>\n<h2>2. 退職者対応フロー全体像</h2>\n<h3>2-1. 対応ステップ（全5ステップ）</h3>\n<table>\n<thead>\n<tr>\n<th>ステップ</th>\n<th>作業内容</th>\n<th>実施タイミング</th>\n<th>所要時間</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><strong>1. 事前確認</s",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "基本操作",
+      "管理者向け",
+      "退職"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/admin_operations/inventory_audit",
+    "title": "棚卸し作業マニュアル",
+    "description": "定期的な棚卸し作業により、システム上のデータと実際の在庫を照合する方法を説明します",
+    "content": "<h1>棚卸し作業マニュアル</h1>\n<h2>1. 概要</h2>\n<p>定期的な棚卸し作業により、ザイロク上のデータと実際の在庫を照合し、紛失や記録漏れを早期発見します。月次または年次で実施することで、道具管理の精度を維持します。</p>\n<p><strong>このマニュアルで解決できること</strong>:</p>\n<ul>\n<li>システム上の在庫数と実物の数を照合</li>\n<li>紛失した道具を発見</li>\n<li>移動登録の漏れを発見</li>\n<li>道具の状態（破損・劣化）を確認</li>\n</ul>\n<p><strong>対象者</strong>: Admin（管理者）、Manager（マネージャー）、Leader（リーダー）</p>\n<p><strong>推奨頻度</strong>: 月1回（小規模）、年2回（大規模）</p>\n<hr>\n<h2>2. 棚卸しの種類</h2>\n<h3>2-1. 棚卸しの3種類</h3>\n<table>\n<thead>\n<tr>\n<th>種類</th>\n<th>頻度</th>\n<th>対象範囲</th>\n<th>所要時間</th>",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "基本操作",
+      "棚卸し",
+      "在庫管理"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/admin_operations/new_employee_onboarding",
+    "title": "新入社員の受け入れマニュアル",
+    "description": "新入社員がザイロクを使い始めるために必要な、アカウント作成から初期設定までの手順を説明します",
+    "content": "<h1>新入社員の受け入れマニュアル</h1>\n<h2>1. 概要</h2>\n<p>新入社員がザイロクを使い始めるために必要な、アカウント作成から初期設定までの手順を説明します。管理者が実施すべき作業と、新入社員に伝えるべき情報を網羅しています。</p>\n<p><strong>このマニュアルで解決できること</strong>:</p>\n<ul>\n<li>新入社員のアカウントを素早く作成</li>\n<li>適切な権限を設定</li>\n<li>初回ログインの案内</li>\n</ul>\n<p><strong>対象者</strong>: Admin（管理者）のみ</p>\n<hr>\n<h2>2. 受け入れフロー全体像</h2>\n<h3>2-1. 受け入れステップ（全4ステップ）</h3>\n<table>\n<thead>\n<tr>\n<th>ステップ</th>\n<th>作業内容</th>\n<th>担当者</th>\n<th>所要時間</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><strong>1. アカウント作成</strong></td>\n<td>ザイロクに新入社員を登",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "基本操作",
+      "管理者向け",
+      "新入社員"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/admin_operations/system_health_check",
+    "title": "システム健全性チェックマニュアル",
+    "description": "システムの動作とデータの整合性を定期的にチェックする方法を説明します",
+    "content": "<h1>システム健全性チェックマニュアル</h1>\n<h2>1. 概要</h2>\n<p>ザイロクの動作が正常か、データに不整合がないかを定期的にチェックすることで、トラブルを未然に防ぎます。月次または四半期ごとに実施することで、システムの健全性を維持します。</p>\n<p><strong>このマニュアルで解決できること</strong>:</p>\n<ul>\n<li>データの不整合を早期発見</li>\n<li>システムの動作不良を検知</li>\n<li>セキュリティリスクを確認</li>\n<li>パフォーマンスの劣化を検知</li>\n</ul>\n<p><strong>対象者</strong>: Admin（管理者）のみ</p>\n<p><strong>推奨頻度</strong>: 月1回</p>\n<hr>\n<h2>2. 健全性チェックの種類</h2>\n<h3>2-1. チェックの3レベル</h3>\n<table>\n<thead>\n<tr>\n<th>レベル</th>\n<th>頻度</th>\n<th>所要時間</th>\n<th>内容</th>\n</tr>\n</thead>\n<tbody>\n<t",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "基本操作",
+      "管理者向け",
+      "メンテナンス"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/daily/daily_workflow",
+    "title": "現場スタッフの1日の流れ",
+    "description": "現場スタッフが1日の業務でザイロクをどう活用するかを時系列で説明します",
+    "content": "<h1>現場スタッフの1日の流れ</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: 現場スタッフ、リーダー</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E6%A6%82%E8%A6%81\">概要</a></li>\n<li><a href=\"#%E5%87%BA%E5%8B%A4%E6%99%82%E3%81%AE%E6%B5%81%E3%82%8C\">出勤時の流れ</a></li>\n<li><a href=\"#%E9%81%93%E5%85%B7%E6%8C%81%E3%81%A1%E5%87%BA%E3%81%97\">道具持ち出し</a></li>\n<li><a href=\"#%E7%8F%BE%E5%A0%B4%E3%81%A7%E3%81%AE%E4%BD%9C%E6%A5%AD\">現場での作業</a></li>\n<li><a href=\"#%E9%81%93%E5%85%B7%E8%BF%94%E5%8D%B4\">道具返却</a></li>\n<li><a href",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "基本操作",
+      "スタッフ向け",
+      "業務フロー"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/daily/site_closing",
+    "title": "現場完了・片付け手順",
+    "description": "現場作業完了時の片付けと道具返却の手順を説明します",
+    "content": "<h1>現場完了・片付け手順</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: 管理者、リーダー</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E6%A6%82%E8%A6%81\">概要</a></li>\n<li><a href=\"#%E5%AE%8C%E4%BA%86%E5%89%8D%E3%81%AE%E6%BA%96%E5%82%99\">完了前の準備</a></li>\n<li><a href=\"#%E9%81%93%E5%85%B7%E3%81%AE%E5%9B%9E%E5%8F%8E%E7%A2%BA%E8%AA%8D\">道具の回収確認</a></li>\n<li><a href=\"#%E6%B6%88%E8%80%97%E5%93%81%E5%9C%A8%E5%BA%AB%E3%81%AE%E6%95%B4%E7%90%86\">消耗品・在庫の整理</a></li>\n<li><a href=\"#%E4%BD%9C%E6%A5%AD%E5%A0%B1%E5%91%8A%",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "基本操作",
+      "現場管理",
+      "片付け"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/daily/site_opening",
+    "title": "新規現場の立ち上げ手順",
+    "description": "新規現場を開始する際の道具準備と初期設定の手順を説明します",
+    "content": "<h1>新規現場の立ち上げ手順</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: 管理者、リーダー</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E6%A6%82%E8%A6%81\">概要</a></li>\n<li><a href=\"#%E4%BA%8B%E5%89%8D%E6%BA%96%E5%82%99\">事前準備</a></li>\n<li><a href=\"#%E7%8F%BE%E5%A0%B4%E7%99%BB%E9%8C%B2\">現場登録</a></li>\n<li><a href=\"#%E7%8F%BE%E5%A0%B4qr%E3%82%B3%E3%83%BC%E3%83%89%E7%99%BA%E8%A1%8C\">現場QRコード発行</a></li>\n<li><a href=\"#%E5%B7%A5%E4%BA%8B%E6%83%85%E5%A0%B1%E7%99%BB%E9%8C%B2\">工事情報登録</a></li>\n<li><a href=\"#%E9%81%",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "基本操作",
+      "現場管理",
+      "立ち上げ"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/document_flow/monthly_reporting",
+    "title": "月次報告業務",
+    "description": "月次でのデータ集計とレポート作成の手順を説明します",
+    "content": "<h1>月次報告業務</h1>\n<h2>概要</h2>\n<p>このマニュアルでは、月末に行う定例業務（月次報告業務）の流れを説明します。売上・支出の確認、作業報告書の整理、在庫確認、翌月の計画立案などを効率的に行うための手順をまとめています。</p>\n<h2>対象者</h2>\n<ul>\n<li>リーダー以上: 担当現場の月次報告</li>\n<li>マネージャー: 複数現場の集計・分析</li>\n<li>管理者: 全社の月次報告・経営判断</li>\n</ul>\n<h2>月次報告業務の全体像</h2>\n<pre><code>【月末〜翌月初旬の業務】\n\n1. 売上・請求の確認\n   - 当月分の請求書送付状況\n   - 入金予定・入金済みの確認\n\n2. 支出・支払の確認\n   - 当月分の発注書・支払状況\n   - 未払金の確認\n\n3. 作業報告書の整理\n   - 未提出・未承認の作業報告書確認\n   - 月次作業実績の集計\n\n4. 在庫確認\n   - 道具・消耗品の在庫確認\n   - 在庫不足の発注手配\n\n5. 出退勤記録の確認\n   - 打刻漏れの確認\n   - 労働時間の集計\n\n6. ",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "基本操作",
+      "報告",
+      "マネージャー向け"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/document_flow/purchase_order_flow",
+    "title": "発注から支払いまでの流れ",
+    "description": "発注書作成から支払い完了までの一連のフローを説明します",
+    "content": "<h1>発注から支払いまでの流れ</h1>\n<h2>概要</h2>\n<p>このマニュアルでは、資材・消耗品を仕入先に発注し、納品を受けて、代金を支払うまでの一連の業務フローを説明します。</p>\n<h2>対象者</h2>\n<ul>\n<li>リーダー以上: 発注書の作成・提出</li>\n<li>マネージャー以上: 承認操作、支払記録</li>\n<li>管理者: すべての操作</li>\n</ul>\n<h2>業務フロー全体図</h2>\n<pre><code>資材・消耗品の必要性確認\n    ↓\n【STEP 1】発注書作成\n    ↓\n【STEP 2】発注書提出・承認\n    ↓\n【STEP 3】発注書送付（仕入先へ）\n    ↓\n【STEP 4】納品確認\n    ↓\n【STEP 5】納品書登録（任意）\n    ↓\n【STEP 6】請求書受領（仕入先から）\n    ↓\n【STEP 7】支払記録\n    ↓\n完了\n</code></pre>\n<hr>\n<h2>STEP 1: 発注書作成</h2>\n<h3>目的</h3>\n<p>仕入先に資材・消耗品を発注するための発注書を作成します。</p>\n<h",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "発注書",
+      "業務フロー",
+      "DXパック"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/document_flow/quotation_to_invoice_flow",
+    "title": "見積→契約→請求の一連の流れ",
+    "description": "見積書作成から請求書発行・入金確認までの一連のフローを説明します",
+    "content": "<h1>見積→契約→請求の一連の流れ</h1>\n<h2>概要</h2>\n<p>このマニュアルでは、顧客から依頼を受けて見積書を作成し、契約が成立した後に請求書を発行し、入金を記録するまでの一連の業務フローを説明します。</p>\n<h2>対象者</h2>\n<ul>\n<li>リーダー以上: 見積書・請求書の作成・提出</li>\n<li>マネージャー以上: 承認操作</li>\n<li>管理者: すべての操作</li>\n</ul>\n<h2>業務フロー全体図</h2>\n<pre><code>顧客からの依頼\n    ↓\n【STEP 1】見積書作成\n    ↓\n【STEP 2】見積書提出・承認\n    ↓\n【STEP 3】見積書送付（顧客へ）\n    ↓\n顧客からの承諾（契約成立）\n    ↓\n【STEP 4】契約書登録（任意）\n    ↓\n【STEP 5】請求書作成（見積書から変換）\n    ↓\n【STEP 6】請求書提出・承認\n    ↓\n【STEP 7】請求書送付（顧客へ）\n    ↓\n【STEP 8】入金記録\n    ↓\n完了\n</code></pre>\n<hr>\n<h2>STEP 1: 見",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "請求書",
+      "見積書",
+      "業務フロー",
+      "DXパック"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/mobile/mobile_usage",
+    "title": "スマートフォンでの使い方",
+    "description": "スマートフォンでザイロクを効果的に使う方法を説明します",
+    "content": "<h1>スマートフォンでの使い方</h1>\n<p><strong>最終更新日</strong>: 2026-01-22\n<strong>対象</strong>: 全ユーザー</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E6%A6%82%E8%A6%81\">概要</a></li>\n<li><a href=\"#%E3%82%B9%E3%83%9E%E3%83%BC%E3%83%88%E3%83%95%E3%82%A9%E3%83%B3%E3%81%A7%E4%BD%BF%E3%81%88%E3%82%8B%E6%A9%9F%E8%83%BD\">スマートフォンで使える機能</a></li>\n<li><a href=\"#%E3%83%A2%E3%83%90%E3%82%A4%E3%83%AB%E7%94%BB%E9%9D%A2%E3%81%AE%E6%A7%8B%E6%88%90\">モバイル画面の構成</a></li>\n<li><a href=\"#%E4%B8%8B%E9%83%A8%E3%83%8A%E3%83%93%E3%82%B2%E3%83%BC%",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "モバイル",
+      "基本操作",
+      "スタッフ向け"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/mobile/qr_code_guide",
+    "title": "QRコード活用ガイド",
+    "description": "QRコードを使った道具の管理と効率的な運用方法を説明します",
+    "content": "<h1>QRコード活用ガイド</h1>\n<p><strong>最終更新日</strong>: 2026-01-22\n<strong>対象</strong>: 全ユーザー（特に管理者・リーダー）</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#qr%E3%82%B3%E3%83%BC%E3%83%89%E3%81%A8%E3%81%AF\">QRコードとは</a></li>\n<li><a href=\"#%E3%82%B6%E3%82%A4%E3%83%AD%E3%82%AF%E3%81%A7%E4%BD%BF%E3%81%88%E3%82%8Bqr%E3%82%B3%E3%83%BC%E3%83%89\">ザイロクで使えるQRコード</a></li>\n<li><a href=\"#qr%E3%82%B3%E3%83%BC%E3%83%89%E5%8D%B0%E5%88%B7%E3%81%AE%E6%BA%96%E5%82%99\">QRコード印刷の準備</a></li>\n<li><a href=\"#%E9%81%93%E5%85%B7qr%E3%82%B3%E3%",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "QRコード",
+      "基本操作",
+      "スタッフ向け"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/role_guides/admin_quick_guide",
+    "title": "管理者向けクイックガイド",
+    "description": "管理者が最初に押さえるべき基本操作と重要機能を説明します",
+    "content": "<h1>管理者向けクイックガイド</h1>\n<p><strong>最終更新日</strong>: 2026-01-22\n<strong>対象</strong>: admin（システム管理者）役割のユーザー</p>\n<hr>\n<h2>はじめに</h2>\n<p>このガイドは、システム管理者（admin）の方がザイロクを使い始めるための基本操作をまとめたクイックガイドです。</p>\n<h3>管理者ができること</h3>\n<p>管理者は、組織全体を管理する最高権限者です。マネージャーができることに加えて、以下の操作ができます：</p>\n<p>✅ <strong>マネージャーの機能に加えて</strong>:</p>\n<ul>\n<li>道具・消耗品・重機の削除</li>\n<li>倉庫位置の管理</li>\n<li>取引先マスタの管理</li>\n<li>マスタ管理（カテゴリ・道具・消耗品）の削除</li>\n<li>すべてのスタッフの追加・編集・削除</li>\n<li>権限変更（役割の変更）</li>\n<li>パスワードリセット</li>\n<li>出退勤設定</li>\n<li>作業報告書設定</li>",
+    "category": "manual",
+    "permission": 4,
+    "tags": [
+      "基本操作",
+      "管理者向け",
+      "クイックガイド"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/role_guides/leader_quick_guide",
+    "title": "リーダー向けクイックガイド",
+    "description": "リーダーが最初に押さえるべき基本操作と重要機能を説明します",
+    "content": "<h1>リーダー向けクイックガイド</h1>\n<p><strong>最終更新日</strong>: 2026-01-22\n<strong>対象</strong>: leader（リーダー）役割のユーザー</p>\n<hr>\n<h2>はじめに</h2>\n<p>このガイドは、リーダーの方がザイロクを使い始めるための基本操作をまとめたクイックガイドです。</p>\n<h3>リーダーができること</h3>\n<p>リーダーは、現場監督やチームリーダーです。スタッフができることに加えて、以下の操作ができます：</p>\n<p>✅ <strong>スタッフの機能に加えて</strong>:</p>\n<ul>\n<li>自チームの勤怠管理（DX効率化パック・フル機能統合パックの場合）</li>\n<li>自チームの勤怠手動修正（DX効率化パック・フル機能統合パックの場合）</li>\n<li>出退勤QRコードの発行（DX効率化パック・フル機能統合パックの場合）</li>\n<li>現場マスタの閲覧</li>\n<li>仕入先マスタの閲覧（DX効率化パック・フル機能統合パックの場合）</li>\n<li>見積書の作成（D",
+    "category": "manual",
+    "permission": 2,
+    "tags": [
+      "基本操作",
+      "リーダー向け",
+      "クイックガイド"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/role_guides/manager_quick_guide",
+    "title": "マネージャー向けクイックガイド",
+    "description": "マネージャーが最初に押さえるべき基本操作と重要機能を説明します",
+    "content": "<h1>マネージャー向けクイックガイド</h1>\n<p><strong>最終更新日</strong>: 2026-01-22\n<strong>対象</strong>: manager（マネージャー）役割のユーザー</p>\n<hr>\n<h2>はじめに</h2>\n<p>このガイドは、マネージャーの方がザイロクを使い始めるための基本操作をまとめたクイックガイドです。</p>\n<h3>マネージャーができること</h3>\n<p>マネージャーは、部門長や中間管理職です。リーダーができることに加えて、以下の操作ができます：</p>\n<p>✅ <strong>リーダーの機能に加えて</strong>:</p>\n<ul>\n<li>道具・消耗品・重機の登録・編集</li>\n<li>QRコードの印刷</li>\n<li>全員の勤怠管理（DX効率化パック・フル機能統合パックの場合）</li>\n<li>月次勤怠レポート（DX効率化パック・フル機能統合パックの場合）</li>\n<li>現場の登録・編集</li>\n<li>スタッフの追加・編集（leader/staffのみ）</li>\n<li>見積書・請求書の承認（D",
+    "category": "manual",
+    "permission": 3,
+    "tags": [
+      "基本操作",
+      "マネージャー向け",
+      "クイックガイド"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/role_guides/staff_quick_guide",
+    "title": "スタッフ向けクイックガイド",
+    "description": "スタッフが最初に押さえるべき基本操作と重要機能を説明します",
+    "content": "<h1>スタッフ向けクイックガイド</h1>\n<p><strong>最終更新日</strong>: 2026-01-22\n<strong>対象</strong>: staff（現場スタッフ）役割のユーザー</p>\n<hr>\n<h2>はじめに</h2>\n<p>このガイドは、現場スタッフ（staff）の方がザイロクを使い始めるための基本操作をまとめたクイックガイドです。</p>\n<h3>スタッフができること</h3>\n<p>スタッフは、現場で道具を使う作業員です。以下の操作ができます：</p>\n<p>✅ <strong>できること</strong>:</p>\n<ul>\n<li>QRスキャンで道具の持ち出し・返却</li>\n<li>道具や消耗品の検索・閲覧</li>\n<li>道具の現在地確認</li>\n<li>自分の移動履歴の確認</li>\n<li>出退勤打刻（DX効率化パック・フル機能統合パックの場合）</li>\n<li>作業報告書の作成（DX効率化パック・フル機能統合パックの場合）</li>\n<li>プロフィール設定の変更</li>\n</ul>\n<p>❌ <strong>できないこと</",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "基本操作",
+      "スタッフ向け",
+      "クイックガイド"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/security/emergency_response",
+    "title": "緊急時の対応マニュアル",
+    "description": "システム障害や緊急事態が発生した際の対応手順を説明します",
+    "content": "<h1>緊急時の対応マニュアル</h1>\n<h2>1. 概要</h2>\n<p>セキュリティインシデント発生時の緊急対応手順を説明します。不正アクセス、データ漏洩、アカウント乗っ取りなど、重大なセキュリティ問題への対処法を網羅しています。</p>\n<p><strong>このマニュアルで解決できること</strong>:</p>\n<ul>\n<li>不正アクセス検知時の初動対応</li>\n<li>アカウント乗っ取りへの対処</li>\n<li>データ漏洩時の対応フロー</li>\n<li>パスワード漏洩時の処置</li>\n<li>監査ログによる原因調査</li>\n</ul>\n<p><strong>対象者</strong>: Admin（管理者）、すべてのユーザー</p>\n<p><strong>重要</strong>: このマニュアルは緊急時用です。平時に一読しておくことを強く推奨します。</p>\n<hr>\n<h2>2. セキュリティインシデントの種類</h2>\n<h3>2-1. インシデントの重要度分類</h3>\n<table>\n<thead>\n<tr>\n<th>レベル</th>\n<th>種類<",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "基本操作",
+      "緊急対応",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/security/security_best_practices",
+    "title": "セキュリティのベストプラクティス",
+    "description": "ザイロクを安全に使うためのセキュリティ対策とベストプラクティスを説明します",
+    "content": "<h1>セキュリティのベストプラクティス</h1>\n<h2>1. 概要</h2>\n<p>ザイロクを安全に運用するためのセキュリティのベストプラクティスを説明します。パスワード管理、アクセス制御、監査ログの活用など、組織のデータを守るための推奨事項を網羅しています。</p>\n<p><strong>このマニュアルで解決できること</strong>:</p>\n<ul>\n<li>強固なパスワードポリシーの設定</li>\n<li>2段階認証の導入と管理</li>\n<li>適切な権限設定</li>\n<li>ログイン制限とIP制限の活用</li>\n<li>監査ログによる操作追跡</li>\n</ul>\n<p><strong>対象者</strong>: Admin（管理者）、すべてのユーザー</p>\n<hr>\n<h2>2. パスワードセキュリティ</h2>\n<h3>2-1. 強固なパスワードの作成</h3>\n<p><strong>推奨パスワードポリシー</strong>:</p>\n<table>\n<thead>\n<tr>\n<th>項目</th>\n<th>推奨値</th>\n<th>理由</th>\n</tr",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "基本操作",
+      "セキュリティ",
+      "全ユーザー向け"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/security/troubleshooting_common",
+    "title": "よくあるトラブルと解決方法",
+    "description": "ザイロク利用時によくあるトラブルとその解決方法を説明します",
+    "content": "<h1>よくあるトラブルと解決方法</h1>\n<h2>1. 概要</h2>\n<p>ザイロクの使用中に発生する可能性のあるトラブルと、その解決方法を説明します。ログインできない、パスワードを忘れた、アカウントがロックされたなど、よくある問題への対処法を網羅しています。</p>\n<p><strong>このマニュアルで解決できること</strong>:</p>\n<ul>\n<li>ログインできない時の対処法</li>\n<li>パスワード関連のトラブル解決</li>\n<li>アカウントロックアウトの解除</li>\n<li>2段階認証のトラブル対応</li>\n<li>セッション切れへの対処</li>\n</ul>\n<p><strong>対象者</strong>: すべてのユーザー</p>\n<hr>\n<h2>2. ログイントラブル</h2>\n<h3>2-1. ログインできない（パスワードが正しいはず）</h3>\n<h4>症状</h4>\n<ul>\n<li>メールアドレスとパスワードを入力してもログインできない</li>\n<li>「メールアドレスまたはパスワードが正しくありません」と表示される</li>\n",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "トラブルシューティング",
+      "基本操作",
+      "全ユーザー向け"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/tool_operations/tool_bulk_operations",
+    "title": "道具の一括操作マニュアル",
+    "description": "複数の道具をまとめて登録・移動・削除する方法を説明します",
+    "content": "<h1>道具の一括操作マニュアル</h1>\n<h2>1. 概要</h2>\n<p>複数の道具をまとめて操作することで、作業効率を大幅に向上させます。一括移動、一括QR印刷など、大量の道具を扱う際に便利な機能を説明します。</p>\n<p><strong>このマニュアルで解決できること</strong>:</p>\n<ul>\n<li>10個以上の道具を一度に移動登録</li>\n<li>複数の道具のQRコードをまとめて印刷</li>\n<li>現場完了時の道具一括返却</li>\n<li>新規現場への道具一括持ち出し</li>\n</ul>\n<hr>\n<h2>2. 一括操作の種類</h2>\n<table>\n<thead>\n<tr>\n<th>操作</th>\n<th>用途</th>\n<th>対象権限</th>\n<th>関連マニュアル</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><strong>一括移動</strong></td>\n<td>複数の道具を同時に移動登録</td>\n<td>全員</td>\n<td>本マニュアル</td>\n</tr>\n<tr>\n<td><strong>",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "備品管理",
+      "一括操作",
+      "管理者向け"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/tool_operations/tool_handover",
+    "title": "道具の引き継ぎ手順マニュアル",
+    "description": "スタッフ間で道具を引き継ぐ際の手順と注意点を説明します",
+    "content": "<h1>道具の引き継ぎ手順マニュアル</h1>\n<h2>1. 概要</h2>\n<p>現場や担当者の変更時に、道具を確実に引き継ぐための手順を説明します。道具の紛失や所在不明を防ぎ、スムーズな業務引き継ぎを実現します。</p>\n<p><strong>このマニュアルで解決できること</strong>:</p>\n<ul>\n<li>退職者から後任者への道具引き継ぎ</li>\n<li>現場A→現場Bへの道具移動</li>\n<li>担当者変更時の道具の所在確認</li>\n<li>チーム間での道具の貸し借り</li>\n</ul>\n<hr>\n<h2>2. 引き継ぎが必要なケース</h2>\n<h3>2-1. 人の異動・退職</h3>\n<table>\n<thead>\n<tr>\n<th>ケース</th>\n<th>例</th>\n<th>対応</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><strong>退職</strong></td>\n<td>スタッフAが退職</td>\n<td>保有道具をすべて倉庫に返却</td>\n</tr>\n<tr>\n<td><strong>部署異動</stro",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "備品管理",
+      "引き継ぎ",
+      "スタッフ向け"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/tool_operations/tool_lost_or_damaged",
+    "title": "道具の紛失・破損対応マニュアル",
+    "description": "道具を紛失または破損した際の対応手順と報告方法を説明します",
+    "content": "<h1>道具の紛失・破損対応マニュアル</h1>\n<h2>1. 概要</h2>\n<p>道具の紛失や破損が発生した際の適切な対応手順を説明します。早期対応により、業務への影響を最小限に抑え、再発防止につなげることができます。</p>\n<p><strong>このマニュアルで解決できること</strong>:</p>\n<ul>\n<li>道具が見つからないときの対応フロー</li>\n<li>破損した道具の処理方法</li>\n<li>修理に出す手順</li>\n<li>道具の削除・廃棄手続き</li>\n<li>再発防止のための記録管理</li>\n</ul>\n<hr>\n<h2>2. 紛失・破損の種類と対応方針</h2>\n<h3>2-1. 紛失（Lost）</h3>\n<table>\n<thead>\n<tr>\n<th>状況</th>\n<th>対応レベル</th>\n<th>初動対応</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><strong>一時的に見つからない</strong></td>\n<td>🟡 注意</td>\n<td>30分〜1時間探す</td>\n</tr>\n<tr",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "備品管理",
+      "トラブル対応",
+      "全ユーザー向け"
+    ]
+  },
+  {
+    "slug": "manual/scenarios/tool_operations/tool_maintenance",
+    "title": "道具のメンテナンス・点検マニュアル",
+    "description": "道具の定期的なメンテナンスと点検の手順を説明します",
+    "content": "<h1>道具のメンテナンス・点検マニュアル</h1>\n<h2>1. 概要</h2>\n<p>道具の定期的なメンテナンス・点検により、故障や破損を未然に防ぎ、安全で効率的な作業を実現します。このマニュアルでは、日常点検から定期メンテナンスまでの手順を説明します。</p>\n<p><strong>このマニュアルで解決できること</strong>:</p>\n<ul>\n<li>道具の寿命を延ばす</li>\n<li>突然の故障を防ぐ</li>\n<li>安全事故を予防する</li>\n<li>修理費を削減する</li>\n<li>作業効率を維持する</li>\n</ul>\n<p><strong>注意</strong>: このマニュアルは <strong>道具（tools）</strong> のメンテナンスを対象としています。<strong>重機（equipment）</strong> のメンテナンスについては <a href=\"../../equipment_maintenance.md\">重機メンテナンス記録マニュアル</a> を参照してください。</p>\n<hr>\n<h2>2. メンテナンスの種類と頻度",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "備品管理",
+      "メンテナンス",
+      "リーダー向け"
+    ]
+  },
+  {
+    "slug": "manual/settings",
+    "title": "設定",
+    "description": "設定に関するガイド",
+    "content": "<h1>設定マニュアル</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: 全ユーザー（機能により異なる）</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E6%A6%82%E8%A6%81\">概要</a></li>\n<li><a href=\"#%E3%82%A2%E3%82%AB%E3%82%A6%E3%83%B3%E3%83%88%E8%A8%AD%E5%AE%9A%E5%85%A8%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC\">アカウント設定（全ユーザー）</a>\n<ul>\n<li><a href=\"#%E3%83%97%E3%83%AD%E3%83%95%E3%82%A3%E3%83%BC%E3%83%AB%E8%A8%AD%E5%AE%9A\">プロフィール設定</a></li>\n<li><a href=\"#%E3%82%BB%E3%82%AD%E3%83%A5%E3%83%AA%E3%83%86%E3%82%A3%E8%A8%AD%E5%A",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "設定"
+    ]
+  },
+  {
+    "slug": "manual/settings_attendance",
+    "title": "勤怠設定",
+    "description": "勤怠設定に関するガイド",
+    "content": "<h1>出退勤設定マニュアル</h1>\n<h2>概要</h2>\n<p>出退勤設定（勤怠管理設定）では、打刻方法、休憩時間の記録方式、リマインダー通知、管理者向けレポート・アラートなど、出退勤管理に関する組織全体の設定を変更できます。</p>\n<h2>対象者</h2>\n<ul>\n<li>管理者（Admin）</li>\n<li>マネージャー（Manager）</li>\n</ul>\n<p>※ リーダーおよび一般スタッフは設定ページにアクセスできません。</p>\n<h2>アクセス方法</h2>\n<ol>\n<li>ダッシュボードまたはサイドメニューから「設定」をクリック</li>\n<li>「出退勤設定」または「勤怠管理設定」をクリック</li>\n</ol>\n<p>または、サイドメニューから「設定」→「出退勤設定」を直接選択</p>\n<h2>設定項目一覧</h2>\n<p>出退勤設定は以下のセクションに分かれています：</p>\n<ol>\n<li>打刻方法設定</li>\n<li>休憩時間設定</li>\n<li>リマインダー設定</li>\n<li>管理者向け設定</li>\n</ol>\n<hr>\n<h2>",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "勤怠管理",
+      "設定"
+    ]
+  },
+  {
+    "slug": "manual/settings_contract",
+    "title": "契約設定",
+    "description": "契約設定に関するガイド",
+    "content": "<h1>契約について マニュアル</h1>\n<h2>概要</h2>\n<p>ザイロク（Zairoku）は、現場系業種向けの道具管理システムです。このドキュメントでは、契約プラン、料金体系、機能パッケージについて説明します。</p>\n<h2>サービス形態</h2>\n<p>ザイロクはマルチテナントSaaS型のサービスです。</p>\n<h3>特徴</h3>\n<ul>\n<li><strong>クラウドベース</strong>: インターネットがあればどこからでもアクセス可能</li>\n<li><strong>月額課金制</strong>: 初期費用なし、月額料金のみ</li>\n<li><strong>自動アップデート</strong>: 常に最新機能を利用可能</li>\n<li><strong>データ分離</strong>: 組織ごとに完全にデータが分離され、セキュリティが確保されています</li>\n</ul>\n<hr>\n<h2>料金プラン</h2>\n<h3>基本プラン</h3>\n<p>ユーザー数に応じた基本料金プランです。</p>\n<p><strong>注意</strong>: 基本プランの料",
+    "category": "manual",
+    "permission": 4,
+    "tags": [
+      "設定"
+    ]
+  },
+  {
+    "slug": "manual/settings_organization",
+    "title": "組織情報設定",
+    "description": "組織情報設定に関するガイド",
+    "content": "<h1>組織情報設定マニュアル</h1>\n<h2>概要</h2>\n<p>組織情報設定（運用設定）では、道具移動時のルール、通知設定、QRコード印刷サイズ、消耗品管理方式、重機機能の有効化、倉庫階層構造など、組織全体の運用方法を設定できます。</p>\n<h2>対象者</h2>\n<ul>\n<li>管理者（Admin）のみ</li>\n</ul>\n<p>※ マネージャー、リーダー、一般スタッフは設定ページにアクセスできません。</p>\n<h2>アクセス方法</h2>\n<ol>\n<li>ダッシュボードまたはサイドメニューから「設定」をクリック</li>\n<li>「組織情報」または「運用設定」をクリック</li>\n</ol>\n<p>または、サイドメニューから「設定」→「組織情報」を直接選択</p>\n<h2>設定項目一覧</h2>\n<p>組織情報設定は以下のセクションに分かれています：</p>\n<ol>\n<li>道具移動時の設定</li>\n<li>紛失・承認設定</li>\n<li>通知・リマインド設定</li>\n<li>QRコード印刷設定</li>\n<li>消耗品管理設定</li>\n<li>重機機能",
+    "category": "manual",
+    "permission": 4,
+    "tags": [
+      "設定"
+    ]
+  },
+  {
+    "slug": "manual/sites",
+    "title": "現場管理",
+    "description": "現場管理に関するガイド",
+    "content": "<h1>現場管理</h1>\n<h2>概要</h2>\n<p>現場管理機能は、工事現場・作業現場の情報を管理するための機能です。\n道具の移動先、勤怠管理、作業報告書などの基盤となる重要なマスタデータです。</p>\n<p><strong>主な機能</strong>:</p>\n<ul>\n<li>現場の登録・編集・削除</li>\n<li>現場QRコードの発行・印刷</li>\n<li>現場にある道具の確認</li>\n<li>現場責任者の設定</li>\n<li>現場完了管理</li>\n<li>移動履歴の確認</li>\n</ul>\n<hr>\n<h2>対象者</h2>\n<p>現場管理機能は <strong>マネージャー以上</strong> が利用できます。</p>\n<ul>\n<li><strong>マネージャー（Manager）</strong>: 現場の登録・編集・QRコード発行</li>\n<li><strong>管理者（Admin）</strong>: 現場の登録・編集・削除、QRコード発行</li>\n</ul>\n<p><strong>注意</strong>: スタッフとリーダーは現場管理機能を利",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
       "基本操作"
     ]
   },
   {
-    "slug": "qa/staff/qr-error",
-    "title": "QRコードが読み取れない",
-    "description": "QRコードスキャン時のトラブルシューティング",
-    "content": "<h1>QRコードが読み取れない</h1>\n<h2>症状</h2>\n<p>カメラでQRコードをスキャンしても反応しない、またはエラーが表示される。</p>\n<h2>原因と対処法</h2>\n<h3>1. カメラ権限がない</h3>\n<p><strong>症状:</strong></p>\n<ul>\n<li>カメラが起動しない</li>\n<li>「カメラへのアクセスが拒否されました」というメッセージが表示される</li>\n</ul>\n<p><strong>対処法:</strong></p>\n<h4>iPhoneの場合</h4>\n<ol>\n<li>設定アプリを開く</li>\n<li>下にスクロールして「ザイロク」を探す</li>\n<li>「カメラ」をタップ</li>\n<li>「許可」を選択</li>\n</ol>\n<h4>Androidの場合</h4>\n<ol>\n<li>設定アプリを開く</li>\n<li>「アプリと通知」→「ザイロク」</li>\n<li>「権限」→「カメラ」</li>\n<li>「許可」を選択</li>\n</ol>\n<h3>2. QRコードが汚れている</h3>\n<p><stro",
+    "slug": "manual/staff_add",
+    "title": "従業員追加",
+    "description": "新しい従業員をシステムに追加する方法",
+    "content": "<h1>スタッフ追加（権限の違い）マニュアル</h1>\n<h2>📋 概要</h2>\n<p>スタッフ追加機能では、組織内のスタッフを登録し、適切な権限（ロール）を設定できます。権限により、使用できる機能が大きく異なるため、慎重に設定する必要があります。</p>\n<h2>👥 対象者</h2>\n<ul>\n<li><strong>管理者（Admin）</strong>: すべての権限のスタッフを追加可能</li>\n<li><strong>マネージャー（Manager）</strong>: スタッフ・リーダーのみ追加可能（管理者・マネージャーは追加不可）</li>\n<li><strong>リーダー</strong>: スタッフの追加不可（閲覧のみ）</li>\n<li><strong>スタッフ</strong>: スタッフの追加不可（閲覧のみ）</li>\n</ul>\n<h2>📍 アクセス方法</h2>\n<ol>\n<li>左メニューから「スタッフ管理」をクリック</li>\n<li>画面右上の「+ スタッフを追加」ボタンをクリック</li>\n</ol>\n<h2>🔐 権限（ロール）の種類と違い<",
+    "category": "manual",
+    "permission": 3,
+    "tags": [
+      "従業員管理",
+      "追加"
+    ]
+  },
+  {
+    "slug": "manual/staff_management",
+    "title": "従業員管理",
+    "description": "従業員管理に関するガイド",
+    "content": "<h1>スタッフ管理マニュアル</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: 管理者、マネージャー</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E6%A6%82%E8%A6%81\">概要</a></li>\n<li><a href=\"#%E3%82%B9%E3%82%BF%E3%83%83%E3%83%95%E4%B8%80%E8%A6%A7%E3%81%AE%E7%A2%BA%E8%AA%8D\">スタッフ一覧の確認</a></li>\n<li><a href=\"#%E6%96%B0%E8%A6%8F%E3%82%B9%E3%82%BF%E3%83%83%E3%83%95%E3%81%AE%E8%BF%BD%E5%8A%A0\">新規スタッフの追加</a></li>\n<li><a href=\"#%E3%82%B9%E3%82%BF%E3%83%83%E3%83%95%E6%83%85%E5%A0%B1%E3%81%AE%E7%B7%A8%E9%9B%86\">スタッフ情報の編",
+    "category": "manual",
+    "permission": 2,
+    "tags": [
+      "従業員管理",
+      "スタッフ管理",
+      "社員管理",
+      "ユーザー管理",
+      "アカウント",
+      "権限",
+      "ロール",
+      "招待",
+      "登録",
+      "メンバー",
+      "人事",
+      "組織"
+    ]
+  },
+  {
+    "slug": "manual/support",
+    "title": "サポート・お問い合わせ",
+    "description": "ザイロクのサポート窓口とお問い合わせ方法",
+    "content": "<h1>サポートへの問い合わせ</h1>\n<p><strong>最終更新日</strong>: 2026-01-22\n<strong>対象</strong>: 全ユーザー</p>\n<hr>\n<h2>📋 目次</h2>\n<ol>\n<li><a href=\"#%E6%A6%82%E8%A6%81\">概要</a></li>\n<li><a href=\"#%E5%95%8F%E3%81%84%E5%90%88%E3%82%8F%E3%81%9B%E5%89%8D%E3%81%AE%E7%A2%BA%E8%AA%8D%E4%BA%8B%E9%A0%85\">問い合わせ前の確認事項</a></li>\n<li><a href=\"#%E3%83%AD%E3%82%B0%E3%82%A4%E3%83%B3%E3%81%A7%E3%81%8D%E3%81%AA%E3%81%84%E5%A0%B4%E5%90%88%E3%81%AE%E5%95%8F%E3%81%84%E5%90%88%E3%82%8F%E3%81%9B%E6%96%B9%E6%B3%95\">ログインできない場合の問い合わせ方法</a></l",
+    "category": "manual",
+    "permission": 0,
+    "tags": [
+      "サポート",
+      "お問い合わせ"
+    ]
+  },
+  {
+    "slug": "manual/tool_categories",
+    "title": "備品カテゴリ管理",
+    "description": "備品カテゴリ管理に関するガイド",
+    "content": "<h1>道具カテゴリ管理マニュアル</h1>\n<h2>概要</h2>\n<p>道具カテゴリ管理機能は、道具や消耗品を分類するためのカテゴリを作成・編集・削除する機能です。カテゴリを設定することで、道具や消耗品を整理しやすくなり、検索やフィルタリングが効率的になります。</p>\n<h2>対象者</h2>\n<ul>\n<li>マネージャー（Manager）: カテゴリの作成・編集が可能</li>\n<li>管理者（Admin）: カテゴリの作成・編集・削除が可能</li>\n</ul>\n<p>※ リーダーおよび一般スタッフはカテゴリ管理機能にアクセスできません。</p>\n<h2>アクセス方法</h2>\n<ol>\n<li>ダッシュボードまたはサイドメニューから「道具マスタ」をクリック</li>\n<li>「カテゴリ管理」タブをクリック</li>\n</ol>\n<h2>カテゴリの新規作成</h2>\n<h3>手順</h3>\n<h4>1. 新規作成画面を開く</h4>\n<ol>\n<li>「カテゴリ管理」タブを開く</li>\n<li>右上の「新規作成」ボタンをクリック</li>\n<li>カテゴリ登録フォームのモ",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "備品管理"
+    ]
+  },
+  {
+    "slug": "manual/tool_management",
+    "title": "備品管理",
+    "description": "備品管理に関するガイド",
+    "content": "<h1>道具管理マニュアル</h1>\n<h2>対象者</h2>\n<p>このマニュアルは、道具の登録・管理を行う以下の権限のユーザーを対象としています。</p>\n<ul>\n<li><strong>Manager（マネージャー）</strong>: 道具の登録・編集が可能</li>\n<li><strong>Admin（管理者）</strong>: 全機能が利用可能</li>\n</ul>\n<p>※ Staff、Leaderは道具情報の閲覧とQRスキャンのみ可能です。</p>\n<hr>\n<h2>前提条件</h2>\n<p>道具管理を始める前に、以下の設定が完了していることを確認してください。</p>\n<ol>\n<li>\n<p><strong>倉庫位置の設定</strong>（オプション）</p>\n<ul>\n<li>倉庫内で道具を管理する場合は、<a href=\"./warehouse_locations.md\">倉庫位置管理マニュアル</a>を参照して倉庫位置を設定してください</li>\n</ul>\n</li>\n<li>\n<p><strong>道具カテゴリの設定</strong>（オプション）<",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "備品管理",
+      "道具",
+      "工具",
+      "ツール",
+      "資機材",
+      "在庫",
+      "登録",
+      "管理",
+      "備品登録",
+      "備品一覧",
+      "資産管理"
+    ]
+  },
+  {
+    "slug": "manual/tool_sets",
+    "title": "備品セット管理",
+    "description": "備品セット管理に関するガイド",
+    "content": "<h1>道具セット管理マニュアル</h1>\n<h2>対象者</h2>\n<p>このマニュアルは、道具セットの登録・管理を行う以下の権限のユーザーを対象としています。</p>\n<ul>\n<li><strong>Manager（マネージャー）</strong>: 道具セットの登録・編集が可能</li>\n<li><strong>Admin（管理者）</strong>: 道具セットの登録・編集・削除が可能</li>\n</ul>\n<p>※ Staff、Leaderは道具セットの閲覧とQRスキャンのみ可能です。登録・編集はできません。</p>\n<hr>\n<h2>前提条件</h2>\n<p>道具セット管理を始める前に、以下が完了していることを確認してください。</p>\n<ol>\n<li><strong>道具の登録</strong>: セットに含める道具が登録済みであること</li>\n<li><strong>個別アイテムの確認</strong>: セットに含める個別アイテム（#001、#002など）が存在すること</li>\n</ol>\n<p><strong>関連</strong>: <a href=\"./",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "備品管理"
+    ]
+  },
+  {
+    "slug": "manual/warehouse_locations",
+    "title": "保管場所管理",
+    "description": "保管場所管理に関するガイド",
+    "content": "<h1>倉庫位置管理マニュアル</h1>\n<h2>対象者</h2>\n<p>このマニュアルは、倉庫位置の設定・管理を行う以下の権限のユーザーを対象としています。</p>\n<ul>\n<li><strong>Admin（管理者）</strong>: 全機能が利用可能（倉庫位置の登録・編集・削除、階層設定を含む）</li>\n</ul>\n<p>※ Staff、Leader、Managerは倉庫位置情報の閲覧のみ可能です。</p>\n<hr>\n<h2>前提条件</h2>\n<p>倉庫位置管理を始める前に、以下を確認してください。</p>\n<ol>\n<li><strong>契約プラン</strong>: 現場資産パック、または フル機能統合パックが契約済みであること</li>\n<li><strong>倉庫の構造を把握</strong>: 実際の倉庫の構造（エリア、棚、段など）を確認</li>\n</ol>\n<hr>\n<h2>倉庫位置管理とは</h2>\n<h3>1. 倉庫位置管理の目的</h3>\n<p>倉庫位置管理は、<strong>倉庫内のどこに道具があるか</strong>を正確に記録する機能です。</",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "基本操作"
+    ]
+  },
+  {
+    "slug": "manual/work_reports",
+    "title": "作業報告書管理",
+    "description": "作業報告書管理に関するガイド",
+    "content": "<h1>作業報告書管理</h1>\n<h2>概要</h2>\n<p>作業報告書機能は、現場での作業内容を記録・報告するための機能です。\n日々の作業内容、使用した資材・道具、作業者、写真などを記録し、承認フローを経て正式な報告書として管理できます。</p>\n<p><strong>主な機能</strong>:</p>\n<ul>\n<li>作業内容の詳細記録（日付、天候、作業時間、内容）</li>\n<li>作業写真の添付（作業前・作業中・作業後・問題点・その他）</li>\n<li>作業者の記録（作成者＋同行者）</li>\n<li>進捗率、使用資材・道具の記録</li>\n<li>承認フロー（下書き→提出→承認/却下）</li>\n<li>PDF出力</li>\n</ul>\n<hr>\n<h2>対象者</h2>\n<h3>作成・編集</h3>\n<ul>\n<li><strong>スタッフ（Staff）</strong>: 自分が作成した報告書のみ作成・編集</li>\n<li><strong>リーダー（Leader）</strong>: 自分が作成した報告書のみ作成・編集</li>\n<li><strong>マネー",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "作業報告"
+    ]
+  },
+  {
+    "slug": "manual/work_reports_approval",
+    "title": "作業報告書承認",
+    "description": "作業報告書承認に関するガイド",
+    "content": "<h1>作業報告書承認マニュアル</h1>\n<h2>1. 概要</h2>\n<p>スタッフが提出した作業報告書を承認または却下する機能です。リーダーと管理者が承認権限を持ち、報告内容を確認した上で承認・却下の判断を行います。</p>\n<p><strong>主な機能</strong>:</p>\n<ul>\n<li>承認待ち報告書の一覧表示</li>\n<li>個別承認・却下（コメント付き）</li>\n<li>一括承認機能</li>\n<li>一括PDF出力</li>\n<li>承認履歴の記録</li>\n</ul>\n<hr>\n<h2>2. 対象者</h2>\n<table>\n<thead>\n<tr>\n<th>権限レベル</th>\n<th>承認・却下</th>\n<th>承認待ち閲覧</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>一般スタッフ</td>\n<td>❌</td>\n<td>❌</td>\n</tr>\n<tr>\n<td>リーダー</td>\n<td>✅</td>\n<td>✅</td>\n</tr>\n<tr>\n<td>マネージャー</td>\n<td>❌</td>\n<td>❌</",
+    "category": "manual",
+    "permission": 3,
+    "tags": [
+      "作業報告",
+      "承認"
+    ]
+  },
+  {
+    "slug": "manual/work_reports_create",
+    "title": "作業報告書作成",
+    "description": "作業報告書作成に関するガイド",
+    "content": "<h1>作業報告書作成マニュアル</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: Staff、Leader、Manager、Admin</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E4%BD%9C%E6%A5%AD%E5%A0%B1%E5%91%8A%E6%9B%B8%E4%BD%9C%E6%88%90%E3%81%AE%E6%A6%82%E8%A6%81\">作業報告書作成の概要</a></li>\n<li><a href=\"#%E4%BD%9C%E6%A5%AD%E5%A0%B1%E5%91%8A%E6%9B%B8%E4%BD%9C%E6%88%90%E3%81%AE%E6%B5%81%E3%82%8C\">作業報告書作成の流れ</a></li>\n<li><a href=\"#%E5%9F%BA%E6%9C%AC%E6%83%85%E5%A0%B1%E3%81%AE%E5%85%A5%E5%8A%9B\">基本情報の入力</a></li>\n<li><a href=\"#%E4%",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "作業報告"
+    ]
+  },
+  {
+    "slug": "manual/work_reports_pdf",
+    "title": "作業報告書PDF出力",
+    "description": "作業報告書PDF出力に関するガイド",
+    "content": "<h1>作業報告書PDF出力マニュアル</h1>\n<h2>1. 概要</h2>\n<p>作業報告書をPDF形式で出力する機能です。取引先への提出、社内保管、印刷など、様々な用途で活用できます。</p>\n<p><strong>主な機能</strong>:</p>\n<ul>\n<li>個別PDF出力（報告書詳細画面から）</li>\n<li>一括PDF出力（承認待ち一覧から複数選択）</li>\n<li>角印・担当印・承認印の自動押印</li>\n<li>写真付きPDF生成</li>\n<li>カスタムフィールド対応</li>\n</ul>\n<hr>\n<h2>2. 対象者</h2>\n<table>\n<thead>\n<tr>\n<th>権限レベル</th>\n<th>個別PDF出力</th>\n<th>一括PDF出力</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>一般スタッフ</td>\n<td>✅</td>\n<td>❌</td>\n</tr>\n<tr>\n<td>リーダー</td>\n<td>✅</td>\n<td>✅</td>\n</tr>\n<tr>\n<td>マネージャー</td>\n<td>",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "作業報告"
+    ]
+  },
+  {
+    "slug": "manual/work_reports_settings",
+    "title": "作業報告設定",
+    "description": "作業報告設定に関するガイド",
+    "content": "<h1>作業報告書設定</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: 管理者のみ</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E6%A6%82%E8%A6%81\">概要</a></li>\n<li><a href=\"#%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E6%96%B9%E6%B3%95\">アクセス方法</a></li>\n<li><a href=\"#%E8%A8%AD%E5%AE%9A%E9%A0%85%E7%9B%AE\">設定項目</a>\n<ul>\n<li><a href=\"#%E3%82%AA%E3%83%97%E3%82%B7%E3%83%A7%E3%83%B3%E9%A0%85%E7%9B%AE%E3%81%AE%E6%9C%89%E5%8A%B9%E7%84%A1%E5%8A%B9\">オプション項目の有効/無効</a></li>\n<li><a href=\"#%E3%82%AB%E3%82%B9%E3%82%BF%E3%83",
+    "category": "manual",
+    "permission": 1,
+    "tags": [
+      "作業報告",
+      "設定"
+    ]
+  },
+  {
+    "slug": "qa/admin/attendance_leader_qr_issues",
+    "title": "Attendance Leader Qr Issues",
+    "description": "Attendance Leader Qr Issuesに関するガイド",
+    "content": "<h1>リーダー用QR発行（Q&#x26;A）</h1>\n<p><strong>最終更新日</strong>: 2026-01-21</p>\n<p>このドキュメントは、リーダー用QR発行機能に関するよくある質問をまとめたものです。</p>\n<p><strong>対象ユーザー</strong>: Leader、Manager、Admin</p>\n<p><strong>関連マニュアル</strong>: <a href=\"../../manual/attendance_leader_qr.md\">リーダー用QR発行マニュアル</a></p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E5%9F%BA%E6%9C%AC%E7%9A%84%E3%81%AA%E8%B3%AA%E5%95%8F\">基本的な質問</a></li>\n<li><a href=\"#%E4%BC%9A%E7%A4%BEqr%E7%99%BA%E8%A1%8C%E3%81%AB%E9%96%A2%E3%81%99%E3%82%8B%E8%B3%AA%E5%95%8F\">会社QR発行に関する質問",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "QRコード",
+      "勤怠管理",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/admin/attendance_settings_issues",
+    "title": "Attendance Settings Issues",
+    "description": "Attendance Settings Issuesに関するガイド",
+    "content": "<h1>Q&#x26;A: 勤怠設定</h1>\n<h2>基本的な質問</h2>\n<h3>Q1: 勤怠設定を変更できるのは誰ですか？</h3>\n<p><strong>A</strong>: マネージャーと管理者のみです。一般スタッフとリーダーは変更できません。</p>\n<h3>Q2: 勤怠設定の変更は即座に反映されますか？</h3>\n<p><strong>A</strong>: はい、保存後すぐに反映されます。次回の打刻から新しい設定が適用されます。</p>\n<h3>Q3: 設定変更中にスタッフが打刻するとどうなりますか？</h3>\n<p><strong>A</strong>: 保存前の設定が適用されます。混乱を避けるため、業務時間外に変更することを推奨します。</p>\n<h3>Q4: 設定を間違えて保存してしまいました</h3>\n<p><strong>A</strong>: すぐに正しい設定に変更し、再度保存してください。変更履歴は保存されないため、元に戻すことはできません。</p>\n<h3>Q5: デフォルト設定に戻すことはできますか？</h3>\n<p><strong>A</stro",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "勤怠管理",
+      "設定",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/admin/clients_issues",
+    "title": "Clients Issues",
+    "description": "Clients Issuesに関するガイド",
+    "content": "<h1>取引先管理のトラブルシューティング</h1>\n<h2>Q1. 取引先管理は誰が利用できますか？</h2>\n<p><strong>A.</strong> 管理者（Admin）のみが利用できます。</p>\n<p>取引先管理機能は、組織の重要なマスタデータを扱うため、管理者のみが利用できます。</p>\n<p><strong>利用できない権限</strong>:</p>\n<ul>\n<li>スタッフ（Staff）</li>\n<li>リーダー（Leader）</li>\n<li>マネージャー（Manager）</li>\n</ul>\n<hr>\n<h2>Q2. 取引先分類とは何ですか？</h2>\n<p><strong>A.</strong> 取引先の役割を示す分類です。</p>\n<table>\n<thead>\n<tr>\n<th>分類</th>\n<th>説明</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><strong>顧客</strong></td>\n<td>見積書・請求書を発行する取引先</td>\n</tr>\n<tr>\n<td><strong>仕入先</strong",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/admin/consumable_orders_issues",
+    "title": "Consumable Orders Issues",
+    "description": "Consumable Orders Issuesに関するガイド",
+    "content": "<h1>消耗品発注管理（Q&#x26;A）</h1>\n<p><strong>最終更新日</strong>: 2026-01-21</p>\n<p>このドキュメントは、消耗品発注管理機能に関するよくある質問をまとめたものです。</p>\n<p><strong>対象ユーザー</strong>: Leader、Manager、Admin</p>\n<p><strong>関連マニュアル</strong>: <a href=\"../../manual/consumable_orders.md\">消耗品発注管理マニュアル</a></p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E7%99%BA%E6%B3%A8%E7%99%BB%E9%8C%B2%E3%81%AB%E9%96%A2%E3%81%99%E3%82%8B%E8%B3%AA%E5%95%8F\">発注登録に関する質問</a></li>\n<li><a href=\"#%E3%82%B9%E3%83%86%E3%83%BC%E3%82%BF%E3%82%B9%E7%AE%A1%E7%90%86%E3%81%AB%E9",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "消耗品管理",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/admin/data_export_issues",
+    "title": "データエクスポートに関するQ&A",
+    "description": "CSVエクスポート機能に関する質問",
+    "content": "<h1>データエクスポートのよくある質問（Q&#x26;A）</h1>\n<p><strong>最終更新日</strong>: 2026-01-22\n<strong>対象</strong>: 管理者（Admin）</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E6%A8%A9%E9%99%90\">アクセス・権限</a></li>\n<li><a href=\"#%E3%82%A8%E3%82%AF%E3%82%B9%E3%83%9D%E3%83%BC%E3%83%88%E6%93%8D%E4%BD%9C\">エクスポート操作</a></li>\n<li><a href=\"#%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB%E5%BD%A2%E5%BC%8F%E6%96%87%E5%AD%97%E3%82%B3%E3%83%BC%E3%83%89\">ファイル形式・文字コード</a></li>\n<li><a href=\"#%E3%83%88%E3%83%A9%E3%83",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "エクスポート",
+      "CSV"
+    ]
+  },
+  {
+    "slug": "qa/admin/estimates_approval_issues",
+    "title": "Estimates Approval Issues",
+    "description": "Estimates Approval Issuesに関するガイド",
+    "content": "<h1>見積書提出・承認（Q&#x26;A）</h1>\n<p><strong>最終更新日</strong>: 2026-01-21</p>\n<p>このドキュメントは、見積書の提出・承認機能に関するよくある質問をまとめたものです。</p>\n<p><strong>対象ユーザー</strong>: Leader、Manager、Admin</p>\n<p><strong>関連マニュアル</strong>: <a href=\"../../manual/estimates_approval.md\">見積書提出・承認マニュアル</a></p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E5%9F%BA%E6%9C%AC%E7%9A%84%E3%81%AA%E8%B3%AA%E5%95%8F\">基本的な質問</a></li>\n<li><a href=\"#%E6%8F%90%E5%87%BA%E3%81%AB%E9%96%A2%E3%81%99%E3%82%8B%E8%B3%AA%E5%95%8Fleader\">提出に関する質問（Leader）</a></li>\n<li>",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "見積書",
+      "承認",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/admin/invoices_approval_issues",
+    "title": "Invoices Approval Issues",
+    "description": "Invoices Approval Issuesに関するガイド",
+    "content": "<h1>請求書提出・承認 Q&#x26;A</h1>\n<h2>基本的な質問</h2>\n<h3>Q1. 誰が請求書を提出できますか？</h3>\n<p><strong>A.</strong> リーダー以上の権限を持つユーザーが提出できます。</p>\n<ul>\n<li><strong>提出可能</strong>: リーダー、マネージャー、管理者</li>\n<li><strong>提出不可</strong>: スタッフ</li>\n</ul>\n<p>ただし、リーダーは提出のみで承認はできません。マネージャー以上が承認権限を持ちます。</p>\n<p><strong>関連</strong>: <a href=\"../../manual/invoices_approval.md#-%E5%AF%BE%E8%B1%A1%E8%80%85%E3%81%A8%E6%A8%A9%E9%99%90\">請求書提出・承認マニュアル - 対象者と権限</a></p>\n<hr>\n<h3>Q2. 誰が請求書を承認できますか？</h3>\n<p><strong>A.</strong> マネージャー以上の権限を持つユーザーが承",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "請求書",
+      "承認",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/admin/invoices_payment_issues",
+    "title": "Invoices Payment Issues",
+    "description": "Invoices Payment Issuesに関するガイド",
+    "content": "<h1>入金記録 Q&#x26;A</h1>\n<h2>基本</h2>\n<h3>Q1: 入金記録機能とは何ですか？</h3>\n<p><strong>A</strong>: 請求書に対する顧客からの入金を記録する機能です。入金日、入金額、支払方法などを記録し、請求書の既入金額と残額を自動更新します。全額入金が完了すると、請求書のステータスが自動的に「支払済み」になります。</p>\n<h3>Q2: 誰が入金記録を登録できますか？</h3>\n<p><strong>A</strong>: リーダー（Leader）以上が入金記録を登録できます。一般スタッフは入金記録機能にアクセスできません。権限が不足している場合は、管理者に権限変更を依頼してください。</p>\n<h3>Q3: 入金記録はどこから登録しますか？</h3>\n<p><strong>A</strong>: 2つの方法があります：</p>\n<ol>\n<li><strong>請求書詳細ページから</strong>: 請求書詳細ページの右上にある「入金登録」ボタンをクリック（ステータスが「送付済み」で未払いがある場合のみ表示）</li>\n<li",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "請求書",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/admin/monthly_reporting_issues",
+    "title": "Monthly Reporting Issues",
+    "description": "Monthly Reporting Issuesに関するガイド",
+    "content": "<h1>月次報告業務 Q&#x26;A</h1>\n<h2>カテゴリ1: 基本的な流れ</h2>\n<h3>Q1. 月次報告業務とは何ですか?</h3>\n<p><strong>A.</strong> 月末に行う売上・経費・在庫・勤怠などの集計と確認作業です。</p>\n<p><strong>月次報告の主な内容</strong>:</p>\n<ul>\n<li>売上・請求の確認</li>\n<li>経費・支払の確認</li>\n<li>作業報告書の確認</li>\n<li>在庫の確認</li>\n<li>勤怠の確認</li>\n<li>次月の計画</li>\n</ul>\n<p><strong>関連</strong>: <a href=\"../../manual/scenarios/document_flow/monthly_reporting.md\">月次報告業務マニュアル</a></p>\n<hr>\n<h3>Q2. 月次報告はいつ行えばよいですか?</h3>\n<p><strong>A.</strong> 毎月末から翌月初めにかけて行います。</p>\n<p><strong>推奨スケジュール</strong>:<",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/admin/organization_settings_issues",
+    "title": "組織設定に関するQ&A",
+    "description": "組織情報やプラン設定に関する質問",
+    "content": "<h1>運用設定・自社拠点管理のよくある質問（Q&#x26;A）</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: 管理者</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E6%A8%A9%E9%99%90\">アクセス・権限</a></li>\n<li><a href=\"#%E9%81%93%E5%85%B7%E7%A7%BB%E5%8B%95%E6%99%82%E3%81%AE%E8%A8%AD%E5%AE%9A\">道具移動時の設定</a></li>\n<li><a href=\"#%E7%B4%9B%E5%A4%B1%E6%89%BF%E8%AA%8D%E8%A8%AD%E5%AE%9A\">紛失・承認設定</a></li>\n<li><a href=\"#%E6%B6%88%E8%80%97%E5%93%81%E7%AE%A1%E7%90%86%E8%A8%AD%E5%AE%9A\">消耗品管理設定</a></l",
+    "category": "qa",
+    "permission": 4,
+    "tags": [
+      "設定",
+      "組織"
+    ]
+  },
+  {
+    "slug": "qa/admin/projects_issues",
+    "title": "Projects Issues",
+    "description": "Projects Issuesに関するガイド",
+    "content": "<h1>工事管理のよくある質問（Q&#x26;A）</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: 管理者、マネージャー</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E6%A8%A9%E9%99%90\">アクセス権限</a></li>\n<li><a href=\"#%E5%B7%A5%E4%BA%8B%E3%81%AE%E7%99%BB%E9%8C%B2%E7%B7%A8%E9%9B%86\">工事の登録・編集</a></li>\n<li><a href=\"#%E5%B7%A5%E4%BA%8B%E7%95%AA%E5%8F%B7\">工事番号</a></li>\n<li><a href=\"#%E5%8F%96%E5%BC%95%E5%85%88%E7%8F%BE%E5%A0%B4%E3%81%AE%E7%B4%90%E3%81%A5%E3%81%91\">取引先・現場の紐づけ</a></li>\n<li><a ",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/admin/purchase_order_flow_issues",
+    "title": "Purchase Order Flow Issues",
+    "description": "Purchase Order Flow Issuesに関するガイド",
+    "content": "<h1>発注から支払いまでの流れ Q&#x26;A</h1>\n<h2>カテゴリ1: 基本的な流れ</h2>\n<h3>Q1. 発注書から支払いまでの一連の流れはどのようになっていますか?</h3>\n<p><strong>A.</strong> 発注書作成 → 承認 → 送付 → 納品確認 → 支払記録の7ステップです。</p>\n<p><strong>詳細な流れ</strong>:</p>\n<ol>\n<li>スタッフが発注書を作成</li>\n<li>金額に応じて承認者が承認</li>\n<li>取引先へ発注書を送付</li>\n<li>商品・サービスの納品</li>\n<li>納品内容を確認</li>\n<li>受領確認の記録</li>\n<li>支払日に支払記録を登録</li>\n</ol>\n<p><strong>関連</strong>: <a href=\"../../manual/scenarios/document_flow/purchase_order_flow.md\">発注から支払いまでの流れマニュアル</a></p>\n<hr>\n<h3>Q2. 発注書の承認は誰が行いますか?</h3>\n<p",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "発注書",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/admin/purchase_orders_approval_issues",
+    "title": "Purchase Orders Approval Issues",
+    "description": "Purchase Orders Approval Issuesに関するガイド",
+    "content": "<h1>発注書承認フロー（金額別） Q&#x26;A</h1>\n<h2>基本的な質問</h2>\n<h3>Q1. 誰が発注書を提出できますか？</h3>\n<p><strong>A.</strong> リーダー以上の権限を持つユーザーが提出できます。</p>\n<ul>\n<li><strong>提出可能</strong>: リーダー、マネージャー、管理者</li>\n<li><strong>提出不可</strong>: スタッフ</li>\n</ul>\n<p>リーダーは10万円未満の発注書の承認が可能です（自動承認）。マネージャー以上はすべての金額の発注書を承認できます。</p>\n<p><strong>関連</strong>: <a href=\"../../manual/purchase_orders_approval.md#-%E5%AF%BE%E8%B1%A1%E8%80%85%E3%81%A8%E6%A8%A9%E9%99%90\">発注書承認フローマニュアル - 対象者と権限</a></p>\n<hr>\n<h3>Q2. 誰が発注書を承認できますか？</h3>\n<p><strong>A.</s",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "発注書",
+      "承認",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/admin/quotation_to_invoice_flow_issues",
+    "title": "Quotation To Invoice Flow Issues",
+    "description": "Quotation To Invoice Flow Issuesに関するガイド",
+    "content": "<h1>見積→契約→請求の一連の流れ Q&#x26;A</h1>\n<h2>カテゴリ1: 基本的な流れ</h2>\n<h3>Q1. 見積書から請求書への一連の流れはどのようになっていますか?</h3>\n<p><strong>A.</strong> 見積書作成 → 承認 → 送付 → 契約締結 → 請求書変換 → 承認 → 送付 → 入金記録の8ステップです。</p>\n<p><strong>詳細な流れ</strong>:</p>\n<ol>\n<li>スタッフが見積書を作成</li>\n<li>マネージャー/管理者が承認</li>\n<li>取引先へ見積書を送付</li>\n<li>契約締結（ステータス変更）</li>\n<li>見積書から請求書へ変換</li>\n<li>マネージャー/管理者が請求書を承認</li>\n<li>取引先へ請求書を送付</li>\n<li>入金確認後、支払い記録を登録</li>\n</ol>\n<p><strong>関連</strong>: <a href=\"../../manual/scenarios/document_flow/quotation_to_invoice_flow.",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "請求書",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/admin/settings_attendance_issues",
+    "title": "Settings Attendance Issues",
+    "description": "Settings Attendance Issuesに関するガイド",
+    "content": "<h1>出退勤設定 Q&#x26;A</h1>\n<h2>基本</h2>\n<h3>Q1: 出退勤設定とは何ですか？</h3>\n<p><strong>A</strong>: 出退勤管理（勤怠管理）に関する組織全体の設定を変更する機能です。打刻方法、休憩時間の記録方式、リマインダー通知、管理者向けレポート・アラートなどを設定できます。設定は組織全体のスタッフに適用されます。</p>\n<h3>Q2: 誰が出退勤設定にアクセスできますか？</h3>\n<p><strong>A</strong>: 管理者（Admin）とマネージャー（Manager）がアクセスできます。リーダーおよび一般スタッフは設定ページにアクセスできません。権限が必要な場合は、管理者に権限変更を依頼してください。</p>\n<h3>Q3: 出退勤設定ページにはどうやってアクセスしますか？</h3>\n<p><strong>A</strong>: 以下の2つの方法でアクセスできます：</p>\n<ol>\n<li>ダッシュボード → 「設定」 → 「出退勤設定」</li>\n<li>サイドメニュー → 「設定」 → 「出退勤設定」</li>",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "勤怠管理",
+      "設定",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/admin/settings_contract_issues",
+    "title": "Settings Contract Issues",
+    "description": "Settings Contract Issuesに関するガイド",
+    "content": "<h1>契約について Q&#x26;A</h1>\n<h2>基本</h2>\n<h3>Q1: ザイロクとはどんなサービスですか？</h3>\n<p><strong>A</strong>: ザイロク（Zairoku）は、現場系業種向けの道具管理システムです。建築、土木、内装、電気工事、塗装、設備などの現場作業を行う企業向けに、道具・消耗品・重機の管理、出退勤管理、作業報告書、見積・請求書作成などの機能を提供するマルチテナントSaaS型のクラウドサービスです。</p>\n<h3>Q2: 初期費用はかかりますか？</h3>\n<p><strong>A</strong>: いいえ、初期費用は一切かかりません。月額料金のみでご利用いただけます。</p>\n<h3>Q3: 最低契約期間はありますか？</h3>\n<p><strong>A</strong>: 月次契約の場合、最低契約期間はありません。1ヶ月単位で契約・解約が可能です。年次契約の場合は1年間の契約となります。</p>\n<h3>Q4: 無料トライアルはありますか？</h3>\n<p><strong>A</strong>: はい、14日間の無料トライアル",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "設定",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/admin/settings_organization_issues",
+    "title": "Settings Organization Issues",
+    "description": "Settings Organization Issuesに関するガイド",
+    "content": "<h1>組織情報設定 Q&#x26;A</h1>\n<h2>基本</h2>\n<h3>Q1: 組織情報設定とは何ですか？</h3>\n<p><strong>A</strong>: 組織全体の運用方法を設定する機能です。道具移動時のQRスキャン要件、通知設定、QRコード印刷サイズ、消耗品管理方式、重機機能の有効化、倉庫階層構造などを設定できます。組織全体に適用される重要な設定です。</p>\n<h3>Q2: 誰が組織情報設定にアクセスできますか？</h3>\n<p><strong>A</strong>: 管理者（Admin）のみがアクセスできます。マネージャー、リーダー、一般スタッフは設定ページにアクセスできません。権限が必要な場合は、他の管理者に権限変更を依頼してください。</p>\n<h3>Q3: 組織情報設定ページにはどうやってアクセスしますか？</h3>\n<p><strong>A</strong>: 以下の2つの方法でアクセスできます：</p>\n<ol>\n<li>ダッシュボード → 「設定」 → 「組織情報」</li>\n<li>サイドメニュー → 「設定」 → 「組織情報」</li>\n</o",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "設定",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/admin/site_closing_issues",
+    "title": "Site Closing Issues",
+    "description": "Site Closing Issuesに関するガイド",
+    "content": "<h1>現場完了・片付けのトラブルシューティング</h1>\n<h2>Q1. 現場を完了にする手順を教えてください。</h2>\n<p><strong>A.</strong> 現場詳細画面の「完了にする」ボタンから完了処理できます。</p>\n<p><strong>手順:</strong></p>\n<ol>\n<li><strong>現場管理</strong> を開く</li>\n<li>完了する現場をクリック</li>\n<li><strong>「完了にする」</strong> ボタンをクリック</li>\n<li>確認ダイアログが表示される</li>\n<li><strong>「OK」</strong> をクリック</li>\n</ol>\n<p><strong>完了処理で実行されること:</strong></p>\n<ul>\n<li>現場のステータスが「完了」になる</li>\n<li>完了日が自動記録される</li>\n<li>出退勤打刻ができなくなる</li>\n<li>道具の持ち出し先として選択できなくなる</li>\n</ul>\n<p><strong>注意:</strong></p>\n<ul>\n<li",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/admin/site_opening_issues",
+    "title": "Site Opening Issues",
+    "description": "Site Opening Issuesに関するガイド",
+    "content": "<h1>新規現場立ち上げのトラブルシューティング</h1>\n<h2>Q1. 現場を登録したいのですが、取引先が選択肢に表示されません。</h2>\n<p><strong>A.</strong> 取引先の「顧客タイプ」が「仕入先のみ」になっている可能性があります。</p>\n<p><strong>原因:</strong></p>\n<ul>\n<li>現場登録では「顧客」または「顧客兼仕入先」の取引先のみ表示されます</li>\n<li>「仕入先のみ」の取引先は表示されません</li>\n</ul>\n<p><strong>対処法:</strong></p>\n<ol>\n<li><strong>取引先管理</strong> を開く</li>\n<li>該当する取引先を検索</li>\n<li>「編集」をクリック</li>\n<li>顧客タイプを <strong>「顧客」</strong> または <strong>「顧客兼仕入先」</strong> に変更</li>\n<li>「更新」をクリック</li>\n</ol>\n<p><strong>取引先が未登録の場合:</strong></p>\n<ul>\n<li>先に取",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/admin/sites_issues",
+    "title": "Sites Issues",
+    "description": "Sites Issuesに関するガイド",
+    "content": "<h1>現場管理のトラブルシューティング</h1>\n<h2>Q1. 現場管理は誰が利用できますか？</h2>\n<p><strong>A.</strong> マネージャー（Manager）以上が利用できます。</p>\n<p>現場管理機能は、組織の重要なマスタデータを扱うため、マネージャー以上が利用できます。</p>\n<p><strong>利用可能な権限</strong>:</p>\n<ul>\n<li>✅ Manager（マネージャー）</li>\n<li>✅ Admin（管理者）</li>\n</ul>\n<p><strong>利用できない権限</strong>:</p>\n<ul>\n<li>❌ Staff（スタッフ）</li>\n<li>❌ Leader（リーダー）</li>\n</ul>\n<hr>\n<h2>Q2. 現場とは何ですか？</h2>\n<p><strong>A.</strong> 道具を使用する作業場所を表します。</p>\n<p><strong>例</strong>:</p>\n<ul>\n<li>〇〇ビル建設工事</li>\n<li>△△マンション改修工事</li>\n<li>××道路舗装工事<",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/admin/staff_add_issues",
+    "title": "Staff Add Issues",
+    "description": "Staff Add Issuesに関するガイド",
+    "content": "<h1>スタッフ追加（権限の違い） Q&#x26;A</h1>\n<h2>基本的な質問</h2>\n<h3>Q1. 誰がスタッフを追加できますか？</h3>\n<p><strong>A.</strong> 管理者とマネージャーが追加できます。</p>\n<ul>\n<li><strong>管理者（Admin）</strong>: すべての権限のスタッフを追加可能</li>\n<li><strong>マネージャー（Manager）</strong>: スタッフ・リーダーのみ追加可能（管理者・マネージャーは追加不可）</li>\n<li><strong>リーダー</strong>: スタッフの追加不可（閲覧のみ）</li>\n<li><strong>スタッフ</strong>: スタッフの追加不可（閲覧のみ）</li>\n</ul>\n<p><strong>関連</strong>: <a href=\"../../manual/staff_add.md#-%E5%AF%BE%E8%B1%A1%E8%80%85\">スタッフ追加マニュアル - 対象者</a></p>\n<hr>\n<h3>Q2. スタッフ追加にかかる時",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "従業員管理",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/admin/staff_management_issues",
+    "title": "従業員管理に関するQ&A",
+    "description": "従業員の追加・編集・権限設定に関する質問",
+    "content": "<h1>スタッフ管理のよくある質問（Q&#x26;A）</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: 管理者、マネージャー</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E6%A8%A9%E9%99%90\">アクセス・権限</a></li>\n<li><a href=\"#%E3%82%B9%E3%82%BF%E3%83%83%E3%83%95%E3%81%AE%E8%BF%BD%E5%8A%A0\">スタッフの追加</a></li>\n<li><a href=\"#%E3%82%B9%E3%82%BF%E3%83%83%E3%83%95%E3%81%AE%E7%B7%A8%E9%9B%86\">スタッフの編集</a></li>\n<li><a href=\"#%E3%83%97%E3%83%A9%E3%83%B3%E4%B8%8A%E9%99%90\">プラン上限</a></li>\n<li><a href=\"#%E",
+    "category": "qa",
+    "permission": 3,
+    "tags": [
+      "従業員管理"
+    ]
+  },
+  {
+    "slug": "qa/admin/tool_categories_issues",
+    "title": "Tool Categories Issues",
+    "description": "Tool Categories Issuesに関するガイド",
+    "content": "<h1>道具カテゴリ管理 Q&#x26;A</h1>\n<h2>基本</h2>\n<h3>Q1: 道具カテゴリ管理とは何ですか？</h3>\n<p><strong>A</strong>: 道具や消耗品を分類するためのカテゴリを作成・編集・削除する機能です。カテゴリを設定することで、道具や消耗品を整理しやすくなり、検索やフィルタリングが効率的になります。例：「電動工具」「測定器」「養生材」など。</p>\n<h3>Q2: 誰がカテゴリ管理にアクセスできますか？</h3>\n<p><strong>A</strong>: マネージャーと管理者のみがアクセスできます。</p>\n<table>\n<thead>\n<tr>\n<th>権限</th>\n<th>カテゴリ閲覧</th>\n<th>作成・編集</th>\n<th>削除</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><strong>リーダー</strong></td>\n<td>❌</td>\n<td>❌</td>\n<td>❌</td>\n</tr>\n<tr>\n<td><strong>マネージャー</strong></td>\n<td>✅",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "備品管理",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/admin/work_reports_approval_issues",
+    "title": "Work Reports Approval Issues",
+    "description": "Work Reports Approval Issuesに関するガイド",
+    "content": "<h1>Q&#x26;A: 作業報告書承認</h1>\n<h2>基本的な質問</h2>\n<h3>Q1: 作業報告書を承認できるのは誰ですか？</h3>\n<p><strong>A</strong>: リーダーと管理者のみです。一般スタッフとマネージャーは承認できません。</p>\n<h3>Q2: 承認・却下は取り消せますか？</h3>\n<p><strong>A</strong>: いいえ、取り消すことはできません。誤って承認・却下した場合は、作成者に連絡して対応を依頼してください。</p>\n<h3>Q3: 承認待ちの報告書はどこで確認できますか？</h3>\n<p><strong>A</strong>: 左サイドメニューの「作業報告書」→「承認待ち」から確認できます。</p>\n<h3>Q4: 自分が作成した報告書を自分で承認できますか？</h3>\n<p><strong>A</strong>: 現在のシステムでは可能ですが、承認の透明性のため、他のリーダーまたは管理者に承認を依頼することを推奨します。</p>\n<h3>Q5: 承認待ちの報告書が表示されません</h3>\n<p><strong>A<",
+    "category": "qa",
+    "permission": 2,
+    "tags": [
+      "作業報告",
+      "承認",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/attendance_clock_issues",
+    "title": "Attendance Clock Issues",
+    "description": "Attendance Clock Issuesに関するガイド",
+    "content": "<h1>出退勤打刻のよくある質問（Q&#x26;A）</h1>\n<h2>Q1. 出退勤打刻はどこからアクセスできますか?</h2>\n<p><strong>A.</strong> サイドメニューの「勤怠管理」から「出退勤打刻」を選択してください。</p>\n<p><strong>手順:</strong></p>\n<ol>\n<li>画面左側のサイドメニューを開く</li>\n<li><strong>「勤怠管理」</strong> をタップ</li>\n<li><strong>「出退勤打刻」</strong> をタップ</li>\n</ol>\n<p><strong>スマートフォンの場合:</strong></p>\n<ul>\n<li>左上のメニューアイコン（三本線）をタップしてサイドメニューを開く</li>\n</ul>\n<p><strong>パソコンの場合:</strong></p>\n<ul>\n<li>サイドメニューは常に表示されています</li>\n</ul>\n<p><strong>関連</strong>: <a href=\"../../manual/attendance_clock.md\">出退勤打",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "勤怠管理",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/attendance_issues",
+    "title": "Attendance Issues",
+    "description": "Attendance Issuesに関するガイド",
+    "content": "<h1>勤怠管理のトラブルシューティング</h1>\n<h2>Q1. 出勤打刻はどこでできますか?</h2>\n<p><strong>A.</strong> 以下の場所から出勤打刻できます。</p>\n<p><strong>スマートフォンの場合:</strong></p>\n<ol>\n<li>サイドメニューの <strong>勤怠管理</strong> をタップ</li>\n<li><strong>出退勤打刻</strong> をタップ</li>\n<li><strong>「どこで打刻していますか？」</strong> で出勤場所を選択\n<ul>\n<li><strong>🏢 会社（オフィス）</strong>: 会社に出社する場合</li>\n<li><strong>🏗️ 現場</strong>: 現場に直行する場合</li>\n</ul>\n</li>\n<li><strong>「出勤する」</strong> ボタンをタップ</li>\n</ol>\n<p><strong>パソコンの場合:</strong></p>\n<ol>\n<li>サイドメニューの <strong>勤怠管理</strong> をクリッ",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "勤怠管理",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/consumable_issues",
+    "title": "Consumable Issues",
+    "description": "Consumable Issuesに関するガイド",
+    "content": "<h1>消耗品管理のトラブルシューティング</h1>\n<h2>Q1. 消耗品が一覧に表示されません。どうすれば見つけられますか?</h2>\n<p><strong>A.</strong> 以下の方法で検索してください。</p>\n<h3>1. 検索ボックスを使う</h3>\n<ul>\n<li>画面上部の検索ボックスに消耗品名、型番、メーカー名を入力</li>\n<li>部分一致で検索できます</li>\n</ul>\n<h3>2. フィルタ機能を使う</h3>\n<ul>\n<li><strong>「フィルタ」</strong> ボタンをクリック</li>\n<li>カテゴリ、メーカー、在庫状態で絞り込み</li>\n</ul>\n<h3>3. 削除されていないか確認</h3>\n<ul>\n<li>削除された消耗品は一覧に表示されません</li>\n<li>管理者に確認してください</li>\n</ul>\n<hr>\n<h2>Q2. 在庫数が間違っています。どうやって修正しますか?</h2>\n<p><strong>A.</strong> 在庫調整の「棚卸し」機能で修正できます。</p>\n<p><strong>手順:",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "消耗品管理",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/consumable_management_issues",
+    "title": "Consumable Management Issues",
+    "description": "Consumable Management Issuesに関するガイド",
+    "content": "<h1>Q&#x26;A: 消耗品登録・在庫調整</h1>\n<h2>基本的な質問</h2>\n<h3>Q1: 消耗品と道具の違いは何ですか？</h3>\n<p><strong>A</strong>: 消耗品は数量で管理する在庫品（ボルト、ネジ、軍手など）で、道具は個別管理する資産（電動ドリル、測定器など）です。消耗品は種類ごとに1つのQRコード、道具は1個1個にQRコードが付きます。</p>\n<h3>Q2: 消耗品登録ができるのは誰ですか？</h3>\n<p><strong>A</strong>: マネージャーと管理者のみです。一般スタッフとリーダーは閲覧と在庫調整のみ可能です。</p>\n<h3>Q3: 消耗品登録時の必須項目は何ですか？</h3>\n<p><strong>A</strong>: 消耗品名、単位、最小在庫数の3つです。型番・メーカー・初期在庫数・備考は任意です。</p>\n<h3>Q4: 初期在庫数を入力しないとどうなりますか？</h3>\n<p><strong>A</strong>: マスタのみ登録され、在庫数は0のままです。後から在庫調整で追加できます。</p>\n<h3>Q5:",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "消耗品管理",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/daily_workflow_issues",
+    "title": "Daily Workflow Issues",
+    "description": "Daily Workflow Issuesに関するガイド",
+    "content": "<h1>現場スタッフの1日の流れのトラブルシューティング</h1>\n<h2>Q1. 初めてザイロクを使います。何から始めればいいですか?</h2>\n<p><strong>A.</strong> まずはログインして出勤打刻から始めてください。</p>\n<p><strong>初日の基本的な流れ:</strong></p>\n<ol>\n<li>ログイン（管理者から送られたメールの初期パスワードを使用）</li>\n<li>パスワード変更（初回ログイン時に促されます）</li>\n<li>出勤打刻（<strong>勤怠管理 > 出退勤打刻</strong>）</li>\n<li>道具の持ち出し（QRスキャンまたは道具一覧から）</li>\n<li>作業開始</li>\n</ol>\n<p><strong>困ったときは:</strong></p>\n<ul>\n<li>現場責任者やリーダーに操作方法を聞いてください</li>\n<li>マニュアルを参照してください</li>\n</ul>\n<p><strong>関連</strong>: <a href=\"../../manual/scenarios/daily/dai",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/equipment_issues",
+    "title": "Equipment Issues",
+    "description": "Equipment Issuesに関するガイド",
+    "content": "<h1>重機管理のトラブルシューティング</h1>\n<h2>Q1. 重機が一覧に表示されません。どうすれば見つけられますか?</h2>\n<p><strong>A.</strong> 以下の方法で検索してください。</p>\n<h3>1. 検索ボックスを使う</h3>\n<ul>\n<li>画面上部の検索ボックスに機械名、型番、メーカー名、重機コードを入力</li>\n<li>部分一致で検索できます</li>\n</ul>\n<h3>2. フィルタ機能を使う</h3>\n<ul>\n<li><strong>「フィルタ」</strong> ボタンをクリック</li>\n<li>カテゴリ、メーカー、所有形態、場所で絞り込み</li>\n<li>複数条件を組み合わせて検索可能</li>\n</ul>\n<h3>3. 削除されていないか確認</h3>\n<ul>\n<li>削除された重機は一覧に表示されません</li>\n<li>管理者に確認してください</li>\n</ul>\n<hr>\n<h2>Q2. 重機と道具の違いは何ですか?</h2>\n<p><strong>A.</strong> 管理対象と管理内容が異なります。</p",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "重機管理",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/equipment_maintenance_issues",
+    "title": "Equipment Maintenance Issues",
+    "description": "Equipment Maintenance Issuesに関するガイド",
+    "content": "<h1>Q&#x26;A: 重機メンテナンス記録</h1>\n<h2>基本的な質問</h2>\n<h3>Q1: 重機メンテナンス記録とは何ですか？</h3>\n<p><strong>A</strong>: 重機の車検、保険更新、修理、定期点検などの履歴を記録する機能です。実施日、費用、次回予定日、備考などを記録できます。</p>\n<h3>Q2: 誰が点検記録を登録できますか？</h3>\n<p><strong>A</strong>: マネージャー（Manager）以上が登録できます。</p>\n<p><strong>登録可能な権限:</strong></p>\n<ul>\n<li>✅ Manager（マネージャー）</li>\n<li>✅ Admin（管理者）</li>\n</ul>\n<p><strong>登録不可:</strong></p>\n<ul>\n<li>❌ Staff（スタッフ）</li>\n<li>❌ Leader（リーダー）</li>\n</ul>\n<p>※ Staff、Leaderは重機情報の閲覧とQRスキャン、移動登録のみ可能です。</p>\n<h3>Q3: 登録した点検記録は編集できますか？",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "重機管理",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/estimates_create_issues",
+    "title": "Estimates Create Issues",
+    "description": "Estimates Create Issuesに関するガイド",
+    "content": "<h1>見積書作成（Q&#x26;A）</h1>\n<p><strong>最終更新日</strong>: 2026-01-21</p>\n<p>このドキュメントは、見積書作成機能に関するよくある質問をまとめたものです。</p>\n<p><strong>対象ユーザー</strong>: Leader、Manager、Admin</p>\n<p><strong>関連マニュアル</strong>: <a href=\"../../manual/estimates_create.md\">見積書作成マニュアル</a></p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E5%9F%BA%E6%9C%AC%E7%9A%84%E3%81%AA%E8%B3%AA%E5%95%8F\">基本的な質問</a></li>\n<li><a href=\"#%E5%8F%96%E5%BC%95%E5%85%88%E5%B7%A5%E4%BA%8B%E9%81%B8%E6%8A%9E%E3%81%AB%E9%96%A2%E3%81%99%E3%82%8B%E8%B3%AA%E5%95%8F\">取引先",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "見積書",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/estimates_issues",
+    "title": "Estimates Issues",
+    "description": "Estimates Issuesに関するガイド",
+    "content": "<h1>見積書のトラブルシューティング</h1>\n<h2>Q1. 見積書は誰が作成できますか？</h2>\n<p><strong>A.</strong> リーダー以上の権限を持つユーザーが作成できます。</p>\n<p>作成可能な権限：</p>\n<ul>\n<li><strong>リーダー（Leader）</strong></li>\n<li><strong>マネージャー（Manager）</strong></li>\n<li><strong>管理者（Admin）</strong></li>\n</ul>\n<p><strong>スタッフ（Staff）は見積書機能を利用できません。</strong></p>\n<hr>\n<h2>Q2. 提出した見積書を修正できますか？</h2>\n<p><strong>A.</strong> 提出後は修正できません。差し戻しが必要です。</p>\n<p><strong>修正が必要な場合</strong>:</p>\n<ol>\n<li>マネージャーに連絡して差し戻してもらう</li>\n<li>差し戻された見積書（下書き状態に戻る）を再編集</li>\n<li>修正後に再提出</",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "見積書",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/invoices_create_issues",
+    "title": "Invoices Create Issues",
+    "description": "Invoices Create Issuesに関するガイド",
+    "content": "<h1>請求書作成 Q&#x26;A</h1>\n<h2>基本的な質問</h2>\n<h3>Q1. 誰が請求書を作成できますか？</h3>\n<p><strong>A.</strong> リーダー以上の権限を持つユーザーが作成できます。</p>\n<ul>\n<li><strong>作成可能</strong>: リーダー、マネージャー、管理者</li>\n<li><strong>作成不可</strong>: スタッフ</li>\n</ul>\n<p>スタッフがアクセスしようとすると、「請求書の作成はリーダー以上の権限が必要です」とメッセージが表示され、請求書一覧画面に戻ります。</p>\n<p><strong>関連</strong>: <a href=\"../../manual/invoices_create.md#-%E5%AF%BE%E8%B1%A1%E8%80%85\">請求書作成マニュアル - 対象者</a></p>\n<hr>\n<h3>Q2. 請求書の作成方法は何通りありますか？</h3>\n<p><strong>A.</strong> 以下の2通りがあります。</p>\n<ol>\n<li><stro",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "請求書",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/invoices_issues",
+    "title": "Invoices Issues",
+    "description": "Invoices Issuesに関するガイド",
+    "content": "<h1>請求書のトラブルシューティング</h1>\n<h2>Q1. 請求書は誰が作成できますか？</h2>\n<p><strong>A.</strong> リーダー以上の権限を持つユーザーが作成できます。</p>\n<p>作成可能な権限：</p>\n<ul>\n<li><strong>リーダー（Leader）</strong></li>\n<li><strong>マネージャー（Manager）</strong></li>\n<li><strong>管理者（Admin）</strong></li>\n</ul>\n<p><strong>スタッフ（Staff）は請求書機能を利用できません。</strong></p>\n<hr>\n<h2>Q2. 提出した請求書を修正できますか？</h2>\n<p><strong>A.</strong> 提出後は修正できません。差し戻しが必要です。</p>\n<p><strong>修正が必要な場合</strong>:</p>\n<ol>\n<li>マネージャーに連絡して差し戻してもらう</li>\n<li>差し戻された請求書（下書き状態に戻る）を再編集</li>\n<li>修正後に再提出</",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "請求書",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/login_issues",
+    "title": "Login Issues",
+    "description": "Login Issuesに関するガイド",
+    "content": "<h1>ログイン・パスワード関連</h1>\n<h2>Q1. 初回ログイン時のパスワードを忘れました</h2>\n<p><strong>A.</strong> 管理者に連絡して、パスワードリセットを依頼してください。</p>\n<p>管理者は以下の手順でパスワードリセットリンクを送信できます：</p>\n<ol>\n<li><strong>スタッフ管理</strong> を開く</li>\n<li>対象のスタッフを選択</li>\n<li><strong>編集</strong> をクリック</li>\n<li><strong>パスワードリセットリンクを送信</strong> をクリック</li>\n<li>ユーザーのメールアドレスにリセットリンクが送信されます</li>\n</ol>\n<p><strong>関連</strong>: <a href=\"../../manual/staff_management.md\">スタッフ管理マニュアル</a></p>\n<hr>\n<h2>Q2. パスワードは変更できますか?</h2>\n<p><strong>A.</strong> 以下の手順でパスワードを変更できます：<",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/mobile_usage",
+    "title": "Mobile Usage",
+    "description": "Mobile Usageに関するガイド",
+    "content": "<h1>スマートフォン・タブレット利用</h1>\n<h2>Q1. スマートフォンで使えますか？</h2>\n<p><strong>A.</strong> はい、使えます。</p>\n<p>ザイロクはスマートフォン、タブレット、パソコンのすべてに対応しています。\n特にQRスキャンはスマートフォンでの利用を推奨しています。</p>\n<p><strong>推奨環境</strong>:</p>\n<ul>\n<li>iPhone: iOS 14以降、Safari</li>\n<li>Android: Android 10以降、Chrome</li>\n<li>タブレット: iPad、Androidタブレット</li>\n</ul>\n<hr>\n<h2>Q2. オフラインでも使えますか？</h2>\n<p><strong>A.</strong> いいえ、インターネット接続が必要です。</p>\n<p>ザイロクはクラウド型のシステムのため、常にインターネット接続が必要です。</p>\n<p><strong>現場にWi-Fiがない場合</strong>:</p>\n<ul>\n<li>スマートフォンのモバイルデータ通信（4G",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "モバイル"
+    ]
+  },
+  {
+    "slug": "qa/staff/purchase_orders_create_issues",
+    "title": "Purchase Orders Create Issues",
+    "description": "Purchase Orders Create Issuesに関するガイド",
+    "content": "<h1>発注書作成 Q&#x26;A</h1>\n<h2>基本的な質問</h2>\n<h3>Q1. 誰が発注書を作成できますか？</h3>\n<p><strong>A.</strong> リーダー以上の権限を持つユーザーが作成できます。</p>\n<ul>\n<li><strong>作成可能</strong>: リーダー、マネージャー、管理者</li>\n<li><strong>作成不可</strong>: スタッフ</li>\n</ul>\n<p>スタッフがアクセスしようとすると、エラーメッセージが表示されます。</p>\n<p><strong>関連</strong>: <a href=\"../../manual/purchase_orders_create.md#-%E5%AF%BE%E8%B1%A1%E8%80%85\">発注書作成マニュアル - 対象者</a></p>\n<hr>\n<h3>Q2. 発注書の作成方法は何通りありますか？</h3>\n<p><strong>A.</strong> 以下の2通りがあります。</p>\n<ol>\n<li><strong>新規作成</strong>: 左メニュー「発",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "発注書",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/purchase_orders_issues",
+    "title": "Purchase Orders Issues",
+    "description": "Purchase Orders Issuesに関するガイド",
+    "content": "<h1>発注書のトラブルシューティング</h1>\n<h2>Q1. 発注書は誰が作成できますか？</h2>\n<p><strong>A.</strong> リーダー以上の権限を持つユーザーが作成できます。</p>\n<p>作成可能な権限：</p>\n<ul>\n<li><strong>リーダー（Leader）</strong></li>\n<li><strong>マネージャー（Manager）</strong></li>\n<li><strong>管理者（Admin）</strong></li>\n</ul>\n<p><strong>スタッフ（Staff）は発注書機能を利用できません。</strong></p>\n<hr>\n<h2>Q2. 提出した発注書を修正できますか？</h2>\n<p><strong>A.</strong> 提出後は修正できません。差し戻しが必要です。</p>\n<p><strong>修正が必要な場合</strong>:</p>\n<ol>\n<li>マネージャーに連絡して差し戻してもらう</li>\n<li>差し戻された発注書（差戻し状態に戻る）を再編集</li>\n<li>修正後に再提出</",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "発注書",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/qr_scan_issues",
+    "title": "Qr Scan Issues",
+    "description": "Qr Scan Issuesに関するガイド",
+    "content": "<h1>QRスキャンのトラブルシューティング</h1>\n<h2>Q1. QRコードが読み取れません</h2>\n<p><strong>A.</strong> 以下を確認してください：</p>\n<h3>1. QRコード自体の問題</h3>\n<ul>\n<li><strong>QRコードが汚れていないか</strong>: ラベルを拭いて汚れを取り除く</li>\n<li><strong>QRコードが破損していないか</strong>: 破損している場合は再印刷が必要</li>\n<li><strong>QRコードが小さすぎないか</strong>: 適切なサイズで印刷されているか確認</li>\n</ul>\n<h3>2. カメラの問題</h3>\n<ul>\n<li><strong>ピントが合っているか</strong>: QRコードから20-30cm程度離してみる</li>\n<li><strong>照明が明るいか</strong>: 暗い場所では読み取りにくいため、明るい場所で試す</li>\n<li><strong>カメラが揺れていないか</strong>: スマホを固定してゆっくりスキャン</li",
     "category": "qa",
     "permission": 1,
     "tags": [
       "QRコード",
-      "トラブルシューティング",
-      "エラー"
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/settings_issues",
+    "title": "Settings Issues",
+    "description": "Settings Issuesに関するガイド",
+    "content": "<h1>設定のよくある質問（Q&#x26;A）</h1>\n<p><strong>最終更新日</strong>: 2026-01-21\n<strong>対象</strong>: 全ユーザー</p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E6%A8%A9%E9%99%90\">アクセス・権限</a></li>\n<li><a href=\"#%E3%83%97%E3%83%AD%E3%83%95%E3%82%A3%E3%83%BC%E3%83%AB%E8%A8%AD%E5%AE%9A\">プロフィール設定</a></li>\n<li><a href=\"#%E5%80%8B%E4%BA%BA%E5%8D%B0%E9%91%91\">個人印鑑</a></li>\n<li><a href=\"#%E3%83%91%E3%82%B9%E3%83%AF%E3%83%BC%E3%83%89%E5%A4%89%E6%9B%B4\">パスワード変更</a></li>\n<li><a href=\"#%E4%BA%8C%E",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "設定",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/tool_issues",
+    "title": "Tool Issues",
+    "description": "Tool Issuesに関するガイド",
+    "content": "<h1>道具管理のトラブルシューティング</h1>\n<h2>Q1. 道具が一覧に表示されません。どうすれば見つけられますか?</h2>\n<p><strong>A.</strong> 以下の方法で検索してください。</p>\n<h3>1. 検索ボックスを使う</h3>\n<ul>\n<li>画面上部の検索ボックスに道具名、型番、メーカー名を入力</li>\n<li>部分一致で検索できます</li>\n</ul>\n<h3>2. フィルタ機能を使う</h3>\n<ul>\n<li><strong>「フィルタ」</strong> ボタンをクリック</li>\n<li>カテゴリ、メーカー、在庫状態、場所で絞り込み</li>\n<li>複数条件を組み合わせて検索可能</li>\n</ul>\n<h3>3. 個別アイテムの状態を確認</h3>\n<ul>\n<li>道具詳細画面の <strong>「個別アイテム一覧」</strong> を開く</li>\n<li>「紛失」状態になっていないかチェック</li>\n</ul>\n<h3>4. 削除されていないか確認</h3>\n<ul>\n<li>削除された道具は一覧に表示されません</",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "備品管理",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/tool_registration_issues",
+    "title": "Tool Registration Issues",
+    "description": "Tool Registration Issuesに関するガイド",
+    "content": "<h1>道具登録のよくある質問（Q&#x26;A）</h1>\n<h2>Q1. 共通マスタと自社マスタの違いは何ですか?</h2>\n<p><strong>A.</strong> 共通マスタは業界標準の道具テンプレート、自社マスタは自社で登録した道具です。</p>\n<table>\n<thead>\n<tr>\n<th>項目</th>\n<th>🏢 共通マスタ</th>\n<th>👥 自社マスタ</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><strong>意味</strong></td>\n<td>業界で一般的な道具のテンプレート</td>\n<td>過去に自社で登録した道具</td>\n</tr>\n<tr>\n<td><strong>例</strong></td>\n<td>電動ドリル、測定器、重機など</td>\n<td>過去に購入した電動ドリル DRL-5000</td>\n</tr>\n<tr>\n<td><strong>登録者</strong></td>\n<td>ザイロク運営（共通）</td>\n<td>自社の管理者</td>\n</tr>\n<tr>\n<td><strong>変",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "備品管理",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/tool_sets_issues",
+    "title": "Tool Sets Issues",
+    "description": "Tool Sets Issuesに関するガイド",
+    "content": "<h1>道具セット管理のトラブルシューティング</h1>\n<h2>Q1. 道具セットとは何ですか?</h2>\n<p><strong>A.</strong> よく一緒に使う道具の組み合わせをテンプレートとして登録する機能です。</p>\n<p><strong>活用例:</strong></p>\n<pre><code>配管工事セット\n├── 電動ドリル #001\n├── パイプレンチ #012\n├── 水平器 #005\n└── 配管カッター #003\n</code></pre>\n<p><strong>メリット:</strong></p>\n<ul>\n<li><strong>移動登録が簡単</strong>: 複数の道具をまとめて移動登録</li>\n<li><strong>忘れ物防止</strong>: セット内容を確認して、必要な道具を漏れなく持ち出し</li>\n<li><strong>業務の標準化</strong>: よく使う道具の組み合わせを共有</li>\n<li><strong>新人教育</strong>: 「この作業にはこのセット」と明確化</li>\n</ul>\n<p><strong>",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "備品管理",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/warehouse_issues",
+    "title": "Warehouse Issues",
+    "description": "Warehouse Issuesに関するガイド",
+    "content": "<h1>倉庫位置管理のトラブルシューティング</h1>\n<h2>Q1. 倉庫位置管理とは何ですか?</h2>\n<p><strong>A.</strong> 倉庫内のどこに道具があるかを正確に記録する機能です。</p>\n<p><strong>課題:</strong></p>\n<pre><code>❌ 倉庫のどこかにあるが、見つからない\n❌ 「Aエリアにある」までは分かるが、具体的な場所が不明\n❌ 棚卸しに時間がかかる\n</code></pre>\n<p><strong>解決:</strong></p>\n<pre><code>✅ 「Aエリア 3番棚 上段」と具体的な位置を記録\n✅ QRコードをスキャンして位置を確認\n✅ 位置から道具を逆引き検索\n</code></pre>\n<p><strong>メリット:</strong></p>\n<ul>\n<li>道具を素早く見つけられる</li>\n<li>棚卸しが効率化される</li>\n<li>倉庫内の整理整頓がしやすい</li>\n</ul>\n<p><strong>関連</strong>: <a href=\"../../manual/warehouse_",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/work_reports_create_issues",
+    "title": "Work Reports Create Issues",
+    "description": "Work Reports Create Issuesに関するガイド",
+    "content": "<h1>作業報告書作成（Q&#x26;A）</h1>\n<p><strong>最終更新日</strong>: 2026-01-21</p>\n<p>このドキュメントは、作業報告書作成機能に関するよくある質問をまとめたものです。</p>\n<p><strong>対象ユーザー</strong>: Staff、Leader、Manager、Admin</p>\n<p><strong>関連マニュアル</strong>: <a href=\"../../manual/work_reports_create.md\">作業報告書作成マニュアル</a></p>\n<hr>\n<h2>目次</h2>\n<ol>\n<li><a href=\"#%E5%9F%BA%E6%9C%AC%E7%9A%84%E3%81%AA%E8%B3%AA%E5%95%8F\">基本的な質問</a></li>\n<li><a href=\"#%E5%9F%BA%E6%9C%AC%E6%83%85%E5%A0%B1%E5%85%A5%E5%8A%9B%E3%81%AB%E9%96%A2%E3%81%99%E3%82%8B%E8%B3%AA%E5%95%8",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "作業報告",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/work_reports_issues",
+    "title": "Work Reports Issues",
+    "description": "Work Reports Issuesに関するガイド",
+    "content": "<h1>作業報告書のトラブルシューティング</h1>\n<h2>Q1. 作業報告書は誰が作成できますか？</h2>\n<p><strong>A.</strong> すべての権限のユーザーが作成できます。</p>\n<p>作業報告書は、スタッフ、リーダー、マネージャー、管理者のすべてが作成可能です。\nただし、自分が作成した報告書のみ編集できます。</p>\n<hr>\n<h2>Q2. 提出した報告書を修正できますか？</h2>\n<p><strong>A.</strong> 提出後は修正できません。ただし、却下された場合のみ再編集可能です。</p>\n<p><strong>修正が必要な場合</strong>:</p>\n<ol>\n<li>承認者に連絡して却下してもらう</li>\n<li>却下された報告書を再編集</li>\n<li>修正後に再提出</li>\n</ol>\n<p><strong>下書き状態の場合</strong>: いつでも自由に編集・削除できます。</p>\n<hr>\n<h2>Q3. 写真は何枚まで添付できますか？</h2>\n<p><strong>A.</strong> 制限はありませんが、1",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "作業報告",
+      "トラブルシューティング"
+    ]
+  },
+  {
+    "slug": "qa/staff/work_reports_pdf_issues",
+    "title": "Work Reports Pdf Issues",
+    "description": "Work Reports Pdf Issuesに関するガイド",
+    "content": "<h1>Q&#x26;A: 作業報告書PDF出力</h1>\n<h2>基本的な質問</h2>\n<h3>Q1: 作業報告書をPDFで出力できるのは誰ですか？</h3>\n<p><strong>A</strong>: すべての権限レベル（一般スタッフ、リーダー、マネージャー、管理者）が個別PDF出力できます。一括PDF出力はリーダーと管理者のみです。</p>\n<h3>Q2: PDFはどこからダウンロードできますか？</h3>\n<p><strong>A</strong>: 報告書詳細画面の右上にある「PDF出力」ボタンをクリックするとダウンロードできます。</p>\n<h3>Q3: PDFはどこに保存されますか？</h3>\n<p><strong>A</strong>: ブラウザのダウンロードフォルダに保存されます。Windowsは「ダウンロード」フォルダ、Macは「Downloads」フォルダです。</p>\n<h3>Q4: PDFは何度でも出力できますか？</h3>\n<p><strong>A</strong>: はい、同じ報告書を何度でもPDF出力できます。</p>\n<h3>Q5: PDFのファイ",
+    "category": "qa",
+    "permission": 1,
+    "tags": [
+      "作業報告",
+      "トラブルシューティング"
     ]
   }
 ]

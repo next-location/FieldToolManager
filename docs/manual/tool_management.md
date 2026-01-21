@@ -4,8 +4,8 @@ description: "備品管理に関するガイド"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["備品管理"]
-lastUpdated: "2026-01-21"
+tags: ["備品管理","道具","工具","ツール","資機材","在庫","登録","管理","備品登録","備品一覧","資産管理"]
+lastUpdated: "2026-01-22"
 ---
 
 # 道具管理マニュアル

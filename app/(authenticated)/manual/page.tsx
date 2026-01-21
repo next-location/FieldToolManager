@@ -41,7 +41,7 @@ export default async function ManualPage() {
       <div className="px-4 pb-6 sm:px-0 sm:py-6">
         {/* ヘッダー */}
         <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">ヘルプセンター</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">マニュアル</h1>
           <p className="text-sm text-gray-600">
             マニュアルとQ&Aで使い方を確認できます
           </p>

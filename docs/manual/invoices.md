@@ -4,8 +4,8 @@ description: "請求書管理に関するガイド"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["請求書"]
-lastUpdated: "2026-01-21"
+tags: ["請求書","請求","請求作成","請求管理","入金","支払い","売上","DXパック","書類作成","経理","会計","取引先","クライアント"]
+lastUpdated: "2026-01-22"
 ---
 
 # 請求書管理

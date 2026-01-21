@@ -4,8 +4,8 @@ description: "見積書管理に関するガイド"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["見積書"]
-lastUpdated: "2026-01-21"
+tags: ["見積書","見積","見積作成","見積管理","見積もり","積算","金額","DXパック","書類作成","発注","契約","クライアント","取引先"]
+lastUpdated: "2026-01-22"
 ---
 
 # 見積書管理

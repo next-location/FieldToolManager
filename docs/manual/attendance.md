@@ -4,8 +4,8 @@ description: "勤怠管理に関するガイド"
 permission: 1
 plans: ["basic"]
 category: "manual"
-tags: ["勤怠管理"]
-lastUpdated: "2026-01-21"
+tags: ["勤怠管理","出勤","退勤","打刻","勤務時間","労働時間","タイムカード","出退勤","休憩","勤怠記録","勤務記録","出勤簿"]
+lastUpdated: "2026-01-22"
 ---
 
 # 勤怠管理マニュアル
