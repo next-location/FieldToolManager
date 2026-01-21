@@ -61,11 +61,11 @@ lastUpdated: "2026-01-22"
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin: 2rem 0;">
   <div>
     <h3 style="margin-top: 0;">PCの場合</h3>
-    <img src="/images/manual/login/login-screen-pc.png" alt="ログイン画面（PC）" style="width: 100%; height: 400px; object-fit: cover;" />
+    <img src="/images/manual/login/login-screen-pc.png" alt="ログイン画面（PC）" style="width: 100%; aspect-ratio: 16/9; object-fit: cover;" />
   </div>
   <div>
     <h3 style="margin-top: 0;">スマートフォンの場合</h3>
-    <img src="/images/manual/login/login-screen-mobile.png" alt="ログイン画面（スマホ）" style="width: 100%; height: 400px; object-fit: cover;" />
+    <img src="/images/manual/login/login-screen-mobile.png" alt="ログイン画面（スマホ）" style="width: 100%; aspect-ratio: 16/9; object-fit: cover;" />
   </div>
 </div>
 
@@ -96,7 +96,7 @@ lastUpdated: "2026-01-22"
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin: 2rem 0;">
   <div>
     <h4 style="margin-top: 0;">PCの場合</h4>
-    <img src="/images/manual/login/dashboard-after-login.png" alt="ダッシュボード画面（PC）" style="width: 100%; height: 400px; object-fit: cover;" />
+    <img src="/images/manual/login/dashboard-after-login.png" alt="ダッシュボード画面（PC）" style="width: 100%; aspect-ratio: 16/9; object-fit: cover;" />
     <ul style="margin-top: 1rem;">
       <li>サイドメニューが左側に表示されます</li>
       <li>ダッシュボードに各機能へのショートカットが表示されます</li>
@@ -104,7 +104,7 @@ lastUpdated: "2026-01-22"
   </div>
   <div>
     <h4 style="margin-top: 0;">スマートフォンの場合</h4>
-    <img src="/images/manual/login/dashboard-after-login-mobile.png" alt="ダッシュボード画面（スマホ）" style="width: 100%; height: 400px; object-fit: cover;" />
+    <img src="/images/manual/login/dashboard-after-login-mobile.png" alt="ダッシュボード画面（スマホ）" style="width: 100%; aspect-ratio: 16/9; object-fit: cover;" />
     <ul style="margin-top: 1rem;">
       <li>下部に固定ナビゲーションが表示されます</li>
       <li>メニューアイコンから各機能にアクセスできます</li>
