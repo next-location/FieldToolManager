@@ -35,7 +35,7 @@ export async function createNotification(params: CreateNotificationParams) {
 }
 
 /**
- * 作業報告書提出時の通知（leader/adminへ）
+ * 作業報告書提出時の通知（manager/adminへ）
  */
 export async function notifyWorkReportSubmitted(params: {
   organizationId: string
@@ -46,17 +46,17 @@ export async function notifyWorkReportSubmitted(params: {
 }) {
   const supabase = await createClient()
 
-  // leader と admin のユーザーを取得
+  // manager と admin のユーザーを取得
   const { data: recipients } = await supabase
     .from('users')
     .select('id')
     .eq('organization_id', params.organizationId)
-    .in('role', ['leader', 'admin'])
+    .in('role', ['manager', 'admin'])
     .eq('is_active', true)
     .is('deleted_at', null)
 
   if (!recipients || recipients.length === 0) {
-    console.log('No leaders/admins found for notification')
+    console.log('No managers/admins found for notification')
     return
   }
 
