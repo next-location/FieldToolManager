@@ -82,7 +82,13 @@ export async function POST(
 
     // 通知を作成（作成者に通知）
     if (estimate.created_by && estimate.created_by !== userData.id) {
-      await supabase
+      console.log('[差し戻し通知] 作成中:', {
+        target_user_id: estimate.created_by,
+        estimate_number: estimate.estimate_number,
+        performer: userData.name
+      })
+
+      const { error: notificationError } = await supabase
         .from('notifications')
         .insert({
           organization_id: userData.organization_id,
@@ -94,6 +100,18 @@ export async function POST(
           severity: 'warning',
           metadata: { estimate_id: id, estimate_number: estimate.estimate_number, link: `/estimates/${id}` }
         })
+
+      if (notificationError) {
+        console.error('[差し戻し通知] 作成エラー:', notificationError)
+      } else {
+        console.log('[差し戻し通知] 作成成功')
+      }
+    } else {
+      console.log('[差し戻し通知] スキップ:', {
+        created_by: estimate.created_by,
+        current_user: userData.id,
+        reason: !estimate.created_by ? '作成者なし' : '自分で差し戻し'
+      })
     }
 
     return NextResponse.json({
