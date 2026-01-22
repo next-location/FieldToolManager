@@ -435,8 +435,8 @@ lastUpdated: "2026-01-22"
 
 ## 関連機能
 
-- [作業報告書](./work_reports.md) - 作業内容の報告
-- [現場管理](./sites.md) - 現場情報の管理
+- [作業報告書](/manual/work_reports) - 作業内容の報告
+- [現場管理](/manual/sites) - 現場情報の管理
 
 ---
 

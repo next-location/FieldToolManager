@@ -108,7 +108,7 @@ lastUpdated: '2026-01-22'
 2. **取引先分類** を「顧客」または「顧客兼仕入先」に変更
 3. **更新** をクリック
 
-**関連**: [見積書マニュアル](../../manual/estimates.md), [請求書マニュアル](../../manual/invoices.md)
+**関連**: [見積書マニュアル](/manual/estimates), [請求書マニュアル](/manual/invoices)
 
 ---
 
@@ -125,7 +125,7 @@ lastUpdated: '2026-01-22'
 2. **取引先分類** を「仕入先」、「協力会社」、「顧客兼仕入先」のいずれかに変更
 3. **更新** をクリック
 
-**関連**: [発注書マニュアル](../../manual/purchase_orders.md)
+**関連**: [発注書マニュアル](/manual/purchase_orders)
 
 ---
 
@@ -140,7 +140,7 @@ lastUpdated: '2026-01-22'
 請求書・発注書作成時に、ここで設定した日数が自動的に適用されます。
 手動で変更することもできます。
 
-**関連**: [請求書マニュアル](../../manual/invoices.md), [発注書マニュアル](../../manual/purchase_orders.md)
+**関連**: [請求書マニュアル](/manual/invoices), [発注書マニュアル](/manual/purchase_orders)
 
 ---
 
@@ -160,7 +160,7 @@ lastUpdated: '2026-01-22'
 
 **例**: T1234567890123
 
-**関連**: [請求書マニュアル](../../manual/invoices.md)
+**関連**: [請求書マニュアル](/manual/invoices)
 
 ---
 
@@ -305,8 +305,8 @@ CSVエクスポートは、有効な取引先のみをダウンロードしま�
 銀行情報を登録しておくと、請求書・発注書に振込先情報を自動的に記載できます。
 登録しない場合は、手動で入力する必要があります。
 
-**関連**: [請求書マニュアル](../../manual/invoices.md), [発注書マニュアル](../../manual/purchase_orders.md)
+**関連**: [請求書マニュアル](/manual/invoices), [発注書マニュアル](/manual/purchase_orders)
 
 ---
 
-**関連**: [取引先管理マニュアル](../../manual/clients.md)
+**関連**: [取引先管理マニュアル](/manual/clients)

@@ -227,6 +227,6 @@ lastUpdated: "2026-01-21"
 
 ## 関連機能
 
-- [請求書作成](./invoices_create.md): 請求書の作成方法
-- [請求書承認](./invoices_approval.md): 請求書の承認フロー
+- [請求書作成](/manual/invoices_create): 請求書の作成方法
+- [請求書承認](/manual/invoices_approval): 請求書の承認フロー
 - 支払記録: 発注書に対する支払い記録（入金記録と同じUIで「支払」タイプを選択）

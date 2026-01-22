@@ -25,7 +25,7 @@ lastUpdated: '2026-01-22'
 - 勤怠の確認
 - 次月の計画
 
-**関連**: [月次報告業務マニュアル](../../manual/scenarios/document_flow/monthly_reporting.md)
+**関連**: [月次報告業務マニュアル](/manual/scenarios/document_flow/monthly_reporting)
 
 ---
 
@@ -37,7 +37,7 @@ lastUpdated: '2026-01-22'
 - 翌月1-3日: 集計・報告書作成
 - 翌月5日まで: 月次会議・承認
 
-**関連**: [月次報告業務マニュアル](../../manual/scenarios/document_flow/monthly_reporting.md)
+**関連**: [月次報告業務マニュアル](/manual/scenarios/document_flow/monthly_reporting)
 
 ---
 
@@ -76,7 +76,7 @@ lastUpdated: '2026-01-22'
 - 未入金の請求書のリストと金額
 - 翌月以降に請求予定の見積書・契約
 
-**関連**: [月次報告業務マニュアル](../../manual/scenarios/document_flow/monthly_reporting.md)
+**関連**: [月次報告業務マニュアル](/manual/scenarios/document_flow/monthly_reporting)
 
 ---
 
@@ -89,7 +89,7 @@ lastUpdated: '2026-01-22'
 3. 入金予定日を確認して記録
 4. 翌月にフォローアップ
 
-**関連**: [月次報告業務マニュアル](../../manual/scenarios/document_flow/monthly_reporting.md)
+**関連**: [月次報告業務マニュアル](/manual/scenarios/document_flow/monthly_reporting)
 
 ---
 
@@ -101,7 +101,7 @@ lastUpdated: '2026-01-22'
 2. 請求書が作成されているか確認
 3. 未作成の場合は速やかに請求書を作成
 
-**関連**: [見積→契約→請求の一連の流れマニュアル](../../manual/scenarios/document_flow/quotation_to_invoice_flow.md)
+**関連**: [見積→契約→請求の一連の流れマニュアル](/manual/scenarios/document_flow/quotation_to_invoice_flow)
 
 ---
 
@@ -130,7 +130,7 @@ CSVエクスポートしたデータをExcelで目標と比較することをお
 - 未払の発注書のリストと金額
 - 翌月以降に支払予定の発注書
 
-**関連**: [月次報告業務マニュアル](../../manual/scenarios/document_flow/monthly_reporting.md)
+**関連**: [月次報告業務マニュアル](/manual/scenarios/document_flow/monthly_reporting)
 
 ---
 
@@ -142,7 +142,7 @@ CSVエクスポートしたデータをExcelで目標と比較することをお
 2. 支払手続き（振込など）を実施
 3. システムに支払記録を登録
 
-**関連**: [発注から支払いまでの流れマニュアル](../../manual/scenarios/document_flow/purchase_order_flow.md)
+**関連**: [発注から支払いまでの流れマニュアル](/manual/scenarios/document_flow/purchase_order_flow)
 
 ---
 
@@ -178,7 +178,7 @@ CSVエクスポート後、Excelでカテゴリごとにピボットテーブル
 - 現場別・スタッフ別の作業時間
 - 写真の添付状況
 
-**関連**: [月次報告業務マニュアル](../../manual/scenarios/document_flow/monthly_reporting.md)
+**関連**: [月次報告業務マニュアル](/manual/scenarios/document_flow/monthly_reporting)
 
 ---
 
@@ -187,7 +187,7 @@ CSVエクスポート後、Excelでカテゴリごとにピボットテーブル
 
 承認が遅れると、翌月の請求や給与計算に影響が出る可能性があります。
 
-**関連**: [作業報告書承認マニュアル](../../manual/work_reports_approval.md)
+**関連**: [作業報告書承認マニュアル](/manual/work_reports_approval)
 
 ---
 
@@ -226,7 +226,7 @@ CSVエクスポート後、Excelでカテゴリごとにピボットテーブル
 - 在庫の総額
 - 長期間動きのない在庫
 
-**関連**: [月次報告業務マニュアル](../../manual/scenarios/document_flow/monthly_reporting.md)
+**関連**: [月次報告業務マニュアル](/manual/scenarios/document_flow/monthly_reporting)
 
 ---
 
@@ -235,7 +235,7 @@ CSVエクスポート後、Excelでカテゴリごとにピボットテーブル
 
 最低在庫数の設定を見直して、自動アラートを活用することもおすすめします。
 
-**関連**: [消耗品管理マニュアル](../../manual/consumable_management.md)
+**関連**: [消耗品管理マニュアル](/manual/consumable_management)
 
 ---
 
@@ -251,7 +251,7 @@ CSVエクスポート後、Excelでカテゴリごとにピボットテーブル
 
 毎月確認することで在庫の不一致を早期に発見できます。
 
-**関連**: [月次報告業務マニュアル](../../manual/scenarios/document_flow/monthly_reporting.md)
+**関連**: [月次報告業務マニュアル](/manual/scenarios/document_flow/monthly_reporting)
 
 ---
 
@@ -274,7 +274,7 @@ CSVエクスポート後、Excelでカテゴリごとにピボットテーブル
 - 休暇取得日数
 - 遅刻・早退の回数
 
-**関連**: [月次報告業務マニュアル](../../manual/scenarios/document_flow/monthly_reporting.md)
+**関連**: [月次報告業務マニュアル](/manual/scenarios/document_flow/monthly_reporting)
 
 ---
 
@@ -283,7 +283,7 @@ CSVエクスポート後、Excelでカテゴリごとにピボットテーブル
 
 管理者権限で出退勤記録を編集できます。
 
-**関連**: [勤怠管理マニュアル](../../manual/attendance.md)
+**関連**: [勤怠管理マニュアル](/manual/attendance)
 
 ---
 
@@ -323,7 +323,7 @@ CSVエクスポート後、Excelでカテゴリごとにピボットテーブル
 - 発注が必要な資材
 - スタッフの休暇予定
 
-**関連**: [月次報告業務マニュアル](../../manual/scenarios/document_flow/monthly_reporting.md)
+**関連**: [月次報告業務マニュアル](/manual/scenarios/document_flow/monthly_reporting)
 
 ---
 
@@ -346,7 +346,7 @@ CSVエクスポート後、Excelでカテゴリごとにピボットテーブル
 3. スタッフの稼働状況を確認
 4. 人員配置を決定
 
-**関連**: [月次報告業務マニュアル](../../manual/scenarios/document_flow/monthly_reporting.md)
+**関連**: [月次報告業務マニュアル](/manual/scenarios/document_flow/monthly_reporting)
 
 ---
 
@@ -416,10 +416,10 @@ CSVエクスポート後、Excelでカテゴリごとにピボットテーブル
 
 自社の業務に合わせてカスタマイズして使用してください。
 
-**関連**: [月次報告業務マニュアル](../../manual/scenarios/document_flow/monthly_reporting.md)
+**関連**: [月次報告業務マニュアル](/manual/scenarios/document_flow/monthly_reporting)
 
 ---
 
 **最終更新日**: 2026-01-21
 
-このQ&Aは月次報告業務に関する質問をまとめています。詳細な手順は[月次報告業務マニュアル](../../manual/scenarios/document_flow/monthly_reporting.md)を参照してください。
+このQ&Aは月次報告業務に関する質問をまとめています。詳細な手順は[月次報告業務マニュアル](/manual/scenarios/document_flow/monthly_reporting)を参照してください。

@@ -122,7 +122,7 @@ lastUpdated: "2026-01-22"
 - 現場事務所入口
 - 朝礼場所
 
-**詳細**: [リーダー用QR発行マニュアル](../../attendance_leader_qr.md)を参照
+**詳細**: [リーダー用QR発行マニュアル](/manual/attendance_leader_qr)を参照
 
 ---
 
@@ -211,7 +211,7 @@ lastUpdated: "2026-01-22"
 - **承認済み**: 承認完了、顧客に送信可能
 - **差戻し**: 修正が必要
 
-**詳細**: [見積書作成マニュアル](../../estimates.md)を参照
+**詳細**: [見積書作成マニュアル](/manual/estimates)を参照
 
 ---
 
@@ -244,7 +244,7 @@ lastUpdated: "2026-01-22"
 2. **「提出」** ボタンをクリック
 3. 承認者（Manager/Admin）に承認依頼が送信される
 
-**詳細**: [請求書作成マニュアル](../../invoices.md)を参照
+**詳細**: [請求書作成マニュアル](/manual/invoices)を参照
 
 ---
 
@@ -282,7 +282,7 @@ lastUpdated: "2026-01-22"
 3. **「承認」** ボタンをクリック
 4. 承認完了
 
-**詳細**: [発注書作成マニュアル](../../purchase_orders.md)を参照
+**詳細**: [発注書作成マニュアル](/manual/purchase_orders)を参照
 
 ---
 
@@ -329,11 +329,11 @@ lastUpdated: "2026-01-22"
 
 ## 関連マニュアル
 
-- [リーダー用QR発行マニュアル](../../attendance_leader_qr.md) - 出退勤QRコードの発行
-- [見積書作成マニュアル](../../estimates.md) - 見積書の詳細
-- [請求書作成マニュアル](../../invoices.md) - 請求書の詳細
-- [発注書作成マニュアル](../../purchase_orders.md) - 発注書の詳細
-- [スタッフ向けクイックガイド](./staff_quick_guide.md) - スタッフの基本操作
+- [リーダー用QR発行マニュアル](/manual/attendance_leader_qr) - 出退勤QRコードの発行
+- [見積書作成マニュアル](/manual/estimates) - 見積書の詳細
+- [請求書作成マニュアル](/manual/invoices) - 請求書の詳細
+- [発注書作成マニュアル](/manual/purchase_orders) - 発注書の詳細
+- [スタッフ向けクイックガイド](/manual/scenarios/role_guides/staff_quick_guide) - スタッフの基本操作
 
 ---
 

@@ -52,7 +52,7 @@ lastUpdated: '2026-01-22'
 - 既存の移動履歴はすべて保持されます
 - 何度でも再印刷可能
 
-**関連**: [QRコード印刷マニュアル](../../manual/qr_printing.md)
+**関連**: QRコード印刷マニュアル
 
 ---
 
@@ -121,7 +121,7 @@ lastUpdated: '2026-01-22'
     └── #003（QRコード: xxx-003、修理中）
 ```
 
-**関連**: [道具管理マニュアル](../../manual/tool_management.md)
+**関連**: [道具管理マニュアル](/manual/tool_management)
 
 ---
 
@@ -162,7 +162,7 @@ lastUpdated: '2026-01-22'
 - 高価で個別管理が必要 → **道具**（例: 電動ドリル、測定器、重機）
 - 安価で数量だけ管理すればOK → **消耗品**（例: 軍手、ビス、テープ）
 
-**関連**: [消耗品管理マニュアル](../../manual/consumable_management.md)
+**関連**: [消耗品管理マニュアル](/manual/consumable_management)
 
 ---
 
@@ -287,7 +287,7 @@ lastUpdated: '2026-01-22'
 **セキュリティ:**
 他社のデータは一切見えないため、安心してご利用ください。
 
-**関連**: [QRスキャンのトラブルシューティング](./qr_scan_issues.md)
+**関連**: QRスキャンのトラブルシューティング
 
 ---
 
@@ -310,7 +310,7 @@ lastUpdated: '2026-01-22'
 - 破損・紛失がある場合は先に対応してください
 - 引き継ぎ日の記録を残すこと（移動履歴の備考欄）
 
-**関連**: [道具の引き継ぎ手順マニュアル](../../manual/scenarios/tool_operations/tool_handover.md)
+**関連**: [道具の引き継ぎ手順マニュアル](/manual/scenarios/tool_operations/tool_handover)
 
 ---
 
@@ -335,7 +335,7 @@ lastUpdated: '2026-01-22'
 - 同じ場所の道具のみ一括移動可能
 - 現場Aと現場Bの道具を同時に移動することはできません（2回に分ける）
 
-**関連**: [道具の一括操作マニュアル](../../manual/scenarios/tool_operations/tool_bulk_operations.md)
+**関連**: [道具の一括操作マニュアル](/manual/scenarios/tool_operations/tool_bulk_operations)
 
 ---
 
@@ -363,7 +363,7 @@ lastUpdated: '2026-01-22'
 - 盗難の可能性がある場合は必ず警察に届け出てください
 - 受理番号を控えておく（保険請求に必要）
 
-**関連**: [道具の紛失・破損対応マニュアル](../../manual/scenarios/tool_operations/tool_lost_or_damaged.md)
+**関連**: [道具の紛失・破損対応マニュアル](/manual/scenarios/tool_operations/tool_lost_or_damaged)
 
 ---
 
@@ -400,7 +400,7 @@ lastUpdated: '2026-01-22'
 - 修理費 < 新品価格の50% → 修理推奨
 - 修理費 ≥ 新品価格の50% → 新品購入を検討
 
-**関連**: [道具の紛失・破損対応マニュアル](../../manual/scenarios/tool_operations/tool_lost_or_damaged.md)
+**関連**: [道具の紛失・破損対応マニュアル](/manual/scenarios/tool_operations/tool_lost_or_damaged)
 
 ---
 
@@ -443,7 +443,7 @@ lastUpdated: '2026-01-22'
 
 **注意**: 道具（tools）には個別のメンテナンス記録機能がありません。備考欄または外部記録簿で管理してください。
 
-**関連**: [道具のメンテナンス・点検マニュアル](../../manual/scenarios/tool_operations/tool_maintenance.md)
+**関連**: [道具のメンテナンス・点検マニュアル](/manual/scenarios/tool_operations/tool_maintenance)
 
 ---
 
@@ -466,7 +466,7 @@ lastUpdated: '2026-01-22'
 - 一括移動は「同じ場所にある複数の道具を、同じ移動先にまとめて移動」するための機能です
 - 異なる場所の道具を混在させると、移動種別（持ち出し/返却/移動）が判定できないため制限されています
 
-**関連**: [道具の一括操作マニュアル](../../manual/scenarios/tool_operations/tool_bulk_operations.md)
+**関連**: [道具の一括操作マニュアル](/manual/scenarios/tool_operations/tool_bulk_operations)
 
 ---
 
@@ -494,7 +494,7 @@ lastUpdated: '2026-01-22'
 3. 該当する道具を手動で選択
 
 **関連**:
-- [QRスキャンのトラブルシューティング](./qr_scan_issues.md)
+- QRスキャンのトラブルシューティング
 - [道具の一括操作マニュアル - QRスキャンのコツ](../../manual/scenarios/tool_operations/tool_bulk_operations.md#ステップ3-移動する道具を選択)
 
 ---

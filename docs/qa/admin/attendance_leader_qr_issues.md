@@ -20,7 +20,7 @@ lastUpdated: '2026-01-22'
 
 **対象ユーザー**: Leader、Manager、Admin
 
-**関連マニュアル**: [リーダー用QR発行マニュアル](../../manual/attendance_leader_qr.md)
+**関連マニュアル**: [リーダー用QR発行マニュアル](/manual/attendance_leader_qr)
 
 ---
 
@@ -604,6 +604,6 @@ QRコードを外部の人がスキャンしても、組織情報や現場情報
 ---
 
 **関連マニュアル**:
-- [リーダー用QR発行マニュアル](../../manual/attendance_leader_qr.md)
-- [出退勤打刻マニュアル](../../manual/attendance_clock.md)
-- [現場管理マニュアル](../../manual/sites.md)
+- [リーダー用QR発行マニュアル](/manual/attendance_leader_qr)
+- [出退勤打刻マニュアル](/manual/attendance_clock)
+- [現場管理マニュアル](/manual/sites)

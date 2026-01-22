@@ -193,7 +193,7 @@ lastUpdated: "2026-01-22"
 - データは削除されず、操作履歴は保持されます
 - 再度有効化することも可能です
 
-**詳細**: [スタッフ管理マニュアル](../../staff_management.md)を参照
+**詳細**: [スタッフ管理マニュアル](/manual/staff_management)を参照
 
 ---
 
@@ -274,7 +274,7 @@ lastUpdated: "2026-01-22"
 - 道具が保管されている倉庫位置は削除できません
 - 先に道具を移動してから削除してください
 
-**詳細**: [倉庫位置管理マニュアル](../../warehouse_locations.md)を参照
+**詳細**: [倉庫位置管理マニュアル](/manual/warehouse_locations)を参照
 
 ---
 
@@ -423,11 +423,11 @@ lastUpdated: "2026-01-22"
 
 ## 関連マニュアル
 
-- [スタッフ管理マニュアル](../../staff_management.md) - スタッフの追加と管理
-- [倉庫位置管理マニュアル](../../warehouse_locations.md) - 倉庫位置の設定
+- [スタッフ管理マニュアル](/manual/staff_management) - スタッフの追加と管理
+- [倉庫位置管理マニュアル](/manual/warehouse_locations) - 倉庫位置の設定
 - [セキュリティベストプラクティス](../security/security_best_practices.md) - セキュリティ設定
 - [緊急対応マニュアル](../security/emergency_response.md) - インシデント対応
-- [マネージャー向けクイックガイド](./manager_quick_guide.md) - マネージャーの基本操作
+- [マネージャー向けクイックガイド](/manual/scenarios/role_guides/manager_quick_guide) - マネージャーの基本操作
 
 ---
 

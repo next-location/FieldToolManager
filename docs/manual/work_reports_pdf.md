@@ -353,9 +353,9 @@ PDF右上の「承認印」枠に承認者の印鑑が表示されます。
 
 ## 13. 関連ドキュメント
 
-- [作業報告書作成マニュアル](./work_reports_create.md)（作成予定）
-- [作業報告書承認マニュアル](./work_reports_approval.md)
-- [作業報告書設定マニュアル](./work_reports_settings.md)
+- [作業報告書作成マニュアル](/manual/work_reports_create)（作成予定）
+- [作業報告書承認マニュアル](/manual/work_reports_approval)
+- [作業報告書設定マニュアル](/manual/work_reports_settings)
 
 ---
 

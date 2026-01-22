@@ -245,7 +245,7 @@ lastUpdated: "2026-01-21"
 5. **駐車場**: 車両の駐車場
 6. **その他**: 上記以外の自社拠点
 
-**関連**: [自社拠点管理マニュアル](../../manual/company_sites.md)
+**関連**: [自社拠点管理マニュアル](/manual/company_sites)
 
 ### Q. 拠点タイプは後から変更できますか?
 
@@ -256,7 +256,7 @@ lastUpdated: "2026-01-21"
 2. 道具をすべて新しい拠点に移動
 3. 古い拠点を削除
 
-**関連**: [自社拠点管理マニュアル](../../manual/company_sites.md)
+**関連**: [自社拠点管理マニュアル](/manual/company_sites)
 
 ### Q. 道具移動時に自社拠点が表示されません
 
@@ -269,7 +269,7 @@ lastUpdated: "2026-01-21"
 
 「すべて」フィルタを選択すると、自社拠点と現場の両方が表示されます。
 
-**関連**: [自社拠点管理マニュアル](../../manual/company_sites.md)
+**関連**: [自社拠点管理マニュアル](/manual/company_sites)
 
 ### Q. 重機の保管場所として自社拠点を使用できますか?
 
@@ -283,8 +283,8 @@ lastUpdated: "2026-01-21"
 特に「重機置き場」タイプの拠点を登録しておくと、重機の保管場所として分かりやすく管理できます。
 
 **関連**:
-- [自社拠点管理マニュアル](../../manual/company_sites.md)
-- [重機管理マニュアル](../../manual/equipment_management.md)
+- [自社拠点管理マニュアル](/manual/company_sites)
+- [重機管理マニュアル](/manual/equipment_management)
 
 ### Q. 倉庫位置マスタと自社拠点の関係は?
 
@@ -297,8 +297,8 @@ lastUpdated: "2026-01-21"
 倉庫位置マスタで階層構造を設定することで、拠点内の詳細な保管場所まで管理できます。
 
 **関連**:
-- [自社拠点管理マニュアル](../../manual/company_sites.md)
-- [倉庫位置マスタマニュアル](../../manual/warehouse_locations.md)
+- [自社拠点管理マニュアル](/manual/company_sites)
+- [倉庫位置マスタマニュアル](/manual/warehouse_locations)
 
 ### Q. 拠点ごとの在庫状況を確認できますか?
 
@@ -311,7 +311,7 @@ lastUpdated: "2026-01-21"
 
 これにより、各拠点の在庫状況を簡単に把握できます。
 
-**関連**: [自社拠点管理マニュアル](../../manual/company_sites.md)
+**関連**: [自社拠点管理マニュアル](/manual/company_sites)
 
 ---
 
@@ -401,4 +401,4 @@ lastUpdated: "2026-01-21"
 
 現在、CSVエクスポート/インポート機能は実装されていません。
 
-**関連**: [作業報告書設定マニュアル](../../manual/work_reports_settings.md)
+**関連**: [作業報告書設定マニュアル](/manual/work_reports_settings)

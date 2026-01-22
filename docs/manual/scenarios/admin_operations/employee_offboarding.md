@@ -484,10 +484,10 @@ lastUpdated: "2026-01-22"
 
 ## 11. 関連ドキュメント
 
-- [新入社員の受け入れマニュアル](./new_employee_onboarding.md) - 新入社員の登録
+- [新入社員の受け入れマニュアル](/manual/scenarios/admin_operations/new_employee_onboarding) - 新入社員の登録
 - [道具の引き継ぎ手順マニュアル](../tool_operations/tool_handover.md) - 道具返却の詳細
 - [道具の紛失・破損対応マニュアル](../tool_operations/tool_lost_or_damaged.md) - 道具紛失時の対応
-- [スタッフ管理マニュアル](../../staff_management.md) - スタッフ管理全般
+- [スタッフ管理マニュアル](/manual/staff_management) - スタッフ管理全般
 
 ---
 

@@ -254,9 +254,9 @@ PDF出力は承認済みの報告書のみ可能です。
 
 ## 関連機能
 
-- [現場管理](./sites.md)
-- [スタッフ管理](./staff_management.md)
-- [設定](./settings.md)
+- [現場管理](/manual/sites)
+- [スタッフ管理](/manual/staff_management)
+- [設定](/manual/settings)
 
 ---
 

@@ -378,9 +378,9 @@ lastUpdated: "2026-01-21"
 
 ## 14. 関連ドキュメント
 
-- [作業報告書作成マニュアル](./work_reports_create.md)（作成予定）
-- [作業報告書PDF出力マニュアル](./work_reports_pdf.md)（作成予定）
-- [作業報告書設定マニュアル](./work_reports_settings.md)（作成予定）
+- [作業報告書作成マニュアル](/manual/work_reports_create)（作成予定）
+- [作業報告書PDF出力マニュアル](/manual/work_reports_pdf)（作成予定）
+- [作業報告書設定マニュアル](/manual/work_reports_settings)（作成予定）
 
 ---
 

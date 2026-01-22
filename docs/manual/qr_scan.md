@@ -410,10 +410,10 @@ QRスキャンを使用するには、カメラ権限の許可が必要です。
 
 ## 関連マニュアル
 
-- [道具管理マニュアル](./tool_management.md) - 道具の登録と管理
+- [道具管理マニュアル](/manual/tool_management) - 道具の登録と管理
 - [道具の移動（持ち出し・返却）](./tool_management.md#道具の移動持ち出し返却) - 移動登録の詳細
 - [QRコードの印刷](./tool_management.md#qrコードの印刷と貼り付け) - QRコードの印刷方法
-- [倉庫位置管理](./warehouse_locations.md) - 倉庫位置の設定
+- [倉庫位置管理](/manual/warehouse_locations) - 倉庫位置の設定
 
 ---
 

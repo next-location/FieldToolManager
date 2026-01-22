@@ -282,6 +282,6 @@ lastUpdated: "2026-01-21"
 
 ## 関連機能
 
-- [道具マスタ管理](./tool_masters.md): 道具の種類（テンプレート）を管理
-- [道具登録](./tools_create.md): 実際の道具を登録
-- [消耗品登録](./consumable_management.md): 消耗品の登録と在庫調整
+- 道具マスタ管理: 道具の種類（テンプレート）を管理
+- 道具登録: 実際の道具を登録
+- [消耗品登録](/manual/consumable_management): 消耗品の登録と在庫調整

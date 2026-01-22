@@ -376,6 +376,6 @@ QRコード打刻を有効にした場合、QRコードの更新頻度を設定�
 
 ## 関連機能
 
-- [組織情報設定](./settings_organization.md): 組織全体の運用設定
-- [スタッフ管理](./staff_management.md): スタッフの登録・権限管理
-- [出退勤打刻](./attendance_clock.md): スタッフの出退勤打刻方法
+- [組織情報設定](/manual/settings_organization): 組織全体の運用設定
+- [スタッフ管理](/manual/staff_management): スタッフの登録・権限管理
+- [出退勤打刻](/manual/attendance_clock): スタッフの出退勤打刻方法

@@ -456,9 +456,9 @@ QRコードが汚れて読めなくなった場合や、破損した場合は再
 
 ## 関連機能
 
-- [道具管理](./tool_management.md) - 道具を倉庫位置に配置
-- [消耗品管理](./consumable_management.md) - 消耗品を倉庫位置に配置
-- [QRスキャン](./qr_scan.md) - 位置のQRコードをスキャン
+- [道具管理](/manual/tool_management) - 道具を倉庫位置に配置
+- [消耗品管理](/manual/consumable_management) - 消耗品を倉庫位置に配置
+- [QRスキャン](/manual/qr_scan) - 位置のQRコードをスキャン
 
 ---
 

@@ -74,7 +74,7 @@ lastUpdated: "2026-01-22"
 - ✅ 清掃・メンテナンスは完了しているか
 - ✅ QRコードは読み取り可能か
 
-**破損・紛失があった場合**: 先に [道具の紛失・破損対応マニュアル](./tool_lost_or_damaged.md) を参照してください。
+**破損・紛失があった場合**: 先に [道具の紛失・破損対応マニュアル](/manual/scenarios/tool_operations/tool_lost_or_damaged) を参照してください。
 
 ---
 
@@ -194,7 +194,7 @@ lastUpdated: "2026-01-22"
 - **業務標準化**: 「この作業にはこのセット」とテンプレート化できる
 - **新人教育**: 新人でも必要な道具を漏れなく持ち出せる
 
-**道具セットの作成方法**: [道具セット管理マニュアル](../../tool_sets.md) を参照
+**道具セットの作成方法**: [道具セット管理マニュアル](/manual/tool_sets) を参照
 
 ---
 
@@ -308,7 +308,7 @@ lastUpdated: "2026-01-22"
 1. **検索してみる**: 道具一覧画面の検索ボックスで道具名・シリアル番号を入力
 2. **フィルタを解除**: フィルタが適用されている可能性があります。「フィルタをクリア」をクリック
 3. **削除されていないか確認**: 管理者に問い合わせ
-4. **紛失の可能性**: [道具の紛失・破損対応マニュアル](./tool_lost_or_damaged.md) を参照
+4. **紛失の可能性**: [道具の紛失・破損対応マニュアル](/manual/scenarios/tool_operations/tool_lost_or_damaged) を参照
 
 ---
 
@@ -363,10 +363,10 @@ lastUpdated: "2026-01-22"
 
 ## 8. 関連ドキュメント
 
-- [道具管理マニュアル](../../tool_management.md) - 道具の基本操作
-- [道具セット管理マニュアル](../../tool_sets.md) - 道具セットの作成・編集
-- [道具の紛失・破損対応マニュアル](./tool_lost_or_damaged.md) - 紛失・破損時の対応
-- [道具の一括操作マニュアル](./tool_bulk_operations.md) - 一括移動・QR印刷
+- [道具管理マニュアル](/manual/tool_management) - 道具の基本操作
+- [道具セット管理マニュアル](/manual/tool_sets) - 道具セットの作成・編集
+- [道具の紛失・破損対応マニュアル](/manual/scenarios/tool_operations/tool_lost_or_damaged) - 紛失・破損時の対応
+- [道具の一括操作マニュアル](/manual/scenarios/tool_operations/tool_bulk_operations) - 一括移動・QR印刷
 - [QRコードスキャンのトラブルシューティング](../../../qa/staff/qr_scan_issues.md)
 
 ---

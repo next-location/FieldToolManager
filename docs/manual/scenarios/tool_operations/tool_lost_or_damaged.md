@@ -320,7 +320,7 @@ lastUpdated: "2026-01-22"
 - システム上の在庫数と実物を照合
 - 不一致があれば即座に調査
 
-**関連**: [棚卸し作業マニュアル](../../scenarios/admin_operations/inventory_audit.md)（作成予定）
+**関連**: [棚卸し作業マニュアル](/manual/scenarios/admin_operations/inventory_audit)（作成予定）
 
 ---
 
@@ -338,7 +338,7 @@ lastUpdated: "2026-01-22"
 - 異音・がたつきがあれば早めに修理
 - 刃物は定期的に研磨
 
-**関連**: [道具のメンテナンス・点検マニュアル](./tool_maintenance.md)
+**関連**: [道具のメンテナンス・点検マニュアル](/manual/scenarios/tool_operations/tool_maintenance)
 
 **対策3: 使用方法の教育**
 
@@ -460,10 +460,10 @@ lastUpdated: "2026-01-22"
 
 ## 8. 関連ドキュメント
 
-- [道具管理マニュアル](../../tool_management.md) - 道具の基本操作
-- [道具の引き継ぎ手順マニュアル](./tool_handover.md) - 引き継ぎ時の手順
-- [道具のメンテナンス・点検マニュアル](./tool_maintenance.md) - 定期点検で破損を予防
-- [棚卸し作業マニュアル](../../scenarios/admin_operations/inventory_audit.md)（作成予定） - 定期的な在庫確認
+- [道具管理マニュアル](/manual/tool_management) - 道具の基本操作
+- [道具の引き継ぎ手順マニュアル](/manual/scenarios/tool_operations/tool_handover) - 引き継ぎ時の手順
+- [道具のメンテナンス・点検マニュアル](/manual/scenarios/tool_operations/tool_maintenance) - 定期点検で破損を予防
+- [棚卸し作業マニュアル](/manual/scenarios/admin_operations/inventory_audit)（作成予定） - 定期的な在庫確認
 - [QRコードスキャンのトラブルシューティング](../../../qa/staff/qr_scan_issues.md)
 
 ---

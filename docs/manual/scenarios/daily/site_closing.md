@@ -136,7 +136,7 @@ lastUpdated: "2026-01-22"
 3. 修理可能か廃棄かを選択
 4. 「登録」をクリック
 
-**参照**: [道具の紛失・破損対応マニュアル](../../tool_lost_or_damaged.md)
+**参照**: [道具の紛失・破損対応マニュアル](/manual/scenarios/tool_operations/tool_lost_or_damaged)
 
 ---
 
@@ -160,7 +160,7 @@ lastUpdated: "2026-01-22"
 3. 在庫数が実数と一致しているか確認
 4. 差異がある場合は「在庫調整」で修正
 
-**参照**: [消耗品管理マニュアル](../../consumable_management.md)
+**参照**: [消耗品管理マニュアル](/manual/consumable_management)
 
 ---
 
@@ -193,7 +193,7 @@ lastUpdated: "2026-01-22"
 - 現場の最終状態
 - 引き渡し完了の記録
 
-**参照**: [作業報告書マニュアル](../../work_reports.md)
+**参照**: [作業報告書マニュアル](/manual/work_reports)
 
 ---
 
@@ -242,7 +242,7 @@ lastUpdated: "2026-01-22"
 5. 実際の完了日を入力
 6. 「更新」をクリック
 
-**参照**: [工事管理マニュアル](../../projects.md)
+**参照**: [工事管理マニュアル](/manual/projects)
 
 ---
 

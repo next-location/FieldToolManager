@@ -19,7 +19,7 @@ lastUpdated: '2026-01-22'
 
 **対象ユーザー**: Staff、Leader、Manager、Admin
 
-**関連マニュアル**: [作業報告書作成マニュアル](../../manual/work_reports_create.md)
+**関連マニュアル**: [作業報告書作成マニュアル](/manual/work_reports_create)
 
 ---
 
@@ -659,6 +659,6 @@ lastUpdated: '2026-01-22'
 ---
 
 **関連マニュアル**:
-- [作業報告書作成マニュアル](../../manual/work_reports_create.md)
-- [現場管理マニュアル](../../manual/sites.md)
-- [道具管理マニュアル](../../manual/tool_management.md)
+- [作業報告書作成マニュアル](/manual/work_reports_create)
+- [現場管理マニュアル](/manual/sites)
+- [道具管理マニュアル](/manual/tool_management)

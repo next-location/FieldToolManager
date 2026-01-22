@@ -472,10 +472,10 @@ DX効率化パックをご契約の場合、以下の機能がスマートフォ
 
 ## 関連マニュアル
 
-- [QRコード活用ガイド](./qr_code_guide.md) - QRコードの印刷と活用方法
-- [QRスキャンマニュアル](../../qr_scan.md) - QRスキャンの詳細手順
-- [出退勤打刻マニュアル](../../attendance_clock.md) - スマートフォンでの出退勤打刻
-- [作業報告書作成マニュアル](../../work_reports.md) - スマートフォンでの作業報告書作成
+- [QRコード活用ガイド](/manual/scenarios/mobile/qr_code_guide) - QRコードの印刷と活用方法
+- [QRスキャンマニュアル](/manual/qr_scan) - QRスキャンの詳細手順
+- [出退勤打刻マニュアル](/manual/attendance_clock) - スマートフォンでの出退勤打刻
+- [作業報告書作成マニュアル](/manual/work_reports) - スマートフォンでの作業報告書作成
 
 ---
 

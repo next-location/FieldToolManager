@@ -129,7 +129,7 @@ lastUpdated: "2026-01-22"
    - 初期在庫数
 4. **「登録」** をクリック
 
-**詳細**: [道具管理マニュアル](../../tool_management.md)を参照
+**詳細**: [道具管理マニュアル](/manual/tool_management)を参照
 
 ---
 
@@ -256,7 +256,7 @@ lastUpdated: "2026-01-22"
 - 完了した現場に道具が残っている場合、警告が表示されます
 - 道具を返却してから完了してください
 
-**詳細**: [現場管理マニュアル](../../sites.md)を参照
+**詳細**: [現場管理マニュアル](/manual/sites)を参照
 
 ---
 
@@ -294,7 +294,7 @@ lastUpdated: "2026-01-22"
 - パスワード
 - admin役割のスタッフ
 
-**詳細**: [スタッフ管理マニュアル](../../staff_management.md)を参照
+**詳細**: [スタッフ管理マニュアル](/manual/staff_management)を参照
 
 ---
 
@@ -367,13 +367,13 @@ lastUpdated: "2026-01-22"
 
 ## 関連マニュアル
 
-- [道具管理マニュアル](../../tool_management.md) - 道具の登録と管理
+- [道具管理マニュアル](/manual/tool_management) - 道具の登録と管理
 - [QRコード活用ガイド](../mobile/qr_code_guide.md) - QRコードの印刷
-- [現場管理マニュアル](../../sites.md) - 現場の登録と管理
-- [スタッフ管理マニュアル](../../staff_management.md) - スタッフの追加と管理
-- [見積書作成マニュアル](../../estimates.md) - 見積書の承認
-- [請求書作成マニュアル](../../invoices.md) - 請求書の承認
-- [リーダー向けクイックガイド](./leader_quick_guide.md) - リーダーの基本操作
+- [現場管理マニュアル](/manual/sites) - 現場の登録と管理
+- [スタッフ管理マニュアル](/manual/staff_management) - スタッフの追加と管理
+- [見積書作成マニュアル](/manual/estimates) - 見積書の承認
+- [請求書作成マニュアル](/manual/invoices) - 請求書の承認
+- [リーダー向けクイックガイド](/manual/scenarios/role_guides/leader_quick_guide) - リーダーの基本操作
 
 ---
 

@@ -387,7 +387,7 @@ CSV一括登録モーダルの「テンプレートをダウンロード」ボ�
 4. **初回ログイン確認**: 新入社員が実際にログインできたか確認
 5. **初期設定とトレーニング**: QRスキャン、道具移動、作業報告書の説明
 
-**詳細**: [新入社員の受け入れマニュアル](../../manual/scenarios/admin_operations/new_employee_onboarding.md)
+**詳細**: [新入社員の受け入れマニュアル](/manual/scenarios/admin_operations/new_employee_onboarding)
 
 ---
 
@@ -400,7 +400,7 @@ CSV一括登録モーダルの「テンプレートをダウンロード」ボ�
 2. システム管理者に連絡して挿入代行を依頼
 3. 登録完了後、各スタッフにログイン情報を伝達
 
-**詳細**: [新入社員の受け入れマニュアル](../../manual/scenarios/admin_operations/new_employee_onboarding.md)
+**詳細**: [新入社員の受け入れマニュアル](/manual/scenarios/admin_operations/new_employee_onboarding)
 
 ---
 
@@ -446,7 +446,7 @@ CSV一括登録モーダルの「テンプレートをダウンロード」ボ�
 
 **効果**: 退職者はログインできなくなります。
 
-**詳細**: [退職者の対応マニュアル](../../manual/scenarios/admin_operations/employee_offboarding.md)
+**詳細**: [退職者の対応マニュアル](/manual/scenarios/admin_operations/employee_offboarding)
 
 ---
 
@@ -504,7 +504,7 @@ CSV一括登録モーダルの「テンプレートをダウンロード」ボ�
 - **マンスリー棚卸し**: 月1回（倉庫の道具をカテゴリごとに確認）
 - **年次棚卸し**: 年1〜2回（すべての道具を全数確認）
 
-**詳細**: [棚卸し作業マニュアル](../../manual/scenarios/admin_operations/inventory_audit.md)
+**詳細**: [棚卸し作業マニュアル](/manual/scenarios/admin_operations/inventory_audit)
 
 ---
 
@@ -554,7 +554,7 @@ CSV一括登録モーダルの「テンプレートをダウンロード」ボ�
 - パフォーマンスの確認
 - バックアップの確認
 
-**詳細**: [システム健全性チェックマニュアル](../../manual/scenarios/admin_operations/system_health_check.md)
+**詳細**: [システム健全性チェックマニュアル](/manual/scenarios/admin_operations/system_health_check)
 
 ---
 
@@ -608,7 +608,7 @@ CSV一括登録モーダルの「テンプレートをダウンロード」ボ�
 - 承認業務
 - スタッフ管理
 
-**詳細**: [スタッフ向けクイックガイド](../../manual/scenarios/role_guides/staff_quick_guide.md)
+**詳細**: [スタッフ向けクイックガイド](/manual/scenarios/role_guides/staff_quick_guide)
 
 ---
 
@@ -630,7 +630,7 @@ CSV一括登録モーダルの「テンプレートをダウンロード」ボ�
 - 他チームの勤怠管理
 - スタッフ管理
 
-**詳細**: [リーダー向けクイックガイド](../../manual/scenarios/role_guides/leader_quick_guide.md)
+**詳細**: [リーダー向けクイックガイド](/manual/scenarios/role_guides/leader_quick_guide)
 
 ---
 
@@ -658,7 +658,7 @@ CSV一括登録モーダルの「テンプレートをダウンロード」ボ�
 
 **注意**: マネージャーは、**staff**と**leader**役割のスタッフのみ管理できます。**manager**や**admin**役割のスタッフは管理できません。
 
-**詳細**: [マネージャー向けクイックガイド](../../manual/scenarios/role_guides/manager_quick_guide.md)
+**詳細**: [マネージャー向けクイックガイド](/manual/scenarios/role_guides/manager_quick_guide)
 
 ---
 
@@ -682,7 +682,7 @@ CSV一括登録モーダルの「テンプレートをダウンロード」ボ�
 **できないこと**:
 - 他組織のデータへのアクセス
 
-**詳細**: [管理者向けクイックガイド](../../manual/scenarios/role_guides/admin_quick_guide.md)
+**詳細**: [管理者向けクイックガイド](/manual/scenarios/role_guides/admin_quick_guide)
 
 ---
 

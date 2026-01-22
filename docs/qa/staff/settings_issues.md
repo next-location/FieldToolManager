@@ -415,10 +415,10 @@ lastUpdated: '2026-01-22'
 - **Admin（管理者）**: マネージャー + システム管理（権限変更、システム設定、削除、監査ログ）
 
 **詳細**:
-- [スタッフ向けクイックガイド](../../manual/scenarios/role_guides/staff_quick_guide.md)
-- [リーダー向けクイックガイド](../../manual/scenarios/role_guides/leader_quick_guide.md)
-- [マネージャー向けクイックガイド](../../manual/scenarios/role_guides/manager_quick_guide.md)
-- [管理者向けクイックガイド](../../manual/scenarios/role_guides/admin_quick_guide.md)
+- [スタッフ向けクイックガイド](/manual/scenarios/role_guides/staff_quick_guide)
+- [リーダー向けクイックガイド](/manual/scenarios/role_guides/leader_quick_guide)
+- [マネージャー向けクイックガイド](/manual/scenarios/role_guides/manager_quick_guide)
+- [管理者向けクイックガイド](/manual/scenarios/role_guides/admin_quick_guide)
 
 ---
 
@@ -506,7 +506,7 @@ lastUpdated: '2026-01-22'
 - 承認業務
 - スタッフ管理
 
-**詳細**: [スタッフ向けクイックガイド](../../manual/scenarios/role_guides/staff_quick_guide.md)
+**詳細**: [スタッフ向けクイックガイド](/manual/scenarios/role_guides/staff_quick_guide)
 
 ---
 
@@ -528,7 +528,7 @@ lastUpdated: '2026-01-22'
 - 他チームの勤怠管理
 - スタッフ管理
 
-**詳細**: [リーダー向けクイックガイド](../../manual/scenarios/role_guides/leader_quick_guide.md)
+**詳細**: [リーダー向けクイックガイド](/manual/scenarios/role_guides/leader_quick_guide)
 
 ---
 
@@ -556,7 +556,7 @@ lastUpdated: '2026-01-22'
 
 **注意**: マネージャーは、**staff**と**leader**役割のスタッフのみ管理できます。
 
-**詳細**: [マネージャー向けクイックガイド](../../manual/scenarios/role_guides/manager_quick_guide.md)
+**詳細**: [マネージャー向けクイックガイド](/manual/scenarios/role_guides/manager_quick_guide)
 
 ---
 
@@ -580,7 +580,7 @@ lastUpdated: '2026-01-22'
 **できないこと**:
 - 他組織のデータへのアクセス
 
-**詳細**: [管理者向けクイックガイド](../../manual/scenarios/role_guides/admin_quick_guide.md)
+**詳細**: [管理者向けクイックガイド](/manual/scenarios/role_guides/admin_quick_guide)
 
 ---
 

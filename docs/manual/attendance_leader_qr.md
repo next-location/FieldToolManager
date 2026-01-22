@@ -551,9 +551,9 @@ QRコードの有効期限は、**出退勤設定**で変更できます。
 
 ## 関連マニュアル
 
-- [出退勤打刻マニュアル](./attendance_clock.md) - スタッフ向けQRスキャン手順
-- [出退勤設定マニュアル](./attendance_settings.md)（将来追加予定） - QR更新頻度の詳細設定
-- [現場管理マニュアル](./sites.md) - 現場の登録と管理
+- [出退勤打刻マニュアル](/manual/attendance_clock) - スタッフ向けQRスキャン手順
+- [出退勤設定マニュアル](/manual/attendance_settings)（将来追加予定） - QR更新頻度の詳細設定
+- [現場管理マニュアル](/manual/sites) - 現場の登録と管理
 
 ---
 

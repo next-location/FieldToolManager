@@ -27,7 +27,7 @@ lastUpdated: '2026-01-22'
 6. 受領確認の記録
 7. 支払日に支払記録を登録
 
-**関連**: [発注から支払いまでの流れマニュアル](../../manual/scenarios/document_flow/purchase_order_flow.md)
+**関連**: [発注から支払いまでの流れマニュアル](/manual/scenarios/document_flow/purchase_order_flow)
 
 ---
 
@@ -41,7 +41,7 @@ lastUpdated: '2026-01-22'
 
 具体的な金額基準は組織の設定により異なる場合があります。
 
-**関連**: [発注書承認フローマニュアル](../../manual/purchase_orders_approval.md)
+**関連**: [発注書承認フローマニュアル](/manual/purchase_orders_approval)
 
 ---
 
@@ -50,7 +50,7 @@ lastUpdated: '2026-01-22'
 
 金額基準や承認者の役割を組織に合わせてカスタマイズできます。
 
-**関連**: [運用設定マニュアル](../../manual/settings_operations.md)
+**関連**: 運用設定マニュアル
 
 ---
 
@@ -62,7 +62,7 @@ lastUpdated: '2026-01-22'
 2. 既に送付済みの場合: 取引先に連絡して取り消しまたは修正を依頼
 3. 別の発注書を新規作成して差し替え
 
-**関連**: [発注書承認フローマニュアル](../../manual/purchase_orders_approval.md)
+**関連**: [発注書承認フローマニュアル](/manual/purchase_orders_approval)
 
 ---
 
@@ -71,7 +71,7 @@ lastUpdated: '2026-01-22'
 
 口頭やメールで事前に了承を得た上で、後からシステムで正式に承認を取得することも検討してください。
 
-**関連**: [発注から支払いまでの流れマニュアル](../../manual/scenarios/document_flow/purchase_order_flow.md)
+**関連**: [発注から支払いまでの流れマニュアル](/manual/scenarios/document_flow/purchase_order_flow)
 
 ---
 
@@ -85,7 +85,7 @@ lastUpdated: '2026-01-22'
 - **メール送付**: 発注書に記載されたメールアドレスに自動送信
 - **印刷**: ブラウザの印刷機能でプリンタから出力
 
-**関連**: [発注書送付マニュアル](../../manual/purchase_orders_send.md)
+**関連**: [発注書送付マニュアル](/manual/purchase_orders_send)
 
 ---
 
@@ -94,7 +94,7 @@ lastUpdated: '2026-01-22'
 
 メール送付の場合は送信日時と送信先、PDF出力の場合は出力日時が記録されます。
 
-**関連**: [発注書送付マニュアル](../../manual/purchase_orders_send.md)
+**関連**: [発注書送付マニュアル](/manual/purchase_orders_send)
 
 ---
 
@@ -108,7 +108,7 @@ lastUpdated: '2026-01-22'
 4. 再度承認を取得
 5. 修正版を送付
 
-**関連**: [発注書作成マニュアル](../../manual/purchase_orders_create.md)
+**関連**: [発注書作成マニュアル](/manual/purchase_orders_create)
 
 ---
 
@@ -129,7 +129,7 @@ lastUpdated: '2026-01-22'
 
 ただし、前回の発注書を複製することで入力の手間を省けます。
 
-**関連**: [発注から支払いまでの流れマニュアル](../../manual/scenarios/document_flow/purchase_order_flow.md)
+**関連**: [発注から支払いまでの流れマニュアル](/manual/scenarios/document_flow/purchase_order_flow)
 
 ---
 
@@ -145,7 +145,7 @@ lastUpdated: '2026-01-22'
 - 検収者
 - 備考（不具合や数量差異など）
 
-**関連**: [発注から支払いまでの流れマニュアル](../../manual/scenarios/document_flow/purchase_order_flow.md)
+**関連**: [発注から支払いまでの流れマニュアル](/manual/scenarios/document_flow/purchase_order_flow)
 
 ---
 
@@ -158,7 +158,7 @@ lastUpdated: '2026-01-22'
 3. 不足分の追加納品または返品・減額交渉
 4. システムに記録（実際の納品数量と差異理由）
 
-**関連**: [発注から支払いまでの流れマニュアル](../../manual/scenarios/document_flow/purchase_order_flow.md)
+**関連**: [発注から支払いまでの流れマニュアル](/manual/scenarios/document_flow/purchase_order_flow)
 
 ---
 
@@ -171,7 +171,7 @@ lastUpdated: '2026-01-22'
 3. 交換または返品の手配
 4. システムに不具合内容を記録
 
-**関連**: [発注から支払いまでの流れマニュアル](../../manual/scenarios/document_flow/purchase_order_flow.md)
+**関連**: [発注から支払いまでの流れマニュアル](/manual/scenarios/document_flow/purchase_order_flow)
 
 ---
 
@@ -200,7 +200,7 @@ lastUpdated: '2026-01-22'
 3. 「在庫追加」から納品数量を入力
 4. 発注書番号を参照番号に記載
 
-**関連**: [消耗品管理マニュアル](../../manual/consumable_management.md)
+**関連**: [消耗品管理マニュアル](/manual/consumable_management)
 
 ---
 
@@ -209,7 +209,7 @@ lastUpdated: '2026-01-22'
 
 発注書の情報（品目、数量など）が自動入力されるため、入力の手間が省けます。
 
-**関連**: [発注から支払いまでの流れマニュアル](../../manual/scenarios/document_flow/purchase_order_flow.md)
+**関連**: [発注から支払いまでの流れマニュアル](/manual/scenarios/document_flow/purchase_order_flow)
 
 ---
 
@@ -218,7 +218,7 @@ lastUpdated: '2026-01-22'
 
 道具や重機は個別登録が必要なため、各管理画面で別途登録してください。
 
-**関連**: [道具管理マニュアル](../../manual/tool_management.md)
+**関連**: [道具管理マニュアル](/manual/tool_management)
 
 ---
 
@@ -234,7 +234,7 @@ lastUpdated: '2026-01-22'
 
 発注書は複数品目をまとめて管理できます。
 
-**関連**: [発注書作成マニュアル](../../manual/purchase_orders_create.md)
+**関連**: [発注書作成マニュアル](/manual/purchase_orders_create)
 
 ---
 
@@ -250,7 +250,7 @@ lastUpdated: '2026-01-22'
 - 振込名義（参照番号）
 - 備考
 
-**関連**: [発注から支払いまでの流れマニュアル](../../manual/scenarios/document_flow/purchase_order_flow.md)
+**関連**: [発注から支払いまでの流れマニュアル](/manual/scenarios/document_flow/purchase_order_flow)
 
 ---
 
@@ -295,7 +295,7 @@ lastUpdated: '2026-01-22'
 
 すべての発注書は承認が必須です。
 
-**関連**: [発注書承認フローマニュアル](../../manual/purchase_orders_approval.md)
+**関連**: [発注書承認フローマニュアル](/manual/purchase_orders_approval)
 
 ---
 
@@ -313,7 +313,7 @@ lastUpdated: '2026-01-22'
 - 10万円未満: リーダーまたはマネージャーのいずれか
 - 10万円以上: マネージャーまたは管理者のいずれか
 
-**関連**: [発注書承認フローマニュアル](../../manual/purchase_orders_approval.md)
+**関連**: [発注書承認フローマニュアル](/manual/purchase_orders_approval)
 
 ---
 
@@ -347,7 +347,7 @@ lastUpdated: '2026-01-22'
 3. 取引先の迷惑メールフォルダを確認してもらう
 4. 必要に応じてPDFを別の方法（添付ファイル、FAX、郵送）で送付
 
-**関連**: [発注書送付マニュアル](../../manual/purchase_orders_send.md)
+**関連**: [発注書送付マニュアル](/manual/purchase_orders_send)
 
 ---
 
@@ -366,7 +366,7 @@ lastUpdated: '2026-01-22'
 - 発注書のステータスが「提出済み」になっているか
 - 金額が自分の承認権限範囲内か
 
-**関連**: [発注書承認フローマニュアル](../../manual/purchase_orders_approval.md)
+**関連**: [発注書承認フローマニュアル](/manual/purchase_orders_approval)
 
 ---
 
@@ -396,7 +396,7 @@ lastUpdated: '2026-01-22'
 
 発注書の送付には承認が必要です。
 
-**関連**: [権限管理マニュアル](../../manual/staff_management.md)
+**関連**: [権限管理マニュアル](/manual/staff_management)
 
 ---
 
@@ -405,7 +405,7 @@ lastUpdated: '2026-01-22'
 
 それ以上の金額はマネージャーまたは管理者の承認が必要です。
 
-**関連**: [発注書承認フローマニュアル](../../manual/purchase_orders_approval.md)
+**関連**: [発注書承認フローマニュアル](/manual/purchase_orders_approval)
 
 ---
 
@@ -432,4 +432,4 @@ lastUpdated: '2026-01-22'
 
 **最終更新日**: 2026-01-21
 
-このQ&Aは発注から支払いまでの流れに関する質問をまとめています。詳細な手順は[発注から支払いまでの流れマニュアル](../../manual/scenarios/document_flow/purchase_order_flow.md)を参照してください。
+このQ&Aは発注から支払いまでの流れに関する質問をまとめています。詳細な手順は[発注から支払いまでの流れマニュアル](/manual/scenarios/document_flow/purchase_order_flow)を参照してください。

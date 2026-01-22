@@ -19,7 +19,7 @@ lastUpdated: '2026-01-22'
 
 **対象ユーザー**: Leader、Manager、Admin
 
-**関連マニュアル**: [消耗品発注管理マニュアル](../../manual/consumable_orders.md)
+**関連マニュアル**: [消耗品発注管理マニュアル](/manual/consumable_orders)
 
 ---
 
@@ -229,7 +229,7 @@ lastUpdated: '2026-01-22'
 
 取引先マスタで正しく設定すると、すぐに発注画面の選択肢に表示されます。
 
-**関連**: [取引先管理マニュアル](../../manual/clients.md)
+**関連**: [取引先管理マニュアル](/manual/clients)
 
 ### Q20. 仕入れ先を設定しなくても発注できますか？
 
@@ -390,7 +390,7 @@ Staff（スタッフ）も発注の登録・編集・承認が可能です。
 ---
 
 **関連マニュアル**:
-- [消耗品発注管理マニュアル](../../manual/consumable_orders.md)
-- [消耗品管理マニュアル](../../manual/consumable_management.md)
-- [取引先管理マニュアル](../../manual/clients.md)
+- [消耗品発注管理マニュアル](/manual/consumable_orders)
+- [消耗品管理マニュアル](/manual/consumable_management)
+- [取引先管理マニュアル](/manual/clients)
 - [在庫調整マニュアル](../../manual/consumable_management.md#在庫調整)

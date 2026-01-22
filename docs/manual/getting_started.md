@@ -136,7 +136,7 @@ lastUpdated: "2026-01-21"
    - 例: 「Aエリア 1番棚 上段」
 4. 各位置のQRコードを印刷して、実際の場所に貼り付け
 
-**詳細は [倉庫位置管理マニュアル](./warehouse_locations.md) を参照**
+**詳細は [倉庫位置管理マニュアル](/manual/warehouse_locations) を参照**
 
 ### ステップ5: 道具・消耗品の登録（現場資産パック契約時）
 
@@ -147,7 +147,7 @@ lastUpdated: "2026-01-21"
 5. 自動生成された個別アイテム（#001, #002...）のQRコードを印刷
 6. 実際の道具に貼り付け
 
-**詳細は [道具管理マニュアル](./tool_management.md) を参照**
+**詳細は [道具管理マニュアル](/manual/tool_management) を参照**
 
 ### ステップ6: 運用設定
 
@@ -173,16 +173,16 @@ lastUpdated: "2026-01-21"
 
 各機能の詳細なマニュアルは以下を参照してください。
 
-- [QRスキャン](./qr_scan.md)
-- [道具管理](./tool_management.md)
-- [消耗品管理](./consumable_management.md)
-- [重機管理](./equipment_management.md)
-- [出退勤管理](./attendance.md)
-- [作業報告書](./work_reports.md)
-- [見積書管理](./estimates.md)
-- [請求書管理](./invoices.md)
-- [発注書管理](./purchase_orders.md)
-- [設定](./settings.md)
+- [QRスキャン](/manual/qr_scan)
+- [道具管理](/manual/tool_management)
+- [消耗品管理](/manual/consumable_management)
+- [重機管理](/manual/equipment_management)
+- [出退勤管理](/manual/attendance)
+- [作業報告書](/manual/work_reports)
+- [見積書管理](/manual/estimates)
+- [請求書管理](/manual/invoices)
+- [発注書管理](/manual/purchase_orders)
+- [設定](/manual/settings)
 
 ---
 

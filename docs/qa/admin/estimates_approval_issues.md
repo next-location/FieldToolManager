@@ -20,7 +20,7 @@ lastUpdated: '2026-01-22'
 
 **対象ユーザー**: Leader、Manager、Admin
 
-**関連マニュアル**: [見積書提出・承認マニュアル](../../manual/estimates_approval.md)
+**関連マニュアル**: [見積書提出・承認マニュアル](/manual/estimates_approval)
 
 ---
 
@@ -473,7 +473,7 @@ lastUpdated: '2026-01-22'
 3. 請求書作成画面で内容を確認
 4. 請求書を登録
 
-詳細は[請求書作成マニュアル](../../manual/invoices_create.md)を参照してください。
+詳細は[請求書作成マニュアル](/manual/invoices_create)を参照してください。
 
 ### Q28. 顧客から「検討中」と言われました。どのステータスにすればよいですか？
 
@@ -681,6 +681,6 @@ lastUpdated: '2026-01-22'
 ---
 
 **関連マニュアル**:
-- [見積書提出・承認マニュアル](../../manual/estimates_approval.md)
-- [見積書作成マニュアル](../../manual/estimates_create.md)
-- [請求書作成マニュアル](../../manual/invoices_create.md)
+- [見積書提出・承認マニュアル](/manual/estimates_approval)
+- [見積書作成マニュアル](/manual/estimates_create)
+- [請求書作成マニュアル](/manual/invoices_create)

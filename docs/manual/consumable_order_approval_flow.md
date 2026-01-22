@@ -494,10 +494,10 @@ lastUpdated: "2026-01-21"
 
 ## 関連マニュアル
 
-- [消耗品発注管理マニュアル](./consumable_orders.md) - 基本的な発注操作
-- [発注書管理マニュアル](./purchase_orders.md)（将来追加予定） - 正式な発注書の作成・管理
-- [消耗品管理マニュアル](./consumable_management.md) - 消耗品の登録と在庫管理
-- [取引先管理マニュアル](./clients.md) - 仕入れ先の登録と管理
+- [消耗品発注管理マニュアル](/manual/consumable_orders) - 基本的な発注操作
+- [発注書管理マニュアル](/manual/purchase_orders)（将来追加予定） - 正式な発注書の作成・管理
+- [消耗品管理マニュアル](/manual/consumable_management) - 消耗品の登録と在庫管理
+- [取引先管理マニュアル](/manual/clients) - 仕入れ先の登録と管理
 
 ---
 

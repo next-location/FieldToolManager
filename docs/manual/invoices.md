@@ -475,10 +475,10 @@ lastUpdated: "2026-01-22"
 
 ## 関連機能
 
-- [見積書管理](./estimates.md)
-- [取引先管理](./clients.md)
-- [工事管理](./projects.md)
-- [入金管理](./payments.md)
+- [見積書管理](/manual/estimates)
+- [取引先管理](/manual/clients)
+- [工事管理](/manual/projects)
+- 入金管理
 
 ---
 

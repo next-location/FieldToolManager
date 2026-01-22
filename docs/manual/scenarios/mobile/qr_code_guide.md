@@ -107,7 +107,7 @@ QRコード（Quick Response Code）は、スマートフォンのカメラで�
 - 現場QRコード: 現場での出退勤に使用
 
 **印刷方法**:
-- [リーダー用QR発行マニュアル](../../attendance_leader_qr.md)を参照
+- [リーダー用QR発行マニュアル](/manual/attendance_leader_qr)を参照
 
 ---
 
@@ -249,7 +249,7 @@ QRコード（Quick Response Code）は、スマートフォンのカメラで�
 
 出退勤QRコードの印刷方法は、以下のマニュアルを参照してください。
 
-- [リーダー用QR発行マニュアル](../../attendance_leader_qr.md)
+- [リーダー用QR発行マニュアル](/manual/attendance_leader_qr)
 
 **ポイント**:
 - 会社QRコード: 管理者のみ発行可能
@@ -498,10 +498,10 @@ QRコード（Quick Response Code）は、スマートフォンのカメラで�
 
 ## 関連マニュアル
 
-- [QRスキャンマニュアル](../../qr_scan.md) - QRコードのスキャン方法
-- [リーダー用QR発行マニュアル](../../attendance_leader_qr.md) - 出退勤QRコードの発行
-- [道具管理マニュアル](../../tool_management.md) - 道具の登録と管理
-- [倉庫位置管理マニュアル](../../warehouse_locations.md) - 倉庫位置の設定
+- [QRスキャンマニュアル](/manual/qr_scan) - QRコードのスキャン方法
+- [リーダー用QR発行マニュアル](/manual/attendance_leader_qr) - 出退勤QRコードの発行
+- [道具管理マニュアル](/manual/tool_management) - 道具の登録と管理
+- [倉庫位置管理マニュアル](/manual/warehouse_locations) - 倉庫位置の設定
 
 ---
 

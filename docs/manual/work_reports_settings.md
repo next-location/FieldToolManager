@@ -221,10 +221,10 @@ lastUpdated: "2026-01-21"
 
 ## 関連機能
 
-- [作業報告書マニュアル](./work_reports.md)
-- [作業報告書作成](./work_reports_create.md)
-- [作業報告書承認](./work_reports_approval.md)
-- [設定マニュアル](./settings.md)
+- [作業報告書マニュアル](/manual/work_reports)
+- [作業報告書作成](/manual/work_reports_create)
+- [作業報告書承認](/manual/work_reports_approval)
+- [設定マニュアル](/manual/settings)
 
 ---
 

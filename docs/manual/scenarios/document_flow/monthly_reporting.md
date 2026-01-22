@@ -505,8 +505,8 @@ B現場（△△マンション補修）:
 
 ## 関連マニュアル
 
-- [売上分析](../../analytics/sales.md): 売上レポートの見方
-- [支出分析](../../analytics/expenses.md): 支出レポートの見方
-- [作業報告書一括PDF](../../work_reports_pdf.md): 一括PDF出力の方法
-- [在庫管理](../../consumable_management.md): 在庫確認・調整の方法
-- [出退勤レポート](../../attendance_report.md): 勤務時間集計の方法
+- 売上分析: 売上レポートの見方
+- 支出分析: 支出レポートの見方
+- [作業報告書一括PDF](/manual/work_reports_pdf): 一括PDF出力の方法
+- [在庫管理](/manual/consumable_management): 在庫確認・調整の方法
+- 出退勤レポート: 勤務時間集計の方法

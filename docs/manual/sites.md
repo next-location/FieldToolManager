@@ -80,7 +80,7 @@ lastUpdated: "2026-01-21"
 - 取引先は「顧客」または「顧客兼仕入先」の取引先のみ選択できます
 - 取引先が未登録の場合は、先に取引先マスタから登録してください
 
-**関連**: [取引先管理マニュアル](./clients.md)
+**関連**: [取引先管理マニュアル](/manual/clients)
 
 ---
 
@@ -135,7 +135,7 @@ lastUpdated: "2026-01-21"
 - QRコードの印刷サイズは組織設定で変更できます（デフォルト25mm）
 - 設定画面で10mm〜100mmの範囲で設定可能
 
-**関連**: [QRスキャンマニュアル](./qr_scan.md), [設定マニュアル](./settings.md)
+**関連**: [QRスキャンマニュアル](/manual/qr_scan), [設定マニュアル](/manual/settings)
 
 ---
 
@@ -202,7 +202,7 @@ lastUpdated: "2026-01-21"
 **道具の詳細を確認**:
 - 道具名をクリックすると、道具の詳細画面が開きます
 
-**関連**: [道具管理マニュアル](./tool_management.md)
+**関連**: [道具管理マニュアル](/manual/tool_management)
 
 ---
 
@@ -266,11 +266,11 @@ lastUpdated: "2026-01-21"
 
 ## 関連機能
 
-- [取引先管理](./clients.md)
-- [道具管理](./tool_management.md)
-- [QRスキャン](./qr_scan.md)
-- [勤怠管理](./attendance.md)
-- [作業報告書](./work_reports.md)
+- [取引先管理](/manual/clients)
+- [道具管理](/manual/tool_management)
+- [QRスキャン](/manual/qr_scan)
+- [勤怠管理](/manual/attendance)
+- [作業報告書](/manual/work_reports)
 
 ---
 

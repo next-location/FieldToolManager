@@ -510,10 +510,10 @@ lastUpdated: "2026-01-21"
 
 ## 関連機能
 
-- [取引先管理](./clients.md)
-- [工事管理](./projects.md)
-- [消耗品発注管理](./consumable_orders.md)
-- [支払管理](./payments.md)
+- [取引先管理](/manual/clients)
+- [工事管理](/manual/projects)
+- [消耗品発注管理](/manual/consumable_orders)
+- 支払管理
 
 ---
 

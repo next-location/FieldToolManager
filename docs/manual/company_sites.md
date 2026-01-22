@@ -227,7 +227,7 @@ lastUpdated: "2026-01-21"
 - 本社倉庫（自社拠点）> 1階（階層1）> A棚（階層2）> 3列（階層3）
 - 大阪支店（自社拠点）> 2階倉庫（階層1）> B棚（階層2）
 
-**関連**: [倉庫位置マスタ](./warehouse_locations.md)
+**関連**: [倉庫位置マスタ](/manual/warehouse_locations)
 
 ### 4. 拠点ごとの在庫管理
 
@@ -352,11 +352,11 @@ lastUpdated: "2026-01-21"
 
 ## 関連機能
 
-- [現場管理](./sites.md)
-- [道具管理](./tool_management.md)
-- [重機管理](./equipment_management.md)
-- [倉庫位置マスタ](./warehouse_locations.md)
-- [運用設定](./settings.md)
+- [現場管理](/manual/sites)
+- [道具管理](/manual/tool_management)
+- [重機管理](/manual/equipment_management)
+- [倉庫位置マスタ](/manual/warehouse_locations)
+- [運用設定](/manual/settings)
 
 ---
 

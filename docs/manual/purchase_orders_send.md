@@ -289,11 +289,11 @@ lastUpdated: "2026-01-21"
 
 ## 関連機能
 
-- [発注書管理](./purchase_orders.md)
-- [発注書作成](./purchase_orders_create.md)
-- [発注書承認](./purchase_orders_approval.md)
-- [取引先管理](./clients.md)
-- [消耗品発注管理](./consumable_orders.md)
+- [発注書管理](/manual/purchase_orders)
+- [発注書作成](/manual/purchase_orders_create)
+- [発注書承認](/manual/purchase_orders_approval)
+- [取引先管理](/manual/clients)
+- [消耗品発注管理](/manual/consumable_orders)
 
 ---
 

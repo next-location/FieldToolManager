@@ -486,8 +486,8 @@ lastUpdated: "2026-01-22"
 
 ## 関連マニュアル
 
-- [発注書作成](../purchase_orders_create.md): 発注書作成の詳細
-- [発注書承認](../purchase_orders_approval.md): 発注書承認フローの詳細
-- [支払記録](../purchase_orders_payment.md): 支払記録の詳細
-- [消耗品管理](../consumable_management.md): 消耗品在庫管理の詳細
-- [在庫不足アラート](../alerts.md): アラート通知の設定
+- [発注書作成](/manual/purchase_orders_create): 発注書作成の詳細
+- [発注書承認](/manual/purchase_orders_approval): 発注書承認フローの詳細
+- 支払記録: 支払記録の詳細
+- [消耗品管理](/manual/consumable_management): 消耗品在庫管理の詳細
+- 在庫不足アラート: アラート通知の設定

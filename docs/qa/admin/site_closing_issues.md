@@ -82,7 +82,7 @@ lastUpdated: '2026-01-22'
 
 **関連**:
 - [現場完了・片付けマニュアル - 紛失・破損道具の処理](../../manual/scenarios/daily/site_closing.md#紛失破損道具の処理)
-- [道具の紛失・破損対応マニュアル](../../manual/tool_lost_or_damaged.md)
+- [道具の紛失・破損対応マニュアル](/manual/scenarios/tool_operations/tool_lost_or_damaged)
 
 ---
 
@@ -109,7 +109,7 @@ lastUpdated: '2026-01-22'
 
 **関連**:
 - [現場完了・片付けマニュアル - 紛失・破損道具の処理](../../manual/scenarios/daily/site_closing.md#紛失破損道具の処理)
-- [道具の紛失・破損対応マニュアル](../../manual/tool_lost_or_damaged.md)
+- [道具の紛失・破損対応マニュアル](/manual/scenarios/tool_operations/tool_lost_or_damaged)
 
 ---
 
@@ -176,7 +176,7 @@ lastUpdated: '2026-01-22'
 **推奨:**
 - 完了処理前に道具の返却、作業報告書の確認を済ませてください
 
-**関連**: [現場管理マニュアル](../../manual/sites.md)
+**関連**: [現場管理マニュアル](/manual/sites)
 
 ---
 
@@ -201,7 +201,7 @@ lastUpdated: '2026-01-22'
 
 **関連**:
 - [現場完了・片付けマニュアル - 工事情報の完了処理](../../manual/scenarios/daily/site_closing.md#工事情報の完了処理)
-- [工事管理マニュアル](../../manual/projects.md)
+- [工事管理マニュアル](/manual/projects)
 
 ---
 
@@ -226,7 +226,7 @@ lastUpdated: '2026-01-22'
 
 **関連**:
 - [現場完了・片付けマニュアル - 消耗品・在庫の整理](../../manual/scenarios/daily/site_closing.md#消耗品在庫の整理)
-- [消耗品管理マニュアル](../../manual/consumable_management.md)
+- [消耗品管理マニュアル](/manual/consumable_management)
 
 ---
 
@@ -281,8 +281,8 @@ lastUpdated: '2026-01-22'
 4. 請求書を作成
 
 **関連**:
-- [請求書管理マニュアル](../../manual/invoices.md)
-- [現場完了・片付けマニュアル](../../manual/scenarios/daily/site_closing.md)
+- [請求書管理マニュアル](/manual/invoices)
+- [現場完了・片付けマニュアル](/manual/scenarios/daily/site_closing)
 
 ---
 
@@ -304,7 +304,7 @@ lastUpdated: '2026-01-22'
 **未精算のまま完了すると:**
 - 原価計算が不正確になる可能性があります
 
-**関連**: [発注書管理マニュアル](../../manual/purchase_orders.md)
+**関連**: [発注書管理マニュアル](/manual/purchase_orders)
 
 ---
 
@@ -331,7 +331,7 @@ lastUpdated: '2026-01-22'
 
 **関連**:
 - [現場完了・片付けマニュアル - 原価計算](../../manual/scenarios/daily/site_closing.md#原価計算)
-- [工事管理マニュアル](../../manual/projects.md)
+- [工事管理マニュアル](/manual/projects)
 
 ---
 
@@ -351,7 +351,7 @@ lastUpdated: '2026-01-22'
 - 各報告書を個別にPDF出力
 - PDF結合ソフトでまとめる
 
-**関連**: [作業報告書マニュアル - PDF出力](../../manual/work_reports.md)
+**関連**: [作業報告書マニュアル - PDF出力](/manual/work_reports)
 
 ---
 
@@ -373,7 +373,7 @@ lastUpdated: '2026-01-22'
 - 無期限（削除しない限り）
 - バックアップも定期的に取得されます
 
-**関連**: [現場管理マニュアル](../../manual/sites.md)
+**関連**: [現場管理マニュアル](/manual/sites)
 
 ---
 
@@ -398,7 +398,7 @@ lastUpdated: '2026-01-22'
 
 **関連**:
 - [現場完了・片付けマニュアル - 道具の返却登録](../../manual/scenarios/daily/site_closing.md#道具の返却登録)
-- [道具セットマニュアル](../../manual/tool_sets.md)
+- [道具セットマニュアル](/manual/tool_sets)
 
 ---
 
@@ -418,7 +418,7 @@ lastUpdated: '2026-01-22'
 - 完了日は手動で変更可能です
 - 実際の完了日と異なる場合は修正してください
 
-**関連**: [現場管理マニュアル](../../manual/sites.md)
+**関連**: [現場管理マニュアル](/manual/sites)
 
 ---
 
@@ -467,7 +467,7 @@ lastUpdated: '2026-01-22'
 - データのエクスポート
 - 原価計算
 
-**関連**: [現場管理マニュアル](../../manual/sites.md)
+**関連**: [現場管理マニュアル](/manual/sites)
 
 ---
 
@@ -492,4 +492,4 @@ lastUpdated: '2026-01-22'
 - 完了日が削除されます
 - 原価計算に影響する可能性があります
 
-**関連**: [現場管理マニュアル](../../manual/sites.md)
+**関連**: [現場管理マニュアル](/manual/sites)

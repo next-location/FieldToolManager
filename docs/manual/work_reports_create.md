@@ -697,10 +697,10 @@ B現場（東京都新宿区〇〇）
 
 ## 関連マニュアル
 
-- [作業報告書承認マニュアル](./work_reports_approval.md)（将来追加予定） - 上司向け承認手順
-- [作業報告書設定マニュアル](./work_reports_settings.md)（将来追加予定） - カスタムフィールドの設定
-- [現場管理マニュアル](./sites.md) - 現場の登録と管理
-- [道具管理マニュアル](./tool_management.md) - 道具マスタの登録
+- [作業報告書承認マニュアル](/manual/work_reports_approval)（将来追加予定） - 上司向け承認手順
+- [作業報告書設定マニュアル](/manual/work_reports_settings)（将来追加予定） - カスタムフィールドの設定
+- [現場管理マニュアル](/manual/sites) - 現場の登録と管理
+- [道具管理マニュアル](/manual/tool_management) - 道具マスタの登録
 
 ---
 

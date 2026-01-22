@@ -463,9 +463,9 @@ QRコードが汚れて読めなくなった場合や、破損した場合は再
 
 ## 関連機能
 
-- [道具管理](./tool_management.md) - 小型工具の管理
-- [QRスキャン](./qr_scan.md) - 重機の移動登録
-- [消耗品管理](./consumable_management.md) - 消耗品の在庫管理
+- [道具管理](/manual/tool_management) - 小型工具の管理
+- [QRスキャン](/manual/qr_scan) - 重機の移動登録
+- [消耗品管理](/manual/consumable_management) - 消耗品の在庫管理
 
 ---
 

@@ -575,7 +575,7 @@ lastUpdated: "2026-01-22"
 
 ## 13. 関連ドキュメント
 
-- [道具管理マニュアル](../../tool_management.md) - 道具の基本操作
+- [道具管理マニュアル](/manual/tool_management) - 道具の基本操作
 - [道具の紛失・破損対応マニュアル](../tool_operations/tool_lost_or_damaged.md) - 紛失処理
 - [道具の一括操作マニュアル](../tool_operations/tool_bulk_operations.md) - 一括移動
 

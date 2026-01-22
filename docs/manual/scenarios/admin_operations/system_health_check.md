@@ -400,7 +400,7 @@ lastUpdated: "2026-01-22"
 **A.** 以下を確認してください：
 
 1. **棚卸しを実施**
-   - [棚卸し作業マニュアル](./inventory_audit.md) を参照
+   - [棚卸し作業マニュアル](/manual/scenarios/admin_operations/inventory_audit) を参照
    - 実物とシステムを照合
 
 2. **移動登録漏れを確認**
@@ -411,7 +411,7 @@ lastUpdated: "2026-01-22"
    - 過去に削除された道具が実物として残っている可能性
    - 再登録を検討
 
-**詳細**: [棚卸し作業マニュアル](./inventory_audit.md)
+**詳細**: [棚卸し作業マニュアル](/manual/scenarios/admin_operations/inventory_audit)
 
 ---
 
@@ -506,10 +506,10 @@ lastUpdated: "2026-01-22"
 
 ## 9. 関連ドキュメント
 
-- [スタッフ管理マニュアル](../../staff_management.md) - スタッフ管理全般
-- [棚卸し作業マニュアル](./inventory_audit.md) - データ整合性の確認
-- [新入社員の受け入れマニュアル](./new_employee_onboarding.md) - 新入社員登録
-- [退職者の対応マニュアル](./employee_offboarding.md) - 退職者の無効化
+- [スタッフ管理マニュアル](/manual/staff_management) - スタッフ管理全般
+- [棚卸し作業マニュアル](/manual/scenarios/admin_operations/inventory_audit) - データ整合性の確認
+- [新入社員の受け入れマニュアル](/manual/scenarios/admin_operations/new_employee_onboarding) - 新入社員登録
+- [退職者の対応マニュアル](/manual/scenarios/admin_operations/employee_offboarding) - 退職者の無効化
 
 ---
 

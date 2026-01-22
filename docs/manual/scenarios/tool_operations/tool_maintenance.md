@@ -21,7 +21,7 @@ lastUpdated: "2026-01-22"
 - 修理費を削減する
 - 作業効率を維持する
 
-**注意**: このマニュアルは **道具（tools）** のメンテナンスを対象としています。**重機（equipment）** のメンテナンスについては [重機メンテナンス記録マニュアル](../../equipment_maintenance.md) を参照してください。
+**注意**: このマニュアルは **道具（tools）** のメンテナンスを対象としています。**重機（equipment）** のメンテナンスについては [重機メンテナンス記録マニュアル](/manual/equipment_maintenance) を参照してください。
 
 ---
 
@@ -469,7 +469,7 @@ Excelやスプレッドシートで以下のような記録簿を作成します
 → 即座に使用中止 → 「使用禁止」の紙を貼る → 上司に報告 → 修理 or 廃棄判断
 ```
 
-詳細は [道具の紛失・破損対応マニュアル](./tool_lost_or_damaged.md) を参照してください。
+詳細は [道具の紛失・破損対応マニュアル](/manual/scenarios/tool_operations/tool_lost_or_damaged) を参照してください。
 
 ---
 
@@ -530,10 +530,10 @@ Excelやスプレッドシートで以下のような記録簿を作成します
 
 ## 11. 関連ドキュメント
 
-- [道具管理マニュアル](../../tool_management.md) - 道具の基本操作
-- [道具の紛失・破損対応マニュアル](./tool_lost_or_damaged.md) - 破損時の対応
-- [重機メンテナンス記録マニュアル](../../equipment_maintenance.md) - 重機のメンテナンス
-- [道具の引き継ぎ手順マニュアル](./tool_handover.md) - 引き継ぎ前の点検
+- [道具管理マニュアル](/manual/tool_management) - 道具の基本操作
+- [道具の紛失・破損対応マニュアル](/manual/scenarios/tool_operations/tool_lost_or_damaged) - 破損時の対応
+- [重機メンテナンス記録マニュアル](/manual/equipment_maintenance) - 重機のメンテナンス
+- [道具の引き継ぎ手順マニュアル](/manual/scenarios/tool_operations/tool_handover) - 引き継ぎ前の点検
 
 ---
 

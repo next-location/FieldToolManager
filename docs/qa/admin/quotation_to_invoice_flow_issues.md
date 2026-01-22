@@ -28,7 +28,7 @@ lastUpdated: '2026-01-22'
 7. 取引先へ請求書を送付
 8. 入金確認後、支払い記録を登録
 
-**関連**: [見積→契約→請求の一連の流れマニュアル](../../manual/scenarios/document_flow/quotation_to_invoice_flow.md)
+**関連**: [見積→契約→請求の一連の流れマニュアル](/manual/scenarios/document_flow/quotation_to_invoice_flow)
 
 ---
 
@@ -37,7 +37,7 @@ lastUpdated: '2026-01-22'
 
 スタッフとリーダーは承認権限がないため、作成のみ可能です。
 
-**関連**: [見積書提出・承認マニュアル](../../manual/estimates_approval.md)
+**関連**: [見積書提出・承認マニュアル](/manual/estimates_approval)
 
 ---
 
@@ -51,7 +51,7 @@ lastUpdated: '2026-01-22'
 - 有効期限が適切か
 - 備考欄に必要な補足があるか
 
-**関連**: [見積→契約→請求の一連の流れマニュアル](../../manual/scenarios/document_flow/quotation_to_invoice_flow.md)
+**関連**: [見積→契約→請求の一連の流れマニュアル](/manual/scenarios/document_flow/quotation_to_invoice_flow)
 
 ---
 
@@ -62,7 +62,7 @@ lastUpdated: '2026-01-22'
 1. 取引先に送付していない場合: そのまま削除して新規作成
 2. 既に送付済みの場合: 修正版の見積書を新規作成し、取引先に説明
 
-**関連**: [見積書提出・承認マニュアル](../../manual/estimates_approval.md)
+**関連**: [見積書提出・承認マニュアル](/manual/estimates_approval)
 
 ---
 
@@ -71,7 +71,7 @@ lastUpdated: '2026-01-22'
 
 複数のマネージャー/管理者を登録しておくことで、承認が滞らないようにすることが重要です。
 
-**関連**: [スタッフ管理マニュアル](../../manual/staff_management.md)
+**関連**: [スタッフ管理マニュアル](/manual/staff_management)
 
 ---
 
@@ -85,7 +85,7 @@ lastUpdated: '2026-01-22'
 - **メール送付**: 見積書に記載されたメールアドレスに自動送信
 - **印刷**: ブラウザの印刷機能でプリンタから出力
 
-**関連**: [見積書送付マニュアル](../../manual/estimates_send.md)
+**関連**: [見積書送付マニュアル](/manual/estimates_send)
 
 ---
 
@@ -94,7 +94,7 @@ lastUpdated: '2026-01-22'
 
 メール送付の場合は送信日時と送信先が自動記録されます。PDF出力の場合は出力日時が記録されます。
 
-**関連**: [見積書送付マニュアル](../../manual/estimates_send.md)
+**関連**: [見積書送付マニュアル](/manual/estimates_send)
 
 ---
 
@@ -108,7 +108,7 @@ lastUpdated: '2026-01-22'
 4. 取引先に修正内容を説明
 5. 修正版を送付
 
-**関連**: [見積書作成マニュアル](../../manual/estimates_create.md)
+**関連**: [見積書作成マニュアル](/manual/estimates_create)
 
 ---
 
@@ -138,7 +138,7 @@ lastUpdated: '2026-01-22'
 
 契約が正式に成立したことを確認した上で、見積書詳細画面の「顧客承認」ボタンをクリックしてステータスを変更してください。
 
-**関連**: [見積→契約→請求の一連の流れマニュアル](../../manual/scenarios/document_flow/quotation_to_invoice_flow.md)
+**関連**: [見積→契約→請求の一連の流れマニュアル](/manual/scenarios/document_flow/quotation_to_invoice_flow)
 
 ---
 
@@ -183,7 +183,7 @@ lastUpdated: '2026-01-22'
 5. 必要に応じて内容を修正
 6. 保存
 
-**関連**: [請求書作成マニュアル](../../manual/invoices_create.md)
+**関連**: [請求書作成マニュアル](/manual/invoices_create)
 
 ---
 
@@ -192,7 +192,7 @@ lastUpdated: '2026-01-22'
 
 先に見積書のステータスを「顧客承認」に変更してください。「請求書作成」ボタンはステータスが「顧客承認」の場合のみ表示されます。
 
-**関連**: [見積→契約→請求の一連の流れマニュアル](../../manual/scenarios/document_flow/quotation_to_invoice_flow.md)
+**関連**: [見積→契約→請求の一連の流れマニュアル](/manual/scenarios/document_flow/quotation_to_invoice_flow)
 
 ---
 
@@ -201,7 +201,7 @@ lastUpdated: '2026-01-22'
 
 ただし、契約内容と異なる金額にする場合は、取引先への説明が必要です。
 
-**関連**: [請求書作成マニュアル](../../manual/invoices_create.md)
+**関連**: [請求書作成マニュアル](/manual/invoices_create)
 
 ---
 
@@ -213,7 +213,7 @@ lastUpdated: '2026-01-22'
 - 月次の部分請求
 - フェーズごとの請求
 
-**関連**: [見積→契約→請求の一連の流れマニュアル](../../manual/scenarios/document_flow/quotation_to_invoice_flow.md)
+**関連**: [見積→契約→請求の一連の流れマニュアル](/manual/scenarios/document_flow/quotation_to_invoice_flow)
 
 ---
 
@@ -231,7 +231,7 @@ lastUpdated: '2026-01-22'
 
 承認なしで請求書を送付することはできません。
 
-**関連**: [請求書承認マニュアル](../../manual/invoices_approval.md)
+**関連**: [請求書承認マニュアル](/manual/invoices_approval)
 
 ---
 
@@ -247,7 +247,7 @@ lastUpdated: '2026-01-22'
 
 送付方法は見積書と同じです。
 
-**関連**: [請求書送付マニュアル](../../manual/invoices_send.md)
+**関連**: 請求書送付マニュアル
 
 ---
 
@@ -256,7 +256,7 @@ lastUpdated: '2026-01-22'
 
 ただし、前回の請求書を複製することで入力の手間を省けます。
 
-**関連**: [請求書作成マニュアル](../../manual/invoices_create.md)
+**関連**: [請求書作成マニュアル](/manual/invoices_create)
 
 ---
 
@@ -279,7 +279,7 @@ lastUpdated: '2026-01-22'
 - 振込名義（参照番号）
 - 備考
 
-**関連**: [入金記録マニュアル](../../manual/invoices_payment.md)
+**関連**: [入金記録マニュアル](/manual/invoices_payment)
 
 ---
 
@@ -288,7 +288,7 @@ lastUpdated: '2026-01-22'
 
 システムは複数回の入金を管理でき、未入金額を自動計算します。
 
-**関連**: [入金記録マニュアル](../../manual/invoices_payment.md)
+**関連**: [入金記録マニュアル](/manual/invoices_payment)
 
 ---
 
@@ -303,7 +303,7 @@ lastUpdated: '2026-01-22'
 
 差額が大きい場合は取引先に確認してください。
 
-**関連**: [見積→契約→請求の一連の流れマニュアル](../../manual/scenarios/document_flow/quotation_to_invoice_flow.md)
+**関連**: [見積→契約→請求の一連の流れマニュアル](/manual/scenarios/document_flow/quotation_to_invoice_flow)
 
 ---
 
@@ -319,7 +319,7 @@ lastUpdated: '2026-01-22'
 
 部分入金の場合は「一部入金」のステータスになります。
 
-**関連**: [入金記録マニュアル](../../manual/invoices_payment.md)
+**関連**: [入金記録マニュアル](/manual/invoices_payment)
 
 ---
 
@@ -330,7 +330,7 @@ lastUpdated: '2026-01-22'
 
 「請求書作成」ボタンは、見積書のステータスが「顧客承認」の場合のみ表示されます。まず見積書詳細画面で「顧客承認」ボタンをクリックしてステータスを変更してください。
 
-**関連**: [見積→契約→請求の一連の流れマニュアル](../../manual/scenarios/document_flow/quotation_to_invoice_flow.md)
+**関連**: [見積→契約→請求の一連の流れマニュアル](/manual/scenarios/document_flow/quotation_to_invoice_flow)
 
 ---
 
@@ -362,7 +362,7 @@ lastUpdated: '2026-01-22'
 3. 取引先の迷惑メールフォルダを確認してもらう
 4. 必要に応じてPDFを別の方法（添付ファイル、郵送）で送付
 
-**関連**: [請求書送付マニュアル](../../manual/invoices_send.md)
+**関連**: 請求書送付マニュアル
 
 ---
 
@@ -380,7 +380,7 @@ lastUpdated: '2026-01-22'
 
 見積書の送付にはマネージャーまたは管理者の承認が必要です。
 
-**関連**: [権限管理マニュアル](../../manual/staff_management.md)
+**関連**: [権限管理マニュアル](/manual/staff_management)
 
 ---
 
@@ -389,7 +389,7 @@ lastUpdated: '2026-01-22'
 
 請求書の承認はマネージャーまたは管理者のみが行えます。
 
-**関連**: [請求書承認マニュアル](../../manual/invoices_approval.md)
+**関連**: [請求書承認マニュアル](/manual/invoices_approval)
 
 ---
 
@@ -405,7 +405,7 @@ lastUpdated: '2026-01-22'
 
 入金確認は重要な作業のため、権限を持つユーザーのみが行えます。
 
-**関連**: [入金記録マニュアル](../../manual/invoices_payment.md)
+**関連**: [入金記録マニュアル](/manual/invoices_payment)
 
 ---
 
@@ -418,4 +418,4 @@ lastUpdated: '2026-01-22'
 
 **最終更新日**: 2026-01-21
 
-このQ&Aは見積→契約→請求の一連の流れに関する質問をまとめています。詳細な手順は[見積→契約→請求の一連の流れマニュアル](../../manual/scenarios/document_flow/quotation_to_invoice_flow.md)を参照してください。
+このQ&Aは見積→契約→請求の一連の流れに関する質問をまとめています。詳細な手順は[見積→契約→請求の一連の流れマニュアル](/manual/scenarios/document_flow/quotation_to_invoice_flow)を参照してください。

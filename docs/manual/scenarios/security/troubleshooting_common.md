@@ -608,7 +608,7 @@ TOTP方式の認証コードは30秒ごとに変わります。
 ### 8-3. 緊急時の対応
 
 **業務に支障がある場合**:
-- [緊急時の対応マニュアル](./emergency_response.md) を参照
+- [緊急時の対応マニュアル](/manual/scenarios/security/emergency_response) を参照
 
 ---
 
@@ -689,10 +689,10 @@ TOTP方式の認証コードは30秒ごとに変わります。
 
 ## 11. 関連ドキュメント
 
-- [セキュリティのベストプラクティス](./security_best_practices.md) - パスワードポリシー、2FA設定
-- [緊急時の対応マニュアル](./emergency_response.md) - 不正アクセス検知時の対応
+- [セキュリティのベストプラクティス](/manual/scenarios/security/security_best_practices) - パスワードポリシー、2FA設定
+- [緊急時の対応マニュアル](/manual/scenarios/security/emergency_response) - 不正アクセス検知時の対応
 - [新入社員の受け入れマニュアル](../admin_operations/new_employee_onboarding.md) - 初期パスワード設定
-- [はじめにマニュアル](../../getting_started.md) - 基本操作
+- [はじめにマニュアル](/manual/getting_started) - 基本操作
 
 ---
 

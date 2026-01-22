@@ -26,7 +26,7 @@ lastUpdated: "2026-01-22"
 道具管理を始める前に、以下の設定が完了していることを確認してください。
 
 1. **倉庫位置の設定**（オプション）
-   - 倉庫内で道具を管理する場合は、[倉庫位置管理マニュアル](./warehouse_locations.md)を参照して倉庫位置を設定してください
+   - 倉庫内で道具を管理する場合は、[倉庫位置管理マニュアル](/manual/warehouse_locations)を参照して倉庫位置を設定してください
 
 2. **道具カテゴリの設定**（オプション）
    - カテゴリで道具を分類したい場合は、事前にカテゴリを登録してください
@@ -384,11 +384,11 @@ QRコードが汚れて読めなくなった場合や、破損した場合は再
 
 ## 関連機能
 
-- [QRスキャン](./qr_scan.md) - 道具の移動登録
-- [倉庫位置管理](./warehouse_locations.md) - 倉庫内の位置管理
-- [道具セット](./tool_sets.md) - 複数の道具をセットで管理
-- [消耗品管理](./consumable_management.md) - 消耗品の在庫管理
-- [重機管理](./equipment_management.md) - 重機の管理
+- [QRスキャン](/manual/qr_scan) - 道具の移動登録
+- [倉庫位置管理](/manual/warehouse_locations) - 倉庫内の位置管理
+- [道具セット](/manual/tool_sets) - 複数の道具をセットで管理
+- [消耗品管理](/manual/consumable_management) - 消耗品の在庫管理
+- [重機管理](/manual/equipment_management) - 重機の管理
 
 ---
 

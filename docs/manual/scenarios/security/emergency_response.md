@@ -591,8 +591,8 @@ Admin権限者（○○）まで
 
 ## 11. 関連ドキュメント
 
-- [セキュリティのベストプラクティス](./security_best_practices.md) - パスワードポリシー、2FA設定
-- [よくあるトラブルと解決方法](./troubleshooting_common.md) - ログインできない、アカウントロック
+- [セキュリティのベストプラクティス](/manual/scenarios/security/security_best_practices) - パスワードポリシー、2FA設定
+- [よくあるトラブルと解決方法](/manual/scenarios/security/troubleshooting_common) - ログインできない、アカウントロック
 - [システム健全性チェックマニュアル](../admin_operations/system_health_check.md) - 監査ログの定期確認
 - [退職者の対応マニュアル](../admin_operations/employee_offboarding.md) - アカウント無効化
 

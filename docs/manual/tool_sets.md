@@ -28,7 +28,7 @@ lastUpdated: "2026-01-21"
 1. **道具の登録**: セットに含める道具が登録済みであること
 2. **個別アイテムの確認**: セットに含める個別アイテム（#001、#002など）が存在すること
 
-**関連**: [道具管理マニュアル](./tool_management.md)
+**関連**: [道具管理マニュアル](/manual/tool_management)
 
 ---
 
@@ -349,9 +349,9 @@ lastUpdated: "2026-01-21"
 
 ## 関連機能
 
-- [道具管理](./tool_management.md) - 道具の登録・管理
-- [QRスキャン](./qr_scan.md) - セットを使った一括移動
-- [倉庫位置管理](./warehouse_locations.md) - 倉庫内の位置管理
+- [道具管理](/manual/tool_management) - 道具の登録・管理
+- [QRスキャン](/manual/qr_scan) - セットを使った一括移動
+- [倉庫位置管理](/manual/warehouse_locations) - 倉庫内の位置管理
 
 ---
 

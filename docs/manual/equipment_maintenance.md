@@ -386,9 +386,9 @@ lastUpdated: "2026-01-21"
 
 ## 12. 関連ドキュメント
 
-- [重機登録マニュアル](./equipment_management.md) - 重機の新規登録方法
-- [重機コスト分析マニュアル](./equipment_cost_analysis.md)（作成予定）
-- [重機稼働率分析マニュアル](./equipment_analytics.md)（作成予定）
+- [重機登録マニュアル](/manual/equipment_management) - 重機の新規登録方法
+- 重機コスト分析マニュアル（作成予定）
+- 重機稼働率分析マニュアル（作成予定）
 
 ---
 

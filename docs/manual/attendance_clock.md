@@ -350,7 +350,7 @@ QRコードスキャンを使用すると、素早く正確に出退勤打刻が
 
 ## 関連マニュアル
 
-- [勤怠管理マニュアル](./attendance.md) - 勤怠管理機能の全体像
+- [勤怠管理マニュアル](/manual/attendance) - 勤怠管理機能の全体像
 - [現場スタッフの1日の流れ](./scenarios/daily/daily_workflow.md) - 出退勤打刻を含む日常業務フロー
 - [QRスキャンのトラブルシューティング](../qa/staff/qr_scan_issues.md)
 - [勤怠管理のトラブルシューティング](../qa/staff/attendance_issues.md)

@@ -19,7 +19,7 @@ lastUpdated: '2026-01-22'
 
 **対象ユーザー**: Leader、Manager、Admin
 
-**関連マニュアル**: [見積書作成マニュアル](../../manual/estimates_create.md)
+**関連マニュアル**: [見積書作成マニュアル](/manual/estimates_create)
 
 ---
 
@@ -637,6 +637,6 @@ EST-2026-0003
 ---
 
 **関連マニュアル**:
-- [見積書作成マニュアル](../../manual/estimates_create.md)
-- [見積書提出・承認マニュアル](../../manual/estimates_approval.md)
-- [請求書作成マニュアル](../../manual/invoices_create.md)
+- [見積書作成マニュアル](/manual/estimates_create)
+- [見積書提出・承認マニュアル](/manual/estimates_approval)
+- [請求書作成マニュアル](/manual/invoices_create)

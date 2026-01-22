@@ -154,7 +154,7 @@ lastUpdated: "2026-01-21"
 5. 必要に応じて内容を編集
 6. 請求書を保存
 
-**関連**: [請求書作成マニュアル](./invoices_create.md)
+**関連**: [請求書作成マニュアル](/manual/invoices_create)
 
 ---
 
@@ -259,11 +259,11 @@ lastUpdated: "2026-01-21"
 
 ## 関連機能
 
-- [見積書管理](./estimates.md)
-- [見積書作成](./estimates_create.md)
-- [見積書承認](./estimates_approval.md)
-- [請求書作成](./invoices_create.md)
-- [取引先管理](./clients.md)
+- [見積書管理](/manual/estimates)
+- [見積書作成](/manual/estimates_create)
+- [見積書承認](/manual/estimates_approval)
+- [請求書作成](/manual/invoices_create)
+- [取引先管理](/manual/clients)
 
 ---
 

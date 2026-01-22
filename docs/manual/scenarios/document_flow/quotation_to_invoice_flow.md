@@ -504,8 +504,8 @@ lastUpdated: "2026-01-22"
 
 ## 関連マニュアル
 
-- [見積書作成](../estimates_create.md): 見積書作成の詳細
-- [請求書作成](../invoices_create.md): 請求書作成の詳細
-- [入金記録](../invoices_payment.md): 入金記録の詳細
-- [見積書承認](../estimates_approval.md): 見積書承認フローの詳細
-- [請求書承認](../invoices_approval.md): 請求書承認フローの詳細
+- [見積書作成](/manual/estimates_create): 見積書作成の詳細
+- [請求書作成](/manual/invoices_create): 請求書作成の詳細
+- [入金記録](/manual/invoices_payment): 入金記録の詳細
+- [見積書承認](/manual/estimates_approval): 見積書承認フローの詳細
+- [請求書承認](/manual/invoices_approval): 請求書承認フローの詳細

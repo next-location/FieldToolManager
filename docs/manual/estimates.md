@@ -323,7 +323,7 @@ lastUpdated: "2026-01-22"
 5. 必要に応じて内容を編集
 6. 請求書を保存
 
-**関連**: [請求書管理マニュアル](./invoices.md)
+**関連**: [請求書管理マニュアル](/manual/invoices)
 
 ---
 
@@ -453,9 +453,9 @@ lastUpdated: "2026-01-22"
 
 ## 関連機能
 
-- [取引先管理](./clients.md)
-- [工事管理](./projects.md)
-- [請求書管理](./invoices.md)
+- [取引先管理](/manual/clients)
+- [工事管理](/manual/projects)
+- [請求書管理](/manual/invoices)
 
 ---
 

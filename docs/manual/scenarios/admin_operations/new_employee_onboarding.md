@@ -173,8 +173,8 @@ lastUpdated: "2026-01-22"
 
 新入社員に以下のマニュアルを案内してください：
 
-- [はじめにマニュアル](../../getting_started.md) - 基本操作全般
-- [道具管理マニュアル](../../tool_management.md) - 道具の操作方法
+- [はじめにマニュアル](/manual/getting_started) - 基本操作全般
+- [道具管理マニュアル](/manual/tool_management) - 道具の操作方法
 
 ---
 
@@ -270,10 +270,10 @@ lastUpdated: "2026-01-22"
 
 ## 9. 関連ドキュメント
 
-- [スタッフ管理マニュアル](../../staff_management.md) - スタッフ管理全般
-- [退職者の対応マニュアル](./employee_offboarding.md) - 退職者の削除・無効化
+- [スタッフ管理マニュアル](/manual/staff_management) - スタッフ管理全般
+- [退職者の対応マニュアル](/manual/scenarios/admin_operations/employee_offboarding) - 退職者の削除・無効化
 - [権限別機能一覧](../../staff_management.md#権限別機能一覧) - 各権限でできること
-- [はじめにマニュアル](../../getting_started.md) - 新入社員向けの基本操作
+- [はじめにマニュアル](/manual/getting_started) - 新入社員向けの基本操作
 
 ---
 

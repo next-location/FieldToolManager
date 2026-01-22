@@ -393,6 +393,6 @@ lastUpdated: "2026-01-21"
 
 ## 関連機能
 
-- [自社拠点管理](./settings_locations.md): 本社倉庫、支店、資材置き場などの自社拠点を管理
-- [スタッフ管理](./staff_management.md): スタッフの登録・権限管理
-- [勤怠設定](./attendance_settings.md): 勤怠管理の設定
+- 自社拠点管理: 本社倉庫、支店、資材置き場などの自社拠点を管理
+- [スタッフ管理](/manual/staff_management): スタッフの登録・権限管理
+- [勤怠設定](/manual/attendance_settings): 勤怠管理の設定

@@ -441,7 +441,7 @@ Admin権限者は、組織全体で2FAを必須にできます。
 | **アカウント乗っ取り** | 勝手にパスワードが変更された | Admin権限者に連絡してアカウント無効化 |
 | **データ漏洩** | 顧客情報を誤って外部に送信 | 上司・Admin権限者に報告 |
 
-**詳細**: [緊急時の対応マニュアル](./emergency_response.md)
+**詳細**: [緊急時の対応マニュアル](/manual/scenarios/security/emergency_response)
 
 ---
 
@@ -489,8 +489,8 @@ Admin権限者は、組織全体で2FAを必須にできます。
 
 ## 11. 関連ドキュメント
 
-- [よくあるトラブルと解決方法](./troubleshooting_common.md) - ログインできない、アカウントロックなど
-- [緊急時の対応マニュアル](./emergency_response.md) - 不正アクセス検知時の対応
+- [よくあるトラブルと解決方法](/manual/scenarios/security/troubleshooting_common) - ログインできない、アカウントロックなど
+- [緊急時の対応マニュアル](/manual/scenarios/security/emergency_response) - 不正アクセス検知時の対応
 - [新入社員の受け入れマニュアル](../admin_operations/new_employee_onboarding.md) - 初期パスワード設定
 - [システム健全性チェックマニュアル](../admin_operations/system_health_check.md) - 監査ログの定期確認
 
