@@ -1,10 +1,32 @@
 import { requireAuth, getOrganizationPackages } from '@/lib/auth/page-auth'
 import { getRolePermissionLevel } from '@/lib/manual/permissions'
-import { getAllManualArticles } from '@/lib/manual/metadata'
 import ManualSearch from '@/components/ManualSearch'
 import ManualCategorySection from '@/components/ManualCategorySection'
 import Link from 'next/link'
-import type { ManualArticle } from '@/lib/manual/types'
+import fs from 'fs'
+import path from 'path'
+
+type SearchIndexItem = {
+  slug: string
+  title: string
+  description: string
+  content: string
+  category: string
+  permission: number
+  tags: string[]
+}
+
+type ManualArticle = {
+  slug: string
+  frontmatter: {
+    title: string
+    description: string
+    category: string
+    permission: number
+    plans: string[]
+    tags: string[]
+  }
+}
 
 // ジャンル定義
 const CATEGORIES = [
@@ -55,18 +77,27 @@ export default async function ManualPage() {
   }
   const mappedPlan = planMapping[packageType] || 'basic'
 
-  // 全マニュアル記事を取得
-  const allArticles = await getAllManualArticles()
+  // 検索インデックスから記事データを読み込む（高速化）
+  const searchIndexPath = path.join(process.cwd(), 'public', 'search-index.json')
+  const searchIndex: SearchIndexItem[] = JSON.parse(fs.readFileSync(searchIndexPath, 'utf-8'))
+
+  // ManualArticle形式に変換
+  const allArticles: ManualArticle[] = searchIndex.map(item => ({
+    slug: item.slug,
+    frontmatter: {
+      title: item.title,
+      description: item.description,
+      category: item.category,
+      permission: item.permission,
+      plans: ['basic'], // 検索インデックスにはplans情報がないのでbasicをデフォルトに
+      tags: item.tags,
+    }
+  }))
 
   // ユーザーがアクセスできる記事のみをフィルタ（権限以下のもの全て）
   const accessibleArticles = allArticles
     .filter((a) => a.frontmatter.category === 'manual')
-    .filter(
-      (article) =>
-        article.frontmatter.permission <= userPermission &&
-        (article.frontmatter.plans.includes('basic') ||
-          article.frontmatter.plans.includes(mappedPlan as 'basic' | 'asset_pack' | 'dx_pack'))
-    )
+    .filter((article) => article.frontmatter.permission <= userPermission)
 
   // ジャンル別にグループ化
   const articlesByCategory: Record<string, ManualArticle[]> = {}

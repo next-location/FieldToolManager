@@ -1,10 +1,18 @@
 import { requireAuth, getOrganizationPackages } from '@/lib/auth/page-auth'
 import { getRolePermissionLevel } from '@/lib/manual/permissions'
-import { getAllManualArticles } from '@/lib/manual/metadata'
 import QASearch from '@/components/QASearch'
-import { remark } from 'remark'
-import remarkGfm from 'remark-gfm'
-import strip from 'strip-markdown'
+import fs from 'fs'
+import path from 'path'
+
+type SearchIndexItem = {
+  slug: string
+  title: string
+  description: string
+  content: string
+  category: string
+  permission: number
+  tags: string[]
+}
 
 export default async function QAPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
@@ -24,35 +32,20 @@ export default async function QAPage() {
   }
   const mappedPlan = planMapping[packageType] || 'basic'
 
-  // 全記事を取得してQ&Aのみをフィルタ
-  const allArticles = await getAllManualArticles()
-  const qaArticles = allArticles.filter(
-    (article) =>
-      article.frontmatter.category === 'qa' &&
-      article.frontmatter.permission <= userPermission &&
-      (article.frontmatter.plans.includes('basic') ||
-        article.frontmatter.plans.includes(mappedPlan as 'basic' | 'asset_pack' | 'dx_pack'))
-  )
+  // 検索インデックスから記事データを読み込む（ビルド済み）
+  const searchIndexPath = path.join(process.cwd(), 'public', 'search-index.json')
+  const searchIndex: SearchIndexItem[] = JSON.parse(fs.readFileSync(searchIndexPath, 'utf-8'))
 
-  // 検索用に本文をプレーンテキストに変換
-  const qaArticlesWithContent = await Promise.all(
-    qaArticles.map(async (article) => {
-      const processed = await remark()
-        .use(remarkGfm)
-        .use(strip)
-        .process(article.content)
+  // Q&Aのみをフィルタ（権限チェック）
+  const qaArticles = searchIndex
+    .filter((article) => article.category === 'qa' && article.permission <= userPermission)
+    .map((article) => ({
+      slug: article.slug,
+      title: article.title,
+      description: article.description,
+      content: article.content,
+      tags: article.tags,
+    }))
 
-      const plainText = processed.toString()
-
-      return {
-        slug: article.slug,
-        title: article.frontmatter.title,
-        description: article.frontmatter.description,
-        content: plainText,
-        tags: article.frontmatter.tags,
-      }
-    })
-  )
-
-  return <QASearch articles={qaArticlesWithContent} />
+  return <QASearch articles={qaArticles} />
 }
