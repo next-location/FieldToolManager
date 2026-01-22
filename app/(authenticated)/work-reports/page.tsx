@@ -94,10 +94,11 @@ export default async function WorkReportsPage({
     })
   }
 
-  // 現場一覧を取得（フィルタ用）
+  // 現場一覧を取得（フィルタ用、顧客現場のみ）
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name')
+    .eq('type', 'customer_site')
     .eq('is_active', true)
     .is('deleted_at', null)
     .order('name')
