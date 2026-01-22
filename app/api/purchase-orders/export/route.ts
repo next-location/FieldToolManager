@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
     // CSV文字列生成
     const csvContent = [
       headers.join(','),
-      ...(rows?.map((row) => row.map((cell) => `"${cell}"`).join(',')) || []),
+      ...(rows?.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')) || []),
     ].join('\n')
 
     // BOM付きUTF-8で返す（Excel対応）

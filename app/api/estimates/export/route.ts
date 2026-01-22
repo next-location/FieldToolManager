@@ -98,7 +98,10 @@ export async function GET(request: NextRequest) {
 
     // BOM付きUTF-8でCSV生成
     const bom = '\uFEFF'
-    const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n')
+    const csvContent = [
+      headers.join(','),
+      ...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')),
+    ].join('\n')
 
     return new NextResponse(bom + csvContent, {
       headers: {
