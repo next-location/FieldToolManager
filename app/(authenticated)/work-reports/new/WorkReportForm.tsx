@@ -408,7 +408,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                   .filter(user => user.id !== currentUserId)
                   .filter(user => !selectedUserIds.includes(user.id)) // すでに選択済みのユーザーを除外
                   .filter(user => {
-                    if (!searchTerm) return false // 検索語がない場合は何も表示しない
+                    if (!searchTerm) return true // 検索語がない場合は全て表示
                     const term = searchTerm.toLowerCase()
                     const termHiragana = toHiragana(term)
                     const termKatakana = toKatakana(term)
