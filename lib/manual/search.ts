@@ -9,6 +9,23 @@ function stripHtml(html: string): string {
 }
 
 /**
+ * カタカナをひらがなに変換
+ */
+function kanaToHiragana(str: string): string {
+  return str.replace(/[\u30A1-\u30F6]/g, (match) => {
+    const chr = match.charCodeAt(0) - 0x60
+    return String.fromCharCode(chr)
+  })
+}
+
+/**
+ * テキストを正規化（ひらがな・カタカナ両対応、小文字化）
+ */
+function normalizeText(text: string): string {
+  return kanaToHiragana(text.toLowerCase())
+}
+
+/**
  * テキストから主要キーワードを抽出
  */
 function extractKeywords(text: string, existingTags: string[]): string[] {
@@ -29,10 +46,10 @@ function extractKeywords(text: string, existingTags: string[]): string[] {
   // テキストを単語に分割（2文字以上の日本語・英数字）
   const words = text.match(/[ぁ-んァ-ヶー一-龠a-zA-Z0-9]{2,}/g) || []
 
-  // 頻出単語をカウント
+  // 頻出単語をカウント（ひらがな・カタカナ正規化）
   const wordCount = new Map<string, number>()
   words.forEach(word => {
-    const normalized = word.toLowerCase()
+    const normalized = normalizeText(word)
     if (!stopWords.has(normalized)) {
       wordCount.set(normalized, (wordCount.get(normalized) || 0) + 1)
     }
@@ -127,8 +144,12 @@ export function exportSearchIndex(articles: ManualArticle[]) {
     const plainText = stripHtml(article.content)
     const searchText = `${article.frontmatter.title} ${article.frontmatter.description} ${plainText.substring(0, 1000)}`
 
-    // 既存のタグ + 自動抽出キーワード
+    // 既存のタグ + 自動抽出キーワード（ひらがな正規化版も追加）
     const enhancedTags = extractKeywords(searchText, article.frontmatter.tags)
+
+    // ひらがな・カタカナ両対応のため、各タグのひらがな版も追加
+    const hiraganaVariants = enhancedTags.map(tag => normalizeText(tag))
+    const allTags = [...new Set([...enhancedTags, ...hiraganaVariants])]
 
     return {
       slug: article.slug,
@@ -137,7 +158,7 @@ export function exportSearchIndex(articles: ManualArticle[]) {
       content: plainText.substring(0, 500), // 最初の500文字のみ
       category: article.frontmatter.category,
       permission: article.frontmatter.permission,
-      tags: enhancedTags,
+      tags: allTags,
     }
   })
 }
