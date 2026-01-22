@@ -50,7 +50,7 @@ export async function GET(request: Request) {
       .select('*')
       .eq('organization_id', userData?.organization_id)
       .is('deleted_at', null)
-      .order('code')
+      .order('client_code')
 
     // フィルター適用
     if (client_type && client_type !== 'all') {
@@ -112,7 +112,7 @@ export async function GET(request: Request) {
 
     console.log('[API /api/clients/export] Generating CSV rows')
     const rows = clients.map((client) => [
-      client.code,
+      client.client_code,
       client.name,
       client.name_kana || '',
       client.short_name || '',
