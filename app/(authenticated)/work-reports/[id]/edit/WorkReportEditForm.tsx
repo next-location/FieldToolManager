@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { WorkReport } from '@/types/work-reports'
 import { PhotoUpload } from '../../new/PhotoUpload'
+import { AttachmentUpload } from '../../new/AttachmentUpload'
 import { CustomFieldInput } from '../../new/CustomFieldInput'
 
 interface Site {
@@ -1004,6 +1005,14 @@ export function WorkReportEditForm({
         <div className="px-4 py-5 sm:p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">写真添付</h3>
           <PhotoUpload reportId={report.id} />
+        </div>
+      </div>
+
+      {/* 資料添付 */}
+      <div className="bg-white shadow sm:rounded-lg">
+        <div className="px-4 py-5 sm:p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">資料添付</h3>
+          <AttachmentUpload reportId={report.id} />
         </div>
       </div>
 
