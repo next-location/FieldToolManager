@@ -222,7 +222,19 @@ export async function PATCH(
 
     if (error) {
       console.error('Work report update error:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+
+      // RLSエラーの場合は日本語メッセージに変換
+      if (error.code === '42501') {
+        return NextResponse.json(
+          { error: '作業報告書の更新権限がありません。データベースのアクセス権限を確認してください。' },
+          { status: 403 }
+        )
+      }
+
+      return NextResponse.json(
+        { error: '作業報告書の更新に失敗しました' },
+        { status: 500 }
+      )
     }
 
     console.log('=== Updated Report ===')
