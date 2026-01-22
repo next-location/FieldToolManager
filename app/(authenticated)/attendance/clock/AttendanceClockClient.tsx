@@ -309,8 +309,9 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
   const getWorkDuration = () => {
     if (!todayRecord?.clock_in_time) return null
 
+    // データベースから取得した時刻はISO文字列なので、そのままDate化すればJSTとして扱われる
     const clockIn = new Date(todayRecord.clock_in_time)
-    const clockOut = todayRecord.clock_out_time ? new Date(todayRecord.clock_out_time) : currentTime
+    const clockOut = todayRecord.clock_out_time ? new Date(todayRecord.clock_out_time) : new Date()
 
     const diffMs = clockOut.getTime() - clockIn.getTime()
     const diffMinutes = Math.floor(diffMs / (1000 * 60))
