@@ -4,8 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { WorkReport } from '@/types/work-reports'
-import { PhotoGallery } from '../PhotoGallery'
-import { AttachmentList } from '../AttachmentList'
+import { PhotoUpload } from '../../new/PhotoUpload'
 import { CustomFieldInput } from '../../new/CustomFieldInput'
 
 interface Site {
@@ -1004,15 +1003,7 @@ export function WorkReportEditForm({
       <div className="bg-white shadow sm:rounded-lg">
         <div className="px-4 py-5 sm:p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">写真添付</h3>
-          <PhotoGallery reportId={report.id} canEdit={true} />
-        </div>
-      </div>
-
-      {/* 資料添付 */}
-      <div className="bg-white shadow sm:rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">資料添付</h3>
-          <AttachmentList reportId={report.id} canEdit={true} />
+          <PhotoUpload reportId={report.id} />
         </div>
       </div>
 

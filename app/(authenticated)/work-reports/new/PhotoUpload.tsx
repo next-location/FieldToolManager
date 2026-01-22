@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { X, Upload, GripVertical } from 'lucide-react'
 
 interface Photo {
@@ -26,6 +26,36 @@ export function PhotoUpload({ reportId, onPhotosChange }: PhotoUploadProps) {
   const [uploading, setUploading] = useState(false)
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // 既存の写真を読み込む
+  useEffect(() => {
+    if (!reportId) return
+
+    const fetchPhotos = async () => {
+      try {
+        const response = await fetch(`/api/work-reports/${reportId}/photos`)
+        if (!response.ok) return
+
+        const data = await response.json()
+        const existingPhotos = (data.photos || []).map((photo: any) => ({
+          id: photo.id,
+          preview: photo.photo_url,
+          caption: photo.caption || '',
+          photo_type: photo.photo_type,
+          display_order: photo.display_order,
+          taken_at: photo.taken_at,
+          location_name: photo.location_name,
+          uploaded: true,
+          storage_path: photo.storage_path,
+        }))
+        setPhotos(existingPhotos)
+      } catch (error) {
+        console.error('写真の読み込みエラー:', error)
+      }
+    }
+
+    fetchPhotos()
+  }, [reportId])
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
