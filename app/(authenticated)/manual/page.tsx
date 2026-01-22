@@ -1,8 +1,40 @@
 import { requireAuth, getOrganizationPackages } from '@/lib/auth/page-auth'
 import { getRolePermissionLevel } from '@/lib/manual/permissions'
-import { getAllManualArticles, groupArticlesByPermission } from '@/lib/manual/metadata'
+import { getAllManualArticles } from '@/lib/manual/metadata'
 import ManualSearch from '@/components/ManualSearch'
 import Link from 'next/link'
+import type { ManualArticle } from '@/lib/manual/types'
+
+// ジャンル定義
+const CATEGORIES = [
+  { id: 'getting-started', name: '🚀 はじめに', keywords: ['getting_started', 'ログイン', '初回', 'クイックガイド'] },
+  { id: 'basic', name: '📱 基本操作', keywords: ['基本操作', 'スマホ', 'モバイル', 'QRコード', 'スキャン'] },
+  { id: 'tool', name: '🔧 備品管理', keywords: ['備品', '道具', '工具', 'ツール', '資機材', '在庫', 'tool', 'equipment', 'consumable'] },
+  { id: 'attendance', name: '⏰ 勤怠管理', keywords: ['勤怠', '出勤', '退勤', '打刻', 'attendance', 'clock'] },
+  { id: 'document', name: '📄 書類管理', keywords: ['見積', '請求', '発注', 'estimate', 'invoice', 'purchase'] },
+  { id: 'work-report', name: '📝 作業報告', keywords: ['作業報告', 'work_report', '報告'] },
+  { id: 'project', name: '🏗️ 現場・取引先', keywords: ['現場', '取引先', 'site', 'client', 'project', 'company_site'] },
+  { id: 'staff', name: '👥 従業員管理', keywords: ['従業員', 'スタッフ', '社員', 'staff'] },
+  { id: 'settings', name: '⚙️ 設定', keywords: ['設定', 'setting'] },
+  { id: 'other', name: '📚 その他', keywords: [] }, // 残り全て
+]
+
+function categorizeArticle(article: ManualArticle): string {
+  const searchText = [
+    article.frontmatter.title,
+    article.frontmatter.description,
+    article.slug,
+    ...article.frontmatter.tags,
+  ].join(' ').toLowerCase()
+
+  for (const category of CATEGORIES.slice(0, -1)) { // 「その他」以外をチェック
+    if (category.keywords.some(keyword => searchText.includes(keyword.toLowerCase()))) {
+      return category.id
+    }
+  }
+
+  return 'other' // どれにも当てはまらない場合
+}
 
 export default async function ManualPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
@@ -22,19 +54,29 @@ export default async function ManualPage() {
   }
   const mappedPlan = planMapping[packageType] || 'basic'
 
-  // 全マニュアル記事を取得して権限別に分類
+  // 全マニュアル記事を取得
   const allArticles = await getAllManualArticles()
-  const articlesByPermission = groupArticlesByPermission(
-    allArticles.filter((a) => a.frontmatter.category === 'manual')
-  )
 
-  // ユーザーがアクセスできる記事のみをフィルタ
-  const accessibleArticles = allArticles.filter(
-    (article) =>
-      article.frontmatter.permission <= userPermission &&
-      (article.frontmatter.plans.includes('basic') ||
-        article.frontmatter.plans.includes(mappedPlan as 'basic' | 'asset_pack' | 'dx_pack'))
-  )
+  // ユーザーがアクセスできる記事のみをフィルタ（権限以下のもの全て）
+  const accessibleArticles = allArticles
+    .filter((a) => a.frontmatter.category === 'manual')
+    .filter(
+      (article) =>
+        article.frontmatter.permission <= userPermission &&
+        (article.frontmatter.plans.includes('basic') ||
+          article.frontmatter.plans.includes(mappedPlan as 'basic' | 'asset_pack' | 'dx_pack'))
+    )
+
+  // ジャンル別にグループ化
+  const articlesByCategory: Record<string, ManualArticle[]> = {}
+  CATEGORIES.forEach(cat => {
+    articlesByCategory[cat.id] = []
+  })
+
+  accessibleArticles.forEach(article => {
+    const categoryId = categorizeArticle(article)
+    articlesByCategory[categoryId].push(article)
+  })
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -81,203 +123,60 @@ export default async function ManualPage() {
           </Link>
         </div>
 
-        {/* マニュアル記事一覧 */}
+        {/* ジャンル別マニュアル一覧 */}
         <div className="space-y-8">
-          {/* スタッフ向け */}
-          {userPermission >= 1 && articlesByPermission.staff.length > 0 && (
-            <div>
-              <div className="flex items-center mb-4">
-                <span className="text-2xl mr-2">📱</span>
-                <h2 className="text-lg font-bold text-gray-900">スタッフ向けマニュアル</h2>
-              </div>
-              <div className="bg-white rounded-lg shadow border border-gray-200 divide-y divide-gray-200">
-                {articlesByPermission.staff.map((article) => (
-                  <Link
-                    key={article.slug}
-                    href={`/${article.slug}`}
-                    className="block px-6 py-4 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-medium text-gray-900 mb-1">{article.frontmatter.title}</h3>
-                        <p className="text-sm text-gray-600">{article.frontmatter.description}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                          {article.frontmatter.tags.slice(0, 3).map((tag) => (
-                            <span
-                              key={tag}
-                              className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <svg
-                        className="ml-4 h-5 w-5 text-gray-400 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
+          {CATEGORIES.map(category => {
+            const articles = articlesByCategory[category.id]
+            if (articles.length === 0) return null
 
-          {/* リーダー向け */}
-          {userPermission >= 2 && articlesByPermission.leader.length > 0 && (
-            <div>
-              <div className="flex items-center mb-4">
-                <span className="text-2xl mr-2">👥</span>
-                <h2 className="text-lg font-bold text-gray-900">リーダー向けマニュアル</h2>
-              </div>
-              <div className="bg-white rounded-lg shadow border border-gray-200 divide-y divide-gray-200">
-                {articlesByPermission.leader.map((article) => (
-                  <Link
-                    key={article.slug}
-                    href={`/${article.slug}`}
-                    className="block px-6 py-4 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-medium text-gray-900 mb-1">{article.frontmatter.title}</h3>
-                        <p className="text-sm text-gray-600">{article.frontmatter.description}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                          {article.frontmatter.tags.slice(0, 3).map((tag) => (
-                            <span
-                              key={tag}
-                              className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded"
-                            >
-                              {tag}
-                            </span>
-                          ))}
+            return (
+              <div key={category.id}>
+                <div className="flex items-center mb-4">
+                  <h2 className="text-lg font-bold text-gray-900">{category.name}</h2>
+                  <span className="ml-2 text-sm text-gray-500">({articles.length})</span>
+                </div>
+                <div className="bg-white rounded-lg shadow border border-gray-200 divide-y divide-gray-200">
+                  {articles.map((article) => (
+                    <Link
+                      key={article.slug}
+                      href={`/${article.slug}`}
+                      className="block px-6 py-4 hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-medium text-gray-900 mb-1">{article.frontmatter.title}</h3>
+                          <p className="text-sm text-gray-600">{article.frontmatter.description}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            {article.frontmatter.tags.slice(0, 3).map((tag) => (
+                              <span
+                                key={tag}
+                                className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
                         </div>
+                        <svg
+                          className="ml-4 h-5 w-5 text-gray-400 flex-shrink-0"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
                       </div>
-                      <svg
-                        className="ml-4 h-5 w-5 text-gray-400 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-
-          {/* マネージャー向け */}
-          {userPermission >= 3 && articlesByPermission.manager.length > 0 && (
-            <div>
-              <div className="flex items-center mb-4">
-                <span className="text-2xl mr-2">💼</span>
-                <h2 className="text-lg font-bold text-gray-900">マネージャー向けマニュアル</h2>
-              </div>
-              <div className="bg-white rounded-lg shadow border border-gray-200 divide-y divide-gray-200">
-                {articlesByPermission.manager.map((article) => (
-                  <Link
-                    key={article.slug}
-                    href={`/${article.slug}`}
-                    className="block px-6 py-4 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-medium text-gray-900 mb-1">{article.frontmatter.title}</h3>
-                        <p className="text-sm text-gray-600">{article.frontmatter.description}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                          {article.frontmatter.tags.slice(0, 3).map((tag) => (
-                            <span
-                              key={tag}
-                              className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <svg
-                        className="ml-4 h-5 w-5 text-gray-400 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* オーナー向け */}
-          {userPermission >= 4 && articlesByPermission.owner.length > 0 && (
-            <div>
-              <div className="flex items-center mb-4">
-                <span className="text-2xl mr-2">⚙️</span>
-                <h2 className="text-lg font-bold text-gray-900">オーナー向けマニュアル</h2>
-              </div>
-              <div className="bg-white rounded-lg shadow border border-gray-200 divide-y divide-gray-200">
-                {articlesByPermission.owner.map((article) => (
-                  <Link
-                    key={article.slug}
-                    href={`/${article.slug}`}
-                    className="block px-6 py-4 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-medium text-gray-900 mb-1">{article.frontmatter.title}</h3>
-                        <p className="text-sm text-gray-600">{article.frontmatter.description}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                          {article.frontmatter.tags.slice(0, 3).map((tag) => (
-                            <span
-                              key={tag}
-                              className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <svg
-                        className="ml-4 h-5 w-5 text-gray-400 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
+            )
+          })}
         </div>
 
         {/* サポート情報 */}
