@@ -42,6 +42,8 @@ export function EstimateListClient({ estimates: initialEstimates, userRole, staf
   const [sortField, setSortField] = useState<'estimate_date' | 'valid_until' | 'total_amount'>('estimate_date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 20
 
   const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userRole)
 
@@ -156,6 +158,18 @@ export function EstimateListClient({ estimates: initialEstimates, userRole, staf
 
     return filtered
   }, [estimates, searchQuery, statusFilter, creatorFilter, sortField, sortOrder])
+
+  // ページネーション
+  const totalPages = Math.ceil(filteredAndSortedEstimates.length / itemsPerPage)
+  const paginatedEstimates = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    return filteredAndSortedEstimates.slice(startIndex, startIndex + itemsPerPage)
+  }, [filteredAndSortedEstimates, currentPage, itemsPerPage])
+
+  // フィルター変更時にページをリセット
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, statusFilter, creatorFilter, sortField, sortOrder])
 
   const SortIcon = ({ field }: { field: typeof sortField }) => {
     if (sortField !== field) return null
@@ -321,7 +335,7 @@ export function EstimateListClient({ estimates: initialEstimates, userRole, staf
       {/* 件数表示とソート */}
       <div className="mb-4 flex items-center justify-between">
         <div className="text-sm text-gray-700">
-          全 {estimates.length} 件中 {filteredAndSortedEstimates.length} 件を表示
+          全 {estimates.length} 件中 {filteredAndSortedEstimates.length} 件を表示（{currentPage}/{totalPages} ページ）
         </div>
         <div className="flex items-center gap-2">
           <label className="text-xs text-gray-600">並び替え:</label>
@@ -346,7 +360,7 @@ export function EstimateListClient({ estimates: initialEstimates, userRole, staf
 
       {/* カード一覧 */}
       <div className="space-y-4">
-        {filteredAndSortedEstimates.map((estimate) => (
+        {paginatedEstimates.map((estimate) => (
           <div key={estimate.id} className="bg-white border border-gray-300 rounded-lg shadow-sm">
             {/* クリック可能なカード本体 */}
             <div
@@ -460,8 +474,8 @@ export function EstimateListClient({ estimates: initialEstimates, userRole, staf
                   編集
                 </Link>
               )}
-              {/* PDF出力: 提出済み以降、またはマネージャー以上のみ（期限切れは除外） */}
-              {(estimate.status === 'submitted' || (estimate.status !== 'draft' && estimate.status !== 'expired' && isManagerOrAdmin)) && (
+              {/* PDF出力: 承認済み かつ 期限切れでない場合のみ */}
+              {estimate.manager_approved_at && estimate.status !== 'expired' && (
                 <a
                   href={`/api/estimates/${estimate.id}/pdf`}
                   target="_blank"
@@ -500,6 +514,29 @@ export function EstimateListClient({ estimates: initialEstimates, userRole, staf
           </div>
         )}
       </div>
+
+      {/* ページネーション */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-between">
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            前へ
+          </button>
+          <span className="text-sm text-gray-700">
+            {currentPage} / {totalPages} ページ
+          </span>
+          <button
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            次へ
+          </button>
+        </div>
+      )}
 
       {/* フィルターモーダル */}
       <EstimateFiltersModal
