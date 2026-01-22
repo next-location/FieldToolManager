@@ -147,6 +147,7 @@ export function AuditLogList({
       invoices: '請求書',
       estimates: '見積書',
       work_reports: '作業報告',
+      attendance_records: '勤怠記録',
       settings: '設定',
     }
     return labels[entityType] || entityType
