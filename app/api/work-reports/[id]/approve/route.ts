@@ -108,11 +108,19 @@ export async function POST(request: NextRequest, { params }: Params) {
       .eq('id', id)
 
     if (updateError) {
+      console.error('[APPROVE API] Update error:', updateError)
       return NextResponse.json(
         { error: '報告書のステータス更新に失敗しました' },
         { status: 500 }
       )
     }
+
+    console.log('[APPROVE API] Status updated successfully:', {
+      reportId: id,
+      newStatus,
+      action,
+      updateData
+    })
 
     // 2. 承認履歴を登録
     const { error: approvalError } = await supabase.from('work_report_approvals').insert({
