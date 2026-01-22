@@ -1,6 +1,6 @@
 ---
-title: スマートフォン・タブレット利用
-description: スマートフォン・タブレット利用に関するよくある質問
+title: スマートフォンとタブレットの利用に関するQ&A
+description: スマートフォンとタブレットの利用に関するよくある質問と回答
 permission: 1
 plans:
   - basic

@@ -1,6 +1,6 @@
 ---
-title: 'Q&A: 重機メンテナンス記録'
-description: 'Q&A: 重機メンテナンス記録に関するよくある質問とトラブル解決方法'
+title: 重機のメンテナンス記録に関するQ&A
+description: 重機のメンテナンス記録に関するよくある質問と回答
 permission: 1
 plans:
   - basic

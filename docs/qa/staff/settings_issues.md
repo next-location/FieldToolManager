@@ -1,6 +1,6 @@
 ---
-title: 設定のよくある質問のトラブルシューティング
-description: 設定のよくある質問に関するよくある質問とトラブル解決方法
+title: 設定に関するQ&A
+description: 設定に関するよくある質問と回答
 permission: 1
 plans:
   - basic

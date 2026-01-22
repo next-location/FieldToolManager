@@ -1,6 +1,6 @@
 ---
-title: ログイン・パスワード関連
-description: ログイン・パスワード関連に関するよくある質問
+title: ログインとパスワードに関するQ&A
+description: ログインとパスワードに関するよくある質問と回答
 permission: 1
 plans:
   - basic

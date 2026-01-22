@@ -1,6 +1,6 @@
 ---
-title: 作業報告書のトラブルシューティング
-description: 作業報告書のトラブルシューティングに関するよくある質問とトラブル解決方法
+title: 作業報告書に関するQ&A
+description: 作業報告書に関するよくある質問と回答
 permission: 1
 plans:
   - basic

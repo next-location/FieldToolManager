@@ -1,6 +1,6 @@
 ---
-title: 見積書提出・承認のトラブルシューティング
-description: 見積書提出・承認に関するよくある質問とトラブル解決方法
+title: 見積書の提出と承認に関するQ&A
+description: 見積書の提出と承認に関するよくある質問と回答
 permission: 2
 plans:
   - basic

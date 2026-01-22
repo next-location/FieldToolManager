@@ -1,6 +1,6 @@
 ---
-title: 重機管理のトラブルシューティング
-description: 重機管理のトラブルシューティングに関するよくある質問とトラブル解決方法
+title: 重機の管理に関するQ&A
+description: 重機の管理に関するよくある質問と回答
 permission: 1
 plans:
   - basic

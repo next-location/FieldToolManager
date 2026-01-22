@@ -1,6 +1,6 @@
 ---
-title: 現場管理のトラブルシューティング
-description: 現場管理のトラブルシューティングに関するよくある質問とトラブル解決方法
+title: 現場の管理に関するQ&A
+description: 現場の管理に関するよくある質問と回答
 permission: 2
 plans:
   - basic

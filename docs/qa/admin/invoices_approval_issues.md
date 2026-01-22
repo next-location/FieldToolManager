@@ -1,6 +1,6 @@
 ---
-title: 請求書提出・承認 Q&A
-description: 請求書提出・承認 Q&Aに関するよくある質問とトラブル解決方法
+title: 請求書の提出と承認に関するQ&A
+description: 請求書の提出と承認に関するよくある質問と回答
 permission: 2
 plans:
   - basic

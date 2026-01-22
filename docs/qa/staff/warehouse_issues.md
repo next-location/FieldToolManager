@@ -1,6 +1,6 @@
 ---
-title: 倉庫位置管理のトラブルシューティング
-description: 倉庫位置管理のトラブルシューティングに関するよくある質問とトラブル解決方法
+title: 倉庫位置の管理に関するQ&A
+description: 倉庫位置の管理に関するよくある質問と回答
 permission: 1
 plans:
   - basic

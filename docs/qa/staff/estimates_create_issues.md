@@ -1,6 +1,6 @@
 ---
-title: 見積書作成のトラブルシューティング
-description: 見積書作成に関するよくある質問とトラブル解決方法
+title: 見積書の作成に関するQ&A
+description: 見積書の作成に関するよくある質問と回答
 permission: 1
 plans:
   - basic

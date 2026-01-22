@@ -1,6 +1,6 @@
 ---
-title: 道具セット管理のトラブルシューティング
-description: 道具セット管理のトラブルシューティングに関するよくある質問とトラブル解決方法
+title: 道具セットの管理に関するQ&A
+description: 道具セットの管理に関するよくある質問と回答
 permission: 1
 plans:
   - basic

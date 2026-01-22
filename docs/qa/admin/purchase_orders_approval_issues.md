@@ -1,6 +1,6 @@
 ---
-title: 発注書承認フロー（金額別） Q&A
-description: 発注書承認フロー（金額別） Q&Aに関するよくある質問とトラブル解決方法
+title: 発注書の承認フロー（金額別）に関するQ&A
+description: 発注書の承認フロー（金額別）に関するよくある質問と回答
 permission: 2
 plans:
   - basic

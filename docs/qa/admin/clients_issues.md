@@ -1,6 +1,6 @@
 ---
-title: 取引先管理のトラブルシューティング
-description: 取引先管理のトラブルシューティングに関するよくある質問とトラブル解決方法
+title: 取引先の管理に関するQ&A
+description: 取引先の管理に関するよくある質問と回答
 permission: 2
 plans:
   - basic

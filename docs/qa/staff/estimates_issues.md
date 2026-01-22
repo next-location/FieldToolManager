@@ -1,6 +1,6 @@
 ---
-title: 見積書のトラブルシューティング
-description: 見積書のトラブルシューティングに関するよくある質問とトラブル解決方法
+title: 見積書に関するQ&A
+description: 見積書に関するよくある質問と回答
 permission: 1
 plans:
   - basic

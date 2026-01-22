@@ -1,11 +1,14 @@
 ---
-title: "データエクスポートに関するQ&A"
-description: "CSVエクスポート機能に関する質問"
+title: データのエクスポートに関するQ&A
+description: データのエクスポートに関するよくある質問と回答
 permission: 2
-plans: ["basic"]
-category: "qa"
-tags: ["エクスポート","CSV"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - エクスポート
+  - CSV
+lastUpdated: '2026-01-22'
 ---
 
 # データエクスポートのよくある質問（Q&A）

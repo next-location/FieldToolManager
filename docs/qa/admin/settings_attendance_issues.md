@@ -1,6 +1,6 @@
 ---
-title: 出退勤設定 Q&A
-description: 出退勤設定 Q&Aに関するよくある質問とトラブル解決方法
+title: 出退勤設定に関するQ&A
+description: 出退勤設定に関するよくある質問と回答
 permission: 2
 plans:
   - basic

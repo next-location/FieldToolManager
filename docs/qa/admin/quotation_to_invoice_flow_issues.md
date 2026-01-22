@@ -1,6 +1,6 @@
 ---
-title: 見積→契約→請求の一連の流れ Q&A
-description: 見積→契約→請求の一連の流れ Q&Aに関するよくある質問とトラブル解決方法
+title: 見積から契約・請求までの流れに関するQ&A
+description: 見積から契約・請求までの流れに関するよくある質問と回答
 permission: 2
 plans:
   - basic

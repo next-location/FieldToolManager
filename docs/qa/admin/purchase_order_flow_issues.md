@@ -1,6 +1,6 @@
 ---
-title: 発注から支払いまでの流れ Q&A
-description: 発注から支払いまでの流れ Q&Aに関するよくある質問とトラブル解決方法
+title: 発注から支払いまでの流れに関するQ&A
+description: 発注から支払いまでの流れに関するよくある質問と回答
 permission: 2
 plans:
   - basic

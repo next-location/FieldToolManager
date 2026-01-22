@@ -1,6 +1,6 @@
 ---
-title: 出退勤打刻のよくある質問のトラブルシューティング
-description: 出退勤打刻のよくある質問に関するよくある質問とトラブル解決方法
+title: 出退勤の打刻に関するQ&A
+description: 出退勤の打刻に関するよくある質問と回答
 permission: 1
 plans:
   - basic

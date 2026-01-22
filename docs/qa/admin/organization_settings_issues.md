@@ -1,11 +1,14 @@
 ---
-title: "組織設定に関するQ&A"
-description: "組織情報やプラン設定に関する質問"
+title: 組織の設定に関するQ&A
+description: 組織の設定に関するよくある質問と回答
 permission: 4
-plans: ["basic"]
-category: "qa"
-tags: ["設定","組織"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - 設定
+  - 組織
+lastUpdated: '2026-01-22'
 ---
 
 # 運用設定・自社拠点管理のよくある質問（Q&A）

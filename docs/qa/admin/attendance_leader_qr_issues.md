@@ -1,6 +1,6 @@
 ---
-title: リーダー用QR発行のトラブルシューティング
-description: リーダー用QR発行に関するよくある質問とトラブル解決方法
+title: リーダー用QR発行に関するQ&A
+description: リーダー用QR発行に関するよくある質問と回答
 permission: 2
 plans:
   - basic

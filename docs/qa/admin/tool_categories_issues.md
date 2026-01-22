@@ -1,6 +1,6 @@
 ---
-title: 道具カテゴリ管理 Q&A
-description: 道具カテゴリ管理 Q&Aに関するよくある質問とトラブル解決方法
+title: 道具カテゴリの管理に関するQ&A
+description: 道具カテゴリの管理に関するよくある質問と回答
 permission: 2
 plans:
   - basic

@@ -1,6 +1,6 @@
 ---
-title: 'Q&A: 勤怠設定'
-description: 'Q&A: 勤怠設定に関するよくある質問とトラブル解決方法'
+title: 勤怠設定に関するQ&A
+description: 勤怠設定に関するよくある質問と回答
 permission: 2
 plans:
   - basic

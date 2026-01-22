@@ -1,6 +1,6 @@
 ---
-title: QRスキャンのトラブルシューティング
-description: QRスキャンのトラブルシューティングに関するよくある質問とトラブル解決方法
+title: QRスキャンに関するQ&A
+description: QRスキャンに関するよくある質問と回答
 permission: 1
 plans:
   - basic

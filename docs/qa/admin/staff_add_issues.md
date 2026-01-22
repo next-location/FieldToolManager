@@ -1,6 +1,6 @@
 ---
-title: スタッフ追加（権限の違い） Q&A
-description: スタッフ追加（権限の違い） Q&Aに関するよくある質問とトラブル解決方法
+title: スタッフの追加と権限に関するQ&A
+description: スタッフの追加と権限に関するよくある質問と回答
 permission: 2
 plans:
   - basic

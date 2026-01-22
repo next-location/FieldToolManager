@@ -1,6 +1,6 @@
 ---
-title: 現場完了・片付けのトラブルシューティング
-description: 現場完了・片付けのトラブルシューティングに関するよくある質問とトラブル解決方法
+title: 現場の完了と片付けに関するQ&A
+description: 現場の完了と片付けに関するよくある質問と回答
 permission: 2
 plans:
   - basic

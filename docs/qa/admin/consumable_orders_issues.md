@@ -1,6 +1,6 @@
 ---
-title: 消耗品発注管理のトラブルシューティング
-description: 消耗品発注管理に関するよくある質問とトラブル解決方法
+title: 消耗品の発注管理に関するQ&A
+description: 消耗品の発注管理に関するよくある質問と回答
 permission: 2
 plans:
   - basic

@@ -1,6 +1,6 @@
 ---
-title: 勤怠管理のトラブルシューティング
-description: 勤怠管理のトラブルシューティングに関するよくある質問とトラブル解決方法
+title: 勤怠管理に関するQ&A
+description: 勤怠管理に関するよくある質問と回答
 permission: 1
 plans:
   - basic

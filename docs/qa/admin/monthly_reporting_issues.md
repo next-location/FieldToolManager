@@ -1,6 +1,6 @@
 ---
-title: 月次報告業務 Q&A
-description: 月次報告業務 Q&Aに関するよくある質問とトラブル解決方法
+title: 月次報告業務に関するQ&A
+description: 月次報告業務に関するよくある質問と回答
 permission: 2
 plans:
   - basic

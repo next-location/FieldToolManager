@@ -1,6 +1,6 @@
 ---
-title: 契約について Q&A
-description: 契約について Q&Aに関するよくある質問とトラブル解決方法
+title: 契約に関するQ&A
+description: 契約に関するよくある質問と回答
 permission: 2
 plans:
   - basic

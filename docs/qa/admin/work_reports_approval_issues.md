@@ -1,6 +1,6 @@
 ---
-title: 'Q&A: 作業報告書承認'
-description: 'Q&A: 作業報告書承認に関するよくある質問とトラブル解決方法'
+title: 作業報告書の承認に関するQ&A
+description: 作業報告書の承認に関するよくある質問と回答
 permission: 2
 plans:
   - basic

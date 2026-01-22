@@ -1,6 +1,6 @@
 ---
-title: 'Q&A: 作業報告書PDF出力'
-description: 'Q&A: 作業報告書PDF出力に関するよくある質問とトラブル解決方法'
+title: 作業報告書のPDF出力に関するQ&A
+description: 作業報告書のPDF出力に関するよくある質問と回答
 permission: 1
 plans:
   - basic

@@ -1,6 +1,6 @@
 ---
-title: 請求書のトラブルシューティング
-description: 請求書のトラブルシューティングに関するよくある質問とトラブル解決方法
+title: 請求書に関するQ&A
+description: 請求書に関するよくある質問と回答
 permission: 1
 plans:
   - basic

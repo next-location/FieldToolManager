@@ -1,6 +1,6 @@
 ---
-title: 新規現場立ち上げのトラブルシューティング
-description: 新規現場立ち上げのトラブルシューティングに関するよくある質問とトラブル解決方法
+title: 新規現場の立ち上げに関するQ&A
+description: 新規現場の立ち上げに関するよくある質問と回答
 permission: 2
 plans:
   - basic

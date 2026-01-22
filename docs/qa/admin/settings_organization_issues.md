@@ -1,6 +1,6 @@
 ---
-title: 組織情報設定 Q&A
-description: 組織情報設定 Q&Aに関するよくある質問とトラブル解決方法
+title: 組織情報設定に関するQ&A
+description: 組織情報設定に関するよくある質問と回答
 permission: 2
 plans:
   - basic

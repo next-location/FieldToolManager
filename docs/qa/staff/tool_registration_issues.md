@@ -1,6 +1,6 @@
 ---
-title: 道具登録のよくある質問のトラブルシューティング
-description: 道具登録のよくある質問に関するよくある質問とトラブル解決方法
+title: 道具の登録に関するQ&A
+description: 道具の登録に関するよくある質問と回答
 permission: 1
 plans:
   - basic

@@ -1,6 +1,6 @@
 ---
-title: 工事管理のよくある質問のトラブルシューティング
-description: 工事管理のよくある質問に関するよくある質問とトラブル解決方法
+title: 工事の管理に関するQ&A
+description: 工事の管理に関するよくある質問と回答
 permission: 2
 plans:
   - basic
