@@ -267,8 +267,8 @@ export async function PATCH(
       // 監査ログエラーは更新の成功を妨げない
     }
 
-    // 再提出された場合は通知を送信
-    if (existingReport.status === 'rejected' && updateData.status === 'submitted' && data) {
+    // 提出された場合（下書き→提出 または 却下→再提出）は通知を送信
+    if ((existingReport.status === 'draft' || existingReport.status === 'rejected') && updateData.status === 'submitted' && data) {
       try {
         // ユーザー情報を取得
         const { data: submitterData } = await supabase
