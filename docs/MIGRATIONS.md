@@ -4476,9 +4476,10 @@ CREATE POLICY "estimate_items_insert" ON estimate_items
   FOR INSERT
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM estimates
-      WHERE estimates.id = estimate_items.estimate_id
-      AND estimates.organization_id = get_user_organization_id()
+      SELECT 1 FROM estimates e
+      JOIN users u ON u.organization_id = e.organization_id
+      WHERE e.id = estimate_items.estimate_id
+      AND u.id = auth.uid()
     )
   );
 
@@ -4486,9 +4487,10 @@ CREATE POLICY "estimate_items_update" ON estimate_items
   FOR UPDATE
   USING (
     EXISTS (
-      SELECT 1 FROM estimates
-      WHERE estimates.id = estimate_items.estimate_id
-      AND estimates.organization_id = get_user_organization_id()
+      SELECT 1 FROM estimates e
+      JOIN users u ON u.organization_id = e.organization_id
+      WHERE e.id = estimate_items.estimate_id
+      AND u.id = auth.uid()
     )
   );
 
@@ -4496,9 +4498,10 @@ CREATE POLICY "estimate_items_delete" ON estimate_items
   FOR DELETE
   USING (
     EXISTS (
-      SELECT 1 FROM estimates
-      WHERE estimates.id = estimate_items.estimate_id
-      AND estimates.organization_id = get_user_organization_id()
+      SELECT 1 FROM estimates e
+      JOIN users u ON u.organization_id = e.organization_id
+      WHERE e.id = estimate_items.estimate_id
+      AND u.id = auth.uid()
     )
   );
 
@@ -4507,9 +4510,10 @@ CREATE POLICY "invoice_items_insert" ON invoice_items
   FOR INSERT
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM invoices
-      WHERE invoices.id = invoice_items.invoice_id
-      AND invoices.organization_id = get_user_organization_id()
+      SELECT 1 FROM invoices i
+      JOIN users u ON u.organization_id = i.organization_id
+      WHERE i.id = invoice_items.invoice_id
+      AND u.id = auth.uid()
     )
   );
 
@@ -4517,9 +4521,10 @@ CREATE POLICY "invoice_items_update" ON invoice_items
   FOR UPDATE
   USING (
     EXISTS (
-      SELECT 1 FROM invoices
-      WHERE invoices.id = invoice_items.invoice_id
-      AND invoices.organization_id = get_user_organization_id()
+      SELECT 1 FROM invoices i
+      JOIN users u ON u.organization_id = i.organization_id
+      WHERE i.id = invoice_items.invoice_id
+      AND u.id = auth.uid()
     )
   );
 
@@ -4527,9 +4532,10 @@ CREATE POLICY "invoice_items_delete" ON invoice_items
   FOR DELETE
   USING (
     EXISTS (
-      SELECT 1 FROM invoices
-      WHERE invoices.id = invoice_items.invoice_id
-      AND invoices.organization_id = get_user_organization_id()
+      SELECT 1 FROM invoices i
+      JOIN users u ON u.organization_id = i.organization_id
+      WHERE i.id = invoice_items.invoice_id
+      AND u.id = auth.uid()
     )
   );
 
@@ -4538,9 +4544,10 @@ CREATE POLICY "purchase_order_items_insert" ON purchase_order_items
   FOR INSERT
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM purchase_orders
-      WHERE purchase_orders.id = purchase_order_items.purchase_order_id
-      AND purchase_orders.organization_id = get_user_organization_id()
+      SELECT 1 FROM purchase_orders po
+      JOIN users u ON u.organization_id = po.organization_id
+      WHERE po.id = purchase_order_items.purchase_order_id
+      AND u.id = auth.uid()
     )
   );
 
@@ -4548,9 +4555,10 @@ CREATE POLICY "purchase_order_items_update" ON purchase_order_items
   FOR UPDATE
   USING (
     EXISTS (
-      SELECT 1 FROM purchase_orders
-      WHERE purchase_orders.id = purchase_order_items.purchase_order_id
-      AND purchase_orders.organization_id = get_user_organization_id()
+      SELECT 1 FROM purchase_orders po
+      JOIN users u ON u.organization_id = po.organization_id
+      WHERE po.id = purchase_order_items.purchase_order_id
+      AND u.id = auth.uid()
     )
   );
 
@@ -4558,9 +4566,10 @@ CREATE POLICY "purchase_order_items_delete" ON purchase_order_items
   FOR DELETE
   USING (
     EXISTS (
-      SELECT 1 FROM purchase_orders
-      WHERE purchase_orders.id = purchase_order_items.purchase_order_id
-      AND purchase_orders.organization_id = get_user_organization_id()
+      SELECT 1 FROM purchase_orders po
+      JOIN users u ON u.organization_id = po.organization_id
+      WHERE po.id = purchase_order_items.purchase_order_id
+      AND u.id = auth.uid()
     )
   );
 ```
