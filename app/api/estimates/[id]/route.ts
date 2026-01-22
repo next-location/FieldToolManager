@@ -100,6 +100,14 @@ export async function PUT(
   console.log('[見積書更新API] リクエストボディ:', body)
 
   try {
+    // 元のステータスを取得（通知判定用）
+    const { data: oldEstimate } = await supabase
+      .from('estimates')
+      .select('status')
+      .eq('id', id)
+      .eq('organization_id', userData?.organization_id)
+      .single()
+
     // 見積書を更新
     const { error: estimateError } = await supabase
       .from('estimates')
@@ -199,6 +207,63 @@ export async function PUT(
       user.id,
       userData?.organization_id
     )
+
+    // 提出時に管理者・マネージャーに通知（draft→submittedの変更時のみ）
+    if (body.status === 'submitted' && oldEstimate?.status === 'draft') {
+      console.log('[見積書提出] 通知作成中 (更新):', {
+        estimate_number: body.estimate_number,
+        submitter: userData?.name,
+        old_status: oldEstimate?.status,
+        new_status: body.status
+      })
+
+      const { data: managersAndAdmins, error: managersError } = await supabase
+        .from('users')
+        .select('id, name, role')
+        .eq('organization_id', userData?.organization_id)
+        .in('role', ['manager', 'admin', 'super_admin'])
+        .eq('is_active', true)
+
+      if (managersError) {
+        console.error('[見積書提出] マネージャー取得エラー:', managersError)
+      } else if (managersAndAdmins && managersAndAdmins.length > 0) {
+        const notifications = managersAndAdmins
+          .filter(u => u.id !== user.id)
+          .map(u => ({
+            organization_id: userData?.organization_id,
+            target_user_id: u.id,
+            related_estimate_id: id,
+            type: 'estimate_submitted',
+            title: '新しい見積書が提出されました',
+            message: `${userData?.name}が見積書「${body.estimate_number}」を提出しました。承認をお願いします。`,
+            severity: 'info' as const,
+            sent_via: ['in_app'],
+            sent_at: new Date().toISOString(),
+            metadata: {
+              estimate_id: id,
+              estimate_number: body.estimate_number,
+              link: `/estimates/${id}`
+            }
+          }))
+
+        if (notifications.length > 0) {
+          console.log('[見積書提出] 通知挿入:', notifications.length + '件')
+          const { error: notificationError } = await supabase
+            .from('notifications')
+            .insert(notifications)
+
+          if (notificationError) {
+            console.error('[見積書提出] 通知作成エラー:', notificationError)
+          } else {
+            console.log('[見積書提出] 通知作成成功:', notifications.length + '件')
+          }
+        } else {
+          console.log('[見積書提出] 通知対象者なし（自分以外のマネージャー・管理者がいない）')
+        }
+      } else {
+        console.log('[見積書提出] マネージャー・管理者が見つかりません')
+      }
+    }
 
     console.log('[見積書更新API] 更新成功')
     return NextResponse.json({ message: '見積書を更新しました' }, { status: 200 })

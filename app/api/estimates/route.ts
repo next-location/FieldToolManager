@@ -245,6 +245,8 @@ export async function POST(request: NextRequest) {
             title: '新しい見積書が提出されました',
             message: `${userData.name}が見積書「${body.estimate_number}」を提出しました。承認をお願いします。`,
             severity: 'info' as const,
+            sent_via: ['in_app'],
+            sent_at: new Date().toISOString(),
             metadata: { estimate_id: estimate.id, estimate_number: body.estimate_number, link: `/estimates/${estimate.id}` }
           }))
 

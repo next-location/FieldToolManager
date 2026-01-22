@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import { SupplierFormModal } from './SupplierFormModal'
 import { useRouter } from 'next/navigation'
@@ -38,6 +38,8 @@ export function SupplierListClient({ suppliers: initialSuppliers }: SupplierList
   const [search, setSearch] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingSupplier, setEditingSupplier] = useState<Supplier | undefined>()
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 20
 
   const filteredSuppliers = suppliers.filter((supplier) => {
     if (!search) return true
@@ -50,6 +52,18 @@ export function SupplierListClient({ suppliers: initialSuppliers }: SupplierList
       supplier.phone?.toLowerCase().includes(searchLower)
     )
   })
+
+  // ページネーション
+  const totalPages = Math.ceil(filteredSuppliers.length / itemsPerPage)
+  const paginatedSuppliers = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    return filteredSuppliers.slice(startIndex, startIndex + itemsPerPage)
+  }, [filteredSuppliers, currentPage, itemsPerPage])
+
+  // フィルター変更時にページをリセット
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search])
 
   const handleCreate = () => {
     setEditingSupplier(undefined)
@@ -164,7 +178,7 @@ export function SupplierListClient({ suppliers: initialSuppliers }: SupplierList
                 </td>
               </tr>
             ) : (
-              filteredSuppliers.map((supplier) => (
+              paginatedSuppliers.map((supplier) => (
                 <tr key={supplier.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {supplier.supplier_code}
@@ -209,9 +223,31 @@ export function SupplierListClient({ suppliers: initialSuppliers }: SupplierList
 
       {/* 統計情報 */}
       <div className="text-sm text-gray-500">
-        全{filteredSuppliers.length}件の仕入先
-        {search && ` (${suppliers.length}件中)`}
+        全 {suppliers.length} 件中 {filteredSuppliers.length} 件を表示（{currentPage}/{totalPages} ページ）
       </div>
+
+      {/* ページネーション */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-between">
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            前へ
+          </button>
+          <span className="text-sm text-gray-700">
+            {currentPage} / {totalPages} ページ
+          </span>
+          <button
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            次へ
+          </button>
+        </div>
+      )}
 
       {/* モーダル */}
       {isModalOpen && (

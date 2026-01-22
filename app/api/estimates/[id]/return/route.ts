@@ -98,6 +98,8 @@ export async function POST(
           title: '見積書が差し戻されました',
           message: `見積書「${estimate.estimate_number}」が${userData.name}により差し戻されました。理由: ${reason || '（理由未記載）'}`,
           severity: 'warning',
+          sent_via: ['in_app'],
+          sent_at: new Date().toISOString(),
           metadata: { estimate_id: id, estimate_number: estimate.estimate_number, link: `/estimates/${id}` }
         })
 
