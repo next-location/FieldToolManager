@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import {
   notifyWorkReportApproved,
   notifyWorkReportRejected,
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     }
 
     // トランザクション処理
-    // 1. 報告書のステータス更新
+    // 1. 報告書のステータス更新（Service Roleキーを使用してRLSをバイパス）
     const newStatus = action === 'approved' ? 'approved' : 'rejected'
     const now = new Date().toISOString()
 
@@ -102,10 +102,13 @@ export async function POST(request: NextRequest, { params }: Params) {
       updateData.rejection_reason = comment || null
     }
 
-    const { error: updateError } = await supabase
+    // Service Roleクライアントを使用してRLSをバイパス
+    const adminClient = createAdminClient()
+    const { error: updateError } = await adminClient
       .from('work_reports')
       .update(updateData)
       .eq('id', id)
+      .eq('organization_id', userData?.organization_id)
 
     if (updateError) {
       console.error('[APPROVE API] Update error:', updateError)
@@ -134,13 +137,14 @@ export async function POST(request: NextRequest, { params }: Params) {
 
     if (approvalError) {
       // ロールバック: 報告書ステータスを戻す
-      await supabase
+      await adminClient
         .from('work_reports')
         .update({
           status: 'submitted',
           updated_at: new Date().toISOString(),
         })
         .eq('id', id)
+        .eq('organization_id', userData?.organization_id)
 
       return NextResponse.json(
         { error: '承認履歴の登録に失敗しました' },
