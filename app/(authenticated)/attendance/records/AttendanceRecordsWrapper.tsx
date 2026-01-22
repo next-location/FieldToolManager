@@ -18,15 +18,19 @@ interface AttendanceRecordsWrapperProps {
   staffList: Staff[]
   sitesList: Site[]
   userRole: string
+  currentUserId: string
 }
 
 export function AttendanceRecordsWrapper({
   staffList,
   sitesList,
   userRole,
+  currentUserId,
 }: AttendanceRecordsWrapperProps) {
+  const isAdminOrManager = ['admin', 'manager'].includes(userRole)
+
   const [filters, setFilters] = useState({
-    user_id: '',
+    user_id: isAdminOrManager ? '' : currentUserId, // leader/userは自分のIDで固定
     start_date: '',
     end_date: '',
     location_type: '',
@@ -39,11 +43,14 @@ export function AttendanceRecordsWrapper({
         staffList={staffList}
         sitesList={sitesList}
         onFiltersChange={setFilters}
+        showStaffFilter={isAdminOrManager} // admin/managerのみスタッフフィルター表示
       />
 
       <AttendanceRecordsTable
         userRole={userRole}
         filters={filters}
+        showStaffName={true} // スタッフ名を常に表示
+        showStaffSort={isAdminOrManager} // admin/managerのみソート表示
       />
     </>
   )

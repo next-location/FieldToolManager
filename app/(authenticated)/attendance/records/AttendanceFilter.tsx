@@ -18,12 +18,14 @@ interface AttendanceFilterProps {
   staffList: Staff[]
   sitesList: Site[]
   onFiltersChange: (filters: any) => void
+  showStaffFilter?: boolean
 }
 
 export function AttendanceFilter({
   staffList,
   sitesList,
   onFiltersChange,
+  showStaffFilter = true,
 }: AttendanceFilterProps) {
   const [filters, setFilters] = useState({
     user_id: '',

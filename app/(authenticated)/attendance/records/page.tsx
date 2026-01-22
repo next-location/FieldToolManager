@@ -5,11 +5,6 @@ import { AttendanceRecordsWrapper } from './AttendanceRecordsWrapper'
 export default async function AttendanceRecordsPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  // admin/manager権限チェック
-  if (!['admin', 'manager'].includes(userRole)) {
-    redirect('/')
-  }
-
   // 組織情報取得
   const { data: organization } = await supabase
     .from('organizations')
@@ -17,13 +12,18 @@ export default async function AttendanceRecordsPage() {
     .eq('id', organizationId)
     .single()
 
-  // スタッフ一覧取得（フィルター用）
-  const { data: staffList } = await supabase
-    .from('users')
-    .select('id, name, email')
-    .eq('organization_id', organizationId)
-    .is('deleted_at', null)
-    .order('name')
+  // admin/managerは全員、それ以外は自分のみ
+  const isAdminOrManager = ['admin', 'manager'].includes(userRole)
+
+  // スタッフ一覧取得（フィルター用、admin/managerのみ）
+  const { data: staffList } = isAdminOrManager
+    ? await supabase
+        .from('users')
+        .select('id, name, email')
+        .eq('organization_id', organizationId)
+        .is('deleted_at', null)
+        .order('name')
+    : { data: null }
 
   // 現場一覧取得（フィルター用）
   const { data: sitesList } = await supabase
@@ -39,7 +39,9 @@ export default async function AttendanceRecordsPage() {
         <div className="mb-6">
           <h1 className="text-lg sm:text-2xl font-bold text-gray-900">勤怠一覧</h1>
           <p className="mt-2 text-sm text-gray-600">
-            {organization?.name} のスタッフの出退勤記録を確認できます
+            {isAdminOrManager
+              ? `${organization?.name} のスタッフの出退勤記録を確認できます`
+              : 'あなたの出退勤記録を確認できます'}
           </p>
         </div>
 
@@ -47,6 +49,7 @@ export default async function AttendanceRecordsPage() {
           staffList={staffList || []}
           sitesList={sitesList || []}
           userRole={userRole}
+          currentUserId={userId}
         />
       </div>
     </div>
