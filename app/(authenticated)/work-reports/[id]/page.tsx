@@ -10,6 +10,10 @@ import { StatusBadge } from '@/components/work-reports/StatusBadge'
 import { PhotoGallery } from './PhotoGallery'
 import { AttachmentList } from './AttachmentList'
 
+// キャッシュを無効化して常に最新データを取得
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function WorkReportDetailPage({
   params,
 }: {
