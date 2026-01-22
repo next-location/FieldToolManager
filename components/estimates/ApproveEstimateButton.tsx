@@ -204,13 +204,6 @@ export function ApproveEstimateButton({
 
             <div className="flex gap-3">
               <button
-                onClick={handleReturn}
-                disabled={loading}
-                className="flex-1 bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? '差し戻し中...' : '差し戻す'}
-              </button>
-              <button
                 onClick={() => {
                   setShowReturnModal(false)
                   setReturnReason('')
@@ -219,6 +212,13 @@ export function ApproveEstimateButton({
                 className="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 disabled:opacity-50"
               >
                 キャンセル
+              </button>
+              <button
+                onClick={handleReturn}
+                disabled={loading}
+                className="flex-1 bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? '差し戻し中...' : '差し戻す'}
               </button>
             </div>
           </div>
