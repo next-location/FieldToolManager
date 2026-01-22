@@ -1068,3 +1068,44 @@ export async function logSettingsChanged(
     organizationId
   )
 }
+
+/**
+ * 勤怠記録の監査ログ
+ */
+export async function logAttendanceRecordUpdated(
+  recordId: string,
+  oldData: Record<string, any>,
+  newData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'update',
+      entity_type: 'attendance_records',
+      entity_id: recordId,
+      old_values: oldData,
+      new_values: newData,
+    },
+    userId,
+    organizationId
+  )
+}
+
+export async function logAttendanceRecordDeleted(
+  recordId: string,
+  recordData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'delete',
+      entity_type: 'attendance_records',
+      entity_id: recordId,
+      old_values: recordData,
+    },
+    userId,
+    organizationId
+  )
+}

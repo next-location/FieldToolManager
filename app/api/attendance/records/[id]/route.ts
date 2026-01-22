@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { logAttendanceRecordUpdated, logAttendanceRecordDeleted } from '@/lib/audit-log'
 
 // PATCH /api/attendance/records/[id] - 勤怠記録の手動修正（管理者のみ）
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -151,6 +152,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: '勤怠記録の更新に失敗しました' }, { status: 500 })
     }
 
+    // 監査ログ記録
+    await logAttendanceRecordUpdated(
+      recordId,
+      existingRecord,
+      updateData,
+      user.id,
+      userData.organization_id
+    )
+
     return NextResponse.json({ success: true, record: updatedRecord })
   } catch (error) {
     console.error('Unexpected error:', error)
@@ -194,7 +204,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     // 既存レコード確認
     const { data: existingRecord, error: fetchError } = await supabase
       .from('attendance_records')
-      .select('id')
+      .select('*')
       .eq('id', recordId)
       .eq('organization_id', userData?.organization_id)
       .single()
@@ -214,6 +224,14 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       console.error('Attendance record delete error:', deleteError)
       return NextResponse.json({ error: '勤怠記録の削除に失敗しました' }, { status: 500 })
     }
+
+    // 監査ログ記録
+    await logAttendanceRecordDeleted(
+      recordId,
+      existingRecord,
+      user.id,
+      userData.organization_id
+    )
 
     return NextResponse.json({ success: true })
   } catch (error) {
