@@ -208,6 +208,13 @@ export async function PUT(
       userData?.organization_id
     )
 
+    // ステータス変更のデバッグログ
+    console.log('[見積書更新API] ステータス確認:', {
+      old_status: oldEstimate?.status,
+      new_status: body.status,
+      will_notify: body.status === 'submitted' && oldEstimate?.status === 'draft'
+    })
+
     // 提出時に管理者・マネージャーに通知（draft→submittedの変更時のみ）
     if (body.status === 'submitted' && oldEstimate?.status === 'draft') {
       console.log('[見積書提出] 通知作成中 (更新):', {
