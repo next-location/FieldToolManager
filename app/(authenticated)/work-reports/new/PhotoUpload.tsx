@@ -135,8 +135,9 @@ export function PhotoUpload({ reportId, onPhotosChange }: PhotoUploadProps) {
               ? {
                   ...p,
                   id: uploadedPhoto.id,
+                  preview: uploadedPhoto.photo_url, // サーバーから返されたURLを使用
                   uploaded: true,
-                  storage_path: uploadedPhoto.storage_path,
+                  storage_path: uploadedPhoto.storage_path || uploadedPhoto.photo_url,
                 }
               : p
           )

@@ -214,7 +214,7 @@ export async function PATCH(
       .select(
         `
         *,
-        site:sites(id, name, address),
+        site:sites!work_reports_site_id_fkey(id, name, address),
         created_by_user:users!work_reports_created_by_fkey(id, name, email)
       `
       )
