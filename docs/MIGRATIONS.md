@@ -4448,3 +4448,158 @@ ALTER TABLE projects DROP COLUMN IF EXISTS site_id;
 - 既存の工事データ（site_id = NULL）はそのまま残ります
 - Phase 2 で工事フォームに現場選択ドロップダウンを追加予定
 - Phase 3 で発注書・作業報告への自動連携を実装予定
+
+---
+
+## 📝 見積書・請求書・発注書の明細テーブルRLSポリシー追加（2026-01-22）
+
+### 20260122000001_add_items_tables_rls_policies.sql
+
+**適用日**: 2026-01-22
+**適用環境**: 本番環境（Supabase Dashboard → SQL Editor）
+**影響範囲**: `estimate_items`, `invoice_items`, `purchase_order_items`テーブルのRLSポリシー追加
+
+**背景**:
+- 見積書作成時に「見積明細の作成に失敗しました」エラーが発生
+- エラー: `new row violates row-level security policy for table "estimate_items"`
+- 原因: SELECT用のRLSポリシーのみ存在し、INSERT/UPDATE/DELETEポリシーが未設定
+
+**変更内容**:
+1. **estimate_items**: INSERT/UPDATE/DELETEポリシーを追加
+2. **invoice_items**: INSERT/UPDATE/DELETEポリシーを追加
+3. **purchase_order_items**: INSERT/UPDATE/DELETEポリシーを追加
+
+**SQL**:
+```sql
+-- estimate_itemsテーブルのRLSポリシー追加
+CREATE POLICY "estimate_items_insert" ON estimate_items
+  FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM estimates
+      WHERE estimates.id = estimate_items.estimate_id
+      AND estimates.organization_id = get_user_organization_id()
+    )
+  );
+
+CREATE POLICY "estimate_items_update" ON estimate_items
+  FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM estimates
+      WHERE estimates.id = estimate_items.estimate_id
+      AND estimates.organization_id = get_user_organization_id()
+    )
+  );
+
+CREATE POLICY "estimate_items_delete" ON estimate_items
+  FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM estimates
+      WHERE estimates.id = estimate_items.estimate_id
+      AND estimates.organization_id = get_user_organization_id()
+    )
+  );
+
+-- invoice_itemsテーブルのRLSポリシー追加
+CREATE POLICY "invoice_items_insert" ON invoice_items
+  FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM invoices
+      WHERE invoices.id = invoice_items.invoice_id
+      AND invoices.organization_id = get_user_organization_id()
+    )
+  );
+
+CREATE POLICY "invoice_items_update" ON invoice_items
+  FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM invoices
+      WHERE invoices.id = invoice_items.invoice_id
+      AND invoices.organization_id = get_user_organization_id()
+    )
+  );
+
+CREATE POLICY "invoice_items_delete" ON invoice_items
+  FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM invoices
+      WHERE invoices.id = invoice_items.invoice_id
+      AND invoices.organization_id = get_user_organization_id()
+    )
+  );
+
+-- purchase_order_itemsテーブルのRLSポリシー追加
+CREATE POLICY "purchase_order_items_insert" ON purchase_order_items
+  FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM purchase_orders
+      WHERE purchase_orders.id = purchase_order_items.purchase_order_id
+      AND purchase_orders.organization_id = get_user_organization_id()
+    )
+  );
+
+CREATE POLICY "purchase_order_items_update" ON purchase_order_items
+  FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM purchase_orders
+      WHERE purchase_orders.id = purchase_order_items.purchase_order_id
+      AND purchase_orders.organization_id = get_user_organization_id()
+    )
+  );
+
+CREATE POLICY "purchase_order_items_delete" ON purchase_order_items
+  FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM purchase_orders
+      WHERE purchase_orders.id = purchase_order_items.purchase_order_id
+      AND purchase_orders.organization_id = get_user_organization_id()
+    )
+  );
+```
+
+**影響する機能**:
+- 見積書作成・編集・削除
+- 請求書作成・編集・削除
+- 発注書作成・編集・削除
+
+**ロールバック手順**:
+```sql
+-- estimate_itemsポリシー削除
+DROP POLICY IF EXISTS "estimate_items_insert" ON estimate_items;
+DROP POLICY IF EXISTS "estimate_items_update" ON estimate_items;
+DROP POLICY IF EXISTS "estimate_items_delete" ON estimate_items;
+
+-- invoice_itemsポリシー削除
+DROP POLICY IF EXISTS "invoice_items_insert" ON invoice_items;
+DROP POLICY IF EXISTS "invoice_items_update" ON invoice_items;
+DROP POLICY IF EXISTS "invoice_items_delete" ON invoice_items;
+
+-- purchase_order_itemsポリシー削除
+DROP POLICY IF EXISTS "purchase_order_items_insert" ON purchase_order_items;
+DROP POLICY IF EXISTS "purchase_order_items_update" ON purchase_order_items;
+DROP POLICY IF EXISTS "purchase_order_items_delete" ON purchase_order_items;
+```
+
+**適用手順**:
+1. Supabase Dashboard → SQL Editor を開く
+2. 上記のSQLを貼り付けて実行
+3. 見積書作成をテストして動作確認
+
+**確認方法**:
+```sql
+-- RLSポリシー確認
+SELECT schemaname, tablename, policyname, cmd
+FROM pg_policies
+WHERE tablename IN ('estimate_items', 'invoice_items', 'purchase_order_items')
+ORDER BY tablename, cmd;
+```
+
+---
