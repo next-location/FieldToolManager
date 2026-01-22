@@ -101,6 +101,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
 
   // 道具検索用のステート
   const [toolSearchTerms, setToolSearchTerms] = useState<Record<string, string>>({})
+  const [toolSearchFocused, setToolSearchFocused] = useState<Record<string, boolean>>({})
 
   // 帯同作業員（自分以外のユーザー）- ユニークIDで管理
   const [accompaniedWorkers, setAccompaniedWorkers] = useState<Array<{ id: string; userId: string }>>([])
@@ -687,7 +688,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                         const filteredTools = organizationTools
                           .filter(orgTool => !selectedToolIds.includes(orgTool.id))
                           .filter(orgTool => {
-                            if (!searchTerm) return false
+                            if (!searchTerm) return true // 検索語がない場合は全て表示
                             const term = searchTerm.toLowerCase()
                             const termHiragana = toHiragana(term)
                             const termKatakana = toKatakana(term)
@@ -720,8 +721,8 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                                 道具 {index + 1}
                               </label>
 
-                              {/* 選択された道具表示（検索していない時のみ） */}
-                              {selectedTool && !searchTerm && (
+                              {/* 選択された道具表示（フォーカスしていない時のみ） */}
+                              {selectedTool && !toolSearchFocused[tool.id] && !searchTerm && (
                                 <div className="mb-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
                                   <div className="text-sm font-medium text-blue-900">{selectedTool.name}</div>
                                   {selectedTool.model_number && (
@@ -735,6 +736,21 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                                 type="text"
                                 placeholder={selectedTool ? "別の道具を検索..." : "道具名または型番で検索..."}
                                 value={searchTerm}
+                                onFocus={() => {
+                                  setToolSearchFocused({
+                                    ...toolSearchFocused,
+                                    [tool.id]: true
+                                  })
+                                }}
+                                onBlur={() => {
+                                  // 少し遅延させてクリックイベントが発火するのを待つ
+                                  setTimeout(() => {
+                                    setToolSearchFocused({
+                                      ...toolSearchFocused,
+                                      [tool.id]: false
+                                    })
+                                  }, 200)
+                                }}
                                 onChange={(e) => {
                                   setToolSearchTerms({
                                     ...toolSearchTerms,
@@ -744,8 +760,8 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                                 className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                               />
 
-                              {/* 検索結果リスト（検索語がある時のみ表示） */}
-                              {searchTerm && (
+                              {/* 検索結果リスト（フォーカス時または検索語がある時に表示） */}
+                              {(toolSearchFocused[tool.id] || searchTerm) && (
                                 <div className="max-h-48 overflow-y-auto border border-gray-300 rounded-md mb-2 bg-white shadow-sm">
                                   {filteredTools.length === 0 ? (
                                     <div className="p-3 text-sm text-gray-500">検索結果なし</div>
