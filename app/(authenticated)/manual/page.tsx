@@ -3,6 +3,7 @@ import { getRolePermissionLevel } from '@/lib/manual/permissions'
 import ManualSearch from '@/components/ManualSearch'
 import ManualCategorySection from '@/components/ManualCategorySection'
 import Link from 'next/link'
+import type { ManualArticle } from '@/lib/manual/types'
 import fs from 'fs'
 import path from 'path'
 
@@ -14,18 +15,6 @@ type SearchIndexItem = {
   category: string
   permission: number
   tags: string[]
-}
-
-type ManualArticle = {
-  slug: string
-  frontmatter: {
-    title: string
-    description: string
-    category: string
-    permission: number
-    plans: string[]
-    tags: string[]
-  }
 }
 
 // ジャンル定義
@@ -84,13 +73,15 @@ export default async function ManualPage() {
   // ManualArticle形式に変換
   const allArticles: ManualArticle[] = searchIndex.map(item => ({
     slug: item.slug,
+    content: item.content,
     frontmatter: {
       title: item.title,
       description: item.description,
-      category: item.category,
-      permission: item.permission,
+      category: item.category as 'manual' | 'qa',
+      permission: item.permission as 0 | 1 | 2 | 3 | 4,
       plans: ['basic'], // 検索インデックスにはplans情報がないのでbasicをデフォルトに
       tags: item.tags,
+      lastUpdated: '',
     }
   }))
 
