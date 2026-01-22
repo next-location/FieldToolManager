@@ -120,6 +120,9 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
   // カスタムフィールドの値を保持
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>({})
 
+  // 写真の状態を保持
+  const [photos, setPhotos] = useState<any[]>([])
+
   // ひらがな⇔カタカナ変換関数
   const toHiragana = (str: string) => {
     return str.replace(/[\u30A1-\u30F6]/g, (match) => {
@@ -216,6 +219,31 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
       }
 
       const data = await response.json()
+
+      // 写真をアップロード
+      if (photos.length > 0) {
+        for (const photo of photos) {
+          if (!photo.file || photo.uploaded) continue
+
+          try {
+            const formData = new FormData()
+            formData.append('file', photo.file)
+            formData.append('caption', photo.caption || '')
+            formData.append('display_order', photo.display_order.toString())
+            formData.append('photo_type', photo.photo_type || 'other')
+            if (photo.taken_at) formData.append('taken_at', photo.taken_at)
+            if (photo.location_name) formData.append('location_name', photo.location_name)
+
+            await fetch(`/api/work-reports/${data.id}/photos`, {
+              method: 'POST',
+              body: formData,
+            })
+          } catch (photoError) {
+            console.error('写真アップロードエラー:', photoError)
+            // 写真のアップロードエラーは無視して続行
+          }
+        }
+      }
 
       // 作成完了後、詳細ページへ遷移
       router.push(`/work-reports/${data.id}`)
@@ -1015,7 +1043,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
 
       {/* 写真セクション */}
       <div className="bg-white shadow rounded-lg p-6">
-        <PhotoUpload reportId={undefined} />
+        <PhotoUpload reportId={undefined} onPhotosChange={setPhotos} />
       </div>
 
       {/* 添付ファイルセクション */}

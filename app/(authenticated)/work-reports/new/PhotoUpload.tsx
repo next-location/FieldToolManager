@@ -8,6 +8,7 @@ interface Photo {
   file?: File
   preview?: string
   caption: string
+  photo_type?: string
   display_order: number
   taken_at?: string
   location_name?: string
