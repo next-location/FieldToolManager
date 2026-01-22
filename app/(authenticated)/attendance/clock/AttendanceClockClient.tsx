@@ -318,36 +318,61 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
         </div>
       )}
 
-      {/* QRスキャナー */}
+      {/* QRスキャナー（全画面モーダル） */}
       {showQRScanner && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">QRコードをスキャン</h3>
-            <button
-              onClick={() => setShowQRScanner(false)}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
+        <div className="fixed inset-0 z-50 bg-black">
+          {/* ヘッダー */}
+          <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent">
+            <div className="flex items-center justify-between p-4">
+              <h3 className="text-lg font-semibold text-white">出退勤QRスキャン</h3>
+              <button
+                onClick={() => setShowQRScanner(false)}
+                className="p-2 text-white hover:bg-white/20 rounded-full transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
 
-          <div className="aspect-square max-w-md mx-auto">
-            <Scanner
-              onScan={(detectedCodes) => handleQRScan(detectedCodes)}
-              onError={(error) => console.error('QR Scanner error:', error)}
-            />
+          {/* スキャナー */}
+          <div className="h-full w-full flex items-center justify-center">
+            <div className="w-full h-full max-w-2xl">
+              <Scanner
+                onScan={(detectedCodes) => handleQRScan(detectedCodes)}
+                onError={(error) => console.error('QR Scanner error:', error)}
+                styles={{
+                  container: {
+                    width: '100%',
+                    height: '100%',
+                  },
+                  video: {
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                  },
+                }}
+              />
+            </div>
           </div>
 
-          <p className="text-sm text-gray-600 text-center mt-4">
-            出退勤用のQRコードをカメラでスキャンしてください
-          </p>
+          {/* フッター */}
+          <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/80 to-transparent">
+            <div className="p-6 text-center">
+              <p className="text-white text-lg font-medium">
+                出退勤用のQRコードをスキャンしてください
+              </p>
+              <p className="text-white/70 text-sm mt-2">
+                QRコードをカメラの中央に合わせてください
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
