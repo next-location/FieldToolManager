@@ -6,10 +6,12 @@ import AttendanceFiltersModal from '@/components/attendance/AttendanceFiltersMod
 
 interface MyAttendanceRecordsTableProps {
   userName: string
+  userId: string
 }
 
 export function MyAttendanceRecordsTable({
   userName,
+  userId,
 }: MyAttendanceRecordsTableProps) {
   const [records, setRecords] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -34,7 +36,7 @@ export function MyAttendanceRecordsTable({
   // データ取得
   useEffect(() => {
     fetchRecords()
-  }, [page, filters])
+  }, [page, filters, userId])
 
   const fetchRecords = async () => {
     setLoading(true)
@@ -42,6 +44,7 @@ export function MyAttendanceRecordsTable({
       const params = new URLSearchParams({
         page: page.toString(),
         limit: '50',
+        user_id: userId, // 自分のデータのみ取得
         ...(filters.start_date && { start_date: filters.start_date }),
         ...(filters.end_date && { end_date: filters.end_date }),
       })

@@ -23,7 +23,7 @@ export default async function MyAttendanceRecordsPage() {
         </div>
 
         <div className="bg-white shadow sm:rounded-lg">
-          <MyAttendanceRecordsTable userName={userData?.name || ''} />
+          <MyAttendanceRecordsTable userName={userData?.name || ''} userId={userId} />
         </div>
       </div>
     </div>
