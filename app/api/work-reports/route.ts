@@ -148,22 +148,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 作業者情報の整形
-    const workers = await Promise.all(
-      (body.worker_ids || []).map(async (workerId: string) => {
-        const { data: workerData } = await supabase
-          .from('users')
-          .select('id, name')
-          .eq('id', workerId)
-          .single()
-
-        return {
-          user_id: workerId,
-          name: workerData?.name || '',
-          work_hours: 0,
-        }
-      })
-    )
+    // 作業者情報の整形（フォームから workers 配列が送られてくる）
+    const workers = body.workers || []
 
     // ステータス決定（draft または submitted）
     const status = body.status === 'submitted' ? 'submitted' : 'draft'
