@@ -5,6 +5,11 @@ import { AttendanceRecordsWrapper } from './AttendanceRecordsWrapper'
 export default async function AttendanceRecordsPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
+  // 権限チェック: leader, manager, adminのみアクセス可能
+  if (!['leader', 'manager', 'admin'].includes(userRole)) {
+    redirect('/attendance/my-records')
+  }
+
   // 組織情報取得
   const { data: organization } = await supabase
     .from('organizations')
@@ -40,8 +45,8 @@ export default async function AttendanceRecordsPage() {
           <h1 className="text-lg sm:text-2xl font-bold text-gray-900">勤怠一覧</h1>
           <p className="mt-2 text-sm text-gray-600">
             {isAdminOrManager
-              ? `${organization?.name} のスタッフの出退勤記録を確認できます`
-              : 'あなたの出退勤記録を確認できます'}
+              ? `${organization?.name} のスタッフの出退勤記録を確認・編集できます`
+              : `${organization?.name} のスタッフの出退勤記録を確認できます（閲覧のみ）`}
           </p>
         </div>
 

@@ -41,11 +41,13 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '50')
 
-    // 権限チェック: staffは自分のみ閲覧可能
+    // 権限チェック: leader, manager, adminのみ全員分閲覧可能、それ以外は自分のみ
     const isAdminOrManager = ['admin', 'manager'].includes(userData.role)
+    const isLeaderOrAbove = ['leader', 'manager', 'admin'].includes(userData.role)
     const viewUserId = targetUserId || user.id
 
-    if (!isAdminOrManager && viewUserId !== user.id) {
+    // leaderは全員分閲覧可能だが、自分以外を指定して閲覧する場合はleader以上の権限が必要
+    if (!isLeaderOrAbove && targetUserId && targetUserId !== user.id) {
       return NextResponse.json(
         { error: '他のユーザーの勤怠記録を閲覧する権限がありません' },
         { status: 403 }
@@ -66,11 +68,16 @@ export async function GET(request: NextRequest) {
       )
       .eq('organization_id', userData?.organization_id)
 
-    // admin/manager以外は自分のみ
-    if (!isAdminOrManager) {
+    // leader以上は全員分、それ以外は自分のみ（targetUserIdが指定されていればそのユーザーのみ）
+    if (isLeaderOrAbove) {
+      // leader以上: targetUserIdが指定されていればそのユーザー、なければ全員
+      if (targetUserId) {
+        query = query.eq('user_id', targetUserId)
+      }
+      // targetUserIdがない場合は全員分を取得（フィルタなし）
+    } else {
+      // user: 常に自分のみ
       query = query.eq('user_id', user.id)
-    } else if (targetUserId) {
-      query = query.eq('user_id', targetUserId)
     }
 
     // フィルター適用
