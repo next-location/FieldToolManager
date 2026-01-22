@@ -186,44 +186,57 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
     setShowQRScanner(true)
     setScanError(null)
 
-    try {
-      const scanner = new Html5Qrcode('qr-reader-attendance')
-      scannerRef.current = scanner
-
-      await scanner.start(
-        { facingMode: 'environment' },
-        {
-          fps: 10,
-          qrbox: { width: 256, height: 256 },
-          aspectRatio: window.innerHeight / window.innerWidth,
-          disableFlip: true,
-        },
-        async (decodedText) => {
-          if (processingQrRef.current) return
-
-          processingQrRef.current = true
-
-          // バイブレーション
-          if (navigator.vibrate) {
-            navigator.vibrate(100)
+    // 少し遅延を入れてDOM要素が確実に存在するようにする
+    setTimeout(async () => {
+      try {
+        // 既存のスキャナーがあれば停止
+        if (scannerRef.current) {
+          try {
+            await scannerRef.current.stop()
+          } catch (e) {
+            // 停止エラーは無視
           }
-
-          // 視覚的フィードバック
-          setScanSuccess(true)
-          setTimeout(() => setScanSuccess(false), 300)
-
-          await handleQRScan(decodedText)
-        },
-        (errorMessage) => {
-          // スキャンエラーは無視
+          scannerRef.current = null
         }
-      )
 
-      setIsScanning(true)
-    } catch (err) {
-      console.error('カメラ起動エラー:', err)
-      setScanError('カメラの起動に失敗しました。')
-    }
+        const scanner = new Html5Qrcode('qr-reader-attendance')
+        scannerRef.current = scanner
+
+        await scanner.start(
+          { facingMode: 'environment' },
+          {
+            fps: 10,
+            qrbox: { width: 256, height: 256 },
+            aspectRatio: window.innerHeight / window.innerWidth,
+            disableFlip: true,
+          },
+          async (decodedText) => {
+            if (processingQrRef.current) return
+
+            processingQrRef.current = true
+
+            // バイブレーション
+            if (navigator.vibrate) {
+              navigator.vibrate(100)
+            }
+
+            // 視覚的フィードバック
+            setScanSuccess(true)
+            setTimeout(() => setScanSuccess(false), 300)
+
+            await handleQRScan(decodedText)
+          },
+          (errorMessage) => {
+            // スキャンエラーは無視
+          }
+        )
+
+        setIsScanning(true)
+      } catch (err) {
+        console.error('カメラ起動エラー:', err)
+        setScanError('カメラの起動に失敗しました。カメラの権限を許可してください。')
+      }
+    }, 100)
   }
 
   // QRスキャナー停止
@@ -393,7 +406,7 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
 
       {/* QRスキャナー（全画面モーダル） */}
       {showQRScanner && (
-        <div className="fixed inset-0 z-[9999] bg-black flex flex-col">
+        <div className="fixed inset-0 z-50 bg-black flex flex-col pt-[58px]">
           {/* html5-qrcodeの点滅するボーダーを無効化 */}
           <style jsx global>{`
             #qr-reader-attendance,
@@ -418,8 +431,8 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
             }
           `}</style>
 
-          {/* ヘッダー（タイトルと閉じるボタン） */}
-          <div className="absolute top-0 left-0 right-0 z-[10000] bg-gradient-to-b from-black/80 to-transparent">
+          {/* タイトルと閉じるボタン（ヘッダーの下） */}
+          <div className="absolute top-[58px] left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent">
             <div className="flex items-center justify-between p-4">
               <h3 className="text-lg font-semibold text-white">出退勤 QRスキャン</h3>
               <button
@@ -465,7 +478,7 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
 
             {/* エラー表示 */}
             {scanError && (
-              <div className="absolute top-20 left-4 right-4 bg-red-500 text-white p-3 rounded-lg z-30">
+              <div className="absolute top-24 left-4 right-4 bg-red-500 text-white p-3 rounded-lg z-30">
                 {scanError}
               </div>
             )}
