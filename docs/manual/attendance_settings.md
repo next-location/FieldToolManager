@@ -1,11 +1,11 @@
 ---
-title: "勤怠設定"
-description: "勤怠設定に関するガイド"
-permission: 1
+title: "出退勤設定（管理者向け）"
+description: "出退勤管理システムの打刻方法、休憩時間、リマインダーなどの設定ガイド"
+permission: 3
 plans: ["basic"]
 category: "manual"
-tags: ["勤怠管理","設定"]
-lastUpdated: "2026-01-21"
+tags: ["勤怠管理","設定","管理者"]
+lastUpdated: "2026-01-22"
 ---
 
 # 勤怠設定マニュアル
