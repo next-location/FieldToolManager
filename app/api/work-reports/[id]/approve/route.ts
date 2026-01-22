@@ -66,6 +66,12 @@ export async function POST(request: NextRequest, { params }: Params) {
       .single()
 
     if (reportError || !report) {
+      console.error('[APPROVE API] Report not found:', {
+        reportId: id,
+        organizationId: userData?.organization_id,
+        userId: user.id,
+        error: reportError?.message
+      })
       return NextResponse.json({ error: '作業報告書が見つかりません' }, { status: 404 })
     }
 
