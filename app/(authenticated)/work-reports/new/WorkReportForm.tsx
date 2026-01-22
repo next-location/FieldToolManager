@@ -107,6 +107,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
 
   // 作業員検索用のステート
   const [workerSearchTerms, setWorkerSearchTerms] = useState<Record<string, string>>({})
+  const [workerSearchFocused, setWorkerSearchFocused] = useState<Record<string, boolean>>({})
 
   // 時間外（残業時間） - 作業員ごとに管理（currentUserIdも含む）
   const [overtimeHours, setOvertimeHours] = useState<Record<string, number>>({})
@@ -440,8 +441,8 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                         作業員 {index + 1}
                       </label>
 
-                      {/* 選択されたユーザー表示（検索していない時のみ） */}
-                      {selectedUser && !searchTerm && (
+                      {/* 選択されたユーザー表示（フォーカスしていない時のみ） */}
+                      {selectedUser && !workerSearchFocused[worker.id] && !searchTerm && (
                         <div className="mb-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
                           <div className="text-sm font-medium text-blue-900">{selectedUser.name}</div>
                           <div className="text-xs text-blue-700">{selectedUser.email}</div>
@@ -453,6 +454,21 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                         type="text"
                         placeholder={selectedUser ? "別の作業員を検索..." : "名前またはメールアドレスで検索..."}
                         value={searchTerm}
+                        onFocus={() => {
+                          setWorkerSearchFocused({
+                            ...workerSearchFocused,
+                            [worker.id]: true
+                          })
+                        }}
+                        onBlur={() => {
+                          // 少し遅延させてクリックイベントが発火するのを待つ
+                          setTimeout(() => {
+                            setWorkerSearchFocused({
+                              ...workerSearchFocused,
+                              [worker.id]: false
+                            })
+                          }, 200)
+                        }}
                         onChange={(e) => {
                           setWorkerSearchTerms({
                             ...workerSearchTerms,
@@ -462,8 +478,8 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
                         className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                       />
 
-                      {/* 検索結果リスト（検索語がある時のみ表示） */}
-                      {searchTerm && (
+                      {/* 検索結果リスト（フォーカス時または検索語がある時に表示） */}
+                      {(workerSearchFocused[worker.id] || searchTerm) && (
                         <div className="max-h-48 overflow-y-auto border border-gray-300 rounded-md mb-2 bg-white shadow-sm">
                           {filteredUsers.length === 0 ? (
                             <div className="p-3 text-sm text-gray-500">検索結果なし</div>
