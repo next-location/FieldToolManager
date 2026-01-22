@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { X, Upload, FileText, FileImage, FileSpreadsheet, File } from 'lucide-react'
 
 interface Attachment {
@@ -54,6 +54,36 @@ export function AttachmentUpload({ reportId, onAttachmentsChange }: AttachmentUp
   const [attachments, setAttachments] = useState<Attachment[]>([])
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // 既存の添付ファイルを読み込む
+  useEffect(() => {
+    if (!reportId) return
+
+    const fetchAttachments = async () => {
+      try {
+        const response = await fetch(`/api/work-reports/${reportId}/attachments`)
+        if (!response.ok) return
+
+        const data = await response.json()
+        const existingAttachments = (data.attachments || []).map((attachment: any) => ({
+          id: attachment.id,
+          file_name: attachment.file_name,
+          file_type: attachment.file_type || 'その他',
+          description: attachment.description || '',
+          display_order: attachment.display_order,
+          uploaded: true,
+          storage_path: attachment.file_url,
+          mime_type: attachment.mime_type,
+          file_size: attachment.file_size,
+        }))
+        setAttachments(existingAttachments)
+      } catch (error) {
+        console.error('添付ファイルの読み込みエラー:', error)
+      }
+    }
+
+    fetchAttachments()
+  }, [reportId])
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
