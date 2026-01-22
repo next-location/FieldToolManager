@@ -56,7 +56,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       .select(
         `
         *,
-        site:sites(name),
+        site:sites!work_reports_site_id_fkey(name),
         created_by_user:users!work_reports_created_by_fkey(id, name)
       `
       )
