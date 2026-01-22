@@ -1,11 +1,13 @@
 ---
-title: "Monthly Reporting Issues"
-description: "Monthly Reporting Issuesに関するガイド"
+title: 月次報告業務 Q&A
+description: 月次報告業務 Q&Aに関するよくある質問とトラブル解決方法
 permission: 2
-plans: ["basic"]
-category: "qa"
-tags: ["トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # 月次報告業務 Q&A

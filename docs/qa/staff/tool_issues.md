@@ -1,11 +1,14 @@
 ---
-title: "Tool Issues"
-description: "Tool Issuesに関するガイド"
+title: 道具管理のトラブルシューティング
+description: 道具管理のトラブルシューティングに関するよくある質問とトラブル解決方法
 permission: 1
-plans: ["basic"]
-category: "qa"
-tags: ["備品管理","トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - 備品管理
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # 道具管理のトラブルシューティング

@@ -1,11 +1,14 @@
 ---
-title: "Attendance Clock Issues"
-description: "Attendance Clock Issuesに関するガイド"
+title: 出退勤打刻のよくある質問のトラブルシューティング
+description: 出退勤打刻のよくある質問に関するよくある質問とトラブル解決方法
 permission: 1
-plans: ["basic"]
-category: "qa"
-tags: ["勤怠管理","トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - 勤怠管理
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # 出退勤打刻のよくある質問（Q&A）

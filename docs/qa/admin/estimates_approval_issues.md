@@ -1,11 +1,15 @@
 ---
-title: "Estimates Approval Issues"
-description: "Estimates Approval Issuesに関するガイド"
+title: 見積書提出・承認のトラブルシューティング
+description: 見積書提出・承認に関するよくある質問とトラブル解決方法
 permission: 2
-plans: ["basic"]
-category: "qa"
-tags: ["見積書","承認","トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - 見積書
+  - 承認
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # 見積書提出・承認（Q&A）

@@ -1,11 +1,14 @@
 ---
-title: "Settings Issues"
-description: "Settings Issuesに関するガイド"
+title: 設定のよくある質問のトラブルシューティング
+description: 設定のよくある質問に関するよくある質問とトラブル解決方法
 permission: 1
-plans: ["basic"]
-category: "qa"
-tags: ["設定","トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - 設定
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # 設定のよくある質問（Q&A）

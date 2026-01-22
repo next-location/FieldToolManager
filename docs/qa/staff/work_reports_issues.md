@@ -1,11 +1,14 @@
 ---
-title: "Work Reports Issues"
-description: "Work Reports Issuesに関するガイド"
+title: 作業報告書のトラブルシューティング
+description: 作業報告書のトラブルシューティングに関するよくある質問とトラブル解決方法
 permission: 1
-plans: ["basic"]
-category: "qa"
-tags: ["作業報告","トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - 作業報告
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # 作業報告書のトラブルシューティング

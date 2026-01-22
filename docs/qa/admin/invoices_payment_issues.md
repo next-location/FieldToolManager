@@ -1,11 +1,14 @@
 ---
-title: "Invoices Payment Issues"
-description: "Invoices Payment Issuesに関するガイド"
+title: 入金記録 Q&A
+description: 入金記録 Q&Aに関するよくある質問とトラブル解決方法
 permission: 2
-plans: ["basic"]
-category: "qa"
-tags: ["請求書","トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - 請求書
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # 入金記録 Q&A

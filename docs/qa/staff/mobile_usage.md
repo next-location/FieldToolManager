@@ -1,11 +1,13 @@
 ---
-title: "Mobile Usage"
-description: "Mobile Usageに関するガイド"
+title: スマートフォン・タブレット利用
+description: スマートフォン・タブレット利用に関するよくある質問
 permission: 1
-plans: ["basic"]
-category: "qa"
-tags: ["モバイル"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - モバイル
+lastUpdated: '2026-01-22'
 ---
 
 # スマートフォン・タブレット利用

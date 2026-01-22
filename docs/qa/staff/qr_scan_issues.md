@@ -1,11 +1,14 @@
 ---
-title: "Qr Scan Issues"
-description: "Qr Scan Issuesに関するガイド"
+title: QRスキャンのトラブルシューティング
+description: QRスキャンのトラブルシューティングに関するよくある質問とトラブル解決方法
 permission: 1
-plans: ["basic"]
-category: "qa"
-tags: ["QRコード","トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - QRコード
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # QRスキャンのトラブルシューティング

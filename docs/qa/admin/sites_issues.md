@@ -1,11 +1,13 @@
 ---
-title: "Sites Issues"
-description: "Sites Issuesに関するガイド"
+title: 現場管理のトラブルシューティング
+description: 現場管理のトラブルシューティングに関するよくある質問とトラブル解決方法
 permission: 2
-plans: ["basic"]
-category: "qa"
-tags: ["トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # 現場管理のトラブルシューティング

@@ -1,11 +1,14 @@
 ---
-title: "Attendance Issues"
-description: "Attendance Issuesに関するガイド"
+title: 勤怠管理のトラブルシューティング
+description: 勤怠管理のトラブルシューティングに関するよくある質問とトラブル解決方法
 permission: 1
-plans: ["basic"]
-category: "qa"
-tags: ["勤怠管理","トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - 勤怠管理
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # 勤怠管理のトラブルシューティング

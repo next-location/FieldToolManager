@@ -1,11 +1,13 @@
 ---
-title: "Site Closing Issues"
-description: "Site Closing Issuesに関するガイド"
+title: 現場完了・片付けのトラブルシューティング
+description: 現場完了・片付けのトラブルシューティングに関するよくある質問とトラブル解決方法
 permission: 2
-plans: ["basic"]
-category: "qa"
-tags: ["トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # 現場完了・片付けのトラブルシューティング

@@ -1,11 +1,13 @@
 ---
-title: "Login Issues"
-description: "Login Issuesに関するガイド"
+title: ログイン・パスワード関連
+description: ログイン・パスワード関連に関するよくある質問
 permission: 1
-plans: ["basic"]
-category: "qa"
-tags: ["トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # ログイン・パスワード関連

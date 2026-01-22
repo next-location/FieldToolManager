@@ -1,11 +1,14 @@
 ---
-title: "Settings Contract Issues"
-description: "Settings Contract Issuesに関するガイド"
+title: 契約について Q&A
+description: 契約について Q&Aに関するよくある質問とトラブル解決方法
 permission: 2
-plans: ["basic"]
-category: "qa"
-tags: ["設定","トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - 設定
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # 契約について Q&A

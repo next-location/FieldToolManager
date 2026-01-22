@@ -1,11 +1,14 @@
 ---
-title: "Purchase Order Flow Issues"
-description: "Purchase Order Flow Issuesに関するガイド"
+title: 発注から支払いまでの流れ Q&A
+description: 発注から支払いまでの流れ Q&Aに関するよくある質問とトラブル解決方法
 permission: 2
-plans: ["basic"]
-category: "qa"
-tags: ["発注書","トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - 発注書
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # 発注から支払いまでの流れ Q&A

@@ -1,11 +1,14 @@
 ---
-title: "Tool Categories Issues"
-description: "Tool Categories Issuesに関するガイド"
+title: 道具カテゴリ管理 Q&A
+description: 道具カテゴリ管理 Q&Aに関するよくある質問とトラブル解決方法
 permission: 2
-plans: ["basic"]
-category: "qa"
-tags: ["備品管理","トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - 備品管理
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # 道具カテゴリ管理 Q&A

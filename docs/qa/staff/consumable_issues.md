@@ -1,11 +1,14 @@
 ---
-title: "Consumable Issues"
-description: "Consumable Issuesに関するガイド"
+title: 消耗品管理のトラブルシューティング
+description: 消耗品管理のトラブルシューティングに関するよくある質問とトラブル解決方法
 permission: 1
-plans: ["basic"]
-category: "qa"
-tags: ["消耗品管理","トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - 消耗品管理
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # 消耗品管理のトラブルシューティング

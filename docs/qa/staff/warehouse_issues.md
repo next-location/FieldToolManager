@@ -1,11 +1,13 @@
 ---
-title: "Warehouse Issues"
-description: "Warehouse Issuesに関するガイド"
+title: 倉庫位置管理のトラブルシューティング
+description: 倉庫位置管理のトラブルシューティングに関するよくある質問とトラブル解決方法
 permission: 1
-plans: ["basic"]
-category: "qa"
-tags: ["トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # 倉庫位置管理のトラブルシューティング

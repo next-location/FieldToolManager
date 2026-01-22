@@ -1,11 +1,14 @@
 ---
-title: "Estimates Create Issues"
-description: "Estimates Create Issuesに関するガイド"
+title: 見積書作成のトラブルシューティング
+description: 見積書作成に関するよくある質問とトラブル解決方法
 permission: 1
-plans: ["basic"]
-category: "qa"
-tags: ["見積書","トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - 見積書
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # 見積書作成（Q&A）

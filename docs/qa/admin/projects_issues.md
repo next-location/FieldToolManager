@@ -1,11 +1,13 @@
 ---
-title: "Projects Issues"
-description: "Projects Issuesに関するガイド"
+title: 工事管理のよくある質問のトラブルシューティング
+description: 工事管理のよくある質問に関するよくある質問とトラブル解決方法
 permission: 2
-plans: ["basic"]
-category: "qa"
-tags: ["トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # 工事管理のよくある質問（Q&A）

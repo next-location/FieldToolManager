@@ -1,11 +1,14 @@
 ---
-title: "Staff Add Issues"
-description: "Staff Add Issuesに関するガイド"
+title: スタッフ追加（権限の違い） Q&A
+description: スタッフ追加（権限の違い） Q&Aに関するよくある質問とトラブル解決方法
 permission: 2
-plans: ["basic"]
-category: "qa"
-tags: ["従業員管理","トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - 従業員管理
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # スタッフ追加（権限の違い） Q&A

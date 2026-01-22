@@ -1,11 +1,14 @@
 ---
-title: "Work Reports Pdf Issues"
-description: "Work Reports Pdf Issuesに関するガイド"
+title: 'Q&A: 作業報告書PDF出力'
+description: 'Q&A: 作業報告書PDF出力に関するよくある質問とトラブル解決方法'
 permission: 1
-plans: ["basic"]
-category: "qa"
-tags: ["作業報告","トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - 作業報告
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # Q&A: 作業報告書PDF出力

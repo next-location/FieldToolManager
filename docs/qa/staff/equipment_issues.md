@@ -1,11 +1,14 @@
 ---
-title: "Equipment Issues"
-description: "Equipment Issuesに関するガイド"
+title: 重機管理のトラブルシューティング
+description: 重機管理のトラブルシューティングに関するよくある質問とトラブル解決方法
 permission: 1
-plans: ["basic"]
-category: "qa"
-tags: ["重機管理","トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - 重機管理
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # 重機管理のトラブルシューティング

@@ -1,11 +1,14 @@
 ---
-title: "Invoices Issues"
-description: "Invoices Issuesに関するガイド"
+title: 請求書のトラブルシューティング
+description: 請求書のトラブルシューティングに関するよくある質問とトラブル解決方法
 permission: 1
-plans: ["basic"]
-category: "qa"
-tags: ["請求書","トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - 請求書
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # 請求書のトラブルシューティング

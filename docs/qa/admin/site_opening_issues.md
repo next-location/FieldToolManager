@@ -1,11 +1,13 @@
 ---
-title: "Site Opening Issues"
-description: "Site Opening Issuesに関するガイド"
+title: 新規現場立ち上げのトラブルシューティング
+description: 新規現場立ち上げのトラブルシューティングに関するよくある質問とトラブル解決方法
 permission: 2
-plans: ["basic"]
-category: "qa"
-tags: ["トラブルシューティング"]
-lastUpdated: "2026-01-21"
+plans:
+  - basic
+category: qa
+tags:
+  - トラブルシューティング
+lastUpdated: '2026-01-22'
 ---
 
 # 新規現場立ち上げのトラブルシューティング
