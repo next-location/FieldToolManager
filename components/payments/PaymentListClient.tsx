@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { toHiragana, toKatakana } from '@/lib/utils/japanese'
 import { SlidersHorizontal, Search } from 'lucide-react'
@@ -63,6 +63,8 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
   const [paymentMethodFilter, setPaymentMethodFilter] = useState('all')
   const [useMonthFilter, setUseMonthFilter] = useState(true)
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 20
 
   // 年の選択肢を生成（過去5年から来年まで）
   const yearOptions = Array.from({ length: 7 }, (_, i) => currentDate.getFullYear() - 5 + i)
@@ -132,6 +134,18 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
 
     return filtered
   }, [payments, searchQuery, selectedYear, selectedMonth, startDate, endDate, paymentTypeFilter, paymentMethodFilter, useMonthFilter])
+
+  // ページネーション
+  const totalPages = Math.ceil(filteredPayments.length / itemsPerPage)
+  const paginatedPayments = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    return filteredPayments.slice(startIndex, startIndex + itemsPerPage)
+  }, [filteredPayments, currentPage, itemsPerPage])
+
+  // フィルター変更時にページをリセット
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, selectedYear, selectedMonth, startDate, endDate, paymentTypeFilter, paymentMethodFilter, useMonthFilter])
 
   // 集計
   const totals = useMemo(() => {
@@ -403,7 +417,7 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredPayments.map((payment) => {
+              {paginatedPayments.map((payment) => {
                 const isReceipt = payment.payment_type === 'receipt'
                 const clientName = isReceipt
                   ? payment.invoice?.client?.name
@@ -512,7 +526,7 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
             条件に一致する入出金データがありません
           </div>
         ) : (
-          filteredPayments.map((payment) => {
+          paginatedPayments.map((payment) => {
             const isReceipt = payment.payment_type === 'receipt'
             const clientName = isReceipt
               ? payment.invoice?.client?.name
@@ -625,6 +639,29 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
           </div>
         )}
       </div>
+
+      {/* ページネーション */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-between">
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            前へ
+          </button>
+          <span className="text-sm text-gray-700">
+            {currentPage} / {totalPages} ページ
+          </span>
+          <button
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            次へ
+          </button>
+        </div>
+      )}
 
       {/* フィルターモーダル */}
       <PaymentFiltersModal

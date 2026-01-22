@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toHiragana, toKatakana } from '@/lib/utils/japanese'
@@ -60,6 +60,8 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
   const [sortField, setSortField] = useState<'invoice_date' | 'due_date' | 'total_amount'>('invoice_date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 20
 
   const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userRole)
 
@@ -157,6 +159,18 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
 
     return filtered
   }, [invoices, searchQuery, statusFilter, paymentFilter, staffFilter, sortField, sortOrder, isManagerOrAdmin])
+
+  // ページネーション
+  const totalPages = Math.ceil(filteredAndSortedInvoices.length / itemsPerPage)
+  const paginatedInvoices = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    return filteredAndSortedInvoices.slice(startIndex, startIndex + itemsPerPage)
+  }, [filteredAndSortedInvoices, currentPage, itemsPerPage])
+
+  // フィルター変更時にページをリセット
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, statusFilter, paymentFilter, staffFilter, sortField, sortOrder])
 
   const getStatusColor = (status: string, isOverdue: boolean) => {
     if (isOverdue && status !== 'paid') return 'bg-red-100 text-red-800'
@@ -313,7 +327,7 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
       {/* 件数表示とソート */}
       <div className="mb-4 flex items-center justify-between">
         <div className="text-sm text-gray-700">
-          全 {invoices.length} 件中 {filteredAndSortedInvoices.length} 件を表示
+          全 {invoices.length} 件中 {filteredAndSortedInvoices.length} 件を表示（{currentPage}/{totalPages} ページ）
         </div>
         <div className="flex items-center gap-2">
           <label className="text-xs text-gray-600">並び替え:</label>
@@ -338,7 +352,7 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
 
       {/* カード表示 */}
       <div className="space-y-4">
-        {filteredAndSortedInvoices.map((invoice) => {
+        {paginatedInvoices.map((invoice) => {
           const isPaid = invoice.paid_amount >= invoice.total_amount
           const isPartiallyPaid = invoice.paid_amount > 0 && !isPaid
           const isOverdue = !isPaid && new Date(invoice.due_date) < new Date()
@@ -475,6 +489,29 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
           {searchQuery || statusFilter !== 'all' || paymentFilter !== 'all'
             ? '検索条件に一致する請求書がありません'
             : '請求書データがありません'}
+        </div>
+      )}
+
+      {/* ページネーション */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-between">
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            前へ
+          </button>
+          <span className="text-sm text-gray-700">
+            {currentPage} / {totalPages} ページ
+          </span>
+          <button
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            次へ
+          </button>
         </div>
       )}
 

@@ -48,7 +48,7 @@ export default async function InvoicesPage() {
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 pb-6 sm:px-0 sm:py-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">請求書管理</h1>
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">請求書一覧</h1>
           <div className="hidden sm:flex gap-3">
             <ExportButton endpoint="/api/invoices/export" filename="invoices" />
             <Link

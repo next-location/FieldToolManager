@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Client, ClientType } from '@/types/clients'
@@ -20,6 +20,8 @@ export function ClientTabs({ clients, initialTab = 'all', isImpersonating }: Cli
   const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState<TabType>(initialTab)
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 20
 
   const tabs = [
     { id: 'all' as TabType, name: 'すべて', count: clients.length },
@@ -94,6 +96,18 @@ export function ClientTabs({ clients, initialTab = 'all', isImpersonating }: Cli
 
     return matchesTab && matchesSearch
   })
+
+  // ページネーション
+  const totalPages = Math.ceil(filteredClients.length / itemsPerPage)
+  const paginatedClients = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    return filteredClients.slice(startIndex, startIndex + itemsPerPage)
+  }, [filteredClients, currentPage, itemsPerPage])
+
+  // フィルター変更時にページをリセット
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [activeTab, searchQuery])
 
   const getTypeBadgeColor = (type: ClientType) => {
     switch (type) {
@@ -216,7 +230,7 @@ export function ClientTabs({ clients, initialTab = 'all', isImpersonating }: Cli
                 {tabs.find((t) => t.id === activeTab)?.name}
               </h3>
               <p className="mt-1 text-sm text-blue-700">
-                {filteredClients.length}件の取引先が登録されています
+                全 {clients.length} 件中 {filteredClients.length} 件を表示（{currentPage}/{totalPages} ページ）
               </p>
             </div>
           </div>
@@ -224,7 +238,7 @@ export function ClientTabs({ clients, initialTab = 'all', isImpersonating }: Cli
           {/* 取引先一覧 */}
           {filteredClients.length > 0 ? (
             <ul className="divide-y divide-gray-200">
-              {filteredClients.map((client) => (
+              {paginatedClients.map((client) => (
                 <li key={client.id}>
                   <Link
                     href={`/clients/${client.id}`}
@@ -323,8 +337,33 @@ export function ClientTabs({ clients, initialTab = 'all', isImpersonating }: Cli
               )}
             </div>
           )}
+
+          {/* ページネーション */}
+          {totalPages > 1 && (
+            <div className="mt-6 flex items-center justify-between">
+              <button
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              >
+                前へ
+              </button>
+              <span className="text-sm text-gray-700">
+                {currentPage} / {totalPages} ページ
+              </span>
+              <button
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              >
+                次へ
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      <ClientsPageFAB isImpersonating={isImpersonating} />
     </>
   )
 }

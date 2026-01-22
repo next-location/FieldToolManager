@@ -54,6 +54,8 @@ export function PurchaseOrderListClient({
   const [creatorSearchQuery, setCreatorSearchQuery] = useState('')
   const [showCreatorDropdown, setShowCreatorDropdown] = useState(false)
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 20
 
   const isManagerOrAdmin = ['manager', 'admin'].includes(currentUserRole)
 
@@ -109,6 +111,18 @@ export function PurchaseOrderListClient({
       return matchesSearch && matchesStatus && matchesCreator
     })
   }, [orders, searchQuery, statusFilter, creatorFilter])
+
+  // ページネーション
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage)
+  const paginatedOrders = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    return filteredOrders.slice(startIndex, startIndex + itemsPerPage)
+  }, [filteredOrders, currentPage, itemsPerPage])
+
+  // フィルター変更時にページをリセット
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, statusFilter, creatorFilter])
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -291,9 +305,14 @@ export function PurchaseOrderListClient({
         </div>
       </div>
 
+      {/* 件数表示 */}
+      <div className="mb-4 text-sm text-gray-700">
+        全 {orders.length} 件中 {filteredOrders.length} 件を表示（{currentPage}/{totalPages} ページ）
+      </div>
+
       {/* カード一覧 */}
       <div className="space-y-4">
-        {filteredOrders.map((order) => (
+        {paginatedOrders.map((order) => (
           <div key={order.id} className="bg-white border border-gray-300 rounded-lg shadow-sm">
             {/* クリック可能なカード本体 */}
             <div
@@ -531,6 +550,29 @@ export function PurchaseOrderListClient({
           </div>
         )}
       </div>
+
+      {/* ページネーション */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-between">
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            前へ
+          </button>
+          <span className="text-sm text-gray-700">
+            {currentPage} / {totalPages} ページ
+          </span>
+          <button
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            次へ
+          </button>
+        </div>
+      )}
 
       {/* FAB */}
       <PurchaseOrderPageFAB />

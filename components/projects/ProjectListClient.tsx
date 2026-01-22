@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { ChevronUp, ChevronDown, SlidersHorizontal, Search } from 'lucide-react'
 import ProjectFiltersModal from './ProjectFiltersModal'
@@ -27,6 +27,8 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
   const [sortField, setSortField] = useState<'start_date' | 'end_date' | 'contract_amount'>('start_date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 20
 
   // ソート処理
   const handleSort = (field: typeof sortField) => {
@@ -81,6 +83,18 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
 
     return filtered
   }, [projects, searchQuery, statusFilter, sortField, sortOrder])
+
+  // ページネーション
+  const totalPages = Math.ceil(filteredAndSortedProjects.length / itemsPerPage)
+  const paginatedProjects = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    return filteredAndSortedProjects.slice(startIndex, startIndex + itemsPerPage)
+  }, [filteredAndSortedProjects, currentPage, itemsPerPage])
+
+  // フィルター変更時にページをリセット
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, statusFilter, sortField, sortOrder])
 
   const SortIcon = ({ field }: { field: typeof sortField }) => {
     if (sortField !== field) return null
@@ -185,7 +199,7 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
       {/* 件数表示 */}
       <div className="mb-4">
         <div className="text-sm text-gray-700">
-          全 {projects.length} 件中 {filteredAndSortedProjects.length} 件を表示
+          全 {projects.length} 件中 {filteredAndSortedProjects.length} 件を表示（{currentPage}/{totalPages} ページ）
         </div>
       </div>
 
@@ -198,7 +212,7 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
               : '工事データがありません'}
           </div>
         ) : (
-          filteredAndSortedProjects.map((project) => (
+          paginatedProjects.map((project) => (
             <div key={project.id} className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
               {/* PC表示 */}
               <div className="hidden sm:block p-6">
@@ -346,6 +360,29 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
           ))
         )}
       </div>
+
+      {/* ページネーション */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-between">
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            前へ
+          </button>
+          <span className="text-sm text-gray-700">
+            {currentPage} / {totalPages} ページ
+          </span>
+          <button
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            次へ
+          </button>
+        </div>
+      )}
 
       {/* フィルターモーダル */}
       <ProjectFiltersModal

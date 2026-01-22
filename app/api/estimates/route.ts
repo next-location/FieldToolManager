@@ -214,6 +214,56 @@ export async function POST(request: NextRequest) {
       total_amount: body.total_amount,
     }, user.id, userData.organization_id)
 
+    // 提出時に管理者・マネージャーに通知
+    if (body.status === 'submitted') {
+      console.log('[見積書提出] 通知作成中:', {
+        estimate_number: body.estimate_number,
+        submitter: userData.name
+      })
+
+      // 管理者・マネージャーを取得
+      const { data: managersAndAdmins, error: usersError } = await supabase
+        .from('users')
+        .select('id, name, role')
+        .eq('organization_id', userData.organization_id)
+        .in('role', ['manager', 'admin', 'super_admin'])
+        .eq('is_active', true)
+
+      if (usersError) {
+        console.error('[見積書提出] 管理者取得エラー:', usersError)
+      } else if (managersAndAdmins && managersAndAdmins.length > 0) {
+        console.log('[見積書提出] 通知対象者:', managersAndAdmins.length, '人')
+
+        // 各管理者・マネージャーに通知を作成
+        const notifications = managersAndAdmins
+          .filter(u => u.id !== user.id) // 自分自身には通知しない
+          .map(u => ({
+            organization_id: userData.organization_id,
+            target_user_id: u.id,
+            related_estimate_id: estimate.id,
+            type: 'estimate_submitted',
+            title: '新しい見積書が提出されました',
+            message: `${userData.name}が見積書「${body.estimate_number}」を提出しました。承認をお願いします。`,
+            severity: 'info' as const,
+            metadata: { estimate_id: estimate.id, estimate_number: body.estimate_number, link: `/estimates/${estimate.id}` }
+          }))
+
+        if (notifications.length > 0) {
+          const { error: notificationError } = await supabase
+            .from('notifications')
+            .insert(notifications)
+
+          if (notificationError) {
+            console.error('[見積書提出] 通知作成エラー:', notificationError)
+          } else {
+            console.log('[見積書提出] 通知作成成功:', notifications.length, '件')
+          }
+        }
+      } else {
+        console.log('[見積書提出] 通知対象者なし')
+      }
+    }
+
     return NextResponse.json({ data: estimate }, { status: 201 })
   } catch (error) {
     console.error('Error in POST /api/estimates:', error)

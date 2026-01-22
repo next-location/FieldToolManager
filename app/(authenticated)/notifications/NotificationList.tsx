@@ -100,6 +100,7 @@ export function NotificationList({ initialNotifications }: NotificationListProps
       work_report_submitted: '作業報告書提出',
       work_report_approved: '作業報告書承認',
       work_report_rejected: '作業報告書差し戻し',
+      estimate_submitted: '見積書提出',
       estimate_approved: '見積書承認',
       estimate_returned: '見積書差し戻し',
       estimate_customer_approved: '見積書顧客承認',
