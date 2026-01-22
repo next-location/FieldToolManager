@@ -149,7 +149,8 @@ export function EstimateListClient({ estimates: initialEstimates, userRole, staf
       if (sortOrder === 'asc') {
         return aValue > bValue ? 1 : -1
       } else {
-        return aValue < bValue ? 1 : -1
+        // 降順: 大きい値が先に来るように
+        return aValue > bValue ? -1 : 1
       }
     })
 
