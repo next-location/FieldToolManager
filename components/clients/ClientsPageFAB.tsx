@@ -4,8 +4,15 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
 
-export default function ClientsPageFAB() {
+interface ClientsPageFABProps {
+  isImpersonating?: boolean
+}
+
+export default function ClientsPageFAB({ isImpersonating }: ClientsPageFABProps) {
   const [isScrolled, setIsScrolled] = useState(false)
+
+  // なりすまし中はFABを表示しない
+  if (isImpersonating) return null
 
   useEffect(() => {
     let lastScrollY = window.scrollY
