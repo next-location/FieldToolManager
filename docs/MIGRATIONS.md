@@ -4612,3 +4612,61 @@ ORDER BY tablename, cmd;
 ```
 
 ---
+
+---
+
+## 📝 estimate_itemsテーブルのitem_type制約修正（2026-01-22）
+
+### 20260122000002_fix_estimate_items_item_type_constraint.sql
+
+**適用日**: 2026-01-22
+**適用環境**: 本番環境（Supabase Dashboard → SQL Editor）
+**影響範囲**: `estimate_items`テーブルのitem_type制約修正
+
+**背景**:
+- 見積書作成時に「見積明細の作成に失敗しました」エラーが発生
+- エラー: `new row for relation "estimate_items" violates check constraint "estimate_items_item_type_check"`
+- 原因: データベース制約に`'construction'`タイプが含まれていない
+- APIコードでは`'construction'`を許可しているが、データベース制約と不一致
+
+**現在の制約**:
+```sql
+CHECK (item_type IN ('material', 'labor', 'subcontract', 'expense', 'other'))
+```
+
+**修正後の制約**:
+```sql
+CHECK (item_type IN ('construction', 'material', 'labor', 'subcontract', 'expense', 'other'))
+```
+
+**SQL**:
+```sql
+-- estimate_itemsテーブルのitem_type制約を修正
+ALTER TABLE estimate_items
+DROP CONSTRAINT IF EXISTS estimate_items_item_type_check;
+
+ALTER TABLE estimate_items
+ADD CONSTRAINT estimate_items_item_type_check
+CHECK (item_type IN ('construction', 'material', 'labor', 'subcontract', 'expense', 'other'));
+```
+
+**影響する機能**:
+- 見積書作成（item_typeに'construction'を使用可能になる）
+
+**ロールバック手順**:
+```sql
+-- 元の制約に戻す（注意: constructionタイプのデータが存在する場合は失敗する）
+ALTER TABLE estimate_items
+DROP CONSTRAINT IF EXISTS estimate_items_item_type_check;
+
+ALTER TABLE estimate_items
+ADD CONSTRAINT estimate_items_item_type_check
+CHECK (item_type IN ('material', 'labor', 'subcontract', 'expense', 'other'));
+```
+
+**適用手順**:
+1. Supabase Dashboard → SQL Editor を開く
+2. 上記のSQLを貼り付けて実行
+3. 見積書作成をテストして動作確認
+
+---
