@@ -25,6 +25,8 @@ interface AttendanceRecordsTableProps {
     location_type: string
     site_id: string
   }
+  showStaffName?: boolean
+  showStaffSort?: boolean
 }
 
 export function AttendanceRecordsTable({
@@ -36,6 +38,8 @@ export function AttendanceRecordsTable({
     location_type: '',
     site_id: '',
   },
+  showStaffName = true,
+  showStaffSort = false,
 }: AttendanceRecordsTableProps) {
   const [records, setRecords] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
