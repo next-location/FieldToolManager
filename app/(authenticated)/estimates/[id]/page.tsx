@@ -121,12 +121,17 @@ export default async function EstimateDetailPage({
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
-      <div className="mb-6 flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold mb-2">見積書詳細</h1>
-          <p className="text-gray-600">{estimate.estimate_number}</p>
+      {/* ヘッダーとボタン */}
+      <div className="mb-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
+          <div>
+            <h1 className="text-lg sm:text-2xl font-bold mb-2">見積書詳細</h1>
+            <p className="text-sm sm:text-base text-gray-600">{estimate.estimate_number}</p>
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+
+        {/* アクションボタン（スマホでは縦並び） */}
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
           {/* 期限切れの場合は警告メッセージを表示 */}
           {estimate.status === 'expired' && (
             <div className="w-full mb-4">
@@ -224,21 +229,21 @@ export default async function EstimateDetailPage({
 
           <Link
             href="/estimates"
-            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
+            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 text-center"
           >
             一覧に戻る
           </Link>
         </div>
       </div>
 
-      <div className="bg-white shadow-sm rounded-lg p-8 print:shadow-none">
+      <div className="bg-white shadow-sm rounded-lg p-4 sm:p-8 print:shadow-none">
         {/* ヘッダー部分 */}
         <div className="border-b pb-6 mb-6">
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold">見　積　書</h2>
+            <h2 className="text-xl sm:text-2xl font-bold">見　積　書</h2>
           </div>
 
-          <div className="grid grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
             {/* 宛先 */}
             <div>
               <div className="mb-4">
@@ -265,7 +270,7 @@ export default async function EstimateDetailPage({
             </div>
 
             {/* 発行者情報 */}
-            <div className="text-right">
+            <div className="text-left sm:text-right">
               <div className="mb-4">
                 <p className="text-xs text-gray-600 mb-1">見積番号: {estimate.estimate_number}</p>
                 {organization?.invoice_registration_number && (
@@ -281,7 +286,7 @@ export default async function EstimateDetailPage({
                 )}
               </div>
 
-              <div className="inline-block text-left">
+              <div className="inline-block text-left w-full sm:w-auto">
                 <p className="font-bold text-lg mb-2">{organization?.name}</p>
                 {organization?.address && (
                   <p className="text-sm text-gray-600">{organization.address}</p>
@@ -317,38 +322,42 @@ export default async function EstimateDetailPage({
         {/* 明細 */}
         <div className="mb-6">
           <h3 className="text-sm font-semibold mb-2">明細</h3>
-          <table className="w-full border-collapse">
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
+            <div className="inline-block min-w-full align-middle px-4 sm:px-0">
+              <table className="min-w-full border-collapse">
             <thead>
               <tr className="bg-gray-50 border-t border-b">
-                <th className="text-left p-2 text-sm">項目</th>
-                <th className="text-left p-2 text-sm">説明</th>
-                <th className="text-right p-2 text-sm">数量</th>
-                <th className="text-center p-2 text-sm">単位</th>
-                <th className="text-right p-2 text-sm">単価</th>
-                <th className="text-right p-2 text-sm">金額</th>
-                <th className="text-center p-2 text-sm">税率</th>
+                <th className="text-left p-2 text-xs sm:text-sm">項目</th>
+                <th className="text-left p-2 text-xs sm:text-sm hidden sm:table-cell">説明</th>
+                <th className="text-right p-2 text-xs sm:text-sm">数量</th>
+                <th className="text-center p-2 text-xs sm:text-sm hidden md:table-cell">単位</th>
+                <th className="text-right p-2 text-xs sm:text-sm hidden lg:table-cell">単価</th>
+                <th className="text-right p-2 text-xs sm:text-sm">金額</th>
+                <th className="text-center p-2 text-xs sm:text-sm hidden md:table-cell">税率</th>
               </tr>
             </thead>
             <tbody>
               {estimate.estimate_items?.sort((a: any, b: any) => a.display_order - b.display_order)
                 .map((item: any) => (
                 <tr key={item.id} className="border-b">
-                  <td className="p-2 text-sm">{item.item_name}</td>
-                  <td className="p-2 text-sm text-gray-600">{item.description}</td>
-                  <td className="p-2 text-sm text-right">{item.quantity}</td>
-                  <td className="p-2 text-sm text-center">{item.unit}</td>
-                  <td className="p-2 text-sm text-right">¥{item.unit_price.toLocaleString()}</td>
-                  <td className="p-2 text-sm text-right font-medium">¥{item.amount.toLocaleString()}</td>
-                  <td className="p-2 text-sm text-center">{item.tax_rate}%</td>
+                  <td className="p-2 text-xs sm:text-sm">{item.item_name}</td>
+                  <td className="p-2 text-xs sm:text-sm text-gray-600 hidden sm:table-cell">{item.description}</td>
+                  <td className="p-2 text-xs sm:text-sm text-right">{item.quantity}</td>
+                  <td className="p-2 text-xs sm:text-sm text-center hidden md:table-cell">{item.unit}</td>
+                  <td className="p-2 text-xs sm:text-sm text-right hidden lg:table-cell">¥{item.unit_price.toLocaleString()}</td>
+                  <td className="p-2 text-xs sm:text-sm text-right font-medium">¥{item.amount.toLocaleString()}</td>
+                  <td className="p-2 text-xs sm:text-sm text-center hidden md:table-cell">{item.tax_rate}%</td>
                 </tr>
               ))}
             </tbody>
           </table>
+            </div>
+          </div>
         </div>
 
         {/* 合計 */}
         <div className="flex justify-end mb-6">
-          <div className="w-80">
+          <div className="w-full sm:w-80">
             <div className="flex justify-between py-2">
               <span className="text-sm">小計:</span>
               <span className="text-sm font-medium">¥{subtotal.toLocaleString()}</span>
