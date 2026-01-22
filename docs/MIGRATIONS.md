@@ -4670,3 +4670,75 @@ CHECK (item_type IN ('material', 'labor', 'subcontract', 'expense', 'other'));
 3. 見積書作成をテストして動作確認
 
 ---
+
+---
+
+## 📝 estimatesテーブルのUPDATE/DELETEポリシー追加（2026-01-22）
+
+### 20260122000003_add_estimates_update_delete_policies.sql
+
+**適用日**: 2026-01-22
+**適用環境**: 本番環境（Supabase Dashboard → SQL Editor）
+**影響範囲**: `estimates`テーブルのRLSポリシー追加
+
+**背景**:
+- 見積書削除が表面上成功するが、リロードすると復活する
+- 原因: `estimates`テーブルにUPDATE/DELETEポリシーが存在しない
+- APIは成功を返すが、RLSで削除がブロックされている
+
+**現在のポリシー**:
+- `Leader can insert estimates` (INSERT)
+- `Users can view estimates in their organization` (SELECT)
+
+**追加するポリシー**:
+- UPDATE: 自分の組織の見積書のみ更新可能
+- DELETE: 自分の組織の見積書のみ削除可能
+
+**SQL**:
+```sql
+-- estimatesテーブルにUPDATE/DELETEポリシーを追加
+
+-- UPDATE: 自分の組織の見積書のみ更新可能
+CREATE POLICY "estimates_update" ON estimates
+  FOR UPDATE
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM users WHERE id = auth.uid()
+    )
+  );
+
+-- DELETE: 自分の組織の見積書のみ削除可能
+CREATE POLICY "estimates_delete" ON estimates
+  FOR DELETE
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM users WHERE id = auth.uid()
+    )
+  );
+```
+
+**影響する機能**:
+- 見積書の更新
+- 見積書の削除
+
+**確認方法**:
+```sql
+-- ポリシー確認
+SELECT schemaname, tablename, policyname, cmd
+FROM pg_policies
+WHERE tablename = 'estimates'
+ORDER BY cmd;
+
+-- 削除テスト後の確認（削除されているはず）
+SELECT id, estimate_number, status, deleted_at
+FROM estimates
+WHERE id = '削除したID';
+```
+
+**ロールバック手順**:
+```sql
+DROP POLICY IF EXISTS "estimates_update" ON estimates;
+DROP POLICY IF EXISTS "estimates_delete" ON estimates;
+```
+
+---
