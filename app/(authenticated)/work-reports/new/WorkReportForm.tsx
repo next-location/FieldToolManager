@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { CustomFieldInput } from './CustomFieldInput'
@@ -67,6 +67,15 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [csrfToken, setCsrfToken] = useState('')
+
+  // CSRFトークンを取得
+  useEffect(() => {
+    fetch('/api/csrf-token')
+      .then(res => res.json())
+      .then(data => setCsrfToken(data.token))
+      .catch(err => console.error('Failed to fetch CSRF token:', err))
+  }, [])
 
   // 統一フォームスタイル（PC・スマホ対応）
   const inputClassName = "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm h-[40px]"
@@ -175,6 +184,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken,
         },
         body: JSON.stringify({
           site_id: siteId,

@@ -12,10 +12,11 @@ export default async function NewWorkReportPage() {
     .eq('id', userId)
     .single()
 
-  // アクティブな現場一覧を取得
+  // アクティブな現場一覧を取得（置き場を除外）
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name, address')
+    .eq('location_type', 'site')
     .eq('is_active', true)
     .is('deleted_at', null)
     .order('name')
