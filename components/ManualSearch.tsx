@@ -94,20 +94,16 @@ export default function ManualSearch({ userPermission, userPlan }: ManualSearchP
             // 権限チェック
             if (doc.permission > userPermission) continue
 
-            // プランチェック（basicは全員OK）
-            if (!doc.tags.includes('basic') && userPlan !== 'asset_pack' && userPlan !== 'dx_pack') {
-              continue
-            }
-
             if (!seenSlugs.has(doc.slug)) {
               seenSlugs.add(doc.slug)
+              const tags = Array.isArray(doc.tags) ? doc.tags : []
               items.push({
                 slug: doc.slug,
                 title: doc.title,
                 description: doc.description,
                 category: doc.category,
                 permission: doc.permission,
-                tags: doc.tags.split(' ').filter(Boolean),
+                tags: tags,
               })
             }
           }
