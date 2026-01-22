@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Scanner } from '@yudiel/react-qr-scanner'
+import { Html5Qrcode } from 'html5-qrcode'
+import { X } from 'lucide-react'
 
 interface Site {
   id: string
@@ -38,6 +39,11 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
 
   // QRスキャン用
   const [showQRScanner, setShowQRScanner] = useState(false)
+  const [isScanning, setIsScanning] = useState(false)
+  const [scanError, setScanError] = useState<string | null>(null)
+  const [scanSuccess, setScanSuccess] = useState(false)
+  const scannerRef = useRef<Html5Qrcode | null>(null)
+  const processingQrRef = useRef<boolean>(false)
 
   // 手動打刻用の場所選択
   const [location, setLocation] = useState<'office' | 'site' | ''>('')
@@ -175,16 +181,73 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
     }
   }
 
-  // QRコードスキャン処理
-  const handleQRScan = async (detectedCodes: any[]) => {
-    if (detectedCodes.length === 0) return
-
-    const qrData = detectedCodes[0].rawValue
-    setShowQRScanner(false)
-    setActionLoading(true)
-    setMessage(null)
+  // QRスキャナー開始
+  const startQRScanning = async () => {
+    setShowQRScanner(true)
+    setScanError(null)
 
     try {
+      const scanner = new Html5Qrcode('qr-reader-attendance')
+      scannerRef.current = scanner
+
+      await scanner.start(
+        { facingMode: 'environment' },
+        {
+          fps: 10,
+          qrbox: { width: 256, height: 256 },
+          aspectRatio: window.innerHeight / window.innerWidth,
+          disableFlip: true,
+        },
+        async (decodedText) => {
+          if (processingQrRef.current) return
+
+          processingQrRef.current = true
+
+          // バイブレーション
+          if (navigator.vibrate) {
+            navigator.vibrate(100)
+          }
+
+          // 視覚的フィードバック
+          setScanSuccess(true)
+          setTimeout(() => setScanSuccess(false), 300)
+
+          await handleQRScan(decodedText)
+        },
+        (errorMessage) => {
+          // スキャンエラーは無視
+        }
+      )
+
+      setIsScanning(true)
+    } catch (err) {
+      console.error('カメラ起動エラー:', err)
+      setScanError('カメラの起動に失敗しました。')
+    }
+  }
+
+  // QRスキャナー停止
+  const stopQRScanning = async () => {
+    if (scannerRef.current) {
+      try {
+        await scannerRef.current.stop()
+        scannerRef.current = null
+        setIsScanning(false)
+      } catch (err) {
+        console.error('スキャン停止エラー:', err)
+      }
+    }
+    setShowQRScanner(false)
+    processingQrRef.current = false
+  }
+
+  // QRコードスキャン処理
+  const handleQRScan = async (qrData: string) => {
+    try {
+      await stopQRScanning()
+      setActionLoading(true)
+      setMessage(null)
+
       // 出勤中かどうかで判断
       const endpoint = todayRecord?.clock_in_time && !todayRecord?.clock_out_time
         ? '/api/attendance/clock-out'
@@ -216,8 +279,18 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
       setMessage({ type: 'error', text: error.message || '打刻に失敗しました' })
     } finally {
       setActionLoading(false)
+      processingQrRef.current = false
     }
   }
+
+  // クリーンアップ
+  useEffect(() => {
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.stop().catch(console.error)
+      }
+    }
+  }, [])
 
   // 勤務時間を計算（currentTimeを使用して1分ごとに更新）
   const getWorkDuration = () => {
@@ -320,56 +393,99 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
 
       {/* QRスキャナー（全画面モーダル） */}
       {showQRScanner && (
-        <div className="fixed inset-0 z-50 bg-black">
-          {/* ヘッダー */}
-          <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent">
+        <div className="fixed inset-0 z-[9999] bg-black flex flex-col">
+          {/* html5-qrcodeの点滅するボーダーを無効化 */}
+          <style jsx global>{`
+            #qr-reader-attendance,
+            #qr-reader-attendance *,
+            #qr-reader-attendance video,
+            #qr-reader-attendance__scan_region,
+            #qr-reader-attendance__scan_region video,
+            #qr-reader-attendance__dashboard,
+            #qr-reader-attendance__dashboard_section,
+            #qr-reader-attendance__camera_selection {
+              border: none !important;
+              outline: none !important;
+              box-shadow: none !important;
+              margin: 0 !important;
+              padding: 0 !important;
+            }
+
+            #qr-reader-attendance *,
+            #qr-reader-attendance video {
+              animation: none !important;
+              transition: none !important;
+            }
+          `}</style>
+
+          {/* ヘッダー（タイトルと閉じるボタン） */}
+          <div className="absolute top-0 left-0 right-0 z-[10000] bg-gradient-to-b from-black/80 to-transparent">
             <div className="flex items-center justify-between p-4">
-              <h3 className="text-lg font-semibold text-white">出退勤QRスキャン</h3>
+              <h3 className="text-lg font-semibold text-white">出退勤 QRスキャン</h3>
               <button
-                onClick={() => setShowQRScanner(false)}
+                onClick={stopQRScanning}
                 className="p-2 text-white hover:bg-white/20 rounded-full transition-colors"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <X className="w-6 h-6" />
               </button>
             </div>
           </div>
 
-          {/* スキャナー */}
-          <div className="h-full w-full flex items-center justify-center">
-            <div className="w-full h-full max-w-2xl">
-              <Scanner
-                onScan={(detectedCodes) => handleQRScan(detectedCodes)}
-                onError={(error) => console.error('QR Scanner error:', error)}
-                styles={{
-                  container: {
-                    width: '100%',
-                    height: '100%',
-                  },
-                  video: {
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                  },
-                }}
-              />
-            </div>
-          </div>
+          {/* カメラビュー */}
+          <div className="flex-1 relative bg-black overflow-hidden">
+            <div id="qr-reader-attendance" className="w-full h-full" />
 
-          {/* フッター */}
-          <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/80 to-transparent">
-            <div className="p-6 text-center">
-              <p className="text-white text-lg font-medium">
+            {/* 半透明黒オーバーレイ（QR枠以外を覆う） */}
+            {isScanning && (
+              <div className="absolute inset-0 pointer-events-none">
+                {/* 上部 */}
+                <div className="absolute top-0 left-0 right-0 bg-black/60" style={{ height: 'calc(50% - 128px)' }} />
+                {/* 左側 */}
+                <div className="absolute left-0 bg-black/60" style={{ top: 'calc(50% - 128px)', width: 'calc(50% - 128px)', height: '256px' }} />
+                {/* 右側 */}
+                <div className="absolute right-0 bg-black/60" style={{ top: 'calc(50% - 128px)', width: 'calc(50% - 128px)', height: '256px' }} />
+                {/* 下部 */}
+                <div className="absolute bottom-0 left-0 right-0 bg-black/60" style={{ height: 'calc(50% - 128px)' }} />
+              </div>
+            )}
+
+            {/* スキャン成功時の視覚的フィードバック */}
+            {scanSuccess && (
+              <>
+                <div className="absolute inset-0 bg-green-500 opacity-30 pointer-events-none transition-opacity duration-300 z-20" />
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                  <div className="bg-green-500 rounded-full p-8 animate-ping">
+                    <svg className="w-24 h-24 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* エラー表示 */}
+            {scanError && (
+              <div className="absolute top-20 left-4 right-4 bg-red-500 text-white p-3 rounded-lg z-30">
+                {scanError}
+              </div>
+            )}
+
+            {/* QRコード枠のガイド */}
+            {isScanning && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                <div className="relative w-64 h-64 border-2 border-white rounded-lg">
+                  <div className="absolute -top-2 -left-2 w-8 h-8 border-t-4 border-l-4 border-white rounded-tl-lg"></div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 border-t-4 border-r-4 border-white rounded-tr-lg"></div>
+                  <div className="absolute -bottom-2 -left-2 w-8 h-8 border-b-4 border-l-4 border-white rounded-bl-lg"></div>
+                  <div className="absolute -bottom-2 -right-2 w-8 h-8 border-b-4 border-r-4 border-white rounded-br-lg"></div>
+                </div>
+              </div>
+            )}
+
+            {/* 説明テキスト */}
+            <div className="absolute bottom-8 left-0 right-0 z-10 text-center px-4">
+              <p className="text-white text-lg font-medium drop-shadow-lg">
                 出退勤用のQRコードをスキャンしてください
-              </p>
-              <p className="text-white/70 text-sm mt-2">
-                QRコードをカメラの中央に合わせてください
               </p>
             </div>
           </div>
@@ -382,9 +498,9 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
           <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">出勤打刻</h3>
 
           {/* QRコードスキャンボタン */}
-          {canUseQR && !showQRScanner && (
+          {canUseQR && (
             <button
-              onClick={() => setShowQRScanner(true)}
+              onClick={startQRScanning}
               className="w-full mb-3 sm:mb-4 inline-flex justify-center items-center px-4 sm:px-6 py-3 sm:py-4 border-2 border-blue-600 text-base sm:text-lg font-medium rounded-lg text-blue-600 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -525,9 +641,9 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
           <h3 className="text-lg font-semibold text-gray-900 mb-4">退勤打刻</h3>
 
           {/* QRコードスキャンボタン */}
-          {canUseQR && !showQRScanner && (
+          {canUseQR && (
             <button
-              onClick={() => setShowQRScanner(true)}
+              onClick={startQRScanning}
               className="w-full mb-4 inline-flex justify-center items-center px-6 py-4 border-2 border-gray-600 text-lg font-medium rounded-lg text-gray-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
             >
               <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
