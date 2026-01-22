@@ -29,11 +29,12 @@ export default async function NewWorkReportPage() {
     .is('deleted_at', null)
     .order('name')
 
-  // 組織内の道具一覧を取得（使用道具選択用）
+  // 組織内の道具一覧を取得（使用道具選択用、消耗品を除外）
   const { data: organizationTools } = await supabase
     .from('tools')
     .select('id, name, model_number')
     .eq('organization_id', organizationId)
+    .eq('management_type', 'individual')
     .is('deleted_at', null)
     .order('name')
 
