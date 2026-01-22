@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
     const { data: userData, error: userDataError } = await supabase
       .from('users')
-      .select('organization_id, role')
+      .select('organization_id, role, id')
       .eq('id', user.id)
       .single()
 
@@ -34,6 +34,9 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status') || ''
     const clientId = searchParams.get('client_id') || ''
     const projectId = searchParams.get('project_id') || ''
+    const creatorId = searchParams.get('creator_id') || ''
+    const sortField = searchParams.get('sort_field') || 'estimate_date'
+    const sortOrder = searchParams.get('sort_order') || 'desc'
 
     let query = supabase
       .from('estimates')
@@ -41,11 +44,19 @@ export async function GET(request: NextRequest) {
         `
         *,
         client:clients(id, name, client_code),
-        project:projects(id, project_name, project_code)
+        project:projects(id, project_name, project_code),
+        created_by_user:users!estimates_created_by_fkey(id, name),
+        manager_approved_by_user:users!estimates_manager_approved_by_fkey(name)
       `,
         { count: 'exact' }
       )
       .eq('organization_id', userData.organization_id)
+      .is('deleted_at', null)
+
+    // リーダーの場合は自分が作成した見積もりのみフィルタ
+    if (userData.role === 'leader') {
+      query = query.eq('created_by', user.id)
+    }
 
     if (search) {
       query = query.or(
@@ -65,8 +76,17 @@ export async function GET(request: NextRequest) {
       query = query.eq('project_id', projectId)
     }
 
+    if (creatorId) {
+      query = query.eq('created_by', creatorId)
+    }
+
+    // ソート順を適用
+    const validSortFields = ['estimate_date', 'valid_until', 'total_amount']
+    const finalSortField = validSortFields.includes(sortField) ? sortField : 'estimate_date'
+    const ascending = sortOrder === 'asc'
+
     const { data, error, count } = await query
-      .order('estimate_date', { ascending: false })
+      .order(finalSortField, { ascending })
       .range(offset, offset + limit - 1)
 
     if (error) {

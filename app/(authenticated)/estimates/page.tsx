@@ -20,32 +20,6 @@ async function EstimateList() {
     await checkAndUpdateExpiredEstimates(organizationId)
   }
 
-  // リーダーは自分の見積もりのみ、マネージャー・管理者は全ての見積もりを表示
-  let estimatesQuery = supabase
-    .from('estimates')
-    .select(`
-      *,
-      client:clients(name),
-      project:projects(project_name),
-      manager_approved_by_user:users!estimates_manager_approved_by_fkey(name),
-      created_by_user:users!estimates_created_by_fkey(id, name)
-    `)
-    .eq('organization_id', organizationId)
-    .is('deleted_at', null)
-
-  // リーダーの場合は自分が作成した見積もりのみフィルタ
-  if (userRole === 'leader') {
-    estimatesQuery = estimatesQuery.eq('created_by', userId)
-    console.log('[見積もり一覧] リーダーでフィルタ適用:', { userId: userId, role: userRole })
-  }
-
-  const { data: estimates, error } = await estimatesQuery.order('created_at', { ascending: false })
-
-  if (error) {
-    console.error('[見積もり一覧] クエリエラー:', error)
-  }
-  console.log('[見積もり一覧] 取得件数:', estimates?.length, 'role:', userRole)
-
   // マネージャー・管理者用にスタッフ一覧を取得
   const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userRole || '')
   let staffList: Array<{ id: string; name: string }> = []
@@ -63,7 +37,6 @@ async function EstimateList() {
 
   return (
     <EstimateListClient
-      estimates={estimates || []}
       userRole={userRole || 'staff'}
       staffList={staffList}
     />

@@ -21,11 +21,11 @@
 ### フェーズ1: 見積書一覧（サンプル実装）
 
 #### サーバー側
-1. `/app/api/estimates/route.ts` - ページネーションAPI追加
+1. ✅ `/app/api/estimates/route.ts` - ページネーションAPI追加
 
 #### クライアント側
-2. `/components/estimates/EstimateListClient.tsx` - 大幅変更
-3. `/app/(authenticated)/estimates/page.tsx` - 変更
+2. ✅ `/components/estimates/EstimateListClient.tsx` - 大幅変更
+3. ✅ `/app/(authenticated)/estimates/page.tsx` - 変更
 
 ---
 

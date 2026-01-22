@@ -59,6 +59,12 @@ async function main() {
 
   console.log('✅ ユーザー情報:', user)
 
+  // 型ガード: userが確実に存在することを保証
+  if (!user) {
+    console.error('❌ ユーザー情報が取得できませんでした')
+    return
+  }
+
   // 3. 取引先を取得または作成
   let { data: client } = await supabase
     .from('clients')
@@ -91,6 +97,12 @@ async function main() {
 
   console.log('✅ 取引先情報:', client)
 
+  // 型ガード: clientが確実に存在することを保証
+  if (!client) {
+    console.error('❌ 取引先情報が取得できませんでした')
+    return
+  }
+
   // 4. 案件を取得または作成
   let { data: project } = await supabase
     .from('projects')
@@ -122,6 +134,12 @@ async function main() {
   }
 
   console.log('✅ 案件情報:', project)
+
+  // 型ガード: projectが確実に存在することを保証
+  if (!project) {
+    console.error('❌ 案件情報が取得できませんでした')
+    return
+  }
 
   // 5. 見積書60件を作成
   console.log('📝 見積書60件を作成中...')

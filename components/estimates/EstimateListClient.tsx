@@ -26,14 +26,15 @@ interface Staff {
 }
 
 interface EstimateListClientProps {
-  estimates: Estimate[]
   userRole: string
   staffList: Staff[]
 }
 
-export function EstimateListClient({ estimates: initialEstimates, userRole, staffList }: EstimateListClientProps) {
+export function EstimateListClient({ userRole, staffList }: EstimateListClientProps) {
   const router = useRouter()
-  const [estimates, setEstimates] = useState(initialEstimates)
+  const [estimates, setEstimates] = useState<Estimate[]>([])
+  const [totalCount, setTotalCount] = useState(0)
+  const [isLoading, setIsLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [creatorFilter, setCreatorFilter] = useState('')
@@ -47,10 +48,47 @@ export function EstimateListClient({ estimates: initialEstimates, userRole, staf
 
   const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userRole)
 
-  // propsが変更されたらローカル状態も更新
+  // サーバーからデータ取得
+  const fetchEstimates = async () => {
+    setIsLoading(true)
+    try {
+      const params = new URLSearchParams({
+        limit: itemsPerPage.toString(),
+        offset: ((currentPage - 1) * itemsPerPage).toString(),
+        sort_field: sortField,
+        sort_order: sortOrder,
+      })
+
+      if (searchQuery) params.append('search', searchQuery)
+      if (statusFilter !== 'all') params.append('status', statusFilter)
+      if (creatorFilter) params.append('creator_id', creatorFilter)
+
+      const response = await fetch(`/api/estimates?${params.toString()}`)
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'データ取得に失敗しました')
+      }
+
+      setEstimates(result.data || [])
+      setTotalCount(result.count || 0)
+    } catch (error) {
+      console.error('見積書取得エラー:', error)
+      alert('見積書データの取得に失敗しました')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // 初回読み込み & フィルター・ページ変更時に再取得
   useEffect(() => {
-    setEstimates(initialEstimates)
-  }, [initialEstimates])
+    fetchEstimates()
+  }, [currentPage, searchQuery, statusFilter, creatorFilter, sortField, sortOrder])
+
+  // フィルター変更時にページをリセット
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, statusFilter, creatorFilter, sortField, sortOrder])
 
   // ドロップダウンの外側クリックで閉じる
   useEffect(() => {
@@ -81,22 +119,12 @@ export function EstimateListClient({ estimates: initialEstimates, userRole, staf
         throw new Error('削除に失敗しました')
       }
 
-      // ローカル状態から削除
-      setEstimates(estimates.filter(e => e.id !== id))
       alert('見積書を削除しました')
+      // 再取得
+      fetchEstimates()
     } catch (error) {
       console.error('削除エラー:', error)
       alert('見積書の削除に失敗しました')
-    }
-  }
-
-  // ソート処理
-  const handleSort = (field: typeof sortField) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortField(field)
-      setSortOrder('desc')
     }
   }
 
@@ -110,66 +138,7 @@ export function EstimateListClient({ estimates: initialEstimates, userRole, staf
     })
   }, [staffList, creatorSearchQuery])
 
-  // フィルタ・ソート済みデータ
-  const filteredAndSortedEstimates = useMemo(() => {
-    let filtered = estimates.filter((estimate) => {
-      // 検索クエリフィルタ
-      const searchLower = searchQuery.toLowerCase()
-      const matchesSearch =
-        !searchQuery ||
-        estimate.estimate_number.toLowerCase().includes(searchLower) ||
-        estimate.client?.name.toLowerCase().includes(searchLower) ||
-        estimate.project?.project_name?.toLowerCase().includes(searchLower)
-
-      // ステータスフィルタ
-      const matchesStatus =
-        statusFilter === 'all' || estimate.status === statusFilter
-
-      // 作成者フィルタ（マネージャー・管理者のみ）
-      const matchesCreator =
-        !creatorFilter || estimate.created_by_user?.id === creatorFilter
-
-      return matchesSearch && matchesStatus && matchesCreator
-    })
-
-    // ソート
-    filtered.sort((a, b) => {
-      let aValue: number | string = 0
-      let bValue: number | string = 0
-
-      if (sortField === 'estimate_date') {
-        aValue = new Date(a.estimate_date).getTime()
-        bValue = new Date(b.estimate_date).getTime()
-      } else if (sortField === 'valid_until') {
-        aValue = a.valid_until ? new Date(a.valid_until).getTime() : 0
-        bValue = b.valid_until ? new Date(b.valid_until).getTime() : 0
-      } else if (sortField === 'total_amount') {
-        aValue = a.total_amount
-        bValue = b.total_amount
-      }
-
-      if (sortOrder === 'asc') {
-        return aValue > bValue ? 1 : -1
-      } else {
-        // 降順: 大きい値が先に来るように
-        return aValue > bValue ? -1 : 1
-      }
-    })
-
-    return filtered
-  }, [estimates, searchQuery, statusFilter, creatorFilter, sortField, sortOrder])
-
-  // ページネーション
-  const totalPages = Math.ceil(filteredAndSortedEstimates.length / itemsPerPage)
-  const paginatedEstimates = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage
-    return filteredAndSortedEstimates.slice(startIndex, startIndex + itemsPerPage)
-  }, [filteredAndSortedEstimates, currentPage, itemsPerPage])
-
-  // フィルター変更時にページをリセット
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [searchQuery, statusFilter, creatorFilter, sortField, sortOrder])
+  const totalPages = Math.ceil(totalCount / itemsPerPage)
 
   const SortIcon = ({ field }: { field: typeof sortField }) => {
     if (sortField !== field) return null
@@ -335,7 +304,11 @@ export function EstimateListClient({ estimates: initialEstimates, userRole, staf
       {/* 件数表示とソート */}
       <div className="mb-4 flex items-center justify-between">
         <div className="text-sm text-gray-700">
-          全 {estimates.length} 件中 {filteredAndSortedEstimates.length} 件を表示（{currentPage}/{totalPages} ページ）
+          {isLoading ? (
+            'データ読み込み中...'
+          ) : (
+            `全 ${totalCount} 件を表示中（${currentPage}/${totalPages} ページ）`
+          )}
         </div>
         <div className="flex items-center gap-2">
           <label className="text-xs text-gray-600">並び替え:</label>
@@ -347,6 +320,7 @@ export function EstimateListClient({ estimates: initialEstimates, userRole, staf
               setSortOrder(order)
             }}
             className="px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            disabled={isLoading}
           >
             <option value="estimate_date-desc">見積日（新しい順）</option>
             <option value="estimate_date-asc">見積日（古い順）</option>
@@ -358,9 +332,17 @@ export function EstimateListClient({ estimates: initialEstimates, userRole, staf
         </div>
       </div>
 
+      {/* ローディング表示 */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      )}
+
       {/* カード一覧 */}
-      <div className="space-y-4">
-        {paginatedEstimates.map((estimate) => (
+      {!isLoading && (
+        <div className="space-y-4">
+          {estimates.map((estimate) => (
           <div key={estimate.id} className="bg-white border border-gray-300 rounded-lg shadow-sm">
             {/* クリック可能なカード本体 */}
             <div
@@ -506,14 +488,15 @@ export function EstimateListClient({ estimates: initialEstimates, userRole, staf
           </div>
         ))}
 
-        {filteredAndSortedEstimates.length === 0 && (
-          <div className="bg-white border border-gray-200 rounded-lg py-12 text-center text-gray-500">
-            {searchQuery || statusFilter !== 'all' || creatorFilter
-              ? '検索条件に一致する見積書がありません'
-              : '見積書データがありません'}
-          </div>
-        )}
-      </div>
+          {estimates.length === 0 && (
+            <div className="bg-white border border-gray-200 rounded-lg py-12 text-center text-gray-500">
+              {searchQuery || statusFilter !== 'all' || creatorFilter
+                ? '検索条件に一致する見積書がありません'
+                : '見積書データがありません'}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ページネーション */}
       {totalPages > 1 && (
