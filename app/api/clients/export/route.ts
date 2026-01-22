@@ -3,14 +3,18 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function GET(request: Request) {
   try {
+    console.log('[API /api/clients/export] Starting CSV export')
     const supabase = await createClient()
+    console.log('[API /api/clients/export] Supabase client created')
 
     // ユーザー認証
     const {
       data: { user },
     } = await supabase.auth.getUser()
+    console.log('[API /api/clients/export] User:', user?.id)
 
     if (!user) {
+      console.log('[API /api/clients/export] No user found')
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
     }
 
@@ -21,12 +25,16 @@ export async function GET(request: Request) {
       .eq('id', user.id)
       .single()
 
+    console.log('[API /api/clients/export] User data:', userData, 'Error:', userError)
+
     if (userError || !userData) {
+      console.error('[API /api/clients/export] Failed to get user data:', userError)
       return NextResponse.json({ error: 'ユーザー情報の取得に失敗しました' }, { status: 500 })
     }
 
     // 管理者権限チェック
     if (userData.role !== 'admin') {
+      console.log('[API /api/clients/export] User is not admin:', userData.role)
       return NextResponse.json({ error: '管理者権限が必要です' }, { status: 403 })
     }
 
@@ -34,6 +42,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const client_type = searchParams.get('client_type')
     const is_active = searchParams.get('is_active')
+    console.log('[API /api/clients/export] Filters:', { client_type, is_active })
 
     // クエリ構築
     let query = supabase
@@ -54,11 +63,15 @@ export async function GET(request: Request) {
       query = query.eq('is_active', false)
     }
 
+    console.log('[API /api/clients/export] Executing query')
     const { data: clients, error } = await query
 
     if (error) {
+      console.error('[API /api/clients/export] Query error:', error)
       return NextResponse.json({ error: '取引先データの取得に失敗しました' }, { status: 500 })
     }
+
+    console.log('[API /api/clients/export] Retrieved', clients?.length, 'clients')
 
     // CSV生成
     const headers = [
@@ -97,6 +110,7 @@ export async function GET(request: Request) {
       '登録日',
     ]
 
+    console.log('[API /api/clients/export] Generating CSV rows')
     const rows = clients.map((client) => [
       client.code,
       client.name,
@@ -133,16 +147,19 @@ export async function GET(request: Request) {
       new Date(client.created_at).toLocaleDateString('ja-JP'),
     ])
 
+    console.log('[API /api/clients/export] Generating CSV content')
     // CSV文字列生成
     const csvContent = [
       headers.join(','),
       ...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')),
     ].join('\n')
 
+    console.log('[API /api/clients/export] CSV content generated, length:', csvContent.length)
     // BOM付きUTF-8でエンコード
     const bom = '\uFEFF'
     const csvBlob = bom + csvContent
 
+    console.log('[API /api/clients/export] Returning CSV response')
     // レスポンス生成
     return new NextResponse(csvBlob, {
       headers: {
