@@ -35,7 +35,6 @@ export default function OrganizationPage() {
   const [userRole, setUserRole] = useState<string>('')
 
   // 角印関連の状態
-  const [selectedFontStyle, setSelectedFontStyle] = useState<SealFontStyle>('gothic')
   const [sealPreview, setSealPreview] = useState<string | null>(null)
   const [isGeneratingSeal, setIsGeneratingSeal] = useState(false)
   const [isSavingSeal, setIsSavingSeal] = useState(false)
@@ -137,7 +136,7 @@ export default function OrganizationPage() {
 
     setIsGeneratingSeal(true)
     setMessage(null)
-    console.log('[角印生成] リクエスト開始:', { name: organization.name, fontStyle: selectedFontStyle })
+    console.log('[角印生成] リクエスト開始:', { name: organization.name, fontStyle: 'gothic' })
 
     try {
       const res = await fetch('/api/company-seal/generate', {
@@ -145,7 +144,7 @@ export default function OrganizationPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           companyName: organization.name,
-          fontStyle: selectedFontStyle
+          fontStyle: 'gothic'
         })
       })
 
@@ -176,12 +175,6 @@ export default function OrganizationPage() {
     }
   }
 
-  // 書体選択時の処理
-  const handleFontStyleChange = (style: SealFontStyle) => {
-    setSelectedFontStyle(style)
-    setSealPreview(null) // プレビューをリセット
-  }
-
   // 角印ダウンロード
   const downloadSeal = () => {
     if (!sealPreview || !organization) return
@@ -189,7 +182,7 @@ export default function OrganizationPage() {
     const link = document.createElement('a')
     const filename = isCustomSeal
       ? `角印_${organization.name}_カスタム.png`
-      : `角印_${organization.name}_${selectedFontStyle}.png`
+      : `角印_${organization.name}.png`
     link.download = filename
     link.href = sealPreview
     link.click()
@@ -412,28 +405,9 @@ export default function OrganizationPage() {
               {/* 自動生成セクション */}
               <div className="border-2 border-gray-200 rounded-lg p-4 bg-gray-50">
                 <h3 className="text-sm font-semibold text-gray-700 mb-3">角印を自動生成</h3>
-                {/* 書体選択 */}
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  {[
-                    { value: 'gothic', label: 'ゴシック体', description: 'モダンで読みやすい' },
-                    { value: 'mincho', label: '明朝体', description: '伝統的で格式高い' },
-                  ].map((style) => (
-                    <button
-                      key={style.value}
-                      type="button"
-                      onClick={() => handleFontStyleChange(style.value as SealFontStyle)}
-                      disabled={isCustomSeal}
-                      className={`relative p-4 rounded-lg border-2 transition-all ${
-                        selectedFontStyle === style.value && !isCustomSeal
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-300 hover:border-gray-400'
-                      } ${isCustomSeal ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      <div className="font-medium text-gray-900">{style.label}</div>
-                      <div className="text-xs text-gray-500 mt-1">{style.description}</div>
-                    </button>
-                  ))}
-                </div>
+                <p className="text-sm text-gray-600 mb-4">
+                  会社名から自動的に角印を生成します
+                </p>
                 <button
                   type="button"
                   onClick={generateSeal}
