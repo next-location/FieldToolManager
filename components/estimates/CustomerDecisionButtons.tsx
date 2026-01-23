@@ -89,23 +89,23 @@ export function CustomerDecisionButtons({
   }
 
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-col sm:flex-row gap-2">
+      <button
+        onClick={handleReject}
+        disabled={isLoading}
+        className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-center"
+      >
+        {isLoading ? '記録中...' : '顧客却下'}
+      </button>
       <button
         onClick={handleApprove}
         disabled={isLoading}
-        className="px-4 py-2 text-white rounded-md disabled:bg-gray-400 disabled:cursor-not-allowed"
+        className="w-full sm:w-auto px-4 py-2 text-white rounded-md disabled:bg-gray-400 disabled:cursor-not-allowed text-center"
         style={{ backgroundColor: isLoading ? undefined : '#1d51da' }}
         onMouseEnter={(e) => !isLoading && (e.currentTarget.style.backgroundColor = '#1646c4')}
         onMouseLeave={(e) => !isLoading && (e.currentTarget.style.backgroundColor = '#1d51da')}
       >
         {isLoading ? '記録中...' : '顧客承認'}
-      </button>
-      <button
-        onClick={handleReject}
-        disabled={isLoading}
-        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-      >
-        {isLoading ? '記録中...' : '顧客却下'}
       </button>
     </div>
   )
