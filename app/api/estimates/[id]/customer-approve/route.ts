@@ -27,11 +27,6 @@ export async function POST(
       return NextResponse.json({ error: 'ユーザー情報が見つかりません' }, { status: 404 })
     }
 
-    // manager以上の権限チェック
-    if (!['manager', 'admin', 'super_admin'].includes(userData.role)) {
-      return NextResponse.json({ error: '顧客承認を記録する権限がありません' }, { status: 403 })
-    }
-
     // 見積書取得
     const { data: estimate, error: estimateError } = await supabase
       .from('estimates')
@@ -42,6 +37,14 @@ export async function POST(
 
     if (estimateError || !estimate) {
       return NextResponse.json({ error: '見積書が見つかりません' }, { status: 404 })
+    }
+
+    // manager以上 または 作成者本人の権限チェック
+    const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userData.role)
+    const isCreator = estimate.created_by === userData.id
+
+    if (!isManagerOrAdmin && !isCreator) {
+      return NextResponse.json({ error: '顧客承認を記録する権限がありません' }, { status: 403 })
     }
 
     // sent ステータスのみ顧客承認可能
