@@ -26,11 +26,12 @@ interface Staff {
 }
 
 interface EstimateListClientProps {
+  userId: string
   userRole: string
   staffList: Staff[]
 }
 
-export function EstimateListClient({ userRole, staffList }: EstimateListClientProps) {
+export function EstimateListClient({ userId, userRole, staffList }: EstimateListClientProps) {
   const router = useRouter()
   const [estimates, setEstimates] = useState<Estimate[]>([])
   const [totalCount, setTotalCount] = useState(0)
@@ -557,8 +558,9 @@ export function EstimateListClient({ userRole, staffList }: EstimateListClientPr
                   編集
                 </Link>
               )}
-              {/* PDF出力: 承認済み かつ 期限切れでない場合のみ */}
-              {estimate.manager_approved_at && estimate.status !== 'expired' && (
+              {/* PDF出力: 承認済み かつ 期限切れでない かつ (マネージャー以上 or 作成者本人) */}
+              {estimate.manager_approved_at && estimate.status !== 'expired' &&
+               (isManagerOrAdmin || estimate.created_by_user?.id === userId) && (
                 <a
                   href={`/api/estimates/${estimate.id}/pdf`}
                   target="_blank"

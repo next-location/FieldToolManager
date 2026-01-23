@@ -37,6 +37,7 @@ async function EstimateList() {
 
   return (
     <EstimateListClient
+      userId={userId}
       userRole={userRole || 'staff'}
       staffList={staffList}
     />
