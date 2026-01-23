@@ -123,13 +123,6 @@ export default async function EstimateDetailPage({
       <div className="px-4 py-6 sm:px-0">
       {/* ヘッダーとボタン */}
       <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
-          <div>
-            <h1 className="text-lg sm:text-2xl font-bold mb-2">見積書詳細</h1>
-            <p className="text-sm sm:text-base text-gray-600">{estimate.estimate_number}</p>
-          </div>
-        </div>
-
         {/* 期限切れの場合は警告メッセージを表示 */}
         {estimate.status === 'expired' && (
           <div className="mb-4">
@@ -139,12 +132,20 @@ export default async function EstimateDetailPage({
           </div>
         )}
 
-        {/* アクションボタン（スマホ: 縦並び、PC: 横並び） */}
-        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
+        {/* ヘッダー（左）とアクションボタン（右） */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+          {/* 左: タイトルと見積番号 */}
+          <div>
+            <h1 className="text-lg sm:text-2xl font-bold mb-2">見積書詳細</h1>
+            <p className="text-sm sm:text-base text-gray-600">{estimate.estimate_number}</p>
+          </div>
+
+          {/* 右: アクションボタン（スマホ: 縦並び、PC: 横並び） */}
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
           {/* 一覧に戻る（常に表示） */}
           <Link
             href="/estimates"
-            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 text-center sm:order-last"
+            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 text-center"
           >
             一覧に戻る
           </Link>
@@ -224,6 +225,7 @@ export default async function EstimateDetailPage({
               estimateNumber={estimate.estimate_number}
             />
           )}
+          </div>
         </div>
       </div>
 
