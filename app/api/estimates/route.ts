@@ -87,6 +87,7 @@ export async function GET(request: NextRequest) {
 
     const { data, error, count } = await query
       .order(finalSortField, { ascending })
+      .order('created_at', { ascending: false }) // 同日の場合は新しい順
       .range(offset, offset + limit - 1)
 
     if (error) {
