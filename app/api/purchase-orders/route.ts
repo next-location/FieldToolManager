@@ -31,12 +31,15 @@ export async function GET(request: NextRequest) {
 
     // クエリパラメータ取得
     const searchParams = request.nextUrl.searchParams
-    const status = searchParams.get('status')
-    const clientId = searchParams.get('client_id') // 変更: supplier_id → client_id
-    const projectId = searchParams.get('project_id')
-    const search = searchParams.get('search')
-    const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '50')
+    const offset = parseInt(searchParams.get('offset') || '0')
+    const status = searchParams.get('status')
+    const clientId = searchParams.get('client_id')
+    const projectId = searchParams.get('project_id')
+    const creatorId = searchParams.get('creator_id')
+    const search = searchParams.get('search')
+    const sortField = searchParams.get('sort_field') || 'order_date'
+    const sortOrder = searchParams.get('sort_order') || 'desc'
 
     // 発注書一覧取得（client情報も含む）
     let query = supabase
@@ -44,11 +47,17 @@ export async function GET(request: NextRequest) {
       .select(`
         *,
         client:clients!purchase_orders_client_id_fkey(id, name, client_code),
-        project:projects(id, name),
-        created_by_user:users!purchase_orders_created_by_fkey(id, name)
+        project:projects(id, project_name),
+        created_by_user:users!purchase_orders_created_by_fkey(id, name),
+        approved_by_user:users!purchase_orders_approved_by_fkey(id, name)
       `, { count: 'exact' })
       .eq('organization_id', userData?.organization_id)
       .is('deleted_at', null)
+
+    // リーダーは自分が作成した発注書のみ表示
+    if (userData.role === 'leader') {
+      query = query.eq('created_by', user.id)
+    }
 
     // フィルター適用
     if (status && status !== 'all') {
@@ -56,11 +65,15 @@ export async function GET(request: NextRequest) {
     }
 
     if (clientId) {
-      query = query.eq('client_id', clientId) // 変更: supplier_id → client_id
+      query = query.eq('client_id', clientId)
     }
 
     if (projectId) {
       query = query.eq('project_id', projectId)
+    }
+
+    if (creatorId) {
+      query = query.eq('created_by', creatorId)
     }
 
     if (search) {
@@ -69,13 +82,14 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // ページネーション
-    const from = (page - 1) * limit
-    const to = from + limit - 1
+    // ソート順を適用
+    const validSortFields = ['order_date', 'delivery_date', 'total_amount']
+    const finalSortField = validSortFields.includes(sortField) ? sortField : 'order_date'
+    const ascending = sortOrder === 'asc'
 
     const { data: orders, error, count } = await query
-      .order('order_date', { ascending: false })
-      .range(from, to)
+      .order(finalSortField, { ascending })
+      .range(offset, offset + limit - 1)
 
     if (error) {
       console.error('Error fetching purchase orders:', error)
@@ -84,10 +98,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       data: orders,
-      total: count || 0,
-      page,
+      count,
       limit,
-      total_pages: Math.ceil((count || 0) / limit),
+      offset,
     })
   } catch (error) {
     console.error('Unexpected error:', error)

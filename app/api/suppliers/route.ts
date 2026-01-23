@@ -28,10 +28,10 @@ export async function GET(request: NextRequest) {
 
     // クエリパラメータ取得
     const searchParams = request.nextUrl.searchParams
-    const isActive = searchParams.get('is_active')
-    const search = searchParams.get('search')
-    const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '50')
+    const offset = parseInt(searchParams.get('offset') || '0')
+    const isActive = searchParams.get('is_active')
+    const search = searchParams.get('search') || ''
 
     // 仕入先一覧取得
     let query = supabase
@@ -52,13 +52,9 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // ページネーション
-    const from = (page - 1) * limit
-    const to = from + limit - 1
-
     const { data: suppliers, error, count } = await query
       .order('created_at', { ascending: false })
-      .range(from, to)
+      .range(offset, offset + limit - 1)
 
     if (error) {
       console.error('Error fetching suppliers:', error)
@@ -67,10 +63,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       data: suppliers,
-      total: count || 0,
-      page,
+      count,
       limit,
-      total_pages: Math.ceil((count || 0) / limit),
+      offset,
     })
   } catch (error) {
     console.error('Unexpected error:', error)

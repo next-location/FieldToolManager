@@ -28,42 +28,58 @@ interface Supplier {
   is_active: boolean
 }
 
-interface SupplierListClientProps {
-  suppliers: Supplier[]
-}
+interface SupplierListClientProps {}
 
-export function SupplierListClient({ suppliers: initialSuppliers }: SupplierListClientProps) {
+export function SupplierListClient({}: SupplierListClientProps) {
   const router = useRouter()
-  const [suppliers, setSuppliers] = useState<Supplier[]>(initialSuppliers)
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
+  const [totalCount, setTotalCount] = useState(0)
+  const [isLoading, setIsLoading] = useState(false)
   const [search, setSearch] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingSupplier, setEditingSupplier] = useState<Supplier | undefined>()
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 20
 
-  const filteredSuppliers = suppliers.filter((supplier) => {
-    if (!search) return true
-    const searchLower = search.toLowerCase()
-    return (
-      supplier.name.toLowerCase().includes(searchLower) ||
-      supplier.name_kana?.toLowerCase().includes(searchLower) ||
-      supplier.supplier_code.toLowerCase().includes(searchLower) ||
-      supplier.address?.toLowerCase().includes(searchLower) ||
-      supplier.phone?.toLowerCase().includes(searchLower)
-    )
-  })
+  // サーバーからデータ取得
+  const fetchSuppliers = async () => {
+    setIsLoading(true)
+    try {
+      const params = new URLSearchParams({
+        limit: itemsPerPage.toString(),
+        offset: ((currentPage - 1) * itemsPerPage).toString(),
+      })
 
-  // ページネーション
-  const totalPages = Math.ceil(filteredSuppliers.length / itemsPerPage)
-  const paginatedSuppliers = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage
-    return filteredSuppliers.slice(startIndex, startIndex + itemsPerPage)
-  }, [filteredSuppliers, currentPage, itemsPerPage])
+      if (search) params.append('search', search)
+
+      const response = await fetch(`/api/suppliers?${params.toString()}`)
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'データ取得に失敗しました')
+      }
+
+      setSuppliers(result.data || [])
+      setTotalCount(result.count || 0)
+    } catch (error) {
+      console.error('仕入先取得エラー:', error)
+      alert('仕入先データの取得に失敗しました')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // 初回読み込み & フィルター・ページ変更時に再取得
+  useEffect(() => {
+    fetchSuppliers()
+  }, [currentPage, search])
 
   // フィルター変更時にページをリセット
   useEffect(() => {
     setCurrentPage(1)
   }, [search])
+
+  const totalPages = Math.ceil(totalCount / itemsPerPage)
 
   const handleCreate = () => {
     setEditingSupplier(undefined)
@@ -90,9 +106,8 @@ export function SupplierListClient({ suppliers: initialSuppliers }: SupplierList
         throw new Error(error.error || '削除に失敗しました')
       }
 
-      // 一覧から削除
-      setSuppliers(suppliers.filter((s) => s.id !== supplier.id))
       alert('仕入先を削除しました')
+      fetchSuppliers()
     } catch (error) {
       console.error('Error deleting supplier:', error)
       alert(error instanceof Error ? error.message : '削除に失敗しました')
@@ -102,18 +117,7 @@ export function SupplierListClient({ suppliers: initialSuppliers }: SupplierList
   const handleModalSuccess = async () => {
     setIsModalOpen(false)
     setEditingSupplier(undefined)
-
-    // 最新の仕入先一覧を取得
-    try {
-      const response = await fetch('/api/suppliers')
-      if (response.ok) {
-        const data = await response.json()
-        setSuppliers(data.data || [])
-      }
-    } catch (error) {
-      console.error('Error refreshing suppliers:', error)
-    }
-
+    fetchSuppliers()
     router.refresh()
   }
 
@@ -171,14 +175,22 @@ export function SupplierListClient({ suppliers: initialSuppliers }: SupplierList
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredSuppliers.length === 0 ? (
+            {isLoading ? (
+              <tr>
+                <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                  </div>
+                </td>
+              </tr>
+            ) : suppliers.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
                   {search ? '検索結果が見つかりません' : '仕入先が登録されていません'}
                 </td>
               </tr>
             ) : (
-              paginatedSuppliers.map((supplier) => (
+              suppliers.map((supplier) => (
                 <tr key={supplier.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {supplier.supplier_code}
@@ -223,7 +235,11 @@ export function SupplierListClient({ suppliers: initialSuppliers }: SupplierList
 
       {/* 統計情報 */}
       <div className="text-sm text-gray-500">
-        全 {suppliers.length} 件中 {filteredSuppliers.length} 件を表示（{currentPage}/{totalPages} ページ）
+        {isLoading ? (
+          'データ読み込み中...'
+        ) : (
+          `全 ${totalCount} 件を表示中（${currentPage}/${totalPages} ページ）`
+        )}
       </div>
 
       {/* ページネーション */}

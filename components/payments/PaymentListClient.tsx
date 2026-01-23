@@ -24,36 +24,13 @@ interface Payment {
   }
 }
 
-interface PaymentListClientProps {
-  payments: Payment[]
-}
+interface PaymentListClientProps {}
 
-// ひらがな・カタカナ変換関数
-function normalizeKana(text: string): string {
-  // 全角・半角を正規化し、ひらがなとカタカナ両方のパターンを生成
-  const normalized = text.normalize('NFKC')
-  const hiragana = toHiragana(normalized)
-  const katakana = toKatakana(normalized)
-  return `${normalized}|${hiragana}|${katakana}`
-}
-
-function matchesKanaSearch(text: string, searchQuery: string): boolean {
-  if (!text || !searchQuery) return false
-
-  const normalizedText = normalizeKana(text.toLowerCase())
-  const normalizedQuery = normalizeKana(searchQuery.toLowerCase())
-
-  // いずれかのパターンでマッチするか確認
-  const queryPatterns = normalizedQuery.split('|')
-  const textPatterns = normalizedText.split('|')
-
-  return queryPatterns.some(qp =>
-    textPatterns.some(tp => tp.includes(qp))
-  )
-}
-
-export function PaymentListClient({ payments }: PaymentListClientProps) {
+export function PaymentListClient({}: PaymentListClientProps) {
   const currentDate = new Date()
+  const [payments, setPayments] = useState<Payment[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [totalCount, setTotalCount] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1)
@@ -72,97 +49,83 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
   // 月の選択肢
   const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1)
 
-  // フィルタリングされたデータ
-  const filteredPayments = useMemo(() => {
-    let filtered = [...payments]
+  // API呼び出し関数
+  const fetchPayments = async () => {
+    try {
+      setIsLoading(true)
 
-    // キーワード検索（取引先名・請求書番号）
-    if (searchQuery) {
-      filtered = filtered.filter(payment => {
-        const clientName = payment.payment_type === 'receipt'
-          ? payment.invoice?.client?.name
-          : payment.purchase_order?.supplier?.name
-
-        const invoiceNumber = payment.payment_type === 'receipt'
-          ? payment.invoice?.invoice_number
-          : payment.purchase_order?.order_number
-
-        // 取引先名で検索（ひらがな・カタカナ対応）
-        const nameMatch = clientName && matchesKanaSearch(clientName, searchQuery)
-
-        // 請求書番号で検索
-        const numberMatch = invoiceNumber && invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase())
-
-        return nameMatch || numberMatch
+      const params = new URLSearchParams({
+        limit: itemsPerPage.toString(),
+        offset: ((currentPage - 1) * itemsPerPage).toString(),
+        search: searchQuery,
+        sort_field: 'payment_date',
+        sort_order: 'desc',
+        use_month_filter: useMonthFilter.toString(),
       })
+
+      if (paymentTypeFilter && paymentTypeFilter !== 'all') {
+        params.set('payment_type', paymentTypeFilter)
+      }
+
+      if (paymentMethodFilter && paymentMethodFilter !== 'all') {
+        params.set('payment_method', paymentMethodFilter)
+      }
+
+      if (useMonthFilter) {
+        params.set('year', selectedYear.toString())
+        params.set('month', selectedMonth.toString())
+      } else {
+        if (startDate) params.set('start_date', startDate)
+        if (endDate) params.set('end_date', endDate)
+      }
+
+      const response = await fetch(`/api/payments?${params}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch payments')
+      }
+
+      const result = await response.json()
+      setPayments(result.data || [])
+      setTotalCount(result.count || 0)
+    } catch (error) {
+      console.error('Failed to fetch payments:', error)
+      alert('入出金データの取得に失敗しました')
+    } finally {
+      setIsLoading(false)
     }
+  }
 
-    // 日付フィルター
-    if (useMonthFilter) {
-      // 月単位フィルター
-      filtered = filtered.filter(payment => {
-        const paymentDate = new Date(payment.payment_date)
-        return paymentDate.getFullYear() === selectedYear &&
-               paymentDate.getMonth() + 1 === selectedMonth
-      })
-    } else if (startDate || endDate) {
-      // 期間フィルター
-      filtered = filtered.filter(payment => {
-        const paymentDate = new Date(payment.payment_date)
-        const start = startDate ? new Date(startDate) : new Date('1900-01-01')
-        const end = endDate ? new Date(endDate) : new Date('2100-12-31')
-        return paymentDate >= start && paymentDate <= end
-      })
+  // 初回読み込み + ページ・フィルター変更時
+  useEffect(() => {
+    fetchPayments()
+  }, [currentPage, searchQuery, selectedYear, selectedMonth, startDate, endDate, paymentTypeFilter, paymentMethodFilter, useMonthFilter])
+
+  // フィルター変更時は1ページ目に戻す
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1)
     }
-
-    // 入出金タイプフィルター
-    if (paymentTypeFilter !== 'all') {
-      filtered = filtered.filter(payment => payment.payment_type === paymentTypeFilter)
-    }
-
-    // 支払方法フィルター
-    if (paymentMethodFilter !== 'all') {
-      filtered = filtered.filter(payment => payment.payment_method === paymentMethodFilter)
-    }
-
-    // 日付順でソート（新しい順 - 降順）
-    filtered.sort((a, b) => {
-      const dateA = new Date(a.payment_date).getTime()
-      const dateB = new Date(b.payment_date).getTime()
-      return dateB - dateA
-    })
-
-    return filtered
-  }, [payments, searchQuery, selectedYear, selectedMonth, startDate, endDate, paymentTypeFilter, paymentMethodFilter, useMonthFilter])
+  }, [searchQuery, selectedYear, selectedMonth, startDate, endDate, paymentTypeFilter, paymentMethodFilter, useMonthFilter])
 
   // ページネーション
-  const totalPages = Math.ceil(filteredPayments.length / itemsPerPage)
-  const paginatedPayments = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage
-    return filteredPayments.slice(startIndex, startIndex + itemsPerPage)
-  }, [filteredPayments, currentPage, itemsPerPage])
-
-  // フィルター変更時にページをリセット
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [searchQuery, selectedYear, selectedMonth, startDate, endDate, paymentTypeFilter, paymentMethodFilter, useMonthFilter])
+  const totalPages = Math.ceil(totalCount / itemsPerPage)
 
   // 集計
   const totals = useMemo(() => {
-    const receipts = filteredPayments
+    const receipts = payments
       .filter(p => p.payment_type === 'receipt')
       .reduce((sum, p) => sum + Number(p.amount), 0)
 
-    const payments = filteredPayments
+    const paymentSum = payments
       .filter(p => p.payment_type === 'payment')
       .reduce((sum, p) => sum + Number(p.amount), 0)
 
     return {
       receipts,
-      payments,
-      balance: receipts - payments
+      payments: paymentSum,
+      balance: receipts - paymentSum
     }
-  }, [filteredPayments])
+  }, [payments])
 
   const hasActiveFilters = searchQuery || paymentTypeFilter !== 'all' || paymentMethodFilter !== 'all' || !useMonthFilter || startDate || endDate
 
@@ -177,6 +140,16 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
     setEndDate('')
     setSelectedYear(currentDate.getFullYear())
     setSelectedMonth(currentDate.getMonth() + 1)
+  }
+
+  // ローディング表示
+  if (isLoading && payments.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-3 text-gray-600">読み込み中...</span>
+      </div>
+    )
   }
 
   return (
@@ -385,7 +358,7 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
               ` (${startDate || '開始日未指定'} 〜 ${endDate || '終了日未指定'})`}
           </h2>
           <div className="text-sm text-gray-500">
-            {filteredPayments.length}件表示
+            全 {totalCount} 件中 {payments.length} 件を表示
           </div>
         </div>
 
@@ -417,7 +390,7 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {paginatedPayments.map((payment) => {
+              {payments.map((payment) => {
                 const isReceipt = payment.payment_type === 'receipt'
                 const clientName = isReceipt
                   ? payment.invoice?.client?.name
@@ -483,7 +456,7 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
             </tbody>
           </table>
 
-          {filteredPayments.length === 0 && (
+          {payments.length === 0 && !isLoading && (
             <div className="text-center py-8 text-gray-500">
               条件に一致する入出金データがありません
             </div>
@@ -491,7 +464,7 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
         </div>
 
         {/* 集計 */}
-        {filteredPayments.length > 0 && (
+        {payments.length > 0 && (
           <div className="px-6 py-4 border-t bg-gray-50">
             <div className="flex justify-end space-x-6 text-sm">
               <div>
@@ -521,12 +494,12 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
 
       {/* モバイル: カードレイアウト */}
       <div className="sm:hidden space-y-3">
-        {filteredPayments.length === 0 ? (
+        {payments.length === 0 && !isLoading ? (
           <div className="text-center py-8 text-gray-500">
             条件に一致する入出金データがありません
           </div>
         ) : (
-          paginatedPayments.map((payment) => {
+          payments.map((payment) => {
             const isReceipt = payment.payment_type === 'receipt'
             const clientName = isReceipt
               ? payment.invoice?.client?.name
@@ -612,7 +585,7 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
         )}
 
         {/* モバイル: 集計 */}
-        {filteredPayments.length > 0 && (
+        {payments.length > 0 && (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
@@ -645,7 +618,7 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
         <div className="mt-6 flex items-center justify-between">
           <button
             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1}
+            disabled={currentPage === 1 || isLoading}
             className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
             前へ
@@ -655,7 +628,7 @@ export function PaymentListClient({ payments }: PaymentListClientProps) {
           </span>
           <button
             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-            disabled={currentPage === totalPages}
+            disabled={currentPage === totalPages || isLoading}
             className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
             次へ

@@ -32,7 +32,6 @@ interface Staff {
 }
 
 interface PurchaseOrderListClientProps {
-  orders: PurchaseOrder[]
   suppliers: { id: string; name: string; client_code: string }[]
   projects: { id: string; project_name: string }[]
   currentUserRole: string
@@ -40,14 +39,15 @@ interface PurchaseOrderListClientProps {
 }
 
 export function PurchaseOrderListClient({
-  orders: initialOrders,
   suppliers,
   projects,
   currentUserRole,
   staffList,
 }: PurchaseOrderListClientProps) {
   const router = useRouter()
-  const [orders, setOrders] = useState(initialOrders)
+  const [orders, setOrders] = useState<PurchaseOrder[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [totalCount, setTotalCount] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [creatorFilter, setCreatorFilter] = useState('')
@@ -59,10 +59,54 @@ export function PurchaseOrderListClient({
 
   const isManagerOrAdmin = ['manager', 'admin'].includes(currentUserRole)
 
-  // propsが変更されたらローカル状態も更新
+  // API呼び出し関数
+  const fetchOrders = async () => {
+    try {
+      setIsLoading(true)
+
+      const params = new URLSearchParams({
+        limit: itemsPerPage.toString(),
+        offset: ((currentPage - 1) * itemsPerPage).toString(),
+        search: searchQuery,
+        sort_field: 'order_date',
+        sort_order: 'desc',
+      })
+
+      if (statusFilter && statusFilter !== 'all') {
+        params.set('status', statusFilter)
+      }
+
+      if (creatorFilter) {
+        params.set('creator_id', creatorFilter)
+      }
+
+      const response = await fetch(`/api/purchase-orders?${params}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch purchase orders')
+      }
+
+      const result = await response.json()
+      setOrders(result.data || [])
+      setTotalCount(result.count || 0)
+    } catch (error) {
+      console.error('Failed to fetch purchase orders:', error)
+      alert('発注書の取得に失敗しました')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // 初回読み込み + ページ・フィルター変更時
   useEffect(() => {
-    setOrders(initialOrders)
-  }, [initialOrders])
+    fetchOrders()
+  }, [currentPage, searchQuery, statusFilter, creatorFilter])
+
+  // フィルター変更時は1ページ目に戻す
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1)
+    }
+  }, [searchQuery, statusFilter, creatorFilter])
 
   // ドロップダウンの外側クリックで閉じる
   useEffect(() => {
@@ -89,40 +133,8 @@ export function PurchaseOrderListClient({
     })
   }, [staffList, creatorSearchQuery])
 
-  // フィルタ済みデータ
-  const filteredOrders = useMemo(() => {
-    return orders.filter((order) => {
-      // 検索クエリフィルタ
-      const searchLower = searchQuery.toLowerCase()
-      const matchesSearch =
-        !searchQuery ||
-        order.order_number.toLowerCase().includes(searchLower) ||
-        order.client?.name.toLowerCase().includes(searchLower) ||
-        order.project?.project_name?.toLowerCase().includes(searchLower)
-
-      // ステータスフィルタ
-      const matchesStatus =
-        statusFilter === 'all' || order.status === statusFilter
-
-      // 作成者フィルタ（マネージャー・管理者のみ）
-      const matchesCreator =
-        !creatorFilter || order.created_by_user?.id === creatorFilter
-
-      return matchesSearch && matchesStatus && matchesCreator
-    })
-  }, [orders, searchQuery, statusFilter, creatorFilter])
-
   // ページネーション
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage)
-  const paginatedOrders = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage
-    return filteredOrders.slice(startIndex, startIndex + itemsPerPage)
-  }, [filteredOrders, currentPage, itemsPerPage])
-
-  // フィルター変更時にページをリセット
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [searchQuery, statusFilter, creatorFilter])
+  const totalPages = Math.ceil(totalCount / itemsPerPage)
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -151,6 +163,16 @@ export function PurchaseOrderListClient({
     setStatusFilter('all')
     setCreatorFilter('')
     setCreatorSearchQuery('')
+  }
+
+  // ローディング表示
+  if (isLoading && orders.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-3 text-gray-600">読み込み中...</span>
+      </div>
+    )
   }
 
   return (
@@ -307,12 +329,12 @@ export function PurchaseOrderListClient({
 
       {/* 件数表示 */}
       <div className="mb-4 text-sm text-gray-700">
-        全 {orders.length} 件中 {filteredOrders.length} 件を表示（{currentPage}/{totalPages} ページ）
+        全 {totalCount} 件中 {orders.length} 件を表示（{currentPage}/{totalPages} ページ）
       </div>
 
       {/* カード一覧 */}
       <div className="space-y-4">
-        {paginatedOrders.map((order) => (
+        {orders.map((order) => (
           <div key={order.id} className="bg-white border border-gray-300 rounded-lg shadow-sm">
             {/* クリック可能なカード本体 */}
             <div
@@ -544,7 +566,7 @@ export function PurchaseOrderListClient({
           </div>
         ))}
 
-        {filteredOrders.length === 0 && (
+        {orders.length === 0 && !isLoading && (
           <div className="text-center py-12 text-gray-500">
             発注書がありません
           </div>
@@ -556,7 +578,7 @@ export function PurchaseOrderListClient({
         <div className="mt-6 flex items-center justify-between">
           <button
             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1}
+            disabled={currentPage === 1 || isLoading}
             className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
             前へ
@@ -566,7 +588,7 @@ export function PurchaseOrderListClient({
           </span>
           <button
             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-            disabled={currentPage === totalPages}
+            disabled={currentPage === totalPages || isLoading}
             className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
             次へ

@@ -32,31 +32,31 @@
 ### フェーズ2: 他の7ページ（同じパターン適用）
 
 #### サーバー側API変更（7ファイル）
-4. `/app/api/invoices/route.ts`
-5. `/app/api/purchase-orders/route.ts`
-6. `/app/api/payments/route.ts`
+4. ✅ `/app/api/invoices/route.ts`
+5. ✅ `/app/api/purchase-orders/route.ts`
+6. ✅ `/app/api/payments/route.ts`
 7. `/app/api/clients/route.ts` (新規作成の可能性)
-8. `/app/api/projects/route.ts` (新規作成の可能性)
-9. `/app/api/suppliers/route.ts`
+8. ✅ `/app/api/projects/route.ts`
+9. ✅ `/app/api/suppliers/route.ts`
 10. `/app/api/staff/route.ts` (既存を確認)
 
 #### クライアント側変更（7ファイル）
-11. `/components/invoices/InvoiceListClient.tsx`
-12. `/app/(authenticated)/purchase-orders/PurchaseOrderListClient.tsx`
-13. `/components/payments/PaymentListClient.tsx`
-14. `/app/(authenticated)/clients/ClientTabs.tsx`
-15. `/components/projects/ProjectListClient.tsx`
-16. `/app/(authenticated)/suppliers/SupplierListClient.tsx`
-17. `/app/(authenticated)/staff/StaffListClient.tsx`
+11. ✅ `/components/invoices/InvoiceListClient.tsx`
+12. ✅ `/app/(authenticated)/purchase-orders/PurchaseOrderListClient.tsx`
+13. ✅ `/components/payments/PaymentListClient.tsx`
+14. `/app/(authenticated)/clients/ClientTabs.tsx` (複雑なタブ機能により保留)
+15. ✅ `/components/projects/ProjectListClient.tsx`
+16. ✅ `/app/(authenticated)/suppliers/SupplierListClient.tsx`
+17. ❌ `/app/(authenticated)/staff/StaffListClient.tsx` (対象外)
 
 #### ページコンポーネント変更（7ファイル）
-18. `/app/(authenticated)/invoices/page.tsx`
-19. `/app/(authenticated)/purchase-orders/page.tsx`
-20. `/app/(authenticated)/payments/page.tsx`
-21. `/app/(authenticated)/clients/page.tsx`
-22. `/app/(authenticated)/projects/page.tsx`
-23. `/app/(authenticated)/suppliers/page.tsx`
-24. `/app/(authenticated)/staff/page.tsx`
+18. ✅ `/app/(authenticated)/invoices/page.tsx`
+19. ✅ `/app/(authenticated)/purchase-orders/page.tsx`
+20. ✅ `/app/(authenticated)/payments/page.tsx`
+21. `/app/(authenticated)/clients/page.tsx` (複雑なタブ機能により保留)
+22. ✅ `/app/(authenticated)/projects/page.tsx`
+23. ✅ `/app/(authenticated)/suppliers/page.tsx`
+24. ❌ `/app/(authenticated)/staff/page.tsx` (対象外)
 
 ---
 

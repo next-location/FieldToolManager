@@ -23,7 +23,6 @@ interface Invoice {
 }
 
 interface InvoiceListClientProps {
-  invoices: Invoice[]
   userRole: string
 }
 
@@ -51,8 +50,11 @@ function matchesKanaSearch(text: string, searchQuery: string): boolean {
   )
 }
 
-export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps) {
+export function InvoiceListClient({ userRole }: InvoiceListClientProps) {
   const router = useRouter()
+  const [invoices, setInvoices] = useState<Invoice[]>([])
+  const [totalCount, setTotalCount] = useState(0)
+  const [isLoading, setIsLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [paymentFilter, setPaymentFilter] = useState('all')
@@ -64,6 +66,47 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
   const itemsPerPage = 20
 
   const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userRole)
+
+  // サーバーからデータ取得
+  const fetchInvoices = async () => {
+    setIsLoading(true)
+    try {
+      const params = new URLSearchParams({
+        limit: itemsPerPage.toString(),
+        offset: ((currentPage - 1) * itemsPerPage).toString(),
+        sort_field: sortField,
+        sort_order: sortOrder,
+      })
+
+      if (searchQuery) params.append('search', searchQuery)
+      if (statusFilter !== 'all') params.append('status', statusFilter)
+
+      const response = await fetch(`/api/invoices?${params.toString()}`)
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'データ取得に失敗しました')
+      }
+
+      setInvoices(result.data || [])
+      setTotalCount(result.count || 0)
+    } catch (error) {
+      console.error('請求書取得エラー:', error)
+      alert('請求書データの取得に失敗しました')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // 初回読み込み & フィルター・ページ変更時に再取得
+  useEffect(() => {
+    fetchInvoices()
+  }, [currentPage, searchQuery, statusFilter, sortField, sortOrder])
+
+  // フィルター変更時にページをリセット
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, statusFilter, paymentFilter, staffFilter, sortField, sortOrder])
 
   // スタッフリストを取得（マネージャー・管理者のみ）
   const staffList = useMemo(() => {
@@ -94,26 +137,15 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
       }
 
       alert('請求書を削除しました')
-      router.refresh()
+      fetchInvoices()
     } catch (error: any) {
       alert(error.message || '削除に失敗しました')
     }
   }
 
-  // フィルタ・ソート済みデータ
-  const filteredAndSortedInvoices = useMemo(() => {
-    let filtered = invoices.filter((invoice) => {
-      // 検索クエリフィルタ（ひらがな・カタカナ対応）
-      const matchesSearch =
-        !searchQuery ||
-        invoice.invoice_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (invoice.client?.name && matchesKanaSearch(invoice.client.name, searchQuery)) ||
-        (invoice.project?.project_name && matchesKanaSearch(invoice.project.project_name, searchQuery))
-
-      // ステータスフィルタ
-      const matchesStatus =
-        statusFilter === 'all' || invoice.status === statusFilter
-
+  // クライアント側フィルタ（入金状況とスタッフ）
+  const filteredInvoices = useMemo(() => {
+    return invoices.filter((invoice) => {
       // 入金状況フィルタ
       const isPaid = invoice.paid_amount >= invoice.total_amount
       const isPartiallyPaid = invoice.paid_amount > 0 && !isPaid
@@ -131,46 +163,11 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
         staffFilter === 'all' ||
         invoice.created_by_user?.name === staffFilter
 
-      return matchesSearch && matchesStatus && matchesPayment && matchesStaff
+      return matchesPayment && matchesStaff
     })
+  }, [invoices, paymentFilter, staffFilter, isManagerOrAdmin])
 
-    // ソート
-    filtered.sort((a, b) => {
-      let aValue: number | string = 0
-      let bValue: number | string = 0
-
-      if (sortField === 'invoice_date') {
-        aValue = new Date(a.invoice_date).getTime()
-        bValue = new Date(b.invoice_date).getTime()
-      } else if (sortField === 'due_date') {
-        aValue = new Date(a.due_date).getTime()
-        bValue = new Date(b.due_date).getTime()
-      } else if (sortField === 'total_amount') {
-        aValue = a.total_amount
-        bValue = b.total_amount
-      }
-
-      if (sortOrder === 'asc') {
-        return aValue > bValue ? 1 : -1
-      } else {
-        return aValue < bValue ? 1 : -1
-      }
-    })
-
-    return filtered
-  }, [invoices, searchQuery, statusFilter, paymentFilter, staffFilter, sortField, sortOrder, isManagerOrAdmin])
-
-  // ページネーション
-  const totalPages = Math.ceil(filteredAndSortedInvoices.length / itemsPerPage)
-  const paginatedInvoices = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage
-    return filteredAndSortedInvoices.slice(startIndex, startIndex + itemsPerPage)
-  }, [filteredAndSortedInvoices, currentPage, itemsPerPage])
-
-  // フィルター変更時にページをリセット
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [searchQuery, statusFilter, paymentFilter, staffFilter, sortField, sortOrder])
+  const totalPages = Math.ceil(totalCount / itemsPerPage)
 
   const getStatusColor = (status: string, isOverdue: boolean) => {
     if (isOverdue && status !== 'paid') return 'bg-red-100 text-red-800'
@@ -327,7 +324,11 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
       {/* 件数表示とソート */}
       <div className="mb-4 flex items-center justify-between">
         <div className="text-sm text-gray-700">
-          全 {invoices.length} 件中 {filteredAndSortedInvoices.length} 件を表示（{currentPage}/{totalPages} ページ）
+          {isLoading ? (
+            'データ読み込み中...'
+          ) : (
+            `全 ${totalCount} 件を表示中（${currentPage}/${totalPages} ページ）`
+          )}
         </div>
         <div className="flex items-center gap-2">
           <label className="text-xs text-gray-600">並び替え:</label>
@@ -339,6 +340,7 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
               setSortOrder(order)
             }}
             className="px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            disabled={isLoading}
           >
             <option value="invoice_date-desc">請求日（新しい順）</option>
             <option value="invoice_date-asc">請求日（古い順）</option>
@@ -350,9 +352,17 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
         </div>
       </div>
 
+      {/* ローディング表示 */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      )}
+
       {/* カード表示 */}
-      <div className="space-y-4">
-        {paginatedInvoices.map((invoice) => {
+      {!isLoading && (
+        <div className="space-y-4">
+          {filteredInvoices.map((invoice) => {
           const isPaid = invoice.paid_amount >= invoice.total_amount
           const isPartiallyPaid = invoice.paid_amount > 0 && !isPaid
           const isOverdue = !isPaid && new Date(invoice.due_date) < new Date()
@@ -482,13 +492,14 @@ export function InvoiceListClient({ invoices, userRole }: InvoiceListClientProps
             </div>
           )
         })}
-      </div>
 
-      {filteredAndSortedInvoices.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          {searchQuery || statusFilter !== 'all' || paymentFilter !== 'all'
-            ? '検索条件に一致する請求書がありません'
-            : '請求書データがありません'}
+          {filteredInvoices.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              {searchQuery || statusFilter !== 'all' || paymentFilter !== 'all'
+                ? '検索条件に一致する請求書がありません'
+                : '請求書データがありません'}
+            </div>
+          )}
         </div>
       )}
 

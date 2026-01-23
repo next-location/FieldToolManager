@@ -12,20 +12,7 @@ import { ExportButton } from '@/components/export/ExportButton'
 async function InvoiceList() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  const { data: invoices } = await supabase
-    .from('billing_invoices')
-    .select(`
-      *,
-      client:clients(name),
-      project:projects(project_name),
-      created_by_user:users!billing_invoices_created_by_fkey(name),
-      approved_by_user:users!billing_invoices_manager_approved_by_fkey(name)
-    `)
-    .eq('organization_id', organizationId)
-    .is('deleted_at', null)
-    .order('created_at', { ascending: false})
-
-  return <InvoiceListClient invoices={invoices || []} userRole={userRole || ''} />
+  return <InvoiceListClient userRole={userRole || ''} />
 }
 
 export default async function InvoicesPage() {

@@ -17,11 +17,12 @@ interface Project {
   site?: { id: string; name: string; address: string | null }
 }
 
-interface ProjectListClientProps {
-  projects: Project[]
-}
+interface ProjectListClientProps {}
 
-export function ProjectListClient({ projects }: ProjectListClientProps) {
+export function ProjectListClient({}: ProjectListClientProps) {
+  const [projects, setProjects] = useState<Project[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [totalCount, setTotalCount] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [sortField, setSortField] = useState<'start_date' | 'end_date' | 'contract_amount'>('start_date')
@@ -29,6 +30,51 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 20
+
+  // API呼び出し関数
+  const fetchProjects = async () => {
+    try {
+      setIsLoading(true)
+
+      const params = new URLSearchParams({
+        limit: itemsPerPage.toString(),
+        offset: ((currentPage - 1) * itemsPerPage).toString(),
+        search: searchQuery,
+        sort_field: sortField,
+        sort_order: sortOrder,
+      })
+
+      if (statusFilter && statusFilter !== 'all') {
+        params.set('status', statusFilter)
+      }
+
+      const response = await fetch(`/api/projects?${params}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch projects')
+      }
+
+      const result = await response.json()
+      setProjects(result.data || [])
+      setTotalCount(result.count || 0)
+    } catch (error) {
+      console.error('Failed to fetch projects:', error)
+      alert('工事一覧の取得に失敗しました')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // 初回読み込み + ページ・フィルター変更時
+  useEffect(() => {
+    fetchProjects()
+  }, [currentPage, searchQuery, statusFilter, sortField, sortOrder])
+
+  // フィルター・ソート変更時は1ページ目に戻す
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1)
+    }
+  }, [searchQuery, statusFilter, sortField, sortOrder])
 
   // ソート処理
   const handleSort = (field: typeof sortField) => {
@@ -40,61 +86,8 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
     }
   }
 
-  // フィルタ・ソート済みデータ
-  const filteredAndSortedProjects = useMemo(() => {
-    let filtered = projects.filter((project) => {
-      // 検索クエリフィルタ
-      const searchLower = searchQuery.toLowerCase()
-      const matchesSearch =
-        !searchQuery ||
-        project.project_code.toLowerCase().includes(searchLower) ||
-        project.project_name.toLowerCase().includes(searchLower) ||
-        project.client?.name.toLowerCase().includes(searchLower)
-
-      // ステータスフィルタ
-      const matchesStatus =
-        statusFilter === 'all' || project.status === statusFilter
-
-      return matchesSearch && matchesStatus
-    })
-
-    // ソート
-    filtered.sort((a, b) => {
-      let aValue: number = 0
-      let bValue: number = 0
-
-      if (sortField === 'start_date') {
-        aValue = a.start_date ? new Date(a.start_date).getTime() : 0
-        bValue = b.start_date ? new Date(b.start_date).getTime() : 0
-      } else if (sortField === 'end_date') {
-        aValue = a.end_date ? new Date(a.end_date).getTime() : 0
-        bValue = b.end_date ? new Date(b.end_date).getTime() : 0
-      } else if (sortField === 'contract_amount') {
-        aValue = a.contract_amount || 0
-        bValue = b.contract_amount || 0
-      }
-
-      if (sortOrder === 'asc') {
-        return aValue > bValue ? 1 : -1
-      } else {
-        return aValue < bValue ? 1 : -1
-      }
-    })
-
-    return filtered
-  }, [projects, searchQuery, statusFilter, sortField, sortOrder])
-
   // ページネーション
-  const totalPages = Math.ceil(filteredAndSortedProjects.length / itemsPerPage)
-  const paginatedProjects = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage
-    return filteredAndSortedProjects.slice(startIndex, startIndex + itemsPerPage)
-  }, [filteredAndSortedProjects, currentPage, itemsPerPage])
-
-  // フィルター変更時にページをリセット
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [searchQuery, statusFilter, sortField, sortOrder])
+  const totalPages = Math.ceil(totalCount / itemsPerPage)
 
   const SortIcon = ({ field }: { field: typeof sortField }) => {
     if (sortField !== field) return null
@@ -116,6 +109,16 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
   const filterCount = [
     statusFilter !== 'all',
   ].filter(Boolean).length
+
+  // ローディング表示
+  if (isLoading && projects.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-3 text-gray-600">読み込み中...</span>
+      </div>
+    )
+  }
 
   return (
     <>
@@ -199,20 +202,20 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
       {/* 件数表示 */}
       <div className="mb-4">
         <div className="text-sm text-gray-700">
-          全 {projects.length} 件中 {filteredAndSortedProjects.length} 件を表示（{currentPage}/{totalPages} ページ）
+          全 {totalCount} 件中 {projects.length} 件を表示（{currentPage}/{totalPages} ページ）
         </div>
       </div>
 
       {/* カードレイアウト（PC・モバイル共通） */}
       <div className="space-y-4">
-        {filteredAndSortedProjects.length === 0 ? (
+        {projects.length === 0 && !isLoading ? (
           <div className="text-center py-12 text-gray-500 bg-white rounded-lg shadow-sm">
             {searchQuery || statusFilter !== 'all'
               ? '検索条件に一致する工事がありません'
               : '工事データがありません'}
           </div>
         ) : (
-          paginatedProjects.map((project) => (
+          projects.map((project) => (
             <div key={project.id} className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
               {/* PC表示 */}
               <div className="hidden sm:block p-6">
@@ -366,7 +369,7 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
         <div className="mt-6 flex items-center justify-between">
           <button
             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1}
+            disabled={currentPage === 1 || isLoading}
             className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
             前へ
@@ -376,7 +379,7 @@ export function ProjectListClient({ projects }: ProjectListClientProps) {
           </span>
           <button
             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-            disabled={currentPage === totalPages}
+            disabled={currentPage === totalPages || isLoading}
             className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
             次へ

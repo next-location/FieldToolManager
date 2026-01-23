@@ -346,101 +346,198 @@ export function EstimateListClient({ userRole, staffList }: EstimateListClientPr
           <div key={estimate.id} className="bg-white border border-gray-300 rounded-lg shadow-sm">
             {/* クリック可能なカード本体 */}
             <div
-              className="px-6 py-5 cursor-pointer hover:bg-gray-50 transition-colors relative"
+              className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
               onClick={() => router.push(`/estimates/${estimate.id}`)}
             >
-              {/* ステータスと見積番号（左上） */}
-              <div className="absolute top-2 left-2 flex items-center gap-2">
-                <span className={`inline-block px-2 py-0.5 text-xs font-bold rounded ${
-                  estimate.status === 'draft'
-                    ? 'bg-gray-200 text-gray-800'
-                    : estimate.status === 'submitted' && estimate.manager_approved_at
-                    ? 'bg-indigo-500 text-white'
-                    : estimate.status === 'submitted'
-                    ? 'bg-orange-500 text-white'
-                    : estimate.status === 'sent'
-                    ? 'bg-blue-500 text-white'
-                    : estimate.status === 'accepted'
-                    ? 'bg-green-500 text-white'
-                    : estimate.status === 'rejected'
-                    ? 'bg-red-500 text-white'
-                    : estimate.status === 'expired'
-                    ? 'bg-yellow-500 text-white'
-                    : 'bg-gray-200 text-gray-800'
-                }`}>
-                  {estimate.status === 'draft' ? '下書き'
-                    : estimate.status === 'submitted' && estimate.manager_approved_at ? '送付可能'
-                    : estimate.status === 'submitted' ? '提出済み'
-                    : estimate.status === 'sent' ? '送付済'
-                    : estimate.status === 'accepted' ? '承認'
-                    : estimate.status === 'rejected' ? '却下'
-                    : estimate.status === 'expired' ? '期限切れ'
-                    : estimate.status}
-                </span>
-                <span className="text-xs font-bold text-gray-700 whitespace-nowrap">{estimate.estimate_number}</span>
-              </div>
-
-              {/* 見積日・有効期限（右上・横並び） */}
-              <div className="absolute top-2 right-2 flex items-center gap-4 text-xs text-gray-500">
-                <div className="whitespace-nowrap">
-                  見積日: {new Date(estimate.estimate_date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+              {/* モバイル: 縦並びレイアウト */}
+              <div className="sm:hidden space-y-3">
+                {/* ステータスと見積番号 */}
+                <div className="flex items-center gap-2">
+                  <span className={`inline-block px-2 py-1 text-xs font-bold rounded ${
+                    estimate.status === 'draft'
+                      ? 'bg-gray-200 text-gray-800'
+                      : estimate.status === 'submitted' && estimate.manager_approved_at
+                      ? 'bg-indigo-500 text-white'
+                      : estimate.status === 'submitted'
+                      ? 'bg-orange-500 text-white'
+                      : estimate.status === 'sent'
+                      ? 'bg-blue-500 text-white'
+                      : estimate.status === 'accepted'
+                      ? 'bg-green-500 text-white'
+                      : estimate.status === 'rejected'
+                      ? 'bg-red-500 text-white'
+                      : estimate.status === 'expired'
+                      ? 'bg-yellow-500 text-white'
+                      : 'bg-gray-200 text-gray-800'
+                  }`}>
+                    {estimate.status === 'draft' ? '下書き'
+                      : estimate.status === 'submitted' && estimate.manager_approved_at ? '送付可能'
+                      : estimate.status === 'submitted' ? '提出済み'
+                      : estimate.status === 'sent' ? '送付済'
+                      : estimate.status === 'accepted' ? '承認'
+                      : estimate.status === 'rejected' ? '却下'
+                      : estimate.status === 'expired' ? '期限切れ'
+                      : estimate.status}
+                  </span>
+                  <span className="text-sm font-bold text-gray-700">{estimate.estimate_number}</span>
                 </div>
+
+                {/* 金額（目立つように上部に） */}
+                <div className="bg-gray-50 rounded p-3">
+                  <div className="text-xs text-gray-500 mb-1">金額（税込）</div>
+                  <div className="text-2xl font-bold text-gray-900">
+                    ¥{Math.floor(estimate.total_amount).toLocaleString()}
+                  </div>
+                </div>
+
+                {/* 取引先 */}
+                <div>
+                  <div className="text-xs text-gray-500 mb-1">取引先</div>
+                  <div className="font-medium text-gray-900">
+                    {estimate.client?.name || '-'}
+                  </div>
+                </div>
+
+                {/* 工事名 */}
+                <div>
+                  <div className="text-xs text-gray-500 mb-1">工事名</div>
+                  <div className="text-sm text-gray-900">
+                    {estimate.project?.project_name || '-'}
+                  </div>
+                </div>
+
+                {/* 見積日 */}
+                <div>
+                  <div className="text-xs text-gray-500 mb-1">見積日</div>
+                  <div className="text-sm text-gray-900">
+                    {new Date(estimate.estimate_date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </div>
+                </div>
+
+                {/* 有効期限 */}
                 {estimate.valid_until && (
-                  <div className="whitespace-nowrap">
-                    有効期限: {new Date(estimate.valid_until).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">有効期限</div>
+                    <div className="text-sm text-gray-900">
+                      {new Date(estimate.valid_until).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    </div>
                   </div>
                 )}
+
+                {/* 作成者・承認者 */}
+                {(isManagerOrAdmin && estimate.created_by_user) || estimate.manager_approved_at ? (
+                  <div className="flex gap-4 text-xs">
+                    {isManagerOrAdmin && estimate.created_by_user && (
+                      <div>
+                        <span className="text-gray-500">作成者: </span>
+                        <span className="font-medium text-gray-900">{estimate.created_by_user.name}</span>
+                      </div>
+                    )}
+                    {estimate.manager_approved_at && (
+                      <div>
+                        <span className="text-gray-500">承認者: </span>
+                        <span className="font-medium text-gray-900">{estimate.manager_approved_by_user?.name}</span>
+                      </div>
+                    )}
+                  </div>
+                ) : null}
               </div>
 
-              <div className="flex items-center justify-between pt-6">
-                {/* 左側：取引先名・工事名（横並び） */}
-                <div className="flex-1 min-w-0 flex items-center gap-8">
-                  <div className="min-w-0">
-                    <div className="text-xs text-gray-500 mb-0.5">取引先</div>
-                    <div className="font-bold text-gray-900 truncate">
-                      {estimate.client?.name || '-'}
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs text-gray-500 mb-0.5">工事名</div>
-                    <div className="text-sm text-gray-900 truncate">
-                      {estimate.project?.project_name || '-'}
-                    </div>
-                  </div>
+              {/* PC: 横並びレイアウト（既存） */}
+              <div className="hidden sm:block relative">
+                {/* ステータスと見積番号（左上） */}
+                <div className="absolute top-0 left-0 flex items-center gap-2">
+                  <span className={`inline-block px-2 py-0.5 text-xs font-bold rounded ${
+                    estimate.status === 'draft'
+                      ? 'bg-gray-200 text-gray-800'
+                      : estimate.status === 'submitted' && estimate.manager_approved_at
+                      ? 'bg-indigo-500 text-white'
+                      : estimate.status === 'submitted'
+                      ? 'bg-orange-500 text-white'
+                      : estimate.status === 'sent'
+                      ? 'bg-blue-500 text-white'
+                      : estimate.status === 'accepted'
+                      ? 'bg-green-500 text-white'
+                      : estimate.status === 'rejected'
+                      ? 'bg-red-500 text-white'
+                      : estimate.status === 'expired'
+                      ? 'bg-yellow-500 text-white'
+                      : 'bg-gray-200 text-gray-800'
+                  }`}>
+                    {estimate.status === 'draft' ? '下書き'
+                      : estimate.status === 'submitted' && estimate.manager_approved_at ? '送付可能'
+                      : estimate.status === 'submitted' ? '提出済み'
+                      : estimate.status === 'sent' ? '送付済'
+                      : estimate.status === 'accepted' ? '承認'
+                      : estimate.status === 'rejected' ? '却下'
+                      : estimate.status === 'expired' ? '期限切れ'
+                      : estimate.status}
+                  </span>
+                  <span className="text-xs font-bold text-gray-700 whitespace-nowrap">{estimate.estimate_number}</span>
                 </div>
 
-                {/* 中央：作成者・承認者（縦並び） */}
-                <div className="mx-8">
-                  {isManagerOrAdmin && estimate.created_by_user && (
-                    <div className="mb-1">
-                      <span className="text-xs text-gray-500">作成者: </span>
-                      <span className="text-xs font-bold text-gray-900">
-                        {estimate.created_by_user.name}
-                      </span>
-                    </div>
-                  )}
-                  {estimate.manager_approved_at && (
-                    <div>
-                      <span className="text-xs text-gray-500">承認者: </span>
-                      <span className="text-xs font-bold text-gray-900">
-                        {estimate.manager_approved_by_user?.name}
-                      </span>
+                {/* 見積日・有効期限（右上・横並び） */}
+                <div className="absolute top-0 right-0 flex items-center gap-4 text-xs text-gray-500">
+                  <div className="whitespace-nowrap">
+                    見積日: {new Date(estimate.estimate_date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </div>
+                  {estimate.valid_until && (
+                    <div className="whitespace-nowrap">
+                      有効期限: {new Date(estimate.valid_until).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
                     </div>
                   )}
                 </div>
 
-                {/* 右側：金額 */}
-                <div className="text-right ml-8">
-                  <div className="text-xs text-gray-500 mb-0.5">金額（税込）</div>
-                  <div className="text-2xl font-bold text-gray-900 whitespace-nowrap">
-                    ¥{Math.floor(estimate.total_amount).toLocaleString()}
+                <div className="flex items-center justify-between pt-6">
+                  {/* 左側：取引先名・工事名（横並び） */}
+                  <div className="flex-1 min-w-0 flex items-center gap-8">
+                    <div className="min-w-0">
+                      <div className="text-xs text-gray-500 mb-0.5">取引先</div>
+                      <div className="font-bold text-gray-900 truncate">
+                        {estimate.client?.name || '-'}
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs text-gray-500 mb-0.5">工事名</div>
+                      <div className="text-sm text-gray-900 truncate">
+                        {estimate.project?.project_name || '-'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 中央：作成者・承認者（縦並び） */}
+                  <div className="mx-8">
+                    {isManagerOrAdmin && estimate.created_by_user && (
+                      <div className="mb-1">
+                        <span className="text-xs text-gray-500">作成者: </span>
+                        <span className="text-xs font-bold text-gray-900">
+                          {estimate.created_by_user.name}
+                        </span>
+                      </div>
+                    )}
+                    {estimate.manager_approved_at && (
+                      <div>
+                        <span className="text-xs text-gray-500">承認者: </span>
+                        <span className="text-xs font-bold text-gray-900">
+                          {estimate.manager_approved_by_user?.name}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 右側：金額 */}
+                  <div className="text-right ml-8">
+                    <div className="text-xs text-gray-500 mb-0.5">金額（税込）</div>
+                    <div className="text-2xl font-bold text-gray-900 whitespace-nowrap">
+                      ¥{Math.floor(estimate.total_amount).toLocaleString()}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* ボタンエリア（カード外・右寄せ） */}
-            <div className="border-t border-gray-200 px-4 py-2 bg-gray-50 flex items-center justify-end gap-2">
+            <div className="border-t border-gray-200 px-4 py-2 bg-gray-50 flex flex-wrap items-center justify-end gap-2">
               {/* 期限切れの場合は警告テキストのみ */}
               {estimate.status === 'expired' && (
                 <span className="text-xs text-yellow-700 mr-auto">
@@ -452,6 +549,7 @@ export function EstimateListClient({ userRole, staffList }: EstimateListClientPr
                 <Link
                   href={`/estimates/${estimate.id}/edit`}
                   className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   編集
                 </Link>
@@ -463,6 +561,7 @@ export function EstimateListClient({ userRole, staffList }: EstimateListClientPr
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded hover:bg-green-700 transition-colors"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   PDF出力
                 </a>
@@ -471,6 +570,7 @@ export function EstimateListClient({ userRole, staffList }: EstimateListClientPr
                 <Link
                   href={`/invoices/new?estimate_id=${estimate.id}`}
                   className="px-3 py-1.5 bg-purple-600 text-white text-sm font-medium rounded hover:bg-purple-700 transition-colors"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   請求書作成
                 </Link>
@@ -478,7 +578,10 @@ export function EstimateListClient({ userRole, staffList }: EstimateListClientPr
               {/* 削除ボタン: 未承認または期限切れの見積のみ */}
               {(!estimate.manager_approved_at || estimate.status === 'expired') && (
                 <button
-                  onClick={() => handleDelete(estimate.id, estimate.estimate_number)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleDelete(estimate.id, estimate.estimate_number)
+                  }}
                   className="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors"
                 >
                   削除

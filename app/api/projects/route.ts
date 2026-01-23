@@ -30,16 +30,23 @@ export async function GET(request: NextRequest) {
 
     // クエリパラメータ取得
     const searchParams = request.nextUrl.searchParams
-    const status = searchParams.get('status')
-    const search = searchParams.get('search')
-    const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '50')
+    const offset = parseInt(searchParams.get('offset') || '0')
+    const status = searchParams.get('status') || ''
+    const search = searchParams.get('search') || ''
+    const sortField = searchParams.get('sort_field') || 'start_date'
+    const sortOrder = searchParams.get('sort_order') || 'desc'
 
-    // 工事一覧取得
+    // 工事一覧取得（client, siteのリレーションも含む）
     let query = supabase
       .from('projects')
-      .select('*', { count: 'exact' })
+      .select(`
+        *,
+        client:clients(name),
+        site:sites(id, name, address)
+      `, { count: 'exact' })
       .eq('organization_id', userData.organization_id)
+      .is('deleted_at', null)
 
     // フィルター適用
     if (status && status !== 'all') {
@@ -52,13 +59,14 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // ページネーション
-    const from = (page - 1) * limit
-    const to = from + limit - 1
+    // ソート順を適用
+    const validSortFields = ['start_date', 'end_date', 'contract_amount']
+    const finalSortField = validSortFields.includes(sortField) ? sortField : 'start_date'
+    const ascending = sortOrder === 'asc'
 
     const { data: projects, error, count } = await query
-      .order('created_at', { ascending: false })
-      .range(from, to)
+      .order(finalSortField, { ascending })
+      .range(offset, offset + limit - 1)
 
     if (error) {
       console.error('Error fetching projects:', error)
@@ -67,10 +75,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       data: projects,
-      total: count || 0,
-      page,
+      count,
       limit,
-      total_pages: Math.ceil((count || 0) / limit),
+      offset,
     })
   } catch (error) {
     console.error('Unexpected error:', error)

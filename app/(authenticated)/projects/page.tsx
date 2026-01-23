@@ -1,35 +1,11 @@
-import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { ProjectListClient } from '@/components/projects/ProjectListClient'
 import ProjectPageFAB from '@/components/projects/ProjectPageFAB'
-import { LoadingSpinner } from '@/components/LoadingSpinner'
-
-async function ProjectList() {
-  const { userId, organizationId, userRole, supabase } = await requireAuth()
-
-  const { data: projects, error } = await supabase
-    .from('projects')
-    .select(`
-      *,
-      client:clients(name),
-      site:sites(id, name, address)
-    `)
-    .eq('organization_id', organizationId)
-    .is('deleted_at', null)
-    .order('created_at', { ascending: false })
-
-  // デバッグ用
-  if (error) {
-    console.error('Projects query error:', error)
-  }
-
-  return <ProjectListClient projects={projects || []} />
-}
 
 export default async function ProjectsPage() {
-  const { userId, organizationId, userRole, supabase } = await requireAuth()
+  const { userRole } = await requireAuth()
 
   // 管理者のみアクセス可能
   if (!['admin', 'super_admin', 'manager'].includes(userRole || '')) {
@@ -49,11 +25,8 @@ export default async function ProjectsPage() {
           </Link>
         </div>
 
-        <Suspense fallback={<LoadingSpinner inline />}>
-          <ProjectList />
-        </Suspense>
+        <ProjectListClient />
 
-        {/* FAB (モバイルのみ) */}
         <ProjectPageFAB />
       </div>
     </div>

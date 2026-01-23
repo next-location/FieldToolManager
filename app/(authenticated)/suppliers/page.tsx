@@ -2,39 +2,13 @@ import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/page-auth'
 import { SupplierListClient } from './SupplierListClient'
 
-export default async function SuppliersPage({
-  searchParams,
-}: {
-  searchParams: Promise<{
-    is_active?: string
-    search?: string
-  }>
-}) {
-  const params = await searchParams
-  const search = params.search || ''
-
+export default async function SuppliersPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // 管理者・リーダー権限チェック
   if (!['admin', 'leader'].includes(userRole)) {
     redirect('/')
   }
-
-  // 仕入先一覧を取得（有効なもののみ）
-  let query = supabase
-    .from('suppliers')
-    .select('*')
-    .eq('organization_id', organizationId)
-    .eq('is_active', true)
-    .order('created_at', { ascending: false })
-
-  if (search) {
-    query = query.or(
-      `name.ilike.%${search}%,name_kana.ilike.%${search}%,supplier_code.ilike.%${search}%,address.ilike.%${search}%,phone.ilike.%${search}%`
-    )
-  }
-
-  const { data: suppliers } = await query
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -48,7 +22,7 @@ export default async function SuppliersPage({
         </div>
 
         {/* 仕入先一覧 */}
-        <SupplierListClient suppliers={suppliers || []} />
+        <SupplierListClient />
       </div>
     </div>
   )

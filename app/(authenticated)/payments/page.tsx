@@ -1,27 +1,8 @@
-import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { PaymentListClient } from '@/components/payments/PaymentListClient'
 import { requireAuth } from '@/lib/auth/page-auth'
 import PaymentPageFAB from '@/components/payments/PaymentPageFAB'
-import { LoadingSpinner } from '@/components/LoadingSpinner'
-
-async function PaymentList() {
-  const { organizationId, supabase } = await requireAuth()
-
-  const { data: payments } = await supabase
-    .from('payments')
-    .select(`
-      *,
-      invoice:billing_invoices(invoice_number, client:clients(name)),
-      purchase_order:purchase_orders(order_number, supplier:clients!purchase_orders_client_id_fkey(name))
-    `)
-    .eq('organization_id', organizationId)
-    .is('deleted_at', null)
-    .order('payment_date', { ascending: false })
-
-  return <PaymentListClient payments={payments || []} />
-}
 
 export default async function PaymentsPage() {
   const { userRole } = await requireAuth()
@@ -57,9 +38,7 @@ export default async function PaymentsPage() {
           </div>
         </div>
 
-        <Suspense fallback={<LoadingSpinner inline />}>
-          <PaymentList />
-        </Suspense>
+        <PaymentListClient />
 
         <PaymentPageFAB />
       </div>
