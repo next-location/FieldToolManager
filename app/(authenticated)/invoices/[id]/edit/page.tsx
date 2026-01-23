@@ -32,6 +32,7 @@ export default function EditInvoicePage({
   )
 
   const [loading, setLoading] = useState(false)
+  const [csrfToken, setCsrfToken] = useState<string>('')
   const [clients, setClients] = useState<any[]>([])
   const [projects, setProjects] = useState<any[]>([])
   const [items, setItems] = useState<InvoiceItem[]>([])
@@ -59,7 +60,18 @@ export default function EditInvoicePage({
     fetchClients()
     fetchProjects()
     fetchInvoice()
+    fetchCsrfToken()
   }, [invoiceId])
+
+  const fetchCsrfToken = async () => {
+    try {
+      const response = await fetch('/api/csrf-token')
+      const data = await response.json()
+      setCsrfToken(data.token)
+    } catch (error) {
+      console.error('Failed to fetch CSRF token:', error)
+    }
+  }
 
   const fetchInvoice = async () => {
     const { data: invoice } = await supabase
@@ -233,7 +245,10 @@ export default function EditInvoicePage({
       // 提出フラグが立っている場合は提出APIを呼ぶ
       if (shouldSubmit) {
         const response = await fetch(`/api/invoices/${invoiceId}/submit`, {
-          method: 'POST'
+          method: 'POST',
+          headers: {
+            'X-CSRF-Token': csrfToken
+          }
         })
 
         const data = await response.json()
