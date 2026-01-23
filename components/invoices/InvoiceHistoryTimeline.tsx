@@ -69,7 +69,7 @@ export function InvoiceHistoryTimeline({ history }: InvoiceHistoryTimelineProps)
 
   return (
     <div className="space-y-4">
-      {history.map((item, index) => (
+      {[...history].reverse().map((item, index) => (
         <div
           key={item.id}
           className={`border-2 rounded-lg p-4 ${getColor(item.action_type)}`}
