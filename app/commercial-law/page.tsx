@@ -75,7 +75,18 @@ export default function CommercialLawPage() {
           </section>
         </div>
 
-        <div className="mt-12 pt-6 border-t border-gray-200">
+        <div className="mt-12 pt-6 border-t border-gray-200 space-y-4">
+          <div className="text-center">
+            <p className="text-sm font-semibold text-gray-700 mb-2">運営会社</p>
+            <a
+              href="https://next-location.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+            >
+              株式会社ネクストロケーション
+            </a>
+          </div>
           <p className="text-sm text-gray-500 text-center">
             最終更新日: 2026年1月6日
           </p>
