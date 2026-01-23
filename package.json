@@ -57,6 +57,7 @@
     "@yudiel/react-qr-scanner": "^2.4.1",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
+    "canvas": "^3.2.1",
     "flexsearch": "^0.8.212",
     "gray-matter": "^4.0.3",
     "html5-qrcode": "^2.3.8",
