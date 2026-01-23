@@ -536,7 +536,7 @@ export default function NewEstimatePage() {
                 type="date"
                 value={formData.estimate_date}
                 onChange={(e) => setFormData({...formData, estimate_date: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               />
             </div>
@@ -549,7 +549,7 @@ export default function NewEstimatePage() {
                 type="date"
                 value={formData.valid_until}
                 onChange={(e) => setFormData({...formData, valid_until: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
 

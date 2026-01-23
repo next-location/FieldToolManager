@@ -302,7 +302,8 @@ export function EstimateListClient({ userRole, staffList }: EstimateListClientPr
       </div>
 
       {/* 件数表示とソート */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between">
+        {/* 件数表示 */}
         <div className="text-sm text-gray-700">
           {isLoading ? (
             'データ読み込み中...'
@@ -310,8 +311,10 @@ export function EstimateListClient({ userRole, staffList }: EstimateListClientPr
             `全 ${totalCount} 件を表示中（${currentPage}/${totalPages} ページ）`
           )}
         </div>
+
+        {/* 並び替え（モバイル: フル幅、PC: コンパクト） */}
         <div className="flex items-center gap-2">
-          <label className="text-xs text-gray-600">並び替え:</label>
+          <label className="text-xs sm:text-xs text-gray-600 shrink-0">並び替え:</label>
           <select
             value={`${sortField}-${sortOrder}`}
             onChange={(e) => {
@@ -319,7 +322,7 @@ export function EstimateListClient({ userRole, staffList }: EstimateListClientPr
               setSortField(field)
               setSortOrder(order)
             }}
-            className="px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="flex-1 sm:flex-initial px-3 py-2 sm:px-2 sm:py-1 border border-gray-300 rounded text-sm sm:text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             disabled={isLoading}
           >
             <option value="estimate_date-desc">見積日（新しい順）</option>
