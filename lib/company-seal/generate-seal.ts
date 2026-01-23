@@ -42,7 +42,7 @@ const fontStyleConfig: Record<SealFontStyle, {
  * 会社名を正方形レイアウトに最適化して分割
  * 必要に応じて「之印」「の印」を追加
  */
-function splitCompanyNameOptimized(name: string): string[][] {
+export function splitCompanyNameOptimized(name: string): string[][] {
   const length = name.length
 
   // 会社形態を識別（前株・後株を判定）
