@@ -71,7 +71,7 @@ export function ApproveInvoiceButton({ invoiceId, userRole }: ApproveInvoiceButt
     <>
       <button
         onClick={() => setShowModal(true)}
-        className="bg-green-500 text-white px-4 py-2 rounded-md text-sm hover:bg-green-600"
+        className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
         disabled={loading}
       >
         承認

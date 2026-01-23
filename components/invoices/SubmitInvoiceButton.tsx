@@ -56,7 +56,7 @@ export function SubmitInvoiceButton({ invoiceId }: { invoiceId: string }) {
     <button
       onClick={handleSubmit}
       disabled={loading}
-      className="bg-green-500 text-white px-4 py-2 rounded-md text-sm hover:bg-green-600 disabled:bg-gray-400"
+      className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 disabled:bg-gray-400"
     >
       {loading ? '提出中...' : '提出'}
     </button>
