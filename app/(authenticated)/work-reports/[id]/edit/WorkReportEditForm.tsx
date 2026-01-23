@@ -310,7 +310,7 @@ export function WorkReportEditForm({
                   value={reportDate}
                   onChange={(e) => setReportDate(e.target.value)}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm text-left [appearance:none]"
                 />
               </div>
 
@@ -348,7 +348,7 @@ export function WorkReportEditForm({
                   id="work_start_time"
                   value={workStartTime}
                   onChange={(e) => setWorkStartTime(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm text-left [appearance:none]"
                 />
               </div>
 
@@ -361,7 +361,7 @@ export function WorkReportEditForm({
                   id="work_end_time"
                   value={workEndTime}
                   onChange={(e) => setWorkEndTime(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm text-left [appearance:none]"
                 />
               </div>
 
@@ -976,7 +976,7 @@ export function WorkReportEditForm({
                           setCustomFieldValues({ ...customFieldValues, [field.name]: e.target.value })
                         }
                         required={field.required}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm text-left [appearance:none]"
                       />
                     )}
 
@@ -989,7 +989,7 @@ export function WorkReportEditForm({
                           setCustomFieldValues({ ...customFieldValues, [field.name]: e.target.value })
                         }
                         required={field.required}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm text-left [appearance:none]"
                       />
                     )}
                   </div>

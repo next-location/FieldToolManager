@@ -81,7 +81,7 @@ export function WorkReportForm({ sites, organizationUsers, organizationTools, cu
   const inputClassName = "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm h-[40px]"
   const selectClassName = "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm h-[40px]"
   const textareaClassName = "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm"
-  const dateTimeClassName = "w-1/2 md:w-full px-3 py-1.5 md:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-base md:text-sm h-[36px] md:h-[40px]"
+  const dateTimeClassName = "w-1/2 md:w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-sm text-left [appearance:none] h-[40px]"
 
   // フォームステート
   const [siteId, setSiteId] = useState('')

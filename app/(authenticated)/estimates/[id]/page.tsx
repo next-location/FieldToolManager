@@ -212,29 +212,32 @@ export default async function EstimateDetailPage({
             )}
           </div>
 
-          {/* 下段: 一覧・削除・編集ボタン（スマホ: 横3列、PC: 左寄せ横並び） */}
-          <div className="grid grid-cols-3 sm:flex sm:flex-row gap-2">
-            {/* 左: 一覧に戻る */}
+          {/* 下段: 一覧・削除・編集ボタン */}
+          {/* スマホ: 表示されるボタンのみで3列グリッド、PC: 左寄せ横並び */}
+          <div className="flex flex-wrap gap-2">
+            {/* 一覧に戻る */}
             <Link
               href="/estimates"
-              className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 text-center"
+              className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 text-center flex-1 sm:flex-none min-w-[100px]"
             >
               一覧に戻る
             </Link>
 
-            {/* 中央: 削除ボタン（条件付き表示） */}
+            {/* 削除ボタン（条件付き表示） */}
             {(!estimate.manager_approved_at || estimate.status === 'expired') && (
-              <DeleteEstimateButton
-                estimateId={id}
-                estimateNumber={estimate.estimate_number}
-              />
+              <div className="flex-1 sm:flex-none min-w-[100px]">
+                <DeleteEstimateButton
+                  estimateId={id}
+                  estimateNumber={estimate.estimate_number}
+                />
+              </div>
             )}
 
-            {/* 右: 編集ボタン（下書きの場合のみ） */}
+            {/* 編集ボタン（下書きの場合のみ） */}
             {estimate.status === 'draft' && (
               <Link
                 href={`/estimates/${id}/edit`}
-                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-center"
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-center flex-1 sm:flex-none min-w-[100px]"
               >
                 編集
               </Link>
