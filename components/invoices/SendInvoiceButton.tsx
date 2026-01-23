@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface SendInvoiceButtonProps {
@@ -22,6 +22,21 @@ export function SendInvoiceButton({
 }: SendInvoiceButtonProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const [csrfToken, setCsrfToken] = useState('')
+
+  useEffect(() => {
+    // CSRFトークンを取得
+    const fetchCsrfToken = async () => {
+      try {
+        const response = await fetch('/api/csrf-token')
+        const data = await response.json()
+        setCsrfToken(data.token)
+      } catch (error) {
+        console.error('Failed to fetch CSRF token:', error)
+      }
+    }
+    fetchCsrfToken()
+  }, [])
 
   // manager以上、または作成者本人（リーダー）のみ表示
   const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userRole)
@@ -46,6 +61,9 @@ export function SendInvoiceButton({
     try {
       const response = await fetch(`/api/invoices/${invoiceId}/send`, {
         method: 'POST',
+        headers: {
+          'X-CSRF-Token': csrfToken
+        }
       })
 
       if (!response.ok) {
