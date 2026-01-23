@@ -75,14 +75,14 @@ export default async function PaymentDetailPage({
       <div className="px-4 py-6 sm:px-0">
       {/* ヘッダー */}
       <div className="mb-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold mb-2">入出金詳細</h1>
-            <p className="text-gray-600">
+            <h1 className="text-lg sm:text-2xl font-bold mb-2">入出金詳細</h1>
+            <p className="text-sm sm:text-base text-gray-600">
               {isReceipt ? '入金' : '支払'}記録の詳細情報
             </p>
           </div>
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap gap-2">
             {isReceipt && (
               <a
                 href={`/api/payments/${id}/receipt`}

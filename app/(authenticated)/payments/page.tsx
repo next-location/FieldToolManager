@@ -16,25 +16,27 @@ export default async function PaymentsPage() {
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 pb-6 sm:px-0 sm:py-6">
         <div className="mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <h1 className="text-lg sm:text-2xl font-bold text-gray-900">入出金管理</h1>
-          </div>
-          <p className="text-sm text-gray-600 mb-4">
-            入金・支払の記録と管理を行います
-          </p>
-          <div className="hidden sm:flex gap-3">
-            <Link
-              href="/payments/new?type=receipt"
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
-            >
-              + 入金登録
-            </Link>
-            <Link
-              href="/payments/new?type=payment"
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700"
-            >
-              + 支払登録
-            </Link>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+            <div className="flex-1">
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2">入出金管理</h1>
+              <p className="text-sm text-gray-600">
+                入金・支払の記録と管理を行います
+              </p>
+            </div>
+            <div className="hidden sm:flex gap-3">
+              <Link
+                href="/payments/new?type=receipt"
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
+              >
+                + 入金登録
+              </Link>
+              <Link
+                href="/payments/new?type=payment"
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700"
+              >
+                + 支払登録
+              </Link>
+            </div>
           </div>
         </div>
 
