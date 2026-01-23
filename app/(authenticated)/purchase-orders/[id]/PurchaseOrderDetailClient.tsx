@@ -260,7 +260,7 @@ export function PurchaseOrderDetailClient({
 
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
+      <div className="px-4 pb-6 sm:px-0 sm:py-6">
       {/* ヘッダー */}
       <div className="mb-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
