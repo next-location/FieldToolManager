@@ -301,46 +301,46 @@ export function EstimateEditForm({
               </div>
 
               <div className="space-y-3">
-                {/* 種別・項目名・説明を1行 */}
-                <div className="grid gap-2" style={{ gridTemplateColumns: '140px 1fr 1fr' }}>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">種別</label>
-                    <select
-                      value={item.item_type}
-                      onChange={(e) => handleItemChange(index, 'item_type', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                    >
-                      <option value="construction">工事費</option>
-                      <option value="material">材料費</option>
-                      <option value="expense">諸経費</option>
-                      <option value="other">その他</option>
-                    </select>
-                  </div>
+                {/* 種別 */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">種別</label>
+                  <select
+                    value={item.item_type}
+                    onChange={(e) => handleItemChange(index, 'item_type', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  >
+                    <option value="construction">工事費</option>
+                    <option value="material">材料費</option>
+                    <option value="expense">諸経費</option>
+                    <option value="other">その他</option>
+                  </select>
+                </div>
 
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">
-                      項目名 <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      maxLength={100}
-                      value={item.item_name}
-                      onChange={(e) => handleItemChange(index, 'item_name', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                      required
-                    />
-                  </div>
+                {/* 項目名 */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    項目名 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={100}
+                    value={item.item_name}
+                    onChange={(e) => handleItemChange(index, 'item_name', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    required
+                  />
+                </div>
 
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">説明</label>
-                    <input
-                      type="text"
-                      maxLength={200}
-                      value={item.description}
-                      onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                    />
-                  </div>
+                {/* 説明 */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">説明</label>
+                  <input
+                    type="text"
+                    maxLength={200}
+                    value={item.description}
+                    onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  />
                 </div>
 
                 {/* 種別が「その他」の場合のカスタム種別入力 */}
@@ -358,8 +358,8 @@ export function EstimateEditForm({
                   </div>
                 )}
 
-                {/* 数量・単位・単価・税率・金額を1行 */}
-                <div className="grid gap-2" style={{ gridTemplateColumns: '80px 100px 1fr 90px 1fr' }}>
+                {/* 数量・単位 */}
+                <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1">
                       数量 <span className="text-red-500">*</span>
@@ -368,7 +368,7 @@ export function EstimateEditForm({
                       type="text"
                       value={item.quantity || ''}
                       onChange={(e) => handleNumericInput(index, 'quantity', e.target.value)}
-                      className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                       placeholder="0"
                       inputMode="numeric"
                       required
@@ -382,7 +382,7 @@ export function EstimateEditForm({
                     <select
                       value={item.unit}
                       onChange={(e) => handleItemChange(index, 'unit', e.target.value)}
-                      className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                       required
                     >
                       <option value="式">式</option>
@@ -402,7 +402,10 @@ export function EstimateEditForm({
                       <option value="other">その他</option>
                     </select>
                   </div>
+                </div>
 
+                {/* 単価・税率 */}
+                <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1">
                       単価 <span className="text-red-500">*</span>
@@ -411,7 +414,7 @@ export function EstimateEditForm({
                       type="text"
                       value={item.unit_price || ''}
                       onChange={(e) => handleNumericInput(index, 'unit_price', e.target.value)}
-                      className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                       placeholder="0"
                       inputMode="numeric"
                       required
@@ -423,19 +426,20 @@ export function EstimateEditForm({
                     <select
                       value={item.tax_rate}
                       onChange={(e) => handleItemChange(index, 'tax_rate', parseFloat(e.target.value))}
-                      className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                     >
                       <option value="10">10%</option>
                       <option value="8">8%</option>
                       <option value="0">0%</option>
                     </select>
                   </div>
+                </div>
 
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">金額</label>
-                    <div className="w-full px-2 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm font-medium text-right">
-                      ¥{item.amount.toLocaleString()}
-                    </div>
+                {/* 金額 */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">金額</label>
+                  <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm font-medium text-right">
+                    ¥{item.amount.toLocaleString()}
                   </div>
                 </div>
 
@@ -517,32 +521,30 @@ export function EstimateEditForm({
         </div>
       </div>
 
-      <div className="flex justify-between">
+      <div className="grid grid-cols-3 gap-2">
         <button
           type="button"
           onClick={() => router.push(`/estimates/${estimateId}`)}
-          className="bg-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-400"
+          className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 text-center"
         >
           キャンセル
         </button>
-        <div className="space-x-2">
-          <button
-            type="button"
-            onClick={(e) => handleSubmit(e as any, 'draft')}
-            className="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600"
-            disabled={loading}
-          >
-            {loading ? '保存中...' : '下書き保存'}
-          </button>
-          <button
-            type="button"
-            onClick={(e) => handleSubmit(e as any, 'submitted')}
-            className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600"
-            disabled={loading}
-          >
-            {loading ? '提出中...' : '確定・提出'}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={(e) => handleSubmit(e as any, 'draft')}
+          className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 text-center"
+          disabled={loading}
+        >
+          {loading ? '保存中...' : '下書き保存'}
+        </button>
+        <button
+          type="button"
+          onClick={(e) => handleSubmit(e as any, 'submitted')}
+          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-center"
+          disabled={loading}
+        >
+          {loading ? '提出中...' : '確定・提出'}
+        </button>
       </div>
     </form>
   )
