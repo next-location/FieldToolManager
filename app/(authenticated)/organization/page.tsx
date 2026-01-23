@@ -39,6 +39,7 @@ export default function OrganizationPage() {
   const [sealPreview, setSealPreview] = useState<string | null>(null)
   const [isGeneratingSeal, setIsGeneratingSeal] = useState(false)
   const [isSavingSeal, setIsSavingSeal] = useState(false)
+  const [isCustomSeal, setIsCustomSeal] = useState(false) // カスタム角印かどうか
 
   useEffect(() => {
     fetchOrganization()
@@ -154,6 +155,7 @@ export default function OrganizationPage() {
         const data = await res.json()
         console.log('[角印生成] 成功 - dataUrl length:', data.dataUrl?.length)
         setSealPreview(data.dataUrl)
+        setIsCustomSeal(false) // 生成された角印はカスタムではない
         setMessage({ type: 'success', text: '角印を生成しました' })
       } else {
         const errorData = await res.json()
@@ -185,9 +187,44 @@ export default function OrganizationPage() {
     if (!sealPreview || !organization) return
 
     const link = document.createElement('a')
-    link.download = `角印_${organization.name}_${selectedFontStyle}.png`
+    const filename = isCustomSeal
+      ? `角印_${organization.name}_カスタム.png`
+      : `角印_${organization.name}_${selectedFontStyle}.png`
+    link.download = filename
     link.href = sealPreview
     link.click()
+  }
+
+  // PNGファイルアップロード
+  const handleSealUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // ファイル形式チェック
+    if (file.type !== 'image/png') {
+      setMessage({ type: 'error', text: 'PNGファイルのみアップロード可能です' })
+      return
+    }
+
+    // ファイルサイズチェック (2MB制限)
+    const maxSize = 2 * 1024 * 1024 // 2MB
+    if (file.size > maxSize) {
+      setMessage({ type: 'error', text: 'ファイルサイズは2MB以下にしてください' })
+      return
+    }
+
+    // ファイルを読み込んでプレビュー表示
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string
+      setSealPreview(dataUrl)
+      setIsCustomSeal(true)
+      setMessage({ type: 'success', text: 'カスタム角印をアップロードしました' })
+    }
+    reader.onerror = () => {
+      setMessage({ type: 'error', text: 'ファイルの読み込みに失敗しました' })
+    }
+    reader.readAsDataURL(file)
   }
 
   // 角印を保存
@@ -369,29 +406,70 @@ export default function OrganizationPage() {
           {/* 角印 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              角印生成
+              角印設定
             </label>
-            <div className="space-y-4">
-              {/* 書体選択 */}
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { value: 'gothic', label: 'ゴシック体', description: 'モダンで読みやすい' },
-                  { value: 'mincho', label: '明朝体', description: '伝統的で格式高い' },
-                ].map((style) => (
-                  <button
-                    key={style.value}
-                    type="button"
-                    onClick={() => handleFontStyleChange(style.value as SealFontStyle)}
-                    className={`relative p-4 rounded-lg border-2 transition-all ${
-                      selectedFontStyle === style.value
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-300 hover:border-gray-400'
-                    }`}
-                  >
-                    <div className="font-medium text-gray-900">{style.label}</div>
-                    <div className="text-xs text-gray-500 mt-1">{style.description}</div>
-                  </button>
-                ))}
+            <div className="space-y-6">
+              {/* 自動生成セクション */}
+              <div className="border-2 border-gray-200 rounded-lg p-4 bg-gray-50">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">角印を自動生成</h3>
+                {/* 書体選択 */}
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  {[
+                    { value: 'gothic', label: 'ゴシック体', description: 'モダンで読みやすい' },
+                    { value: 'mincho', label: '明朝体', description: '伝統的で格式高い' },
+                  ].map((style) => (
+                    <button
+                      key={style.value}
+                      type="button"
+                      onClick={() => handleFontStyleChange(style.value as SealFontStyle)}
+                      disabled={isCustomSeal}
+                      className={`relative p-4 rounded-lg border-2 transition-all ${
+                        selectedFontStyle === style.value && !isCustomSeal
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-300 hover:border-gray-400'
+                      } ${isCustomSeal ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <div className="font-medium text-gray-900">{style.label}</div>
+                      <div className="text-xs text-gray-500 mt-1">{style.description}</div>
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={generateSeal}
+                  disabled={isGeneratingSeal || !organization?.name || isCustomSeal}
+                  className="w-full px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isGeneratingSeal ? '生成中...' : isCustomSeal ? 'カスタム角印使用中' : '角印を生成'}
+                </button>
+              </div>
+
+              {/* カスタムPNGアップロードセクション */}
+              <div className="border-2 border-gray-200 rounded-lg p-4 bg-gray-50">
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">カスタム角印をアップロード</h3>
+                <p className="text-xs text-gray-600 mb-3">
+                  独自の角印PNGファイルを使用できます。自動生成した角印は無効になります。
+                </p>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-3">
+                  <p className="text-xs text-yellow-800 font-medium mb-1">⚠️ 注意事項</p>
+                  <ul className="text-xs text-yellow-700 space-y-1 ml-4 list-disc">
+                    <li><strong>ファイル形式:</strong> PNGファイルのみ対応</li>
+                    <li><strong>ファイルサイズ:</strong> 2MB以下</li>
+                    <li><strong>背景透過:</strong> 背景が透過されていないと、書類に表示した際に白い背景が表示されます</li>
+                  </ul>
+                </div>
+                <input
+                  type="file"
+                  accept="image/png"
+                  onChange={handleSealUpload}
+                  className="block w-full text-sm text-gray-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-md file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-blue-50 file:text-blue-700
+                    hover:file:bg-blue-100
+                    cursor-pointer"
+                />
               </div>
 
               {/* プレビューエリア */}
@@ -400,12 +478,19 @@ export default function OrganizationPage() {
                   <div className="p-6 border-2 border-gray-200 rounded-lg bg-gray-50">
                     {sealPreview ? (
                       <div className="flex flex-col items-center space-y-4">
-                        <img
-                          src={sealPreview}
-                          alt="角印プレビュー"
-                          className="w-48 h-48 object-contain bg-white rounded-lg shadow-md"
-                        />
-                        <div className="flex gap-2">
+                        <div className="relative">
+                          <img
+                            src={sealPreview}
+                            alt="角印プレビュー"
+                            className="w-48 h-48 object-contain bg-white rounded-lg shadow-md"
+                          />
+                          {isCustomSeal && (
+                            <span className="absolute -top-2 -right-2 bg-purple-600 text-white text-xs px-2 py-1 rounded-full">
+                              カスタム
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-2 justify-center">
                           <button
                             type="button"
                             onClick={saveSeal}
@@ -421,13 +506,28 @@ export default function OrganizationPage() {
                           >
                             ダウンロード
                           </button>
-                          <button
-                            type="button"
-                            onClick={generateSeal}
-                            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-                          >
-                            再生成
-                          </button>
+                          {!isCustomSeal && (
+                            <button
+                              type="button"
+                              onClick={generateSeal}
+                              disabled={isGeneratingSeal}
+                              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                              {isGeneratingSeal ? '生成中...' : '再生成'}
+                            </button>
+                          )}
+                          {isCustomSeal && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSealPreview(null)
+                                setIsCustomSeal(false)
+                              }}
+                              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                            >
+                              削除
+                            </button>
+                          )}
                         </div>
                       </div>
                     ) : (
@@ -447,24 +547,10 @@ export default function OrganizationPage() {
                     )}
                   </div>
                 </div>
-
-                {/* 生成ボタン */}
-                {!sealPreview && (
-                  <div>
-                    <button
-                      type="button"
-                      onClick={generateSeal}
-                      disabled={isGeneratingSeal || !organization?.name}
-                      className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {isGeneratingSeal ? '生成中...' : '角印を生成'}
-                    </button>
-                  </div>
-                )}
               </div>
 
               <p className="text-xs text-gray-500">
-                ※ 生成された角印はPNG形式でダウンロードできます。PDFの角印欄に自動的に適用されます。
+                ※ 保存した角印は見積書・請求書・領収書などのPDF書類に自動的に表示されます。
               </p>
             </div>
           </div>

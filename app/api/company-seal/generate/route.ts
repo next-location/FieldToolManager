@@ -4,11 +4,14 @@ import path from 'path'
 import type { SealFontStyle } from '@/lib/company-seal/generate-seal'
 import { splitCompanyNameOptimized } from '@/lib/company-seal/generate-seal'
 
-// フォントを登録（Noto Sans JP）
-const fontPath = path.join(process.cwd(), 'lib', 'pdf', 'fonts', 'NotoSansJP-Regular.ttf')
+// フォントを登録（Noto Sans JP - 複数ウェイト）
+const fontsDir = path.join(process.cwd(), 'lib', 'pdf', 'fonts')
 try {
-  registerFont(fontPath, { family: 'Noto Sans JP' })
-  console.log('[角印生成API] フォント登録成功:', fontPath)
+  // ゴシック体用（太字）
+  registerFont(path.join(fontsDir, 'NotoSansJP-Bold.ttf'), { family: 'Noto Sans JP Gothic' })
+  // 明朝体用（中字）
+  registerFont(path.join(fontsDir, 'NotoSansJP-Medium.ttf'), { family: 'Noto Sans JP Mincho' })
+  console.log('[角印生成API] フォント登録成功')
 } catch (error) {
   console.error('[角印生成API] フォント登録エラー:', error)
 }
@@ -73,17 +76,17 @@ export async function POST(request: NextRequest) {
     const availableHeight = textAreaSize / maxRowCount
     const baseCharSize = Math.min(availableWidth * 0.9, availableHeight * 0.9)
 
-    // フォントスタイルに応じたweight設定
-    const fontWeight = fontStyle === 'mincho' ? '500' : '900'
+    // フォントスタイルに応じたフォントファミリー設定
+    const fontFamily = fontStyle === 'mincho' ? 'Noto Sans JP Mincho' : 'Noto Sans JP Gothic'
 
     ctx.fillStyle = '#CC0000'
-    ctx.font = `${fontWeight} ${baseCharSize}px "Noto Sans JP"`
+    ctx.font = `${baseCharSize}px "${fontFamily}"`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
 
     console.log('[角印生成API] レイアウト:', {
       fontStyle,
-      fontWeight,
+      fontFamily,
       columns: columnCount,
       maxRows: maxRowCount,
       charSize: baseCharSize,
@@ -101,7 +104,19 @@ export async function POST(request: NextRequest) {
 
       actualChars.forEach((char: string, charIndex: number) => {
         const charY = startY + (charIndex * charSpacing)
-        ctx.fillText(char, columnX, charY)
+
+        // 長音記号「ー」や「〜」は縦書き時に90度回転
+        const needsRotation = char === 'ー' || char === '〜' || char === '−'
+
+        if (needsRotation) {
+          ctx.save()
+          ctx.translate(columnX, charY)
+          ctx.rotate(Math.PI / 2) // 90度回転
+          ctx.fillText(char, 0, 0)
+          ctx.restore()
+        } else {
+          ctx.fillText(char, columnX, charY)
+        }
       })
     })
 
