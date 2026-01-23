@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useLayoutEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
 import { X } from 'lucide-react'
 
@@ -53,59 +53,6 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
   const canUseManual = orgSettings?.allow_manual || false
   const canUseQR = orgSettings?.allow_qr || false
 
-  // ページ遷移時のスクロール位置修正とiOSスクロールバグ対策
-  useLayoutEffect(() => {
-    // iOS Safari でのスクロールバウンス対策
-    const preventScrollBug = () => {
-      // 一度スクロール位置をリセット
-      window.scrollTo(0, 1)
-
-      // iOS Safari の自動スクロール問題を防ぐ
-      document.body.style.webkitTransform = 'translateZ(0)'
-      document.body.style.transform = 'translateZ(0)'
-
-      // ビューポートの高さを正しく設定
-      const setVH = () => {
-        const vh = window.innerHeight * 0.01
-        document.documentElement.style.setProperty('--vh', `${vh}px`)
-      }
-      setVH()
-
-      // ページ遷移後の自動スクロールを防ぐ
-      const preventAutoScroll = (e: Event) => {
-        if ((e as any).defaultPrevented) return
-        e.preventDefault()
-        e.stopPropagation()
-        return false
-      }
-
-      // 一時的にスクロールイベントをキャプチャ
-      window.addEventListener('scroll', preventAutoScroll, { capture: true, once: true })
-
-      // 少し後にスクロールを有効化
-      setTimeout(() => {
-        window.scrollTo(0, 0)
-        window.removeEventListener('scroll', preventAutoScroll)
-      }, 150)
-    }
-
-    // 少し遅延を入れてから実行（DOM構築完了後）
-    const timer = setTimeout(preventScrollBug, 50)
-
-    // リサイズ時にビューポート高さを更新
-    const handleResize = () => {
-      const vh = window.innerHeight * 0.01
-      document.documentElement.style.setProperty('--vh', `${vh}px`)
-    }
-    window.addEventListener('resize', handleResize)
-
-    return () => {
-      clearTimeout(timer)
-      window.removeEventListener('resize', handleResize)
-      document.body.style.webkitTransform = ''
-      document.body.style.transform = ''
-    }
-  }, [])
 
   // 当日の出退勤記録を取得
   useEffect(() => {
@@ -235,14 +182,6 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
 
   // QRスキャナー開始
   const startQRScanning = async () => {
-    // モーダル表示時にbodyのスクロールを無効化
-    const scrollY = window.scrollY
-    document.body.style.overflow = 'hidden'
-    document.body.style.position = 'fixed'
-    document.body.style.width = '100%'
-    document.body.style.top = `-${scrollY}px`
-    document.body.setAttribute('data-scroll-position', scrollY.toString())
-
     setShowQRScanner(true)
     setScanError(null)
 
@@ -312,18 +251,6 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
     }
     setShowQRScanner(false)
     processingQrRef.current = false
-
-    // モーダル非表示時にbodyのスクロールを復元
-    const scrollPosition = document.body.getAttribute('data-scroll-position')
-    document.body.style.overflow = ''
-    document.body.style.position = ''
-    document.body.style.width = ''
-    document.body.style.top = ''
-    document.body.removeAttribute('data-scroll-position')
-
-    if (scrollPosition) {
-      window.scrollTo(0, parseInt(scrollPosition))
-    }
   }
 
   // QRコードスキャン処理
@@ -410,16 +337,7 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
   }
 
   return (
-    <div
-      className="space-y-6"
-      style={{
-        WebkitOverflowScrolling: 'touch',
-        touchAction: 'pan-y',
-        overscrollBehavior: 'none',
-        position: 'relative',
-        zIndex: 1
-      }}
-    >
+    <div className="space-y-6">
       {/* 日付と現在の状態 */}
       <div className="bg-white rounded-lg shadow p-4 sm:p-6">
         <div className="text-center mb-4 sm:mb-6">
