@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import { Html5Qrcode } from 'html5-qrcode'
 import { X } from 'lucide-react'
 
@@ -31,7 +30,6 @@ interface TodayRecord {
 }
 
 export function AttendanceClockClient({ userId, orgSettings, sites }: AttendanceClockClientProps) {
-  const router = useRouter()
   const [todayRecord, setTodayRecord] = useState<TodayRecord | null>(null)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
@@ -128,7 +126,7 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
       setLocation('')
       setSelectedSiteId('')
       await fetchTodayRecord()
-      router.refresh()
+      // router.refresh() // スクロール位置リセットを防ぐため削除
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message })
     } finally {
@@ -173,7 +171,7 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
       setLocation('')
       setSelectedSiteId('')
       await fetchTodayRecord()
-      router.refresh()
+      // router.refresh() // スクロール位置リセットを防ぐため削除
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message })
     } finally {
@@ -287,7 +285,7 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
         text: endpoint === '/api/attendance/clock-in' ? '出勤打刻が完了しました' : '退勤打刻が完了しました',
       })
       await fetchTodayRecord()
-      router.refresh()
+      // router.refresh() // スクロール位置リセットを防ぐため削除
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message || '打刻に失敗しました' })
     } finally {
