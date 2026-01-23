@@ -417,7 +417,7 @@ export default async function EstimateDetailPage({
         )}
 
         {/* 操作履歴 */}
-        <div className="mt-8 print:hidden bg-white shadow-sm rounded-lg p-6">
+        <div className="mt-8 print:hidden">
           <h2 className="text-xl font-bold mb-4">操作履歴</h2>
           <EstimateHistoryTimeline history={history} />
         </div>
