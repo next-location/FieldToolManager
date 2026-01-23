@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createCanvas, registerFont } from 'canvas'
 import path from 'path'
 import type { SealFontStyle } from '@/lib/company-seal/generate-seal'
+import { splitCompanyNameOptimized } from '@/lib/company-seal/generate-seal'
 
 // フォントを登録（Noto Sans JP）
 const fontPath = path.join(process.cwd(), 'lib', 'pdf', 'fonts', 'NotoSansJP-Regular.ttf')
@@ -10,42 +11,6 @@ try {
   console.log('[角印生成API] フォント登録成功:', fontPath)
 } catch (error) {
   console.error('[角印生成API] フォント登録エラー:', error)
-}
-
-// 会社名を縦書き用に分割（簡略版）
-function splitCompanyName(name: string): string[][] {
-  const length = name.length
-
-  if (length <= 4) {
-    // 2x2
-    const half = Math.ceil(length / 2)
-    return [
-      name.substring(0, half).split(''),
-      name.substring(half).split('')
-    ]
-  } else if (length <= 6) {
-    // 3x2
-    return [
-      [name[0], name[1]],
-      [name[2], name[3]],
-      [name[4] || '', name[5] || '']
-    ]
-  } else if (length <= 9) {
-    // 3x3
-    return [
-      [name[0], name[1], name[2]],
-      [name[3], name[4], name[5]],
-      [name[6] || '', name[7] || '', name[8] || '']
-    ]
-  } else {
-    // 4x3
-    return [
-      [name[0], name[1], name[2]],
-      [name[3], name[4], name[5]],
-      [name[6], name[7], name[8]],
-      [name[9] || '', name[10] || '', name[11] || '']
-    ]
-  }
 }
 
 export async function POST(request: NextRequest) {
@@ -98,11 +63,11 @@ export async function POST(request: NextRequest) {
     )
     ctx.stroke()
 
-    // テキスト描画
+    // テキスト描画（元の最適化ロジックを使用）
     const textAreaSize = size - (padding * 2) - (borderWidth * 2)
-    const nameColumns = splitCompanyName(companyName)
+    const nameColumns = splitCompanyNameOptimized(companyName)
     const columnCount = nameColumns.length
-    const maxRowCount = Math.max(...nameColumns.map(col => col.filter(c => c).length))
+    const maxRowCount = Math.max(...nameColumns.map(col => col.filter((c: string) => c && c !== '').length))
 
     const availableWidth = textAreaSize / columnCount
     const availableHeight = textAreaSize / maxRowCount
@@ -113,14 +78,18 @@ export async function POST(request: NextRequest) {
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
 
-    nameColumns.forEach((column, colIndex) => {
+    console.log('[角印生成API] レイアウト:', { columns: columnCount, maxRows: maxRowCount, charSize: baseCharSize, nameColumns })
+
+    nameColumns.forEach((column: string[], colIndex: number) => {
       const columnX = size - padding - borderWidth - (colIndex * availableWidth) - (availableWidth / 2)
-      const actualChars = column.filter(c => c)
+      const actualChars = column.filter((c: string) => c && c !== '')
       const charSpacing = baseCharSize * 1.1
       const totalHeight = (actualChars.length - 1) * charSpacing
-      const startY = (size / 2) - (totalHeight / 2)
+      const centerY = size / 2
+      const fontOffset = baseCharSize * 0.35
+      const startY = centerY - (totalHeight / 2) + fontOffset
 
-      actualChars.forEach((char, charIndex) => {
+      actualChars.forEach((char: string, charIndex: number) => {
         const charY = startY + (charIndex * charSpacing)
         ctx.fillText(char, columnX, charY)
       })
