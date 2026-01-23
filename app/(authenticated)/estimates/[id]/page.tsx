@@ -200,6 +200,8 @@ export default async function EstimateDetailPage({
                 estimateId={id}
                 status={estimate.status}
                 userRole={userRole || ''}
+                userId={userId}
+                createdBy={estimate.created_by}
               />
             </>
           )}

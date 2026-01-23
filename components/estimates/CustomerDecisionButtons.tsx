@@ -7,18 +7,25 @@ interface CustomerDecisionButtonsProps {
   estimateId: string
   status: string
   userRole: string
+  userId?: string
+  createdBy?: string
 }
 
 export function CustomerDecisionButtons({
   estimateId,
   status,
-  userRole
+  userRole,
+  userId,
+  createdBy
 }: CustomerDecisionButtonsProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
-  // manager以上のみ表示
-  if (!['manager', 'admin', 'super_admin'].includes(userRole)) {
+  // manager以上 または 作成者本人（leader）のみ表示
+  const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userRole)
+  const isCreator = userId && createdBy && userId === createdBy
+
+  if (!isManagerOrAdmin && !isCreator) {
     return null
   }
 
