@@ -52,7 +52,7 @@ export default async function PurchaseOrderDetailPage({
     .order('payment_date', { ascending: false })
 
   return (
-    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto py-3 sm:px-6 lg:px-8">
       <PurchaseOrderDetailClient
         order={order}
         history={history}
