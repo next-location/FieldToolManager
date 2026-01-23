@@ -1,11 +1,26 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export function SubmitInvoiceButton({ invoiceId }: { invoiceId: string }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [csrfToken, setCsrfToken] = useState('')
+
+  useEffect(() => {
+    // CSRFトークンを取得
+    const fetchCsrfToken = async () => {
+      try {
+        const response = await fetch('/api/csrf-token')
+        const data = await response.json()
+        setCsrfToken(data.token)
+      } catch (error) {
+        console.error('Failed to fetch CSRF token:', error)
+      }
+    }
+    fetchCsrfToken()
+  }, [])
 
   const handleSubmit = async () => {
     if (!confirm('この請求書を提出してもよろしいですか？\n提出後は編集できなくなります。')) {
@@ -16,7 +31,10 @@ export function SubmitInvoiceButton({ invoiceId }: { invoiceId: string }) {
 
     try {
       const response = await fetch(`/api/invoices/${invoiceId}/submit`, {
-        method: 'POST'
+        method: 'POST',
+        headers: {
+          'X-CSRF-Token': csrfToken
+        }
       })
 
       const data = await response.json()
