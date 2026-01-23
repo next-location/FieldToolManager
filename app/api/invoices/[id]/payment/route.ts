@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
-import { logInvoiceUpdated } from '@/lib/audit-log'
+import { logInvoicePayment } from '@/lib/audit-log'
 
 export async function POST(
   request: NextRequest,
@@ -106,18 +106,16 @@ export async function POST(
     })
 
     // 監査ログを記録
-    await logInvoiceUpdated(
+    await logInvoicePayment(
       id,
       {
-        paid_amount: invoice.paid_amount || 0,
-        status: invoice.status,
-      },
-      {
-        paid_amount: newPaidAmount,
-        status: isPaid ? 'paid' : invoice.status,
-        payment_amount: amount,
+        amount: amount,
         payment_method: payment_method,
-        is_paid: isPaid,
+        payment_date: payment_date || new Date().toISOString().split('T')[0],
+        reference_number: reference_number,
+        is_full_payment: isPaid,
+        paid_amount_before: invoice.paid_amount || 0,
+        paid_amount_after: newPaidAmount
       },
       user.id,
       userData.organization_id

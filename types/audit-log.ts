@@ -23,6 +23,7 @@ export type AuditAction =
   | 'remove'
   | 'receive'
   | 'pay'
+  | 'payment'
 
 export interface AuditLog {
   id: string

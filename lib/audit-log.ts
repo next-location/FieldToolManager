@@ -874,6 +874,44 @@ export async function logInvoiceSent(
   )
 }
 
+export async function logInvoicePayment(
+  invoiceId: string,
+  paymentData: {
+    amount: number
+    payment_method: string
+    payment_date: string
+    reference_number?: string
+    is_full_payment: boolean
+    paid_amount_before: number
+    paid_amount_after: number
+  },
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'payment',
+      entity_type: 'invoices',
+      entity_id: invoiceId,
+      old_values: {
+        paid_amount: paymentData.paid_amount_before,
+        status: paymentData.is_full_payment ? 'sent' : 'sent'
+      },
+      new_values: {
+        paid_amount: paymentData.paid_amount_after,
+        status: paymentData.is_full_payment ? 'paid' : 'sent',
+        payment_amount: paymentData.amount,
+        payment_method: paymentData.payment_method,
+        payment_date: paymentData.payment_date,
+        reference_number: paymentData.reference_number,
+        is_full_payment: paymentData.is_full_payment
+      },
+    },
+    userId,
+    organizationId
+  )
+}
+
 export async function logInvoiceApproved(
   invoiceId: string,
   metadata: Record<string, any>,
