@@ -89,12 +89,6 @@ export default async function PaymentDetailPage({
             >
               一覧に戻る
             </Link>
-            <Link
-              href={`/payments/${id}/edit`}
-              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-center"
-            >
-              編集
-            </Link>
             {isReceipt && (
               <a
                 href={`/api/payments/${id}/receipt`}
