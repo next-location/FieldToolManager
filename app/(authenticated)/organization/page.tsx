@@ -129,9 +129,15 @@ export default function OrganizationPage() {
 
   // 角印生成
   const generateSeal = async () => {
-    if (!organization?.name) return
+    if (!organization?.name) {
+      setMessage({ type: 'error', text: '組織名が設定されていません' })
+      return
+    }
 
     setIsGeneratingSeal(true)
+    setMessage(null)
+    console.log('[角印生成] リクエスト開始:', { name: organization.name, fontStyle: selectedFontStyle })
+
     try {
       const res = await fetch('/api/company-seal/generate', {
         method: 'POST',
@@ -142,14 +148,27 @@ export default function OrganizationPage() {
         })
       })
 
+      console.log('[角印生成] レスポンスステータス:', res.status)
+
       if (res.ok) {
         const data = await res.json()
+        console.log('[角印生成] 成功 - dataUrl length:', data.dataUrl?.length)
         setSealPreview(data.dataUrl)
+        setMessage({ type: 'success', text: '角印を生成しました' })
       } else {
-        setMessage({ type: 'error', text: '角印の生成に失敗しました' })
+        const errorData = await res.json()
+        console.error('[角印生成] エラー:', errorData)
+        setMessage({
+          type: 'error',
+          text: `角印の生成に失敗しました: ${errorData.error || '不明なエラー'}`
+        })
       }
     } catch (error) {
-      setMessage({ type: 'error', text: '角印生成エラーが発生しました' })
+      console.error('[角印生成] 例外:', error)
+      setMessage({
+        type: 'error',
+        text: `角印生成エラーが発生しました: ${error instanceof Error ? error.message : '不明なエラー'}`
+      })
     } finally {
       setIsGeneratingSeal(false)
     }
