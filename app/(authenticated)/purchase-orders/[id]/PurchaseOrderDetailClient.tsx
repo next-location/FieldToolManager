@@ -262,10 +262,9 @@ export function PurchaseOrderDetailClient({
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 pb-6 sm:px-0 sm:py-6">
       {/* ヘッダー */}
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-          <div>
-            <h1 className="text-lg sm:text-2xl font-bold mb-2">発注書詳細</h1>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+        <div>
+          <h1 className="text-lg sm:text-2xl font-bold mb-2">発注書詳細</h1>
             <p className="text-sm sm:text-base text-gray-600">{order.order_number}</p>
           </div>
           <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
@@ -407,7 +406,6 @@ export function PurchaseOrderDetailClient({
 
             return null
           })()}
-          </div>
         </div>
       </div>
 
