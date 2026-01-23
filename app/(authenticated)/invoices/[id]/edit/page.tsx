@@ -325,7 +325,7 @@ export default function EditInvoicePage({
                 type="date"
                 value={formData.invoice_date}
                 onChange={(e) => setFormData({...formData, invoice_date: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-left [appearance:none]"
                 required
               />
             </div>
@@ -338,7 +338,7 @@ export default function EditInvoicePage({
                 type="date"
                 value={formData.due_date}
                 onChange={(e) => setFormData({...formData, due_date: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-left [appearance:none]"
                 required
               />
             </div>
