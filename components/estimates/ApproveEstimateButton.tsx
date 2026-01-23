@@ -124,19 +124,19 @@ export function ApproveEstimateButton({
   return (
     <>
       <button
-        onClick={() => setShowModal(true)}
-        disabled={loading}
-        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        承認する
-      </button>
-
-      <button
         onClick={() => setShowReturnModal(true)}
         disabled={loading}
         className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         差し戻し
+      </button>
+
+      <button
+        onClick={() => setShowModal(true)}
+        disabled={loading}
+        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        承認する
       </button>
 
       {/* 承認モーダル */}

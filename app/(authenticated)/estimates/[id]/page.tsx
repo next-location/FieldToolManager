@@ -150,6 +150,14 @@ export default async function EstimateDetailPage({
             一覧に戻る
           </Link>
 
+          {/* 削除ボタン: 未承認または期限切れの見積のみ（提出済み時も表示） */}
+          {(!estimate.manager_approved_at || estimate.status === 'expired') && (
+            <DeleteEstimateButton
+              estimateId={id}
+              estimateNumber={estimate.estimate_number}
+            />
+          )}
+
           {/* 下書き状態: 編集のみ可能 */}
           {estimate.status === 'draft' && (
             <Link
@@ -160,7 +168,7 @@ export default async function EstimateDetailPage({
             </Link>
           )}
 
-          {/* 提出済み状態: 承認ボタンのみ表示（manager/admin のみ）、編集不可 */}
+          {/* 提出済み状態: 差し戻しボタンと承認ボタンを表示（manager/admin のみ）、編集不可 */}
           {estimate.status === 'submitted' && !estimate.manager_approved_at && (
             <ApproveEstimateButton
               estimateId={id}
@@ -218,14 +226,6 @@ export default async function EstimateDetailPage({
                 請求書作成
               </Link>
             </>
-          )}
-
-          {/* 削除ボタン: 未承認または期限切れの見積のみ */}
-          {(!estimate.manager_approved_at || estimate.status === 'expired') && (
-            <DeleteEstimateButton
-              estimateId={id}
-              estimateNumber={estimate.estimate_number}
-            />
           )}
           </div>
         </div>
