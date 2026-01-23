@@ -130,109 +130,116 @@ export default async function EstimateDetailPage({
           </div>
         </div>
 
-        {/* アクションボタン（スマホでは縦並び） */}
-        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
-          {/* 期限切れの場合は警告メッセージを表示 */}
-          {estimate.status === 'expired' && (
-            <div className="w-full mb-4">
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-yellow-800 text-sm">
-                ⚠️ この見積書は有効期限が切れています。編集・承認・送付はできません。
-              </div>
+        {/* 期限切れの場合は警告メッセージを表示 */}
+        {estimate.status === 'expired' && (
+          <div className="mb-4">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-yellow-800 text-sm">
+              ⚠️ この見積書は有効期限が切れています。編集・承認・送付はできません。
             </div>
-          )}
+          </div>
+        )}
 
-          {/* 下書き状態: 編集のみ可能 */}
-          {estimate.status === 'draft' && (
-            <Link
-              href={`/estimates/${id}/edit`}
-              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-            >
-              編集
-            </Link>
-          )}
+        {/* アクションボタン */}
+        <div className="space-y-3 sm:space-y-0">
+          {/* 上段: 状態別アクションボタン（PC: 左寄せ横並び、スマホ: 縦並び） */}
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
+            {/* 下書き状態: 編集のみ可能 */}
+            {estimate.status === 'draft' && (
+              <Link
+                href={`/estimates/${id}/edit`}
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-center"
+              >
+                編集
+              </Link>
+            )}
 
-          {/* 提出済み状態: 承認ボタンのみ表示（manager/admin のみ）、編集不可 */}
-          {estimate.status === 'submitted' && !estimate.manager_approved_at && (
-            <ApproveEstimateButton
-              estimateId={id}
-              isApproved={false}
-              userRole={userRole || ''}
-            />
-          )}
-
-          {/* 提出済み&承認済み: 承認取り消しボタン、PDF、顧客送付ボタン */}
-          {estimate.status === 'submitted' && estimate.manager_approved_at && (
-            <>
+            {/* 提出済み状態: 承認ボタンのみ表示（manager/admin のみ）、編集不可 */}
+            {estimate.status === 'submitted' && !estimate.manager_approved_at && (
               <ApproveEstimateButton
                 estimateId={id}
-                isApproved={true}
+                isApproved={false}
                 userRole={userRole || ''}
               />
-              {/* PDFボタン: マネージャー以上のみ表示 */}
-              {isManagerOrAdmin && <DownloadPdfButton estimateId={id} />}
-              <SendToCustomerButton
+            )}
+
+            {/* 提出済み&承認済み: 承認取り消しボタン、PDF、顧客送付ボタン */}
+            {estimate.status === 'submitted' && estimate.manager_approved_at && (
+              <>
+                <ApproveEstimateButton
+                  estimateId={id}
+                  isApproved={true}
+                  userRole={userRole || ''}
+                />
+                {/* PDFボタン: マネージャー以上のみ表示 */}
+                {isManagerOrAdmin && <DownloadPdfButton estimateId={id} />}
+                <SendToCustomerButton
+                  estimateId={id}
+                  status={estimate.status}
+                  isApproved={true}
+                  userRole={userRole || ''}
+                  userId={userId}
+                  createdById={estimate.created_by}
+                />
+              </>
+            )}
+
+            {/* 顧客送付済み: PDF、顧客判断ボタン */}
+            {estimate.status === 'sent' && (
+              <>
+                {/* PDFボタン: マネージャー以上のみ表示 */}
+                {isManagerOrAdmin && <DownloadPdfButton estimateId={id} />}
+
+                <CustomerDecisionButtons
+                  estimateId={id}
+                  status={estimate.status}
+                  userRole={userRole || ''}
+                />
+              </>
+            )}
+
+            {/* 顧客承認済み: PDF、請求書作成ボタン */}
+            {estimate.status === 'accepted' && (
+              <>
+                {/* PDFボタン: マネージャー以上のみ表示 */}
+                {isManagerOrAdmin && <DownloadPdfButton estimateId={id} />}
+                <Link
+                  href={`/invoices/new?estimate_id=${id}`}
+                  className="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 text-center"
+                >
+                  請求書作成
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* 下段: 一覧・削除・編集ボタン（スマホ: 横3列、PC: 左寄せ横並び） */}
+          <div className="grid grid-cols-3 sm:flex sm:flex-row gap-2">
+            {/* 左: 一覧に戻る */}
+            <Link
+              href="/estimates"
+              className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 text-center"
+            >
+              一覧に戻る
+            </Link>
+
+            {/* 中央: 削除ボタン（条件付き表示） */}
+            {(!estimate.manager_approved_at || estimate.status === 'expired') && (
+              <DeleteEstimateButton
                 estimateId={id}
-                status={estimate.status}
-                isApproved={true}
-                userRole={userRole || ''}
-                userId={userId}
-                createdById={estimate.created_by}
+                estimateNumber={estimate.estimate_number}
               />
-            </>
-          )}
+            )}
 
-          {/* 顧客送付済み: PDF、顧客判断ボタン */}
-          {estimate.status === 'sent' && (
-            <>
-              {/* PDFボタン: マネージャー以上のみ表示 */}
-              {isManagerOrAdmin && <DownloadPdfButton estimateId={id} />}
-
-              <CustomerDecisionButtons
-                estimateId={id}
-                status={estimate.status}
-                userRole={userRole || ''}
-              />
-            </>
-          )}
-
-          {/* 顧客承認済み: PDF、請求書作成ボタン */}
-          {estimate.status === 'accepted' && (
-            <>
-              {/* PDFボタン: マネージャー以上のみ表示 */}
-              {isManagerOrAdmin && <DownloadPdfButton estimateId={id} />}
+            {/* 右: 編集ボタン（下書きの場合のみ） */}
+            {estimate.status === 'draft' && (
               <Link
-                href={`/invoices/new?estimate_id=${id}`}
-                className="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600"
+                href={`/estimates/${id}/edit`}
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-center"
               >
-                請求書作成
+                編集
               </Link>
-            </>
-          )}
-
-          {/* 顧客却下済み・期限切れ: ボタンなし（一覧に戻るのみ） */}
-
-          {/* 削除ボタン: 未承認の見積書のみ（期限切れも削除可能） */}
-          {!estimate.manager_approved_at && estimate.status !== 'expired' && (
-            <DeleteEstimateButton
-              estimateId={id}
-              estimateNumber={estimate.estimate_number}
-            />
-          )}
-
-          {/* 期限切れの場合のみ削除ボタン表示 */}
-          {estimate.status === 'expired' && (
-            <DeleteEstimateButton
-              estimateId={id}
-              estimateNumber={estimate.estimate_number}
-            />
-          )}
-
-          <Link
-            href="/estimates"
-            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 text-center"
-          >
-            一覧に戻る
-          </Link>
+            )}
+          </div>
         </div>
       </div>
 
