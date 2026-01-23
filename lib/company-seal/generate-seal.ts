@@ -201,13 +201,60 @@ function splitCompanyNameOptimized(name: string): string[][] {
       [name[6], name[7], name[8]]
     ]
   } else if (length === 10 || length === 11) {
-    // 10-11文字: 「之印」を追加して12文字（3×4または4×3）
+    // 10-11文字: 「之印」を追加して12文字（4×3）
     const withSuffix = name + '之印'
     return [
       [withSuffix[0], withSuffix[1], withSuffix[2]],
       [withSuffix[3], withSuffix[4], withSuffix[5]],
       [withSuffix[6], withSuffix[7], withSuffix[8]],
       [withSuffix[9], withSuffix[10], withSuffix[11] || '']
+    ]
+  } else if (length === 12) {
+    // 12文字: そのまま4×3または3×4
+    return [
+      [name[0], name[1], name[2]],
+      [name[3], name[4], name[5]],
+      [name[6], name[7], name[8]],
+      [name[9], name[10], name[11]]
+    ]
+  } else if (length === 13 || length === 14) {
+    // 13-14文字: 「之印」を追加して15文字または16文字（5×3または4×4）
+    const withSuffix = name + '之印'
+    const total = withSuffix.length
+    if (total === 15) {
+      // 15文字: 5×3
+      return [
+        [withSuffix[0], withSuffix[1], withSuffix[2]],
+        [withSuffix[3], withSuffix[4], withSuffix[5]],
+        [withSuffix[6], withSuffix[7], withSuffix[8]],
+        [withSuffix[9], withSuffix[10], withSuffix[11]],
+        [withSuffix[12], withSuffix[13], withSuffix[14]]
+      ]
+    } else {
+      // 16文字: 4×4
+      return [
+        [withSuffix[0], withSuffix[1], withSuffix[2], withSuffix[3]],
+        [withSuffix[4], withSuffix[5], withSuffix[6], withSuffix[7]],
+        [withSuffix[8], withSuffix[9], withSuffix[10], withSuffix[11]],
+        [withSuffix[12], withSuffix[13], withSuffix[14], withSuffix[15]]
+      ]
+    }
+  } else if (length === 15) {
+    // 15文字: そのまま5×3
+    return [
+      [name[0], name[1], name[2]],
+      [name[3], name[4], name[5]],
+      [name[6], name[7], name[8]],
+      [name[9], name[10], name[11]],
+      [name[12], name[13], name[14]]
+    ]
+  } else if (length === 16) {
+    // 16文字: 4×4が最適
+    return [
+      [name[0], name[1], name[2], name[3]],
+      [name[4], name[5], name[6], name[7]],
+      [name[8], name[9], name[10], name[11]],
+      [name[12], name[13], name[14], name[15]]
     ]
   } else if (length <= 4) {
     // 4文字以下: 2×2
@@ -217,14 +264,23 @@ function splitCompanyNameOptimized(name: string): string[][] {
       name.substring(half).split('')
     ]
   } else {
-    // 12文字以上: 4×4
-    const charsPerColumn = Math.ceil(length / 4)
+    // 17文字以上: 適切な列数で配置
+    // 正方形に近い配置を目指す（4×5、5×4、5×5など）
+    const sqrt = Math.sqrt(length)
+    const cols = Math.ceil(sqrt)
+    const rows = Math.ceil(length / cols)
+
     const result: string[][] = []
-    for (let i = 0; i < 4; i++) {
-      const start = i * charsPerColumn
-      const end = Math.min(start + charsPerColumn, length)
+    for (let i = 0; i < cols; i++) {
+      const start = i * rows
+      const end = Math.min(start + rows, length)
       if (start < length) {
-        result.push(name.substring(start, end).split(''))
+        const column = name.substring(start, end).split('')
+        // 行数を揃えるために空文字で埋める
+        while (column.length < rows) {
+          column.push('')
+        }
+        result.push(column)
       }
     }
     return result
