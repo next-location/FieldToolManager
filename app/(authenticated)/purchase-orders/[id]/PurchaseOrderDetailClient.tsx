@@ -268,7 +268,7 @@ export function PurchaseOrderDetailClient({
             <h1 className="text-lg sm:text-2xl font-bold mb-2">発注書詳細</h1>
             <p className="text-sm sm:text-base text-gray-600">{order.order_number}</p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
           {/* 下書き状態: 編集のみ可能 */}
           {order.status === 'draft' && (
             <Link
@@ -289,20 +289,37 @@ export function PurchaseOrderDetailClient({
             </Link>
           )}
 
-          {/* 承認申請中: 承認・差戻しボタン（承認者のみ） */}
+          {/* 一覧に戻るボタン（最初に配置） */}
+          <Link
+            href="/purchase-orders"
+            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 text-center"
+          >
+            一覧に戻る
+          </Link>
+
+          {/* 承認申請中: 削除・差戻し・承認ボタン（承認者のみ） */}
           {order.status === 'submitted' && canApprove && (
             <>
+              {['admin', 'manager'].includes(currentUserRole) && (
+                <button
+                  onClick={handleDelete}
+                  disabled={loading}
+                  className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 disabled:opacity-50"
+                >
+                  削除
+                </button>
+              )}
+              <button
+                onClick={() => setShowRejectModal(true)}
+                className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600"
+              >
+                差戻し
+              </button>
               <button
                 onClick={() => setShowApprovalModal(true)}
                 className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
               >
                 承認
-              </button>
-              <button
-                onClick={() => setShowRejectModal(true)}
-                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
-              >
-                差戻し
               </button>
             </>
           )}
@@ -357,6 +374,11 @@ export function PurchaseOrderDetailClient({
               return null
             }
 
+            // 承認申請中は上の条件で処理済み
+            if (order.status === 'submitted' && canApprove) {
+              return null
+            }
+
             // 管理者・マネージャーは下書き・承認申請中・差戻しを削除可能
             if (['admin', 'manager'].includes(currentUserRole)) {
               return (
@@ -385,13 +407,6 @@ export function PurchaseOrderDetailClient({
 
             return null
           })()}
-
-          <Link
-            href="/purchase-orders"
-            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
-          >
-            一覧に戻る
-          </Link>
           </div>
         </div>
       </div>
@@ -460,7 +475,42 @@ export function PurchaseOrderDetailClient({
           <h3 className="text-lg leading-6 font-medium text-gray-900">発注明細</h3>
         </div>
         <div className="border-t border-gray-200">
-          <table className="min-w-full divide-y divide-gray-200">
+          {/* モバイル用カードレイアウト */}
+          <div className="sm:hidden">
+            {order.items
+              ?.sort((a, b) => a.sort_order - b.sort_order)
+              .map((item, index) => (
+                <div key={item.id} className={`p-4 ${index !== 0 ? 'border-t border-gray-200' : ''}`}>
+                  <div className="font-medium text-gray-900 mb-2">{item.item_name}</div>
+                  {item.description && (
+                    <div className="text-sm text-gray-500 mb-2">{item.description}</div>
+                  )}
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <span className="text-gray-500">数量:</span>
+                      <span className="ml-2 text-gray-900">
+                        {Number(item.quantity).toLocaleString()} {item.unit}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">単価:</span>
+                      <span className="ml-2 text-gray-900">
+                        ¥{Number(item.unit_price).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-gray-100">
+                    <span className="text-gray-500">金額:</span>
+                    <span className="ml-2 font-medium text-gray-900">
+                      ¥{Number(item.amount).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              ))}
+          </div>
+
+          {/* デスクトップ用テーブルレイアウト */}
+          <table className="hidden sm:table min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -581,9 +631,13 @@ export function PurchaseOrderDetailClient({
       )}
 
       {/* 操作履歴 */}
-      <div className="bg-white shadow-sm rounded-lg p-6">
-        <h2 className="text-xl font-bold mb-4">操作履歴</h2>
-        <PurchaseOrderHistoryTimeline history={history} />
+      <div className="bg-white shadow-sm rounded-lg p-0">
+        <div className="px-4 py-5 sm:px-6">
+          <h2 className="text-xl font-bold">操作履歴</h2>
+        </div>
+        <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
+          <PurchaseOrderHistoryTimeline history={history} />
+        </div>
       </div>
 
       {/* 承認モーダル */}

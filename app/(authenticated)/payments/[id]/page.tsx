@@ -82,29 +82,29 @@ export default async function PaymentDetailPage({
               {isReceipt ? '入金' : '支払'}記録の詳細情報
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Link
+              href="/payments"
+              className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 text-center"
+            >
+              一覧に戻る
+            </Link>
+            <Link
+              href={`/payments/${id}/edit`}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-center"
+            >
+              編集
+            </Link>
             {isReceipt && (
               <a
                 href={`/api/payments/${id}/receipt`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+                className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 text-center"
               >
                 領収書発行
               </a>
             )}
-            <Link
-              href={`/payments/${id}/edit`}
-              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-            >
-              編集
-            </Link>
-            <Link
-              href="/payments"
-              className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
-            >
-              一覧に戻る
-            </Link>
           </div>
         </div>
       </div>
