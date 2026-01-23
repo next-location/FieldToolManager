@@ -262,12 +262,13 @@ export function PurchaseOrderDetailClient({
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
       {/* ヘッダー */}
-      <div className="mb-6 flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold mb-2">発注書詳細</h1>
-          <p className="text-gray-600">{order.order_number}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="mb-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <div>
+            <h1 className="text-lg sm:text-2xl font-bold mb-2">発注書詳細</h1>
+            <p className="text-sm sm:text-base text-gray-600">{order.order_number}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
           {/* 下書き状態: 編集のみ可能 */}
           {order.status === 'draft' && (
             <Link
@@ -391,6 +392,7 @@ export function PurchaseOrderDetailClient({
           >
             一覧に戻る
           </Link>
+          </div>
         </div>
       </div>
 

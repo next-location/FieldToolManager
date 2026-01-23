@@ -429,7 +429,8 @@ export default function NewPurchaseOrderPage() {
                 type="date"
                 value={formData.order_date}
                 onChange={(e) => setFormData({...formData, order_date: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md h-[42px] appearance-none"
+                style={{ WebkitAppearance: 'none' }}
                 required
               />
             </div>
@@ -442,7 +443,8 @@ export default function NewPurchaseOrderPage() {
                 type="date"
                 value={formData.delivery_date}
                 onChange={(e) => setFormData({...formData, delivery_date: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md h-[42px] appearance-none"
+                style={{ WebkitAppearance: 'none' }}
                 required
               />
             </div>
@@ -538,7 +540,7 @@ export default function NewPurchaseOrderPage() {
                   </div>
 
                   {/* 数量・単位 */}
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
                         数量 <span className="text-red-500">*</span>
@@ -585,7 +587,7 @@ export default function NewPurchaseOrderPage() {
                   </div>
 
                   {/* 単価・税率 */}
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
                         単価 <span className="text-red-500">*</span>

@@ -36,7 +36,44 @@ body {
   input[type="time"],
   input[type="datetime-local"] {
     @apply bg-white text-base;
-    height: 36px;
+    height: 42px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+
+  /* iOS Safari専用の日付入力スタイル調整 */
+  input[type="date"]::-webkit-datetime-edit,
+  input[type="time"]::-webkit-datetime-edit,
+  input[type="datetime-local"]::-webkit-datetime-edit {
+    padding: 0;
+    margin: 0;
+  }
+
+  input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+  input[type="time"]::-webkit-datetime-edit-fields-wrapper,
+  input[type="datetime-local"]::-webkit-datetime-edit-fields-wrapper {
+    padding: 0;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator,
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    background: transparent;
+    color: transparent;
+    cursor: pointer;
+    height: 20px;
+    width: 20px;
+    position: absolute;
+    right: 8px;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator::before,
+  input[type="time"]::-webkit-calendar-picker-indicator::before,
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator::before {
+    content: '📅';
+    position: absolute;
+    right: 0;
   }
 
   /* PC時は14pxに変更 */

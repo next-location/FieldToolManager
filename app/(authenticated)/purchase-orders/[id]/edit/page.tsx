@@ -334,7 +334,8 @@ export default function EditPurchaseOrderPage({
                 type="date"
                 value={formData.order_date}
                 onChange={(e) => setFormData({...formData, order_date: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md h-[42px] appearance-none"
+                style={{ WebkitAppearance: 'none' }}
                 required
               />
             </div>
@@ -347,7 +348,8 @@ export default function EditPurchaseOrderPage({
                 type="date"
                 value={formData.delivery_date}
                 onChange={(e) => setFormData({...formData, delivery_date: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md h-[42px] appearance-none"
+                style={{ WebkitAppearance: 'none' }}
                 required
               />
             </div>
@@ -458,7 +460,7 @@ export default function EditPurchaseOrderPage({
                   </div>
 
                   {/* 数量・単位・単価・税率・金額を1行 */}
-                  <div className="grid gap-2" style={{ gridTemplateColumns: '100px 120px 1fr 90px 1fr' }}>
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
                         数量 <span className="text-red-500">*</span>
