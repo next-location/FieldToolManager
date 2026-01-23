@@ -53,23 +53,57 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
   const canUseManual = orgSettings?.allow_manual || false
   const canUseQR = orgSettings?.allow_qr || false
 
-  // ページ遷移時のスクロール位置修正
+  // ページ遷移時のスクロール位置修正とiOSスクロールバグ対策
   useLayoutEffect(() => {
     // iOS Safari でのスクロールバウンス対策
-    // ページ遷移後に一度スクロール位置をリセット
-    const preventBounce = () => {
-      window.scrollTo(0, 0)
-      document.body.style.overflow = ''
-      document.documentElement.style.overflow = ''
+    const preventScrollBug = () => {
+      // 一度スクロール位置をリセット
+      window.scrollTo(0, 1)
+
+      // iOS Safari の自動スクロール問題を防ぐ
+      document.body.style.webkitTransform = 'translateZ(0)'
+      document.body.style.transform = 'translateZ(0)'
+
+      // ビューポートの高さを正しく設定
+      const setVH = () => {
+        const vh = window.innerHeight * 0.01
+        document.documentElement.style.setProperty('--vh', `${vh}px`)
+      }
+      setVH()
+
+      // ページ遷移後の自動スクロールを防ぐ
+      const preventAutoScroll = (e: Event) => {
+        if ((e as any).defaultPrevented) return
+        e.preventDefault()
+        e.stopPropagation()
+        return false
+      }
+
+      // 一時的にスクロールイベントをキャプチャ
+      window.addEventListener('scroll', preventAutoScroll, { capture: true, once: true })
+
+      // 少し後にスクロールを有効化
+      setTimeout(() => {
+        window.scrollTo(0, 0)
+        window.removeEventListener('scroll', preventAutoScroll)
+      }, 150)
     }
 
-    // 少し遅延を入れてから実行（ページレンダリング完了後）
-    const timer = setTimeout(preventBounce, 100)
+    // 少し遅延を入れてから実行（DOM構築完了後）
+    const timer = setTimeout(preventScrollBug, 50)
+
+    // リサイズ時にビューポート高さを更新
+    const handleResize = () => {
+      const vh = window.innerHeight * 0.01
+      document.documentElement.style.setProperty('--vh', `${vh}px`)
+    }
+    window.addEventListener('resize', handleResize)
 
     return () => {
       clearTimeout(timer)
-      document.body.style.overflow = ''
-      document.documentElement.style.overflow = ''
+      window.removeEventListener('resize', handleResize)
+      document.body.style.webkitTransform = ''
+      document.body.style.transform = ''
     }
   }, [])
 
@@ -376,7 +410,16 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
   }
 
   return (
-    <div className="space-y-6" style={{ WebkitOverflowScrolling: 'touch' }}>
+    <div
+      className="space-y-6"
+      style={{
+        WebkitOverflowScrolling: 'touch',
+        touchAction: 'pan-y',
+        overscrollBehavior: 'none',
+        position: 'relative',
+        zIndex: 1
+      }}
+    >
       {/* 日付と現在の状態 */}
       <div className="bg-white rounded-lg shadow p-4 sm:p-6">
         <div className="text-center mb-4 sm:mb-6">
@@ -418,6 +461,13 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
                   })
                 : '--:--'}
             </div>
+            {todayRecord?.clock_out_time && todayRecord?.location_type && (
+              <div className="text-xs text-gray-700 mt-1">
+                {todayRecord.location_type === 'office'
+                  ? '🏢 会社'
+                  : `🏗️ ${todayRecord.site_name || '現場'}`}
+              </div>
+            )}
           </div>
         </div>
 
@@ -553,7 +603,8 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
           {canUseQR && (
             <button
               onClick={startQRScanning}
-              className="w-full mb-3 sm:mb-4 inline-flex justify-center items-center px-4 sm:px-6 py-3 sm:py-4 border-2 border-blue-600 text-base sm:text-lg font-medium rounded-lg text-blue-600 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="w-full mb-3 sm:mb-4 inline-flex justify-center items-center px-4 sm:px-6 py-3 sm:py-4 border-2 border-blue-600 text-base sm:text-lg font-medium rounded-lg text-blue-600 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:border-gray-300 disabled:text-gray-400"
+              disabled={actionLoading}
             >
               <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -689,14 +740,15 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">退勤打刻</h3>
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">退勤打刻</h3>
 
           {/* QRコードスキャンボタン */}
           {canUseQR && (
             <button
               onClick={startQRScanning}
-              className="w-full mb-4 inline-flex justify-center items-center px-6 py-4 border-2 border-gray-600 text-lg font-medium rounded-lg text-gray-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              className="w-full mb-3 sm:mb-4 inline-flex justify-center items-center px-4 sm:px-6 py-3 sm:py-4 border-2 border-red-600 text-base sm:text-lg font-medium rounded-lg text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:bg-gray-100 disabled:border-gray-300 disabled:text-gray-400"
+              disabled={actionLoading}
             >
               <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
