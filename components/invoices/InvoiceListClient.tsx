@@ -322,7 +322,8 @@ export function InvoiceListClient({ userRole }: InvoiceListClientProps) {
       </div>
 
       {/* 件数表示とソート */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between">
+        {/* 件数表示 */}
         <div className="text-sm text-gray-700">
           {isLoading ? (
             'データ読み込み中...'
@@ -330,8 +331,10 @@ export function InvoiceListClient({ userRole }: InvoiceListClientProps) {
             `全 ${totalCount} 件を表示中（${currentPage}/${totalPages} ページ）`
           )}
         </div>
+
+        {/* 並び替え（モバイル: フル幅、PC: コンパクト） */}
         <div className="flex items-center gap-2">
-          <label className="text-xs text-gray-600">並び替え:</label>
+          <label className="text-xs sm:text-xs text-gray-600 shrink-0">並び替え:</label>
           <select
             value={`${sortField}-${sortOrder}`}
             onChange={(e) => {
@@ -339,7 +342,7 @@ export function InvoiceListClient({ userRole }: InvoiceListClientProps) {
               setSortField(field)
               setSortOrder(order)
             }}
-            className="px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="flex-1 sm:flex-initial px-3 py-2 sm:px-2 sm:py-1 border border-gray-300 rounded text-sm sm:text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             disabled={isLoading}
           >
             <option value="invoice_date-desc">請求日（新しい順）</option>
@@ -373,74 +376,161 @@ export function InvoiceListClient({ userRole }: InvoiceListClientProps) {
             <div key={invoice.id} className="bg-white border border-gray-300 rounded-lg shadow-sm">
               {/* クリック可能なカード本体 */}
               <div
-                className="px-6 py-5 cursor-pointer hover:bg-gray-50 transition-colors relative"
+                className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
                 onClick={() => router.push(`/invoices/${invoice.id}`)}
               >
-                {/* ステータスと請求番号（左上） */}
-                <div className="absolute top-2 left-2 flex items-center gap-2">
-                  <span className={`inline-block px-2 py-0.5 text-xs font-bold rounded ${statusColors}`}>
-                    {statusText}
-                  </span>
-                  <span className="text-xs font-bold text-gray-700 whitespace-nowrap">{invoice.invoice_number}</span>
-                </div>
-
-                {/* 請求日・支払期日（右上・横並び） */}
-                <div className="absolute top-2 right-2 flex items-center gap-4 text-xs text-gray-500">
-                  <div className="whitespace-nowrap">
-                    請求日: {new Date(invoice.invoice_date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
-                  </div>
-                  <div className="whitespace-nowrap">
-                    支払期日: {new Date(invoice.due_date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
-                    {isOverdue && (
-                      <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                        期限超過
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-6">
-                  {/* 左側：取引先名・工事名（横並び） */}
-                  <div className="flex-1 min-w-0 flex items-center gap-8">
-                    <div className="min-w-0">
-                      <div className="text-xs text-gray-500 mb-0.5">取引先</div>
-                      <div className="font-bold text-gray-900 truncate">
-                        {invoice.client?.name || '-'}
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs text-gray-500 mb-0.5">工事名</div>
-                      <div className="text-sm text-gray-900 truncate">
-                        {invoice.project?.project_name || '-'}
-                      </div>
-                    </div>
+                {/* モバイル: 縦並びレイアウト */}
+                <div className="sm:hidden space-y-3">
+                  {/* ステータスと請求番号 */}
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-block px-2 py-1 text-xs font-bold rounded ${statusColors}`}>
+                      {statusText}
+                    </span>
+                    <span className="text-sm font-bold text-gray-700">{invoice.invoice_number}</span>
                   </div>
 
-                  {/* 中央：作成者・承認者（縦並び） */}
-                  <div className="mx-8">
-                    {isManagerOrAdmin && invoice.created_by_user && (
-                      <div className="mb-1">
-                        <span className="text-xs text-gray-500">作成者: </span>
-                        <span className="text-xs text-gray-900">
-                          {invoice.created_by_user.name}
-                        </span>
-                      </div>
-                    )}
-                    {invoice.manager_approved_at && invoice.approved_by_user && (
-                      <div>
-                        <span className="text-xs text-gray-500">承認者: </span>
-                        <span className="text-xs text-gray-900">
-                          {invoice.approved_by_user.name}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 右側：金額 */}
-                  <div className="text-right ml-8">
-                    <div className="text-xs text-gray-500 mb-0.5">金額（税込）</div>
-                    <div className="text-2xl font-bold text-gray-900 whitespace-nowrap">
+                  {/* 金額（目立つように上部に） */}
+                  <div className="bg-gray-50 rounded p-3">
+                    <div className="text-xs text-gray-500 mb-1">金額（税込）</div>
+                    <div className="text-2xl font-bold text-gray-900">
                       ¥{Math.floor(invoice.total_amount).toLocaleString()}
+                    </div>
+                    {isPartiallyPaid && (
+                      <div className="text-xs text-orange-600 mt-1">
+                        入金済: ¥{Math.floor(invoice.paid_amount).toLocaleString()}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 取引先 */}
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">取引先</div>
+                    <div className="font-medium text-gray-900">
+                      {invoice.client?.name || '-'}
+                    </div>
+                  </div>
+
+                  {/* 工事名 */}
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">工事名</div>
+                    <div className="text-sm text-gray-900">
+                      {invoice.project?.project_name || '-'}
+                    </div>
+                  </div>
+
+                  {/* 請求日 */}
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">請求日</div>
+                    <div className="text-sm text-gray-900">
+                      {new Date(invoice.invoice_date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    </div>
+                  </div>
+
+                  {/* 支払期日 */}
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">支払期日</div>
+                    <div className="text-sm text-gray-900">
+                      {new Date(invoice.due_date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      {isOverdue && (
+                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                          期限超過
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 作成者・承認者 */}
+                  {(isManagerOrAdmin && invoice.created_by_user) || invoice.manager_approved_at ? (
+                    <div className="flex gap-4 text-xs">
+                      {isManagerOrAdmin && invoice.created_by_user && (
+                        <div>
+                          <span className="text-gray-500">作成者: </span>
+                          <span className="font-medium text-gray-900">{invoice.created_by_user.name}</span>
+                        </div>
+                      )}
+                      {invoice.manager_approved_at && invoice.approved_by_user && (
+                        <div>
+                          <span className="text-gray-500">承認者: </span>
+                          <span className="font-medium text-gray-900">{invoice.approved_by_user?.name}</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+
+                {/* PC: 横並びレイアウト（既存） */}
+                <div className="hidden sm:block relative">
+                  {/* ステータスと請求番号（左上） */}
+                  <div className="absolute top-0 left-0 flex items-center gap-2">
+                    <span className={`inline-block px-2 py-0.5 text-xs font-bold rounded ${statusColors}`}>
+                      {statusText}
+                    </span>
+                    <span className="text-xs font-bold text-gray-700 whitespace-nowrap">{invoice.invoice_number}</span>
+                  </div>
+
+                  {/* 請求日・支払期日（右上・横並び） */}
+                  <div className="absolute top-0 right-0 flex items-center gap-4 text-xs text-gray-500">
+                    <div className="whitespace-nowrap">
+                      請求日: {new Date(invoice.invoice_date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    </div>
+                    <div className="whitespace-nowrap">
+                      支払期日: {new Date(invoice.due_date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      {isOverdue && (
+                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                          期限超過
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-6">
+                    {/* 左側：取引先名・工事名（横並び） */}
+                    <div className="flex-1 min-w-0 flex items-center gap-8">
+                      <div className="min-w-0">
+                        <div className="text-xs text-gray-500 mb-0.5">取引先</div>
+                        <div className="font-bold text-gray-900 truncate">
+                          {invoice.client?.name || '-'}
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-gray-500 mb-0.5">工事名</div>
+                        <div className="text-sm text-gray-900 truncate">
+                          {invoice.project?.project_name || '-'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 中央：作成者・承認者（縦並び） */}
+                    <div className="mx-8">
+                      {isManagerOrAdmin && invoice.created_by_user && (
+                        <div className="mb-1">
+                          <span className="text-xs text-gray-500">作成者: </span>
+                          <span className="text-xs text-gray-900">
+                            {invoice.created_by_user.name}
+                          </span>
+                        </div>
+                      )}
+                      {invoice.manager_approved_at && invoice.approved_by_user && (
+                        <div>
+                          <span className="text-xs text-gray-500">承認者: </span>
+                          <span className="text-xs text-gray-900">
+                            {invoice.approved_by_user.name}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 右側：金額 */}
+                    <div className="text-right ml-8">
+                      <div className="text-xs text-gray-500 mb-0.5">金額（税込）</div>
+                      <div className="text-2xl font-bold text-gray-900 whitespace-nowrap">
+                        ¥{Math.floor(invoice.total_amount).toLocaleString()}
+                      </div>
+                      {isPartiallyPaid && (
+                        <div className="text-xs text-orange-600 mt-1">
+                          入金済: ¥{Math.floor(invoice.paid_amount).toLocaleString()}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

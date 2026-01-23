@@ -83,79 +83,85 @@ export default async function InvoiceDetailPage({
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
-      <div className="mb-6 flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold mb-2">請求書詳細</h1>
-          <p className="text-gray-600">{invoice.invoice_number}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {/* 下書き状態: 編集・提出が可能 */}
-          {invoice.status === 'draft' && (
-            <>
-              <Link
-                href={`/invoices/${id}/edit`}
-                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-              >
-                編集
-              </Link>
-              <SubmitInvoiceButton invoiceId={id} />
-            </>
-          )}
+      <div className="mb-6">
+        {/* スマホ: 縦並び、PC: 横並び（見積書と同じレイアウト） */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+          {/* 左: タイトルと番号 */}
+          <div>
+            <h1 className="text-lg sm:text-2xl font-bold mb-2">請求書詳細</h1>
+            <p className="text-sm sm:text-base text-gray-600">{invoice.invoice_number}</p>
+          </div>
 
-          {/* 提出済み状態: 承認・差し戻しボタン（manager/admin のみ） */}
-          {invoice.status === 'submitted' && (
-            <>
-              <ApproveInvoiceButton invoiceId={id} userRole={userRole || ''} />
-              <ReturnInvoiceButton invoiceId={id} userRole={userRole || ''} />
-            </>
-          )}
+          {/* 右: アクションボタン（スマホ: 縦並び、PC: 横並び） */}
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
+            {/* 一覧に戻る（常に表示・最初に配置） */}
+            <Link
+              href="/invoices"
+              className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 text-center"
+            >
+              一覧に戻る
+            </Link>
 
-          {/* 承認済み状態: 送付ボタン・PDF出力 */}
-          {invoice.status === 'approved' && (
-            <>
-              <SendInvoiceButton
-                invoiceId={id}
-                status={invoice.status}
-                isApproved={true}
-                userRole={userRole || ''}
-                userId={userId}
-                createdById={invoice.created_by}
-              />
-              <DownloadPdfButton invoiceId={id} />
-            </>
-          )}
-
-          {/* 送付済み状態: 入金登録・PDFボタンの順（入金登録を先に配置） */}
-          {invoice.status === 'sent' && (
-            <>
-              {/* 入金登録: 未入金・マネージャー以上のみ */}
-              {!isPaid && ['manager', 'admin', 'super_admin'].includes(userRole || '') && (
+            {/* 下書き状態: 編集・提出が可能 */}
+            {invoice.status === 'draft' && (
+              <>
                 <Link
-                  href={`/payments/new?invoice_id=${id}`}
-                  className="bg-indigo-500 text-white px-4 py-2 rounded-md hover:bg-indigo-600"
+                  href={`/invoices/${id}/edit`}
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-center"
                 >
-                  入金登録
+                  編集
                 </Link>
-              )}
-              {/* PDF出力: マネージャー以上のみ */}
-              {['manager', 'admin', 'super_admin'].includes(userRole || '') && (
+                <SubmitInvoiceButton invoiceId={id} />
+              </>
+            )}
+
+            {/* 提出済み状態: 承認・差し戻しボタン（manager/admin のみ） */}
+            {invoice.status === 'submitted' && (
+              <>
+                <ReturnInvoiceButton invoiceId={id} userRole={userRole || ''} />
+                <ApproveInvoiceButton invoiceId={id} userRole={userRole || ''} />
+              </>
+            )}
+
+            {/* 承認済み状態: PDF出力・送付ボタン */}
+            {invoice.status === 'approved' && (
+              <>
                 <DownloadPdfButton invoiceId={id} />
-              )}
-            </>
-          )}
+                <SendInvoiceButton
+                  invoiceId={id}
+                  status={invoice.status}
+                  isApproved={true}
+                  userRole={userRole || ''}
+                  userId={userId}
+                  createdById={invoice.created_by}
+                />
+              </>
+            )}
 
-          {/* 入金済み状態: PDF出力のみ（マネージャー以上） */}
-          {invoice.status === 'paid' && ['manager', 'admin', 'super_admin'].includes(userRole || '') && (
-            <DownloadPdfButton invoiceId={id} />
-          )}
+            {/* 送付済み状態: PDF・入金登録ボタン */}
+            {invoice.status === 'sent' && (
+              <>
+                {/* PDF出力: マネージャー以上のみ */}
+                {['manager', 'admin', 'super_admin'].includes(userRole || '') && (
+                  <DownloadPdfButton invoiceId={id} />
+                )}
+                {/* 入金登録: 未入金・マネージャー以上のみ */}
+                {!isPaid && ['manager', 'admin', 'super_admin'].includes(userRole || '') && (
+                  <Link
+                    href={`/payments/new?invoice_id=${id}`}
+                    className="bg-indigo-500 text-white px-4 py-2 rounded-md hover:bg-indigo-600 text-center"
+                  >
+                    入金登録
+                  </Link>
+                )}
+              </>
+            )}
 
-          {/* 一覧に戻るボタン（常に表示・最後に配置） */}
-          <Link
-            href="/invoices"
-            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
-          >
-            一覧に戻る
-          </Link>
+            {/* 入金済み状態: PDF出力のみ（マネージャー以上） */}
+            {invoice.status === 'paid' && ['manager', 'admin', 'super_admin'].includes(userRole || '') && (
+              <DownloadPdfButton invoiceId={id} />
+            )}
+          </div>
         </div>
       </div>
 
@@ -181,12 +187,11 @@ export default async function InvoiceDetailPage({
       </div>
 
       {/* 請求書本体 */}
-      <div className="bg-white shadow-sm rounded-lg p-8 print:shadow-none mb-6">
-        <div className="border-2 border-gray-300 p-8 print:border-gray-800">
-          {/* ヘッダー */}
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold mb-2">請 求 書</h1>
-            <p className="text-sm text-gray-600">Invoice</p>
+      <div className="bg-white shadow-sm rounded-lg p-4 sm:p-8 print:shadow-none mb-6">
+        {/* ヘッダー部分 */}
+        <div className="border-b pb-6 mb-6">
+          <div className="text-center mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold">請　求　書</h2>
           </div>
 
           <div className="grid grid-cols-2 gap-8 mb-8">

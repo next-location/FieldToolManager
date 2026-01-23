@@ -416,50 +416,51 @@ export default function EditInvoicePage({
                 </div>
 
                 <div className="space-y-3">
-                  {/* 種別・項目名・説明を1行 */}
-                  <div className="grid gap-2" style={{ gridTemplateColumns: '140px 1fr 1fr' }}>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">種別</label>
-                      <select
-                        value={item.item_type}
-                        onChange={(e) => handleItemChange(index, 'item_type', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                      >
-                        <option value="construction">工事費</option>
-                        <option value="material">材料費</option>
-                        <option value="expense">諸経費</option>
-                        <option value="other">その他</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        項目名 <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={item.item_name || ''}
-                        onChange={(e) => handleItemChange(index, 'item_name', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                        required
-                        maxLength={100}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">説明</label>
-                      <input
-                        type="text"
-                        value={item.description || ''}
-                        onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                        maxLength={200}
-                      />
-                    </div>
+                  {/* 種別 */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">種別</label>
+                    <select
+                      value={item.item_type}
+                      onChange={(e) => handleItemChange(index, 'item_type', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    >
+                      <option value="material">材料費</option>
+                      <option value="labor">労務費</option>
+                      <option value="subcontract">外注費</option>
+                      <option value="expense">諸経費</option>
+                      <option value="other">その他</option>
+                    </select>
                   </div>
 
-                  {/* 数量・単位・単価・税率・金額を1行 */}
-                  <div className="grid gap-2" style={{ gridTemplateColumns: '80px 100px 1fr 90px 1fr' }}>
+                  {/* 項目名 */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      項目名 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={item.item_name || ''}
+                      onChange={(e) => handleItemChange(index, 'item_name', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      required
+                      maxLength={100}
+                    />
+                  </div>
+
+                  {/* 説明 */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">説明</label>
+                    <input
+                      type="text"
+                      value={item.description || ''}
+                      onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      maxLength={200}
+                    />
+                  </div>
+
+                  {/* 数量・単位 */}
+                  <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
                         数量 <span className="text-red-500">*</span>
@@ -468,7 +469,7 @@ export default function EditInvoicePage({
                         type="number"
                         value={item.quantity}
                         onChange={(e) => handleItemChange(index, 'quantity', parseFloat(e.target.value) || 0)}
-                        className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                         placeholder="0"
                         step="0.01"
                         required
@@ -482,7 +483,7 @@ export default function EditInvoicePage({
                       <select
                         value={item.unit || ''}
                         onChange={(e) => handleItemChange(index, 'unit', e.target.value)}
-                        className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                         required
                       >
                         <option value="式">式</option>
@@ -501,7 +502,10 @@ export default function EditInvoicePage({
                         <option value="人">人</option>
                       </select>
                     </div>
+                  </div>
 
+                  {/* 単価・税率 */}
+                  <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
                         単価 <span className="text-red-500">*</span>
@@ -510,7 +514,7 @@ export default function EditInvoicePage({
                         type="number"
                         value={item.unit_price}
                         onChange={(e) => handleItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)}
-                        className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                         placeholder="0"
                         required
                       />
@@ -521,19 +525,20 @@ export default function EditInvoicePage({
                       <select
                         value={item.tax_rate}
                         onChange={(e) => handleItemChange(index, 'tax_rate', parseFloat(e.target.value))}
-                        className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                       >
                         <option value="10">10%</option>
                         <option value="8">8%</option>
                         <option value="0">0%</option>
                       </select>
                     </div>
+                  </div>
 
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">金額</label>
-                      <div className="w-full px-2 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm font-medium text-right">
-                        ¥{item.amount.toLocaleString()}
-                      </div>
+                  {/* 金額 */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">金額</label>
+                    <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm font-medium text-right">
+                      ¥{item.amount.toLocaleString()}
                     </div>
                   </div>
                 </div>
@@ -600,36 +605,34 @@ export default function EditInvoicePage({
           </div>
         </div>
 
-        <div className="flex justify-between">
+        <div className="grid grid-cols-3 gap-2">
           <button
             type="button"
             onClick={() => router.push(`/invoices/${invoiceId}`)}
-            className="bg-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-400"
+            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 text-center"
           >
             キャンセル
           </button>
-          <div className="flex space-x-2">
-            <button
-              type="submit"
-              onClick={(e) => handleSubmit(e, false)}
-              className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600"
-              disabled={loading}
-            >
-              {loading ? '保存中...' : '下書き保存'}
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                if (confirm('この請求書を更新して提出してもよろしいですか？\n提出後は編集できなくなります。')) {
-                  handleSubmit(e, true)
-                }
-              }}
-              className="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600"
-              disabled={loading}
-            >
-              {loading ? '提出中...' : '確定・提出'}
-            </button>
-          </div>
+          <button
+            type="submit"
+            onClick={(e) => handleSubmit(e, false)}
+            className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 text-center"
+            disabled={loading}
+          >
+            {loading ? '保存中...' : '下書き保存'}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              if (confirm('この請求書を更新して提出してもよろしいですか？\n提出後は編集できなくなります。')) {
+                handleSubmit(e, true)
+              }
+            }}
+            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-center"
+            disabled={loading}
+          >
+            {loading ? '提出中...' : '確定・提出'}
+          </button>
         </div>
       </form>
       </div>
