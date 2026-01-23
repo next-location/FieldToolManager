@@ -73,21 +73,31 @@ export async function POST(request: NextRequest) {
     const availableHeight = textAreaSize / maxRowCount
     const baseCharSize = Math.min(availableWidth * 0.9, availableHeight * 0.9)
 
+    // フォントスタイルに応じたweight設定
+    const fontWeight = fontStyle === 'mincho' ? '500' : '900'
+
     ctx.fillStyle = '#CC0000'
-    ctx.font = `900 ${baseCharSize}px "Noto Sans JP"`
+    ctx.font = `${fontWeight} ${baseCharSize}px "Noto Sans JP"`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
 
-    console.log('[角印生成API] レイアウト:', { columns: columnCount, maxRows: maxRowCount, charSize: baseCharSize, nameColumns })
+    console.log('[角印生成API] レイアウト:', {
+      fontStyle,
+      fontWeight,
+      columns: columnCount,
+      maxRows: maxRowCount,
+      charSize: baseCharSize,
+      nameColumns
+    })
 
     nameColumns.forEach((column: string[], colIndex: number) => {
       const columnX = size - padding - borderWidth - (colIndex * availableWidth) - (availableWidth / 2)
       const actualChars = column.filter((c: string) => c && c !== '')
-      const charSpacing = baseCharSize * 1.1
+      const charSpacing = baseCharSize * 1.05  // 文字間隔を少し詰める
       const totalHeight = (actualChars.length - 1) * charSpacing
       const centerY = size / 2
-      const fontOffset = baseCharSize * 0.35
-      const startY = centerY - (totalHeight / 2) + fontOffset
+      // textBaseline: 'middle'なのでオフセット不要、真ん中に配置
+      const startY = centerY - (totalHeight / 2)
 
       actualChars.forEach((char: string, charIndex: number) => {
         const charY = startY + (charIndex * charSpacing)
