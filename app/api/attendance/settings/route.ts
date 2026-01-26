@@ -36,10 +36,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 設定取得
+    // 設定取得（MVP: 新フィールドを含む）
     const { data: settings, error: settingsError } = await supabase
       .from('organization_attendance_settings')
-      .select('*')
+      .select('*, working_days, exclude_holidays, default_checkin_time, default_alert_time')
       .eq('organization_id', userData?.organization_id)
       .single()
 

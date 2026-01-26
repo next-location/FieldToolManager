@@ -7,6 +7,7 @@ import Link from 'next/link'
 import type { SealFontStyle } from '@/lib/company-seal/generate-seal'
 import { ContractManagement } from '@/components/ContractManagement'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { AttendanceSettings } from '@/components/AttendanceSettings'
 
 interface OrganizationData {
   id: string
@@ -547,6 +548,9 @@ export default function OrganizationPage() {
           </div>
         </form>
       </div>
+
+      {/* 出退勤アラート設定 */}
+      {organization && <AttendanceSettings organizationId={organization.id} />}
       </div>
     </div>
   )

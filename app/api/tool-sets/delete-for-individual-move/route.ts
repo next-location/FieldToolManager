@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
+  console.log('[API DELETE TOOL SET] リクエスト受信')
   try {
     const supabase = await createClient()
 
@@ -11,8 +12,11 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser()
 
     if (!user) {
+      console.log('[API DELETE TOOL SET] 認証エラー: ユーザーなし')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    console.log('[API DELETE TOOL SET] ユーザーID:', user.id)
 
     // ユーザーの組織IDを取得
     const { data: userData } = await supabase
@@ -22,12 +26,17 @@ export async function POST(request: Request) {
       .single()
 
     if (!userData) {
+      console.log('[API DELETE TOOL SET] ユーザーデータ取得エラー')
       return NextResponse.json({ error: 'User data not found' }, { status: 404 })
     }
 
+    console.log('[API DELETE TOOL SET] 組織ID:', userData.organization_id)
+
     const { toolSetIds } = await request.json()
+    console.log('[API DELETE TOOL SET] 削除対象セットID:', toolSetIds)
 
     if (!toolSetIds || !Array.isArray(toolSetIds)) {
+      console.log('[API DELETE TOOL SET] 不正なリクエスト')
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
     }
 
@@ -35,6 +44,8 @@ export async function POST(request: Request) {
 
     // 各セットを削除
     for (const toolSetId of toolSetIds) {
+      console.log('[API DELETE TOOL SET] セット削除開始:', toolSetId)
+
       // セットの詳細情報を取得（監査ログ用）
       const { data: toolSet } = await supabase
         .from('tool_sets')
@@ -45,8 +56,11 @@ export async function POST(request: Request) {
         .single()
 
       if (!toolSet) {
+        console.log('[API DELETE TOOL SET] セットが見つからない:', toolSetId)
         continue
       }
+
+      console.log('[API DELETE TOOL SET] セット情報取得成功:', toolSet.name)
 
       const { data: setItems } = await supabase
         .from('tool_set_items')
@@ -59,6 +73,8 @@ export async function POST(request: Request) {
           )
         `)
         .eq('tool_set_id', toolSetId)
+
+      console.log('[API DELETE TOOL SET] セットアイテム数:', setItems?.length || 0)
 
       const setItemsInfo = (setItems || []).map((item: any) => ({
         tool_item_id: item.tool_item_id,
@@ -74,12 +90,14 @@ export async function POST(request: Request) {
         .eq('organization_id', userData.organization_id)
 
       if (deleteError) {
-        console.error('セット削除エラー:', deleteError)
+        console.error('[API DELETE TOOL SET] セット削除エラー:', deleteError)
         return NextResponse.json(
           { error: 'Failed to delete tool set', details: deleteError.message },
           { status: 500 }
         )
       }
+
+      console.log('[API DELETE TOOL SET] セット削除成功 (soft delete):', toolSetId)
 
       // 監査ログを記録
       const { error: auditError } = await supabase.from('audit_logs').insert({
@@ -98,8 +116,10 @@ export async function POST(request: Request) {
       })
 
       if (auditError) {
-        console.error('監査ログ記録エラー:', auditError)
+        console.error('[API DELETE TOOL SET] 監査ログ記録エラー:', auditError)
         // 監査ログエラーは処理を止めない
+      } else {
+        console.log('[API DELETE TOOL SET] 監査ログ記録成功')
       }
 
       deletedSets.push({
@@ -108,6 +128,8 @@ export async function POST(request: Request) {
         itemCount: setItems?.length || 0
       })
     }
+
+    console.log('[API DELETE TOOL SET] 削除完了。削除されたセット:', deletedSets)
 
     return NextResponse.json({
       success: true,
