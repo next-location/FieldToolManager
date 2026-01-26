@@ -24,12 +24,12 @@ export function QRScanTabs({ showTabs = true }: QRScanTabsProps) {
     {
       id: 'tool' as TabType,
       name: '道具移動',
-      description: '道具のQRコードをスキャンして移動ページへ',
+      description: '道具のQRコードを複数スキャンして一括移動登録',
     },
     {
       id: 'equipment' as TabType,
       name: '重機移動',
-      description: '重機のQRコードをスキャンして移動ページへ',
+      description: '重機のQRコードを複数スキャンして一括移動登録',
     },
   ]
 

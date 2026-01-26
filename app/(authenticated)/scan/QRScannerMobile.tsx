@@ -13,13 +13,23 @@ interface QRScannerMobileProps {
   onClose?: () => void
 }
 
+interface ScannedItem {
+  id: string
+  qrCode: string
+  name: string
+  serialNumber?: string
+}
+
 export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
   const [isScanning, setIsScanning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [scannedItems, setScannedItems] = useState<ScannedItem[]>([])
+  const [lastScannedItem, setLastScannedItem] = useState<ScannedItem | null>(null)
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const processingQrRef = useRef<boolean>(false) // QR処理中フラグ
   const lastScannedRef = useRef<string | null>(null) // 最後にスキャンしたQRコード
+  const scannedQrCodesRef = useRef<Set<string>>(new Set()) // スキャン済みQRコードのSet
   const router = useRouter()
   const supabase = createClient()
 
@@ -66,14 +76,16 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
             return
           }
 
-          // 同じQRの再スキャンを防ぐ
-          if (lastScannedRef.current === decodedText) {
+          // 既にスキャン済みかチェック
+          if (scannedQrCodesRef.current.has(decodedText)) {
             return
           }
 
           // 処理中フラグを立てる
           processingQrRef.current = true
-          lastScannedRef.current = decodedText
+
+          // スキャン済みSetに追加
+          scannedQrCodesRef.current.add(decodedText)
 
           // スキャン成功フィードバック
           if (navigator.vibrate) {
@@ -83,9 +95,11 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
           try {
             console.log('[QR Scanner] Mode:', mode, 'QR Code:', decodedText)
-            await handleSingleScan(decodedText)
+            await addScannedItem(decodedText)
+            processingQrRef.current = false
           } catch (error) {
             console.error('QRスキャン処理エラー:', error)
+            scannedQrCodesRef.current.delete(decodedText)
             processingQrRef.current = false
           }
         },
@@ -126,16 +140,12 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
     }
   }
 
-  const handleSingleScan = async (qrCode: string) => {
-    await stopScanning()
-
-    const supabase = createClient()
-
+  const addScannedItem = async (qrCode: string) => {
     if (mode === 'tool') {
       // 道具のQRコードを検索
       const { data: toolItem, error: itemError } = await supabase
         .from('tool_items')
-        .select('id')
+        .select('id, serial_number, tool_id, tools!inner(id, name)')
         .eq('qr_code', qrCode)
         .is('deleted_at', null)
         .single()
@@ -143,12 +153,19 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
       if (itemError || !toolItem) {
         console.error('道具アイテムが見つかりません:', itemError)
         setError('QRコードに対応する道具が見つかりませんでした')
-        setTimeout(() => setError(null), 5000)
+        setTimeout(() => setError(null), 3000)
         return
       }
 
-      // 移動ページへリダイレクト（スキャンしたアイテムIDを渡す）
-      router.push(`/movements/bulk?items=${toolItem.id}`)
+      const newItem: ScannedItem = {
+        id: toolItem.id,
+        qrCode,
+        name: (toolItem as any).tools?.name || '不明な道具',
+        serialNumber: toolItem.serial_number
+      }
+
+      setScannedItems(prev => [...prev, newItem])
+      setLastScannedItem(newItem)
       return
     }
 
@@ -156,7 +173,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
       // 重機のQRコードを検索
       const { data: equipment, error: equipmentError } = await supabase
         .from('heavy_equipment')
-        .select('id')
+        .select('id, name, serial_number')
         .eq('qr_code', qrCode)
         .is('deleted_at', null)
         .single()
@@ -164,14 +181,42 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
       if (equipmentError || !equipment) {
         console.error('重機が見つかりません:', equipmentError)
         setError('QRコードに対応する重機が見つかりませんでした')
-        setTimeout(() => setError(null), 5000)
+        setTimeout(() => setError(null), 3000)
         return
       }
 
-      // 重機詳細ページへリダイレクト
-      router.push(`/equipment/${equipment.id}`)
+      const newItem: ScannedItem = {
+        id: equipment.id,
+        qrCode,
+        name: equipment.name,
+        serialNumber: equipment.serial_number
+      }
+
+      setScannedItems(prev => [...prev, newItem])
+      setLastScannedItem(newItem)
       return
     }
+  }
+
+  const handleComplete = async () => {
+    if (scannedItems.length === 0) return
+
+    await stopScanning()
+
+    if (mode === 'tool') {
+      // 道具移動ページへリダイレクト
+      const itemIds = scannedItems.map(item => item.id).join(',')
+      router.push(`/movements/bulk?items=${itemIds}`)
+    } else if (mode === 'equipment') {
+      // 重機移動ページへリダイレクト
+      const equipmentIds = scannedItems.map(item => item.id).join(',')
+      router.push(`/equipment/bulk-movement?items=${equipmentIds}`)
+    }
+  }
+
+  const removeScannedItem = (qrCode: string) => {
+    setScannedItems(prev => prev.filter(item => item.qrCode !== qrCode))
+    scannedQrCodesRef.current.delete(qrCode)
   }
 
 
@@ -292,12 +337,43 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
         )}
       </div>
 
-      {/* 下部ガイドメッセージ */}
+      {/* スキャン済みアイテム表示 + 完了ボタン */}
       <div className="bg-white border-t p-4">
-        <p className="text-center text-gray-600 text-sm">
-          {mode === 'tool' && '道具のQRコードをスキャンしてください'}
-          {mode === 'equipment' && '重機のQRコードをスキャンしてください'}
-        </p>
+        {/* スキャン数表示 */}
+        <div className="mb-3">
+          <p className="text-sm font-medium text-gray-700">
+            スキャン済み: <span className="text-blue-600 text-lg font-bold">{scannedItems.length}</span>個
+          </p>
+        </div>
+
+        {/* 最後にスキャンしたアイテム */}
+        {lastScannedItem && (
+          <div className="mb-3 bg-green-50 border border-green-200 rounded-lg p-3">
+            <div className="flex items-center space-x-2">
+              <span className="text-green-500 text-xl">✓</span>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900">{lastScannedItem.name}</p>
+                {lastScannedItem.serialNumber && (
+                  <p className="text-xs text-gray-500">#{lastScannedItem.serialNumber}</p>
+                )}
+              </div>
+              <span className="text-xs text-gray-400 font-medium">最新</span>
+            </div>
+          </div>
+        )}
+
+        {/* 完了ボタン */}
+        <button
+          onClick={handleComplete}
+          disabled={scannedItems.length === 0}
+          className={`w-full py-3 px-4 rounded-lg text-sm font-medium ${
+            scannedItems.length === 0
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-blue-600 text-white hover:bg-blue-700'
+          }`}
+        >
+          完了して移動先を選ぶ ({scannedItems.length}個)
+        </button>
       </div>
     </div>
   )
