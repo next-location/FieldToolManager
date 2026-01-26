@@ -71,10 +71,13 @@ export async function requireAuth(): Promise<PageAuthResult> {
     redirect('/login');
   }
 
+  // DB上の'user'をUI上の'staff'にマッピング
+  const mappedRole = userData.role === 'user' ? 'staff' : userData.role;
+
   return {
     userId: user.id,
     organizationId: userData.organization_id,
-    userRole: userData.role as 'staff' | 'leader' | 'manager' | 'admin',
+    userRole: mappedRole as 'staff' | 'leader' | 'manager' | 'admin',
     supabase,
     isImpersonating: false,
   };

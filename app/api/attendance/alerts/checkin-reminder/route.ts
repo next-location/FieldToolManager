@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { isWorkingDay } from '@/lib/attendance/holiday-checker'
+import { notifyCheckinReminder, notifyIndividualCheckinReminder } from '@/lib/notifications/attendance-alert-notifications'
 
 /**
  * POST /api/attendance/alerts/checkin-reminder
@@ -111,32 +112,66 @@ export async function POST(request: NextRequest) {
       // 出勤済みユーザーIDのSet
       const checkedInUserIds = new Set(todayRecords?.map((r) => r.user_id) || [])
 
-      // 未出勤のユーザーにアラート作成
-      const alerts = users
-        .filter((user) => !checkedInUserIds.has(user.id))
-        .map((user) => ({
-          organization_id: organizationId,
-          target_user_id: user.id,
-          alert_type: 'checkin_reminder',
-          target_date: today,
-          title: '出勤打刻忘れ',
-          message: `${user.name}さん、まだ出勤打刻がされていません。打刻をお願いします。`,
-          metadata: {
-            user_name: user.name,
-            user_email: user.email,
-            reminder_time: org.checkin_reminder_time,
-          },
-        }))
+      // 未出勤のユーザーを抽出
+      const missingUsers = users.filter((user) => !checkedInUserIds.has(user.id))
 
-      if (alerts.length > 0) {
-        const { error: insertError } = await supabase.from('attendance_alerts').insert(alerts)
+      if (missingUsers.length === 0) {
+        console.log(`[出勤リマインダー] 組織 ${organizationId}: 全員出勤済み`)
+        continue
+      }
 
-        if (insertError) {
-          console.error(`[出勤リマインダー] 組織 ${organizationId} のアラート挿入エラー:`, insertError)
-        } else {
-          console.log(`[出勤リマインダー] 組織 ${organizationId}: ${alerts.length}件のアラートを生成`)
-          totalAlerts += alerts.length
+      // アラート作成
+      const alerts = missingUsers.map((user) => ({
+        organization_id: organizationId,
+        target_user_id: user.id,
+        alert_type: 'checkin_reminder',
+        target_date: today,
+        title: '出勤打刻忘れ',
+        message: `${user.name}さん、まだ出勤打刻がされていません。打刻をお願いします。`,
+        metadata: {
+          user_name: user.name,
+          user_email: user.email,
+          reminder_time: org.checkin_reminder_time,
+        },
+      }))
+
+      const { error: insertError } = await supabase.from('attendance_alerts').insert(alerts)
+
+      if (insertError) {
+        console.error(`[出勤リマインダー] 組織 ${organizationId} のアラート挿入エラー:`, insertError)
+        continue
+      }
+
+      console.log(`[出勤リマインダー] 組織 ${organizationId}: ${alerts.length}件のアラートを生成`)
+      totalAlerts += alerts.length
+
+      // 通知を送信
+      try {
+        // 管理者/マネージャーにサマリー通知
+        await notifyCheckinReminder({
+          organizationId,
+          targetDate: today,
+          missingUsers: missingUsers.map(u => ({
+            id: u.id,
+            name: u.name,
+            email: u.email
+          }))
+        })
+
+        // 個別スタッフにも通知（オプション: 必要に応じてコメントアウト可能）
+        for (const user of missingUsers) {
+          await notifyIndividualCheckinReminder({
+            organizationId,
+            userId: user.id,
+            userName: user.name,
+            targetDate: today
+          })
         }
+
+        console.log(`[出勤リマインダー] 組織 ${organizationId}: 通知送信完了`)
+      } catch (notifyError) {
+        console.error(`[出勤リマインダー] 組織 ${organizationId} の通知送信エラー:`, notifyError)
+        // 通知エラーがあってもアラート生成は成功しているので続行
       }
     }
 
