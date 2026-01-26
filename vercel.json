@@ -38,11 +38,11 @@
     },
     {
       "path": "/api/attendance/alerts/checkin-reminder",
-      "schedule": "0 * * * *"
+      "schedule": "*/15 * * * *"
     },
     {
       "path": "/api/attendance/alerts/checkout-reminder",
-      "schedule": "0 * * * *"
+      "schedule": "*/15 * * * *"
     },
     {
       "path": "/api/attendance/alerts/daily-report",
