@@ -3,6 +3,10 @@ import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { DeleteToolSetButton } from './DeleteToolSetButton'
 
+// 道具セットの最新状態を常に取得するためキャッシュを無効化
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function ToolSetDetailPage({
   params,
 }: {
