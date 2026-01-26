@@ -429,7 +429,7 @@ export function StaffListClient({ userRole, organization, departments, isImperso
           </div>
         ) : (
           staff.map((user) => (
-            <div key={user.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div key={user.id} className="bg-white rounded-lg shadow-md overflow-visible">
               {/* カードヘッダー */}
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 border-b border-gray-200">
                 <div className="flex items-center justify-between">
