@@ -179,8 +179,7 @@ export function LeaveModal({
               type="date"
               value={leaveDate}
               onChange={(e) => setLeaveDate(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              style={{ position: 'relative', zIndex: 9999 }}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 pr-10"
               required
             />
           </div>
