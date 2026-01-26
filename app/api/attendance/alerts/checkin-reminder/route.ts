@@ -158,9 +158,8 @@ export async function POST(request: NextRequest) {
           }))
         })
 
-        // 個別通知は一般スタッフのみに送信（管理者/マネージャーにはサマリー通知のみ）
-        const regularStaff = missingUsers.filter(u => !['admin', 'manager'].includes(u.role))
-        for (const user of regularStaff) {
+        // 個別通知を全員に送信（管理者/マネージャー本人も打刻忘れの場合は個別通知を受け取る）
+        for (const user of missingUsers) {
           await notifyIndividualCheckinReminder({
             organizationId,
             userId: user.id,
