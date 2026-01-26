@@ -514,15 +514,6 @@ export default function EquipmentMovementForm({
                   className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">選択してください</option>
-                  {locations.filter(loc => loc.is_own_location).length > 0 && (
-                    <optgroup label="━━ 自社拠点 ━━">
-                      {locations.filter(loc => loc.is_own_location).map((location) => (
-                        <option key={location.id} value={location.id}>
-                          {location.name}
-                        </option>
-                      ))}
-                    </optgroup>
-                  )}
                   {locations.filter(loc => !loc.is_own_location).length > 0 && (
                     <optgroup label="━━ 顧客現場 ━━">
                       {locations.filter(loc => !loc.is_own_location).map((location) => (
@@ -534,7 +525,7 @@ export default function EquipmentMovementForm({
                   )}
                   <option value="other">その他の場所</option>
                 </select>
-                <p className="mt-1 text-xs text-gray-500">自社拠点、顧客現場、またはその他の場所を選択してください</p>
+                <p className="mt-1 text-xs text-gray-500">顧客現場またはその他の場所を選択してください</p>
               </div>
 
               {formData.to_location_id === 'other' && (
