@@ -4890,3 +4890,100 @@ ALTER TABLE tool_movements DROP COLUMN IF EXISTS from_warehouse_location_id;
 ALTER TABLE tool_movements DROP COLUMN IF EXISTS to_warehouse_location_id;
 ```
 
+---
+
+## Migration 044: 休暇管理機能（Phase 3）(2026-01-27)
+
+### 概要
+スタッフの休暇申請・承認機能を実装。出退勤アラートシステムで休暇中のスタッフを除外するための基盤。
+
+### 変更内容
+
+#### 1. `user_leave_records` テーブル作成
+
+**新規テーブル**:
+スタッフの休暇記録を管理（有給、病欠、私用など）
+
+```sql
+CREATE TABLE IF NOT EXISTS user_leave_records (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  leave_date DATE NOT NULL,
+  leave_type TEXT NOT NULL CHECK (leave_type IN ('paid', 'sick', 'personal', 'other')),
+  reason TEXT,
+  status TEXT DEFAULT 'approved' CHECK (status IN ('pending', 'approved', 'rejected')),
+  notes TEXT,
+  created_by UUID REFERENCES users(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, leave_date)
+);
+```
+
+**インデックス**:
+```sql
+CREATE INDEX IF NOT EXISTS idx_user_leave_org_date ON user_leave_records(organization_id, leave_date);
+CREATE INDEX IF NOT EXISTS idx_user_leave_user_date ON user_leave_records(user_id, leave_date);
+CREATE INDEX IF NOT EXISTS idx_user_leave_status ON user_leave_records(organization_id, status);
+```
+
+**RLSポリシー**:
+- `Users can view own leaves`: スタッフは自分の休暇のみ閲覧可能
+- `Admins can view all leaves`: 管理者/マネージャーは全員の休暇を閲覧可能
+- `Users can create own leaves`: スタッフは自分の休暇を申請可能
+- `Admins can manage all leaves`: 管理者/マネージャーは全ての休暇を管理可能
+
+### カラム説明
+
+| カラム名 | 型 | 説明 |
+|---------|---|------|
+| `id` | UUID | 主キー |
+| `user_id` | UUID | 対象スタッフID |
+| `organization_id` | UUID | 組織ID |
+| `leave_date` | DATE | 休暇日 |
+| `leave_type` | TEXT | 休暇種別（paid/sick/personal/other） |
+| `reason` | TEXT | 理由 |
+| `status` | TEXT | ステータス（pending/approved/rejected） |
+| `notes` | TEXT | 備考 |
+| `created_by` | UUID | 作成者ID |
+| `created_at` | TIMESTAMPTZ | 作成日時 |
+| `updated_at` | TIMESTAMPTZ | 更新日時 |
+
+### 制約
+- `UNIQUE(user_id, leave_date)`: 同じスタッフが同じ日に複数の休暇申請不可
+- `leave_type IN ('paid', 'sick', 'personal', 'other')`: 休暇種別の制限
+- `status IN ('pending', 'approved', 'rejected')`: ステータスの制限
+
+### 影響する機能
+- 休暇申請・承認フロー（新規）
+- 出退勤アラート生成（休暇中スタッフの除外）
+- 勤怠管理レポート
+
+### 確認方法
+```sql
+-- テーブル構造確認
+\d user_leave_records
+
+-- インデックス確認
+SELECT indexname, indexdef
+FROM pg_indexes
+WHERE tablename = 'user_leave_records';
+
+-- RLSポリシー確認
+SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual
+FROM pg_policies
+WHERE tablename = 'user_leave_records';
+```
+
+### ロールバック手順
+```sql
+DROP TABLE IF EXISTS user_leave_records CASCADE;
+```
+
+### 実行日
+2026-01-27
+
+### 実行者
+Claude (Phase 3実装)
+

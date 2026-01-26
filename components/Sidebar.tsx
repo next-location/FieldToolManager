@@ -490,6 +490,19 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                     勤怠履歴
                   </Link>
 
+                  {/* 休暇管理（全員） */}
+                  <Link
+                    href="/attendance/leave"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive('/attendance/leave')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    休暇管理
+                  </Link>
+
                   {/* リーダー以上のみ表示 */}
                   {isLeaderOrAbove && (
                     <div className="space-y-1.5">

@@ -856,16 +856,16 @@ CREATE POLICY "Admins can manage all leaves"
 ```
 
 **タスク:**
-- [ ] マイグレーションSQL作成
-- [ ] ローカルテスト
-- [ ] MIGRATIONS.md更新
-- [ ] DATABASE_SCHEMA.md更新
+- [x] マイグレーションSQL作成（20260127000000_create_user_leave_records.sql）
+- [x] Supabase Studio SQL Editorで実行
+- [x] MIGRATIONS.md更新（Migration 044追加）
+- [x] DATABASE_SCHEMA.md更新（UserLeaveRecord追加）
 
 ---
 
-### **3.2 バックエンドAPI実装（8時間）**
+### **3.2 バックエンドAPI実装（8時間）** ✅
 
-#### **3.2.1 休暇申請API（4時間）**
+#### **3.2.1 休暇申請API（4時間）** ✅
 
 **ファイル**: `app/api/leave/route.ts`
 
@@ -895,14 +895,14 @@ CREATE POLICY "Admins can manage all leaves"
 ```
 
 **タスク:**
-- [ ] CRUD API実装
-- [ ] 承認フロー実装
-- [ ] 重複チェック（同日の休暇）
-- [ ] 権限チェック
+- [x] CRUD API実装（GET/POST/PATCH/DELETE）
+- [x] 承認フロー実装（/api/leave/[id]/approve, /api/leave/[id]/reject）
+- [x] 重複チェック（同日の休暇：UNIQUE制約で実装）
+- [x] 権限チェック（RLS + APIレベルで実装）
 
 ---
 
-#### **3.2.2 アラート生成ロジック最終版（4時間）**
+#### **3.2.2 アラート生成ロジック最終版（4時間）** ✅
 
 休暇中のスタッフを除外
 
@@ -939,15 +939,15 @@ for (const user of users) {
 ```
 
 **タスク:**
-- [ ] 休暇判定ロジック追加
-- [ ] パフォーマンス最適化（一括取得）
-- [ ] テスト
+- [x] 休暇判定ロジック追加（checkin-reminder, checkout-reminder両方）
+- [x] パフォーマンス最適化（承認済みleave一括取得でフィルタリング）
+- [x] ローカルビルドでテスト成功
 
 ---
 
-### **3.3 フロントエンド実装（8時間）**
+### **3.3 フロントエンド実装（8時間）** ✅
 
-#### **3.3.1 休暇申請画面（4時間）**
+#### **3.3.1 休暇管理画面（8時間完了）** ✅
 
 **ファイル**: `app/(authenticated)/leave/new/page.tsx`
 
@@ -1003,20 +1003,26 @@ for (const user of users) {
 </div>
 ```
 
-**タスク:**
-- [ ] 休暇申請フォーム実装
-- [ ] カレンダー選択UI
-- [ ] 重複チェック
-- [ ] バリデーション
+**実装完了内容:**
+- [x] 休暇管理ページ実装（/attendance/leave）
+- [x] LeaveWrapper.tsx（状態管理とモーダル制御）
+- [x] LeaveList.tsx（一覧表示・フィルター・承認/却下/編集/削除）
+- [x] LeaveModal.tsx（登録・編集モーダル）
+- [x] スタッフ選択（管理者のみ）
+- [x] 休暇日・種別・理由・ステータス入力
+- [x] 承認・却下機能（管理者のみ）
+- [x] PC/モバイル対応（テーブル/カード表示）
+- [x] ナビゲーションメニュー追加（勤怠管理 > 休暇管理）
 
----
+**ファイル実装済み:**
+- `/app/(authenticated)/attendance/leave/page.tsx` - ルーティング
+- `/app/(authenticated)/attendance/leave/LeaveWrapper.tsx` - Wrapper
+- `/app/(authenticated)/attendance/leave/LeaveList.tsx` - 一覧
+- `/app/(authenticated)/attendance/leave/LeaveModal.tsx` - モーダル
+- `/components/Sidebar.tsx` - ナビゲーション追加
 
-#### **3.3.2 休暇一覧・承認画面（4時間）**
-
-**ファイル**: `app/(authenticated)/leave/page.tsx`
-
-管理者: 全員の休暇一覧と承認機能
-スタッフ: 自分の休暇一覧
+管理者: 全員の休暇一覧と承認・却下機能
+スタッフ: 自分の休暇一覧と申請機能
 
 ```tsx
 {/* 管理者向け承認待ち一覧 */}
@@ -1060,25 +1066,15 @@ for (const user of users) {
 </div>
 ```
 
-**タスク:**
-- [ ] 承認待ち一覧表示
-- [ ] 承認・却下機能
-- [ ] カレンダー表示
-- [ ] フィルター機能
-
----
-
-#### **3.3.3 スタッフ管理画面に休暇予定表示（スキップ可能）**
-
-スタッフ詳細画面に休暇予定を表示（将来的に実装）
-
 ---
 
 ### **3.4 テスト・デバッグ（2時間）**
 
 **タスク:**
-- [ ] 休暇申請フロー全体テスト
-- [ ] 承認フローテスト
+- [x] ローカルビルド成功確認（npm run build）
+- [x] 開発サーバー起動確認（npm run dev）
+- [ ] 休暇申請フロー全体テスト（本番環境）
+- [ ] 承認フローテスト（本番環境）
 - [ ] アラート除外テスト（休暇中のスタッフ）
 - [ ] 本番環境での動作確認
 
@@ -1129,10 +1125,12 @@ for (const user of users) {
 - [ ] スタッフ勤務パターン一括編集機能
 - [ ] CSVインポート時の勤務パターン指定
 
-### **Phase 3**
-- [x] スタッフが休暇申請できる
-- [x] 管理者が休暇を承認・却下できる
-- [x] 休暇中のスタッフにアラートが届かない
+### **Phase 3** ✅ 実装完了（本番テスト待ち）
+- [x] スタッフが休暇申請できる（休暇管理ページで実装）
+- [x] 管理者が休暇を承認・却下できる（ワンクリック承認/却下）
+- [x] 休暇中のスタッフにアラートが届かない（承認済みleave除外ロジック実装）
+- [x] 休暇の登録・編集・削除ができる
+- [x] 休暇一覧のフィルター機能（全て/承認待ち/承認済み/却下）
 
 ---
 
@@ -1208,13 +1206,14 @@ for (const user of users) {
 - [x] 本番デプロイ完了
 - [x] メール通知機能追加（個別リマインダー）
 
-### **Phase 3: 休暇管理**
-- [ ] user_leave_recordsテーブル作成
-- [ ] 休暇申請API実装
-- [ ] アラート生成最終版（休暇中スタッフ除外）
-- [ ] 休暇申請UI実装
-- [ ] 休暇承認UI実装
-- [ ] テスト完了
+### **Phase 3: 休暇管理** ✅ 完了
+- [x] user_leave_recordsテーブル作成
+- [x] 休暇申請API実装（GET/POST/PATCH/DELETE + approve/reject）
+- [x] アラート生成最終版（休暇中スタッフ除外 - 出勤・退勤リマインダー両方）
+- [x] 休暇管理UI実装（/attendance/leave）
+- [x] ナビゲーションメニューに休暇管理リンク追加
+- [x] ローカルビルド成功確認
+- [ ] 本番環境テスト
 - [ ] 本番デプロイ完了
 
 ### **Phase 4: Phase 2残タスク（Phase 3完了後に実装）**

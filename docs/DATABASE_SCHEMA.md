@@ -52,8 +52,25 @@ User (ユーザー)
 ├── email
 ├── name
 ├── role "admin" | "leader" | "staff"
+├── work_pattern_id (FK → work_patterns.id) ← 勤務パターン
 ├── deleted_at (論理削除)
 └── created_at
+
+    ↓ 1:N
+
+UserLeaveRecord (休暇記録) ✨Phase 3
+├── id (PK, UUID)
+├── user_id (FK → User.id) ← 対象スタッフ
+├── organization_id (FK) ← 重要！
+├── leave_date DATE ← 休暇日
+├── leave_type "paid" | "sick" | "personal" | "other" ← 休暇種別
+├── reason TEXT ← 理由
+├── status "pending" | "approved" | "rejected" ← ステータス
+├── notes TEXT ← 備考
+├── created_by (FK → User.id) ← 作成者
+├── created_at
+├── updated_at
+└── UNIQUE(user_id, leave_date) ← 同日重複申請不可
 
 Tool (道具マスタ - 種類) ✨個別管理対応
 ├── id (PK, UUID)

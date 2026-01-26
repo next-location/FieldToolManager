@@ -170,10 +170,25 @@ export async function GET(request: NextRequest) {
         .eq('alert_type', 'checkin_reminder')
 
       const alreadyAlertedUserIds = new Set(existingAlerts?.map((a) => a.target_user_id) || [])
-      const usersNeedingAlert = missingUsers.filter((user) => !alreadyAlertedUserIds.has(user.id))
+      let usersNeedingAlert = missingUsers.filter((user) => !alreadyAlertedUserIds.has(user.id))
+
+      // 休暇中のユーザーを除外
+      const { data: todayLeaves } = await supabase
+        .from('user_leave_records')
+        .select('user_id')
+        .eq('organization_id', organizationId)
+        .eq('leave_date', today)
+        .eq('status', 'approved')
+
+      const onLeaveUserIds = new Set(todayLeaves?.map((l) => l.user_id) || [])
+      usersNeedingAlert = usersNeedingAlert.filter((user) => !onLeaveUserIds.has(user.id))
+
+      if (onLeaveUserIds.size > 0) {
+        console.log(`[出勤リマインダー] 組織 ${organizationId}: ${onLeaveUserIds.size}人が休暇中のため除外`)
+      }
 
       if (usersNeedingAlert.length === 0) {
-        console.log(`[出勤リマインダー] 組織 ${organizationId}: 全員にアラート送信済み`)
+        console.log(`[出勤リマインダー] 組織 ${organizationId}: 全員にアラート送信済みまたは休暇中`)
         continue
       }
 
