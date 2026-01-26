@@ -243,84 +243,38 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
     }
   }
 
+  // 個別選択の確認
+  const handleConfirmIndividualSelection = (toolItem: any, toolSets: ToolSetInfo[]) => {
+    const setNames = toolSets.map(ts => ts.name).join('、')
+    if (confirm(`この道具を選択すると、登録されている道具セット「${setNames}」が削除されます。\n\nよろしいですか？`)) {
+      handleAddIndividualItem(toolItem, toolSets)
+    }
+  }
+
   // 個別アイテムを追加（セットを削除）
   const handleAddIndividualItem = async (toolItem: any, toolSets: ToolSetInfo[]) => {
     try {
-      // ユーザー情報を取得
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        setError('ユーザー情報が取得できませんでした')
-        setTimeout(() => setError(null), 3000)
-        return
-      }
-
-      const { data: userData } = await supabase
-        .from('users')
-        .select('organization_id')
-        .eq('id', user.id)
-        .single()
-
-      if (!userData) {
-        setError('組織情報が取得できませんでした')
-        setTimeout(() => setError(null), 3000)
-        return
-      }
-
-      // 各セットを削除
-      for (const toolSet of toolSets) {
-        // セットの詳細情報を取得（監査ログ用）
-        const { data: setItems } = await supabase
-          .from('tool_set_items')
-          .select(`
-            tool_item_id,
-            tool_items!inner (
-              id,
-              serial_number,
-              tools!inner (name)
-            )
-          `)
-          .eq('tool_set_id', toolSet.id)
-
-        const setItemsInfo = (setItems || []).map((item: any) => ({
-          tool_item_id: item.tool_item_id,
-          serial_number: item.tool_items.serial_number,
-          tool_name: item.tool_items.tools.name
-        }))
-
-        // セットを削除（soft delete）
-        const { error: deleteError } = await supabase
-          .from('tool_sets')
-          .update({ deleted_at: new Date().toISOString() })
-          .eq('id', toolSet.id)
-
-        if (deleteError) {
-          console.error('セット削除エラー:', deleteError)
-          setError('セットの削除中にエラーが発生しました')
-          setTimeout(() => setError(null), 3000)
-          return
-        }
-
-        // 監査ログを記録（クライアントから直接Supabaseに記録）
-        const { error: auditError } = await supabase.from('audit_logs').insert({
-          organization_id: userData.organization_id,
-          user_id: user.id,
-          action: 'delete',
-          entity_type: 'tool_sets',
-          entity_id: toolSet.id,
-          old_values: {
-            set_name: toolSet.name,
-            item_count: toolSet.itemCount,
-            items: setItemsInfo,
-            reason: '個別移動のためセット削除',
-            deleted_by: user.id
-          }
+      // API Route経由でセットを削除
+      const response = await fetch('/api/tool-sets/delete-for-individual-move', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          toolSetIds: toolSets.map(ts => ts.id)
         })
+      })
 
-        if (auditError) {
-          console.error('監査ログ記録エラー:', auditError)
-          // 監査ログエラーは処理を止めない
-        }
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        console.error('セット削除APIエラー:', result)
+        setError('セットの削除中にエラーが発生しました')
+        setTimeout(() => setError(null), 3000)
+        return
       }
+
+      console.log('セット削除成功:', result.deletedSets)
 
       // 個別アイテムとして追加
       const newItem: ScannedItem = {
@@ -840,7 +794,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
                 </button>
 
                 <button
-                  onClick={() => handleAddIndividualItem(toolSetDialog.toolItem, toolSetDialog.toolSets)}
+                  onClick={() => handleConfirmIndividualSelection(toolSetDialog.toolItem, toolSetDialog.toolSets)}
                   className="w-full py-3 px-4 bg-yellow-50 text-yellow-900 border-2 border-yellow-300 rounded-lg font-medium hover:bg-yellow-100"
                 >
                   <div className="flex items-center justify-center gap-2 mb-1">
