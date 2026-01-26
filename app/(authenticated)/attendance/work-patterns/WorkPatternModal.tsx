@@ -74,7 +74,7 @@ export function WorkPatternModal({
       }
       setError(null)
     }
-  }, [pattern, isOpen])
+  }, [pattern?.id, pattern?.alert_hours_after, pattern?.checkout_alert_hours_after, isOpen])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

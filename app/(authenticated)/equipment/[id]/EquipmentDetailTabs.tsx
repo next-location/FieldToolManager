@@ -221,8 +221,7 @@ export default function EquipmentDetailTabs({
       })
 
       if (result.success) {
-        alert('返却しました')
-        router.refresh()
+        router.push('/movements?tab=equipment&success=' + encodeURIComponent('返却しました'))
       } else {
         alert(`返却に失敗しました: ${result.error}`)
       }

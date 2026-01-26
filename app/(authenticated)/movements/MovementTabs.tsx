@@ -62,6 +62,7 @@ interface EquipmentMovement {
   heavy_equipment: {
     equipment_code: string
     name: string
+    default_location: { name: string; type: string } | null
   } | null
   from_site: { name: string; type: string } | null
   to_site: { name: string; type: string } | null
@@ -262,7 +263,11 @@ export function MovementTabs({
                         <span className="text-gray-500 w-16">移動元:</span>
                         <span className="text-gray-900">
                           {movement.action_type === 'checkout'
-                            ? '会社'
+                            ? movement.heavy_equipment?.default_location
+                              ? formatLocationWithIcon(movement.heavy_equipment.default_location, '会社')
+                              : movement.from_site
+                              ? formatLocationWithIcon(movement.from_site, '会社')
+                              : '会社'
                             : !movement.from_site && movement.other_location_name
                             ? movement.other_location_name
                             : movement.from_site ? formatLocationWithIcon(movement.from_site, '会社') : '会社'}
@@ -273,7 +278,11 @@ export function MovementTabs({
                         <span className="text-gray-500 w-16">移動先:</span>
                         <span className="text-gray-900">
                           {movement.action_type === 'checkin'
-                            ? '会社'
+                            ? movement.heavy_equipment?.default_location
+                              ? formatLocationWithIcon(movement.heavy_equipment.default_location, '会社')
+                              : movement.to_site
+                              ? formatLocationWithIcon(movement.to_site, '会社')
+                              : '会社'
                             : !movement.to_site && movement.other_location_name
                             ? movement.other_location_name
                             : movement.to_site ? formatLocationWithIcon(movement.to_site, '会社') : '会社'}

@@ -133,7 +133,11 @@ export default async function MovementsPage({ searchParams }: MovementsPageProps
       .select(
         `
         *,
-        heavy_equipment!inner (equipment_code, name),
+        heavy_equipment!inner (
+          equipment_code,
+          name,
+          default_location:default_location_id (name, type)
+        ),
         from_site:from_location_id (name, type),
         to_site:to_location_id (name, type),
         users!inner (name),
