@@ -8,9 +8,10 @@ type TabType = 'tool' | 'consumable' | 'equipment'
 
 interface QRScanTabsProps {
   showTabs?: boolean
+  userRole: string
 }
 
-export function QRScanTabs({ showTabs = true }: QRScanTabsProps) {
+export function QRScanTabs({ showTabs = true, userRole }: QRScanTabsProps) {
   const [activeTab, setActiveTab] = useState<TabType>('tool')
   const [isMobile, setIsMobile] = useState(false)
   const [showMobileScanner, setShowMobileScanner] = useState(false)
@@ -93,6 +94,7 @@ export function QRScanTabs({ showTabs = true }: QRScanTabsProps) {
               {showMobileScanner && (
                 <QRScannerMobile
                   mode={activeTab}
+                  userRole={userRole}
                   onClose={() => setShowMobileScanner(false)}
                 />
               )}

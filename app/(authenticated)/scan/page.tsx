@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { QRScanTabs } from './QRScanTabs'
 
 export default async function ScanPage() {
-  const { organizationId, supabase } = await requireAuth()
+  const { organizationId, userRole, supabase } = await requireAuth()
 
   // 組織のパッケージ情報を取得
   const { data: features } = await supabase
@@ -31,7 +31,7 @@ export default async function ScanPage() {
           </p>
         </div>
 
-        <QRScanTabs />
+        <QRScanTabs userRole={userRole} />
       </div>
     </div>
   )

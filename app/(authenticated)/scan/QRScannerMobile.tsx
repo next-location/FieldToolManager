@@ -10,6 +10,7 @@ type ScanMode = 'tool' | 'consumable' | 'equipment'
 
 interface QRScannerMobileProps {
   mode: ScanMode
+  userRole: string
   onClose?: () => void
 }
 
@@ -30,7 +31,7 @@ interface ToolSetInfo {
   itemIds: string[]
 }
 
-export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
+export function QRScannerMobile({ mode, userRole, onClose }: QRScannerMobileProps) {
   const [isScanning, setIsScanning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -328,6 +329,19 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
         .eq('tool_item_id', toolItem.id)
 
       if (toolSetMemberships && toolSetMemberships.length > 0) {
+        // スタッフ権限の場合はセット登録道具をスキャンできない
+        const isStaff = userRole === 'staff'
+        if (isStaff) {
+          const setNames = toolSetMemberships.map((m: any) => m.tool_sets.name).join('、')
+          setError(
+            `道具セット「${setNames}」に登録されています。\n\n` +
+            `個別での移動は権限リーダー以上でしかできません。`
+          )
+          setTimeout(() => setError(null), 5000)
+          scannedQrCodesRef.current.delete(qrCode) // スキャン済みから削除
+          return
+        }
+
         // セットに登録されている場合、確認ダイアログを表示
         const toolSetIds = toolSetMemberships.map(m => m.tool_set_id)
 

@@ -136,11 +136,14 @@ export function BulkMovementForm({
     if (tool.inToolSet) {
       if (!canRemoveFromSet) {
         // 一般スタッフ：選択不可
-        setError(`この道具はセット「${tool.toolSetName}」に登録されています。個別移動はできません。`)
+        setError(
+          `この道具はセット「${tool.toolSetName}」に登録されています。\n\n` +
+          `スタッフ権限では移動できません（道具セットタブからのみ移動可能）`
+        )
         setTimeout(() => setError(null), 5000)
         return {
           success: false,
-          message: `この道具はセット「${tool.toolSetName}」に登録されています。個別移動はできません。`
+          message: `この道具はセット「${tool.toolSetName}」に登録されています。スタッフ権限では移動できません`
         }
       } else {
         // リーダー以上：確認ダイアログ
@@ -211,7 +214,11 @@ export function BulkMovementForm({
     if (tool.inToolSet) {
       if (!canRemoveFromSet) {
         // 一般スタッフ：選択不可
-        setError(`この道具はセット「${tool.toolSetName}」に登録されています。個別移動はできません。`)
+        setError(
+          `この道具はセット「${tool.toolSetName}」に登録されています。\n\n` +
+          `スタッフ権限では移動できません（道具セットタブからのみ移動可能）`
+        )
+        setTimeout(() => setError(null), 5000)
         return
       } else {
         // リーダー以上：確認ダイアログ
