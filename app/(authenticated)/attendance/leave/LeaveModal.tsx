@@ -65,7 +65,7 @@ export function LeaveModal({
       const response = await fetch('/api/staff')
       if (response.ok) {
         const data = await response.json()
-        setUsers(data.staff || [])
+        setUsers(data.data || [])
       }
     } catch (error) {
       console.error('Failed to fetch users:', error)
