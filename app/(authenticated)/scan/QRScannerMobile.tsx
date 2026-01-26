@@ -22,6 +22,13 @@ interface ScannedItem {
   siteId?: string
 }
 
+interface ToolSetInfo {
+  id: string
+  name: string
+  itemCount: number
+  itemIds: string[]
+}
+
 export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
   const [isScanning, setIsScanning] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -30,6 +37,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
   const [lastScannedItem, setLastScannedItem] = useState<ScannedItem | null>(null)
   const [scanSuccess, setScanSuccess] = useState(false)
   const [isListExpanded, setIsListExpanded] = useState(false)
+  const [toolSetDialog, setToolSetDialog] = useState<{ toolItem: any; toolSets: ToolSetInfo[] } | null>(null)
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const processingQrRef = useRef<boolean>(false) // QR処理中フラグ
   const lastScannedRef = useRef<string | null>(null) // 最後にスキャンしたQRコード
@@ -144,6 +152,218 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
     }
   }
 
+  // セット全体を追加
+  const handleAddEntireSet = async (toolSetInfo: ToolSetInfo) => {
+    try {
+      // セット内の全アイテムを取得
+      const { data: setItems } = await supabase
+        .from('tool_set_items')
+        .select(`
+          tool_item_id,
+          tool_items!inner (
+            id,
+            serial_number,
+            qr_code,
+            current_location,
+            current_site_id,
+            tool_id,
+            tools!inner (id, name)
+          )
+        `)
+        .eq('tool_set_id', toolSetInfo.id)
+
+      if (!setItems || setItems.length === 0) {
+        setError('セット内のアイテムが見つかりませんでした')
+        setTimeout(() => setError(null), 3000)
+        setToolSetDialog(null)
+        return
+      }
+
+      // 全アイテムを ScannedItem に変換
+      const newItems: ScannedItem[] = setItems.map((item: any) => ({
+        id: item.tool_items.id,
+        qrCode: item.tool_items.qr_code,
+        name: item.tool_items.tools.name,
+        serialNumber: item.tool_items.serial_number,
+        currentLocation: item.tool_items.current_location,
+        siteId: item.tool_items.current_site_id || undefined
+      }))
+
+      // 位置の整合性チェック
+      const firstLocation = newItems[0].currentLocation
+      const firstSiteId = newItems[0].siteId
+
+      const hasLocationMismatch = newItems.some(item => item.currentLocation !== firstLocation)
+      const hasSiteMismatch = firstLocation === 'site' && newItems.some(item => item.siteId !== firstSiteId)
+
+      if (hasLocationMismatch || hasSiteMismatch) {
+        setError(
+          `セット内の道具が異なる場所にあるため、セット全体を移動できません。\n\n` +
+          `個別移動を選択するとセットが削除されます。`
+        )
+        setTimeout(() => setError(null), 5000)
+        return
+      }
+
+      // スキャン済みアイテムとの位置チェック
+      if (scannedItems.length > 0) {
+        const existingLocation = scannedItems[0].currentLocation
+        const existingSiteId = scannedItems[0].siteId
+
+        if (firstLocation !== existingLocation) {
+          setError(
+            `既にスキャン済みの道具と場所が異なるため、このセットを追加できません。`
+          )
+          setTimeout(() => setError(null), 5000)
+          return
+        }
+
+        if (firstLocation === 'site' && firstSiteId !== existingSiteId) {
+          setError(
+            `既にスキャン済みの道具と現場が異なるため、このセットを追加できません。`
+          )
+          setTimeout(() => setError(null), 5000)
+          return
+        }
+      }
+
+      // 全アイテムを追加
+      setScannedItems(prev => [...prev, ...newItems])
+
+      // QRコードをスキャン済みSetに追加
+      newItems.forEach(item => scannedQrCodesRef.current.add(item.qrCode))
+
+      setToolSetDialog(null)
+      setScanSuccess(true)
+      setTimeout(() => setScanSuccess(false), 500)
+    } catch (error) {
+      console.error('セット追加エラー:', error)
+      setError('セットの追加中にエラーが発生しました')
+      setTimeout(() => setError(null), 3000)
+    }
+  }
+
+  // 個別アイテムを追加（セットを削除）
+  const handleAddIndividualItem = async (toolItem: any, toolSets: ToolSetInfo[]) => {
+    try {
+      // ユーザー情報を取得
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setError('ユーザー情報が取得できませんでした')
+        setTimeout(() => setError(null), 3000)
+        return
+      }
+
+      const { data: userData } = await supabase
+        .from('users')
+        .select('organization_id')
+        .eq('id', user.id)
+        .single()
+
+      if (!userData) {
+        setError('組織情報が取得できませんでした')
+        setTimeout(() => setError(null), 3000)
+        return
+      }
+
+      // 各セットを削除
+      for (const toolSet of toolSets) {
+        // セットの詳細情報を取得（監査ログ用）
+        const { data: setItems } = await supabase
+          .from('tool_set_items')
+          .select(`
+            tool_item_id,
+            tool_items!inner (
+              id,
+              serial_number,
+              tools!inner (name)
+            )
+          `)
+          .eq('tool_set_id', toolSet.id)
+
+        const setItemsInfo = (setItems || []).map((item: any) => ({
+          tool_item_id: item.tool_item_id,
+          serial_number: item.tool_items.serial_number,
+          tool_name: item.tool_items.tools.name
+        }))
+
+        // セットを削除（soft delete）
+        const { error: deleteError } = await supabase
+          .from('tool_sets')
+          .update({ deleted_at: new Date().toISOString() })
+          .eq('id', toolSet.id)
+
+        if (deleteError) {
+          console.error('セット削除エラー:', deleteError)
+          setError('セットの削除中にエラーが発生しました')
+          setTimeout(() => setError(null), 3000)
+          return
+        }
+
+        // 監査ログを記録（クライアントから直接Supabaseに記録）
+        const { error: auditError } = await supabase.from('audit_logs').insert({
+          organization_id: userData.organization_id,
+          user_id: user.id,
+          action: 'delete',
+          entity_type: 'tool_sets',
+          entity_id: toolSet.id,
+          old_values: {
+            set_name: toolSet.name,
+            item_count: toolSet.itemCount,
+            items: setItemsInfo,
+            reason: '個別移動のためセット削除',
+            deleted_by: user.id
+          }
+        })
+
+        if (auditError) {
+          console.error('監査ログ記録エラー:', auditError)
+          // 監査ログエラーは処理を止めない
+        }
+      }
+
+      // 個別アイテムとして追加
+      const newItem: ScannedItem = {
+        id: toolItem.id,
+        qrCode: toolItem.qr_code || '',
+        name: (toolItem as any).tools?.name || '不明な道具',
+        serialNumber: toolItem.serial_number,
+        currentLocation: toolItem.current_location,
+        siteId: toolItem.current_site_id || undefined
+      }
+
+      // 位置チェック
+      let canAdd = true
+      if (scannedItems.length > 0) {
+        const firstItem = scannedItems[0]
+        if (newItem.currentLocation !== firstItem.currentLocation) {
+          setError(
+            `現在地が異なる道具は同時に選択できません。`
+          )
+          setTimeout(() => setError(null), 5000)
+          canAdd = false
+        } else if (newItem.currentLocation === 'site' && newItem.siteId !== firstItem.siteId) {
+          setError(
+            `異なる現場の道具は同時に選択できません。`
+          )
+          setTimeout(() => setError(null), 5000)
+          canAdd = false
+        }
+      }
+
+      if (canAdd) {
+        setScannedItems(prev => [...prev, newItem])
+        setToolSetDialog(null)
+        setScanSuccess(true)
+        setTimeout(() => setScanSuccess(false), 500)
+      }
+    } catch (error) {
+      console.error('個別追加エラー:', error)
+      setError('個別追加中にエラーが発生しました')
+      setTimeout(() => setError(null), 3000)
+    }
+  }
+
   const addScannedItem = async (qrCode: string) => {
     if (mode === 'tool') {
       // 道具のQRコードを検索（位置情報も取得）
@@ -158,6 +378,47 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
         console.error('道具アイテムが見つかりません:', itemError)
         setError('QRコードに対応する道具が見つかりませんでした')
         setTimeout(() => setError(null), 3000)
+        return
+      }
+
+      // 道具セットに登録されているかチェック
+      const { data: toolSetMemberships } = await supabase
+        .from('tool_set_items')
+        .select(`
+          tool_set_id,
+          tool_sets!inner (
+            id,
+            name
+          )
+        `)
+        .eq('tool_item_id', toolItem.id)
+
+      if (toolSetMemberships && toolSetMemberships.length > 0) {
+        // セットに登録されている場合、確認ダイアログを表示
+        const toolSetIds = toolSetMemberships.map(m => m.tool_set_id)
+
+        // 各セットのアイテム数を取得
+        const toolSetInfoPromises = toolSetMemberships.map(async (membership: any) => {
+          const { data: setItems } = await supabase
+            .from('tool_set_items')
+            .select('tool_item_id')
+            .eq('tool_set_id', membership.tool_set_id)
+
+          return {
+            id: membership.tool_sets.id,
+            name: membership.tool_sets.name,
+            itemCount: setItems?.length || 0,
+            itemIds: setItems?.map(item => item.tool_item_id) || []
+          }
+        })
+
+        const toolSetInfos = await Promise.all(toolSetInfoPromises)
+
+        // ダイアログを表示
+        setToolSetDialog({
+          toolItem,
+          toolSets: toolSetInfos
+        })
         return
       }
 
@@ -542,6 +803,65 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
               >
                 完了して移動先を選ぶ ({scannedItems.length}個)
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 道具セット確認ダイアログ */}
+      {toolSetDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[80vh] overflow-y-auto">
+            <div className="p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">
+                道具セット登録済み
+              </h3>
+
+              <p className="text-sm text-gray-600 mb-4">
+                この道具は以下のセットに登録されています
+              </p>
+
+              {toolSetDialog.toolSets.map((toolSet) => (
+                <div key={toolSet.id} className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                  <div className="font-medium text-blue-900">{toolSet.name}</div>
+                  <div className="text-xs text-blue-700 mt-1">
+                    {toolSet.itemCount}個のアイテム
+                  </div>
+                </div>
+              ))}
+
+              <div className="space-y-3 mt-6">
+                <button
+                  onClick={() => handleAddEntireSet(toolSetDialog.toolSets[0])}
+                  className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 flex items-center justify-center gap-2"
+                >
+                  <span className="text-xl">📦</span>
+                  <span>セット全体を選択</span>
+                </button>
+
+                <button
+                  onClick={() => handleAddIndividualItem(toolSetDialog.toolItem, toolSetDialog.toolSets)}
+                  className="w-full py-3 px-4 bg-yellow-50 text-yellow-900 border-2 border-yellow-300 rounded-lg font-medium hover:bg-yellow-100"
+                >
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <span className="text-xl">⚠️</span>
+                    <span>この道具のみ選択</span>
+                  </div>
+                  <div className="text-xs text-yellow-700">
+                    ※セット「{toolSetDialog.toolSets[0].name}」が削除されます
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setToolSetDialog(null)
+                    scannedQrCodesRef.current.delete(toolSetDialog.toolItem.qr_code)
+                  }}
+                  className="w-full py-2 px-4 text-gray-600 hover:text-gray-800"
+                >
+                  キャンセル
+                </button>
+              </div>
             </div>
           </div>
         </div>

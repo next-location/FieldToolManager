@@ -1147,3 +1147,62 @@ export async function logAttendanceRecordDeleted(
     organizationId
   )
 }
+
+/**
+ * 道具セットの監査ログ
+ */
+export async function logToolSetCreated(
+  toolSetId: string,
+  toolSetData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'create',
+      entity_type: 'tool_sets',
+      entity_id: toolSetId,
+      new_values: toolSetData,
+    },
+    userId,
+    organizationId
+  )
+}
+
+export async function logToolSetUpdated(
+  toolSetId: string,
+  oldData: Record<string, any>,
+  newData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'update',
+      entity_type: 'tool_sets',
+      entity_id: toolSetId,
+      old_values: oldData,
+      new_values: newData,
+    },
+    userId,
+    organizationId
+  )
+}
+
+export async function logToolSetDeleted(
+  toolSetId: string,
+  toolSetData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'delete',
+      entity_type: 'tool_sets',
+      entity_id: toolSetId,
+      old_values: toolSetData,
+    },
+    userId,
+    organizationId
+  )
+}
