@@ -112,6 +112,7 @@ export async function PATCH(
 
     // リクエストボディ取得
     const body = await request.json()
+    console.log('[API /work-patterns/:id PATCH] Received body:', body)
     const { name, expected_checkin_time, expected_checkout_time, is_night_shift, is_default, alert_enabled, alert_hours_after, checkout_alert_enabled, checkout_alert_hours_after } = body
 
     // デフォルトパターンの場合、既存のデフォルトを解除
@@ -138,6 +139,8 @@ export async function PATCH(
     if (checkout_alert_enabled !== undefined) updateData.checkout_alert_enabled = checkout_alert_enabled
     if (checkout_alert_hours_after !== undefined) updateData.checkout_alert_hours_after = checkout_alert_hours_after
 
+    console.log('[API /work-patterns/:id PATCH] Update data:', updateData)
+
     // 更新実行
     const { data: updatedPattern, error: updateError } = await supabase
       .from('work_patterns')
@@ -148,13 +151,14 @@ export async function PATCH(
       .single()
 
     if (updateError) {
-      console.error('Work pattern update error:', updateError)
+      console.error('[API /work-patterns/:id PATCH] Update error:', updateError)
       if (updateError.code === '23505') {
         return NextResponse.json({ error: '同じ名前の勤務パターンが既に存在します' }, { status: 400 })
       }
       return NextResponse.json({ error: '勤務パターンの更新に失敗しました' }, { status: 500 })
     }
 
+    console.log('[API /work-patterns/:id PATCH] Updated pattern:', updatedPattern)
     return NextResponse.json({ success: true, pattern: updatedPattern })
   } catch (error) {
     console.error('Unexpected error:', error)
