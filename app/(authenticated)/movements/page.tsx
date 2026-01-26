@@ -23,6 +23,16 @@ export default async function MovementsPage({ searchParams }: MovementsPageProps
       ),
       from_site:sites!tool_movements_from_site_id_fkey (name, type),
       to_site:sites!tool_movements_to_site_id_fkey (name, type),
+      from_warehouse_location:warehouse_locations!tool_movements_from_warehouse_location_id_fkey (
+        id,
+        code,
+        display_name
+      ),
+      to_warehouse_location:warehouse_locations!tool_movements_to_warehouse_location_id_fkey (
+        id,
+        code,
+        display_name
+      ),
       users!tool_movements_performed_by_fkey (name)
     `
     )
@@ -64,6 +74,8 @@ export default async function MovementsPage({ searchParams }: MovementsPageProps
       tool_id,
       from_location_id,
       to_location_id,
+      from_warehouse_location_id,
+      to_warehouse_location_id,
       tools!consumable_movements_tool_id_fkey (
         name,
         model_number
@@ -76,12 +88,12 @@ export default async function MovementsPage({ searchParams }: MovementsPageProps
         name,
         type
       ),
-      from_warehouse_location:warehouse_locations!consumable_movements_from_location_id_fkey (
+      from_warehouse_location:warehouse_locations!consumable_movements_from_warehouse_location_id_fkey (
         id,
         code,
         display_name
       ),
-      to_warehouse_location:warehouse_locations!consumable_movements_to_location_id_fkey (
+      to_warehouse_location:warehouse_locations!consumable_movements_to_warehouse_location_id_fkey (
         id,
         code,
         display_name
@@ -122,8 +134,8 @@ export default async function MovementsPage({ searchParams }: MovementsPageProps
         `
         *,
         heavy_equipment!inner (equipment_code, name),
-        from_site:from_location_id (name),
-        to_site:to_location_id (name),
+        from_site:from_location_id (name, type),
+        to_site:to_location_id (name, type),
         users!inner (name),
         other_location_name
       `

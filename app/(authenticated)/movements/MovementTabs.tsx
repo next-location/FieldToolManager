@@ -27,6 +27,8 @@ interface ToolMovement {
   } | null
   from_site: { name: string; type: string } | null
   to_site: { name: string; type: string } | null
+  from_warehouse_location: { id: string; code: string; display_name: string } | null
+  to_warehouse_location: { id: string; code: string; display_name: string } | null
   users: { name: string } | null
 }
 
@@ -377,18 +379,30 @@ export function MovementTabs({
                         <div className="flex items-center">
                           <span className="text-gray-500 w-16">移動元:</span>
                           <span className="text-gray-900">
-                            {(group.from_location || firstMovement.from_location) === 'warehouse' ? '会社' :
-                             (group.from_location || firstMovement.from_location) === 'site' ? formatLocationWithIcon((group.from_site || firstMovement.from_site), '現場') :
-                             (group.from_location || firstMovement.from_location) === 'repair' ? '修理中' : (group.from_location || firstMovement.from_location)}
+                            {(group.from_location || firstMovement.from_location) === 'warehouse'
+                              ? (group.from_warehouse_location || firstMovement.from_warehouse_location)
+                                ? `倉庫（${(group.from_warehouse_location || firstMovement.from_warehouse_location).display_name}）`
+                                : '倉庫'
+                              : (group.from_location || firstMovement.from_location) === 'site'
+                              ? formatLocationWithIcon((group.from_site || firstMovement.from_site), '現場')
+                              : (group.from_location || firstMovement.from_location) === 'repair'
+                              ? '修理中'
+                              : (group.from_location || firstMovement.from_location)}
                           </span>
                         </div>
 
                         <div className="flex items-center">
                           <span className="text-gray-500 w-16">移動先:</span>
                           <span className="text-gray-900">
-                            {(group.to_location || firstMovement.to_location) === 'site' ? formatLocationWithIcon((group.to_site || firstMovement.to_site), '現場') :
-                             (group.to_location || firstMovement.to_location) === 'warehouse' ? '会社' :
-                             (group.to_location || firstMovement.to_location) === 'repair' ? '修理中' : '-'}
+                            {(group.to_location || firstMovement.to_location) === 'site'
+                              ? formatLocationWithIcon((group.to_site || firstMovement.to_site), '現場')
+                              : (group.to_location || firstMovement.to_location) === 'warehouse'
+                              ? (group.to_warehouse_location || firstMovement.to_warehouse_location)
+                                ? `倉庫（${(group.to_warehouse_location || firstMovement.to_warehouse_location).display_name}）`
+                                : '倉庫'
+                              : (group.to_location || firstMovement.to_location) === 'repair'
+                              ? '修理中'
+                              : '-'}
                           </span>
                         </div>
 
