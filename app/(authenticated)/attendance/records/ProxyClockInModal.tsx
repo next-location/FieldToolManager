@@ -126,7 +126,7 @@ export function ProxyClockInModal({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="flex min-h-screen items-start justify-center pt-20 p-4">
         {/* Backdrop */}
         <div
           className="fixed inset-0 bg-black bg-opacity-50"
@@ -134,7 +134,7 @@ export function ProxyClockInModal({
         ></div>
 
         {/* Modal */}
-        <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
+        <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 my-8">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">
               代理打刻（新規作成）
