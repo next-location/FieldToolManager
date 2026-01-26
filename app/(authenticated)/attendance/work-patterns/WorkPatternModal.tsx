@@ -82,6 +82,8 @@ export function WorkPatternModal({
     setError(null)
 
     try {
+      console.log('[WorkPatternModal] Current formData before submit:', formData)
+
       const payload = {
         ...formData,
         alert_hours_after: parseFloat(formData.alert_hours_after),
@@ -225,9 +227,10 @@ export function WorkPatternModal({
                 </label>
                 <select
                   value={formData.alert_hours_after}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    console.log('[WorkPatternModal] alert_hours_after changed:', e.target.value)
                     setFormData({ ...formData, alert_hours_after: e.target.value })
-                  }
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="0.5">0.5時間（30分）</option>
@@ -264,9 +267,10 @@ export function WorkPatternModal({
                 </label>
                 <select
                   value={formData.checkout_alert_hours_after}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    console.log('[WorkPatternModal] checkout_alert_hours_after changed:', e.target.value)
                     setFormData({ ...formData, checkout_alert_hours_after: e.target.value })
-                  }
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="0.5">0.5時間（30分）</option>
