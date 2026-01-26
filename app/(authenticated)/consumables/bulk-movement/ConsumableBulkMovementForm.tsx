@@ -61,14 +61,15 @@ export function ConsumableBulkMovementForm({
   // 移動元の状態
   const [sourceLocationType, setSourceLocationType] = useState<LocationType | ''>('')
   const [sourceSiteId, setSourceSiteId] = useState<string>('')
+  const [sourceWarehouseLocationId, setSourceWarehouseLocationId] = useState<string>('')
 
   // 移動先の状態
   const [destinationType, setDestinationType] = useState<LocationType>('warehouse')
   const [destinationSiteId, setDestinationSiteId] = useState<string>('')
   const [destinationWarehouseLocationId, setDestinationWarehouseLocationId] = useState<string>('')
 
-  // 選択された消耗品の状態（消耗品ID → {quantity, warehouseLocationId}）
-  const [selectedConsumables, setSelectedConsumables] = useState<Map<string, { quantity: number; warehouseLocationId?: string }>>(new Map())
+  // 選択された消耗品の状態（消耗品ID → quantity）
+  const [selectedConsumables, setSelectedConsumables] = useState<Map<string, number>>(new Map())
   const [searchQuery, setSearchQuery] = useState('')
   const [notes, setNotes] = useState('')
 
@@ -89,8 +90,8 @@ export function ConsumableBulkMovementForm({
       if (sourceLocationType === 'site') {
         return inv.site_id === sourceSiteId
       } else {
-        // warehouse - 倉庫内のすべての位置
-        return true
+        // warehouse - 指定された倉庫位置のみ
+        return inv.warehouse_location_id === sourceWarehouseLocationId
       }
     })
 
@@ -111,32 +112,22 @@ export function ConsumableBulkMovementForm({
   const availableConsumables = getConsumablesAtSourceLocation()
 
   // 消耗品のチェック状態を切り替え
-  const handleToggleConsumable = (consumableId: string, warehouseLocationId?: string) => {
+  const handleToggleConsumable = (consumableId: string) => {
     const newMap = new Map(selectedConsumables)
 
     if (newMap.has(consumableId)) {
       newMap.delete(consumableId)
     } else {
-      newMap.set(consumableId, { quantity: 0, warehouseLocationId })
+      newMap.set(consumableId, 0)
     }
 
     setSelectedConsumables(newMap)
   }
 
   // 数量を更新
-  const handleUpdateQuantity = (consumableId: string, quantity: number, warehouseLocationId?: string) => {
+  const handleUpdateQuantity = (consumableId: string, quantity: number) => {
     const newMap = new Map(selectedConsumables)
-    newMap.set(consumableId, { quantity, warehouseLocationId })
-    setSelectedConsumables(newMap)
-  }
-
-  // 倉庫位置を更新
-  const handleUpdateWarehouseLocation = (consumableId: string, warehouseLocationId: string) => {
-    const newMap = new Map(selectedConsumables)
-    const current = newMap.get(consumableId)
-    if (current) {
-      newMap.set(consumableId, { ...current, warehouseLocationId })
-    }
+    newMap.set(consumableId, quantity)
     setSelectedConsumables(newMap)
   }
 
@@ -162,6 +153,11 @@ export function ConsumableBulkMovementForm({
       return
     }
 
+    if (sourceLocationType === 'warehouse' && !sourceWarehouseLocationId) {
+      setError('移動元の倉庫位置を選択してください')
+      return
+    }
+
     if (selectedConsumables.size === 0) {
       setError('移動する消耗品を少なくとも1つ選択してください')
       return
@@ -169,8 +165,8 @@ export function ConsumableBulkMovementForm({
 
     // 数量が0の消耗品がないかチェック
     const invalidItems: string[] = []
-    selectedConsumables.forEach((data, consumableId) => {
-      if (data.quantity === 0) {
+    selectedConsumables.forEach((quantity, consumableId) => {
+      if (quantity === 0) {
         invalidItems.push(consumableId)
       }
     })
@@ -225,13 +221,13 @@ export function ConsumableBulkMovementForm({
 
       // 各消耗品を移動
       let processedCount = 0
-      for (const [consumableId, { quantity, warehouseLocationId }] of selectedConsumables.entries()) {
+      for (const [consumableId, quantity] of selectedConsumables.entries()) {
         processedCount++
         setProgress({ current: processedCount, total: selectedConsumables.size })
 
         const fromLocationType = sourceLocationType as LocationType
         const fromSiteId = sourceLocationType === 'site' ? sourceSiteId : null
-        const fromWarehouseLocationId = sourceLocationType === 'warehouse' ? (warehouseLocationId || null) : null
+        const fromWarehouseLocationId = sourceLocationType === 'warehouse' ? sourceWarehouseLocationId : null
 
         // 移動元の在庫を取得（選択された場所のみ）
         let sourceInventoryQuery = supabase
@@ -467,6 +463,32 @@ export function ConsumableBulkMovementForm({
           </button>
         </div>
 
+        {/* 倉庫位置選択 */}
+        {sourceLocationType === 'warehouse' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              倉庫位置 <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={sourceWarehouseLocationId}
+              onChange={(e) => {
+                setSourceWarehouseLocationId(e.target.value)
+                setSelectedConsumables(new Map())
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={isSubmitting}
+              required
+            >
+              <option value="">倉庫位置を選択してください</option>
+              {warehouseLocations.map((loc) => (
+                <option key={loc.id} value={loc.id}>
+                  {loc.code} - {loc.display_name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {/* 現場選択 */}
         {sourceLocationType === 'site' && (
           <div>
@@ -495,7 +517,7 @@ export function ConsumableBulkMovementForm({
       </div>
 
       {/* 2. 消耗品を選択 */}
-      {sourceLocationType && (sourceLocationType === 'warehouse' || sourceSiteId) && (
+      {sourceLocationType && ((sourceLocationType === 'warehouse' && sourceWarehouseLocationId) || (sourceLocationType === 'site' && sourceSiteId)) && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-base font-semibold text-gray-900">2. 移動する消耗品を選択</h3>
@@ -530,7 +552,7 @@ export function ConsumableBulkMovementForm({
             <div className="border-2 border-gray-300 rounded-lg divide-y divide-gray-200">
               {(isSearchFocused || searchQuery ? filteredConsumables : availableConsumables).map(({ consumable, inventories, totalQuantity }) => {
                 const isSelected = selectedConsumables.has(consumable.id)
-                const selectedData = selectedConsumables.get(consumable.id)
+                const selectedQuantity = selectedConsumables.get(consumable.id)
 
                 return (
                   <div key={consumable.id} className="p-4">
@@ -538,7 +560,7 @@ export function ConsumableBulkMovementForm({
                       <input
                         type="checkbox"
                         checked={isSelected}
-                        onChange={() => handleToggleConsumable(consumable.id, inventories[0]?.warehouse_location_id || undefined)}
+                        onChange={() => handleToggleConsumable(consumable.id)}
                         className="mt-1"
                         disabled={isSubmitting}
                       />
@@ -552,46 +574,11 @@ export function ConsumableBulkMovementForm({
                           </div>
                         )}
                         <div className="text-xs text-gray-500 mt-1">
-                          {inventories.map(inv => {
-                            if (inv.location_type === 'warehouse') {
-                              return inv.warehouse_location
-                                ? `${inv.warehouse_location.display_name}: ${inv.quantity}${consumable.unit}`
-                                : `倉庫: ${inv.quantity}${consumable.unit}`
-                            } else {
-                              return inv.site
-                                ? `${inv.site.name}: ${inv.quantity}${consumable.unit}`
-                                : `現場: ${inv.quantity}${consumable.unit}`
-                            }
-                          }).join(', ')}
+                          在庫: {totalQuantity}{consumable.unit}
                         </div>
 
                         {isSelected && (
-                          <div className="mt-3 space-y-2">
-                            {/* 倉庫の場合は位置を選択 */}
-                            {sourceLocationType === 'warehouse' && inventories.length > 1 && (
-                              <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">
-                                  移動元の倉庫位置
-                                </label>
-                                <select
-                                  value={selectedData?.warehouseLocationId || ''}
-                                  onChange={(e) => handleUpdateWarehouseLocation(consumable.id, e.target.value)}
-                                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                                  disabled={isSubmitting}
-                                  required
-                                >
-                                  <option value="">選択してください</option>
-                                  {inventories.map(inv => (
-                                    inv.warehouse_location && (
-                                      <option key={inv.warehouse_location.id} value={inv.warehouse_location.id}>
-                                        {inv.warehouse_location.display_name} (在庫: {inv.quantity}{consumable.unit})
-                                      </option>
-                                    )
-                                  ))}
-                                </select>
-                              </div>
-                            )}
-
+                          <div className="mt-3">
                             {/* 数量入力 */}
                             <div className="flex items-center gap-2">
                               <label className="text-xs font-medium text-gray-700">
@@ -601,17 +588,17 @@ export function ConsumableBulkMovementForm({
                                 type="number"
                                 min="1"
                                 max={totalQuantity}
-                                value={selectedData?.quantity === 0 ? '' : selectedData?.quantity}
+                                value={selectedQuantity === 0 ? '' : selectedQuantity}
                                 placeholder="個数"
                                 onChange={(e) => {
                                   const value = e.target.value
                                   if (value === '') {
-                                    handleUpdateQuantity(consumable.id, 0, selectedData?.warehouseLocationId)
+                                    handleUpdateQuantity(consumable.id, 0)
                                     return
                                   }
                                   const numValue = parseInt(value)
                                   if (!isNaN(numValue) && numValue >= 0) {
-                                    handleUpdateQuantity(consumable.id, numValue, selectedData?.warehouseLocationId)
+                                    handleUpdateQuantity(consumable.id, numValue)
                                   }
                                 }}
                                 className="w-20 px-2 py-1 border rounded text-center text-sm border-gray-300"
