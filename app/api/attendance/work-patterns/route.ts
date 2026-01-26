@@ -139,6 +139,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '勤務パターンの作成に失敗しました' }, { status: 500 })
     }
 
+    // デフォルトパターンとして設定された場合、勤務パターン未設定のスタッフ全員に自動割り当て
+    if (is_default && newPattern) {
+      const { data: unassignedUsers, error: usersError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('organization_id', userData.organization_id)
+        .is('work_pattern_id', null)
+        .is('deleted_at', null)
+
+      if (!usersError && unassignedUsers && unassignedUsers.length > 0) {
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ work_pattern_id: newPattern.id })
+          .eq('organization_id', userData.organization_id)
+          .is('work_pattern_id', null)
+          .is('deleted_at', null)
+
+        if (updateError) {
+          console.error('Failed to auto-assign default pattern to users:', updateError)
+        } else {
+          console.log(`[勤務パターン] デフォルトパターン「${newPattern.name}」を${unassignedUsers.length}人のスタッフに自動割り当て`)
+        }
+      }
+    }
+
     return NextResponse.json({ success: true, pattern: newPattern })
   } catch (error) {
     console.error('Unexpected error:', error)

@@ -198,6 +198,31 @@ export async function PATCH(
       checkout_alert_hours_after: verifyPattern?.checkout_alert_hours_after,
     })
 
+    // デフォルトパターンに変更された場合、勤務パターン未設定のスタッフ全員に自動割り当て
+    if (is_default && !existingPattern.is_default && updatedPattern) {
+      const { data: unassignedUsers, error: usersError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('organization_id', userData.organization_id)
+        .is('work_pattern_id', null)
+        .is('deleted_at', null)
+
+      if (!usersError && unassignedUsers && unassignedUsers.length > 0) {
+        const { error: updateUsersError } = await supabase
+          .from('users')
+          .update({ work_pattern_id: updatedPattern.id })
+          .eq('organization_id', userData.organization_id)
+          .is('work_pattern_id', null)
+          .is('deleted_at', null)
+
+        if (updateUsersError) {
+          console.error('Failed to auto-assign default pattern to users:', updateUsersError)
+        } else {
+          console.log(`[勤務パターン] デフォルトパターン「${updatedPattern.name}」を${unassignedUsers.length}人のスタッフに自動割り当て`)
+        }
+      }
+    }
+
     return NextResponse.json({ success: true, pattern: updatedPattern })
   } catch (error) {
     console.error('Unexpected error:', error)
