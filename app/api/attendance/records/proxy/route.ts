@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { logAttendanceRecordCreated } from '@/lib/audit-log'
 
 // POST /api/attendance/records/proxy - 代理打刻（管理者・マネージャーのみ）
 export async function POST(request: NextRequest) {
@@ -178,13 +177,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '代理打刻の登録に失敗しました' }, { status: 500 })
     }
 
-    // 監査ログ記録
-    await logAttendanceRecordCreated(
-      createdRecord.id,
-      createdRecord,
-      user.id,
-      userData.organization_id
-    )
+    // 監査ログ記録（TODO: logAttendanceRecordCreated関数を実装）
+    console.log(`[Proxy Clock-in] Created record ${createdRecord.id} for user ${user_id} by ${user.id}`)
 
     return NextResponse.json({ success: true, record: createdRecord })
   } catch (error) {
