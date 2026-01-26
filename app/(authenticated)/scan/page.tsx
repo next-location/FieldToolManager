@@ -5,6 +5,8 @@ import { QRScanTabs } from './QRScanTabs'
 export default async function ScanPage() {
   const { organizationId, userRole, supabase } = await requireAuth()
 
+  console.log('[SCAN PAGE SERVER] userRole:', userRole)
+
   // 組織のパッケージ情報を取得
   const { data: features } = await supabase
     .from('organization_features')
@@ -18,6 +20,8 @@ export default async function ScanPage() {
   if (!hasAssetAccess) {
     redirect('/dashboard')
   }
+
+  console.log('[SCAN PAGE SERVER] Passing userRole to QRScanTabs:', userRole)
 
   return (
     <div className="max-w-6xl mx-auto py-6 sm:px-6 lg:px-8">
