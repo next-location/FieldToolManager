@@ -46,14 +46,18 @@ export function WorkPatternModal({
   useEffect(() => {
     if (isOpen && pattern) {
       console.log('[WorkPatternModal] Initializing form with pattern:', pattern)
+      // 数値を.0付きの文字列に変換（3 -> "3.0"）
+      const formatHours = (value: number) => {
+        return value % 1 === 0 ? `${value}.0` : String(value)
+      }
       setFormData({
         name: pattern.name,
         expected_checkin_time: pattern.expected_checkin_time.slice(0, 5),
         expected_checkout_time: pattern.expected_checkout_time ? pattern.expected_checkout_time.slice(0, 5) : '18:00',
         alert_enabled: pattern.alert_enabled,
-        alert_hours_after: String(pattern.alert_hours_after),
+        alert_hours_after: formatHours(pattern.alert_hours_after),
         checkout_alert_enabled: pattern.checkout_alert_enabled,
-        checkout_alert_hours_after: String(pattern.checkout_alert_hours_after),
+        checkout_alert_hours_after: formatHours(pattern.checkout_alert_hours_after),
         is_night_shift: pattern.is_night_shift,
         is_default: pattern.is_default,
       })
