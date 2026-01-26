@@ -2,7 +2,14 @@ import { redirect } from 'next/navigation'
 import { requireAuth, getOrganizationPackages } from '@/lib/auth/page-auth'
 import EquipmentMovementForm from './EquipmentMovementForm'
 
-export default async function EquipmentMovementPage() {
+interface EquipmentMovementPageProps {
+  searchParams: Promise<{ items?: string }>
+}
+
+export default async function EquipmentMovementPage({ searchParams }: EquipmentMovementPageProps) {
+  const params = await searchParams
+  const scannedItemIds = params.items ? params.items.split(',') : []
+
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
   // パッケージチェック（現場資産パック または フル機能統合パックが必要）
@@ -79,6 +86,7 @@ export default async function EquipmentMovementPage() {
             currentUserId={userId}
             currentUserName={userData?.name || ''}
             organizationSettings={orgData?.heavy_equipment_settings}
+            scannedItemIds={scannedItemIds}
           />
         </div>
       </div>

@@ -35,6 +35,7 @@ interface EquipmentMovementFormProps {
   currentUserId: string
   currentUserName: string
   organizationSettings: any
+  scannedItemIds: string[]
 }
 
 export default function EquipmentMovementForm({
@@ -43,6 +44,7 @@ export default function EquipmentMovementForm({
   currentUserId,
   currentUserName,
   organizationSettings,
+  scannedItemIds,
 }: EquipmentMovementFormProps) {
   const router = useRouter()
   const supabase = createClient()
@@ -67,6 +69,21 @@ export default function EquipmentMovementForm({
 
   // 選択された重機の情報
   const selectedEquipment = equipment.find(e => e.id === formData.equipment_id)
+
+  // スキャンされた重機IDで初期化
+  useEffect(() => {
+    if (scannedItemIds.length > 0) {
+      const firstScannedId = scannedItemIds[0]
+      const scannedEquipment = equipment.find(e => e.id === firstScannedId)
+      if (scannedEquipment) {
+        setFormData(prev => ({
+          ...prev,
+          equipment_id: firstScannedId
+        }))
+        setEquipmentSearch(`${scannedEquipment.name} (${scannedEquipment.equipment_code})`)
+      }
+    }
+  }, [scannedItemIds, equipment])
 
   // ドロップダウン外側クリック検知
   useEffect(() => {

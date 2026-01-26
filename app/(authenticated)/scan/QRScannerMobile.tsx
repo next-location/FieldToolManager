@@ -532,7 +532,7 @@ export function QRScannerMobile({ mode, userRole, onClose }: QRScannerMobileProp
     } else if (mode === 'equipment') {
       // 重機移動ページへリダイレクト
       const equipmentIds = scannedItems.map(item => item.id).join(',')
-      router.push(`/equipment/bulk-movement?items=${equipmentIds}`)
+      router.push(`/equipment/movement?items=${equipmentIds}`)
     }
   }
 
