@@ -499,11 +499,15 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
       // sessionStorageに保存
       if (uniqueToolSetsToDelete.length > 0) {
+        console.log('[QR SCAN] セット削除対象をsessionStorageに保存:', uniqueToolSetsToDelete)
         sessionStorage.setItem('toolSetsToDelete', JSON.stringify(uniqueToolSetsToDelete))
+      } else {
+        console.log('[QR SCAN] 削除対象のセットなし')
       }
 
       // 道具移動ページへリダイレクト
       const itemIds = scannedItems.map(item => item.id).join(',')
+      console.log('[QR SCAN] 道具移動ページへリダイレクト:', itemIds)
       router.push(`/movements/bulk?items=${itemIds}`)
     } else if (mode === 'consumable') {
       // 消耗品移動ページへリダイレクト

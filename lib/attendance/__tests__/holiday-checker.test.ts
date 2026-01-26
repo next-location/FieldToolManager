@@ -4,10 +4,43 @@
 
 import { isHoliday, isWorkingDay, clearHolidayCache } from '../holiday-checker'
 
+// fetchをモック
+global.fetch = jest.fn()
+
+// モックCSVデータ（内閣府の祝日CSV形式）
+const mockHolidayCSV = `国民の祝日・休日月日,国民の祝日・休日名称
+2026/1/1,元日
+2026/1/12,成人の日
+2026/2/11,建国記念の日
+2026/2/23,天皇誕生日
+2026/3/20,春分の日
+2026/4/29,昭和の日
+2026/5/3,憲法記念日
+2026/5/4,みどりの日
+2026/5/5,こどもの日
+2026/5/6,振替休日
+2026/7/20,海の日
+2026/8/11,山の日
+2026/9/21,敬老の日
+2026/9/22,秋分の日
+2026/10/12,スポーツの日
+2026/11/3,文化の日
+2026/11/23,勤労感謝の日`
+
 describe('holiday-checker', () => {
   beforeEach(() => {
     // 各テストの前にキャッシュをクリア
     clearHolidayCache()
+
+    // fetchをモック
+    ;(global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      text: async () => mockHolidayCSV
+    })
+  })
+
+  afterEach(() => {
+    jest.clearAllMocks()
   })
 
   describe('isHoliday', () => {

@@ -46,10 +46,19 @@ async function fetchHolidays(): Promise<Holiday[]> {
       // 日付フォーマット変換: YYYY/MM/DD → YYYY-MM-DD
       const formattedDate = dateStr.replace(/\//g, '-')
 
-      holidays.push({
-        date: formattedDate,
-        name: name
-      })
+      // 日付の0埋めを確保（例: 2026/1/1 → 2026-01-01）
+      const dateParts = formattedDate.split('-')
+      if (dateParts.length === 3) {
+        const year = dateParts[0]
+        const month = dateParts[1].padStart(2, '0')
+        const day = dateParts[2].padStart(2, '0')
+        const normalizedDate = `${year}-${month}-${day}`
+
+        holidays.push({
+          date: normalizedDate,
+          name: name
+        })
+      }
     }
 
     console.log(`[祝日API] ${holidays.length}件の祝日データを取得しました`)
@@ -82,6 +91,22 @@ async function getHolidays(): Promise<Holiday[]> {
 }
 
 /**
+ * 日付をYYYY-MM-DD形式に変換
+ */
+function formatDate(date: Date | string): string {
+  if (typeof date === 'string') {
+    return date
+  }
+
+  // タイムゾーンに依存しない日付フォーマット
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
+/**
  * 指定した日付が祝日かどうかを判定
  *
  * @param date - 判定したい日付（Date型またはYYYY-MM-DD形式の文字列）
@@ -95,9 +120,7 @@ async function getHolidays(): Promise<Holiday[]> {
  */
 export async function isHoliday(date: Date | string): Promise<string | null> {
   // 日付を YYYY-MM-DD 形式に変換
-  const dateStr = typeof date === 'string'
-    ? date
-    : date.toISOString().split('T')[0]
+  const dateStr = formatDate(date)
 
   // 祝日データを取得
   const holidays = await getHolidays()
@@ -128,7 +151,8 @@ export async function isWorkingDay(
   workingDays: { mon: boolean; tue: boolean; wed: boolean; thu: boolean; fri: boolean; sat: boolean; sun: boolean },
   excludeHolidays: boolean
 ): Promise<boolean> {
-  const dateObj = typeof date === 'string' ? new Date(date) : date
+  // 文字列の場合は Date オブジェクトに変換（ローカルタイムゾーン）
+  const dateObj = typeof date === 'string' ? new Date(date + 'T00:00:00') : date
 
   // 曜日を取得（0=日曜日, 1=月曜日, ..., 6=土曜日）
   const dayOfWeek = dateObj.getDay()

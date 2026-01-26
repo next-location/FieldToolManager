@@ -93,50 +93,28 @@ ADD COLUMN IF NOT EXISTS default_alert_time TIME DEFAULT '09:00';
 
 ### **1.2 バックエンドAPI実装（10時間）**
 
-#### **1.2.1 祝日判定ユーティリティ（3時間）**
+#### **1.2.1 祝日判定ユーティリティ（3時間）** ✅
 
 **ファイル**: `lib/attendance/holiday-checker.ts`
 
-```typescript
-/**
- * 日本の祝日を判定するユーティリティ
- * 内閣府の祝日APIからデータを取得してキャッシュ
- */
+**実装完了**: 以下の機能を実装済み
+- `isHoliday(date)`: 指定日が祝日かどうかを判定
+- `isWorkingDay(date, workingDays, excludeHolidays)`: 指定日が営業日かどうかを判定
+- 内閣府の祝日CSVを自動取得・パース
+- メモリキャッシュ（1日1回更新）
+- 日付の0埋め正規化対応
+- タイムゾーン問題の解決
 
-import { createClient } from '@/lib/supabase/server'
+**テスト**: `lib/attendance/__tests__/holiday-checker.test.ts` ✅ 全10テスト成功
 
-// 内閣府の祝日CSV URL
-const HOLIDAY_CSV_URL = 'https://www8.cao.go.jp/chosei/shukujitsu/syukujitsu.csv'
+**タスク:**
+- [x] holiday-checker.ts 実装
+- [x] ユニットテスト作成
+- [x] テスト実行・成功確認
 
-interface Holiday {
-  date: string // YYYY-MM-DD
-  name: string // 祝日名
-}
+---
 
-/**
- * 祝日データをフェッチして返す
- * キャッシュを使用（1日1回更新）
- */
-export async function fetchHolidays(year: number): Promise<Holiday[]> {
-  // TODO: 実装
-  // 1. 内閣府APIからCSVをフェッチ
-  // 2. パースして配列に変換
-  // 3. Vercel KVまたはメモリにキャッシュ（1日有効）
-  // 4. 指定年の祝日のみ返す
-  return []
-}
-
-/**
- * 指定日が祝日かどうかを判定
- */
-export async function isJapaneseHoliday(date: string): Promise<boolean> {
-  const year = new Date(date).getFullYear()
-  const holidays = await fetchHolidays(year)
-  return holidays.some(h => h.date === date)
-}
-
-/**
- * 指定日が営業日かどうかを判定
+#### **1.2.2 指定日が営業日かどうかを判定
  * @param organizationId 組織ID
  * @param date 日付 (YYYY-MM-DD)
  * @returns 営業日ならtrue

@@ -444,9 +444,11 @@ export function BulkMovementForm({
       if (successCount === selectedToolIds.length) {
         // すべて成功 - セット削除処理を実行
         const toolSetsToDeleteStr = sessionStorage.getItem('toolSetsToDelete')
+        console.log('[BULK MOVEMENT] sessionStorageから取得:', toolSetsToDeleteStr)
         if (toolSetsToDeleteStr) {
           try {
             const toolSetsToDelete = JSON.parse(toolSetsToDeleteStr) as string[]
+            console.log('[BULK MOVEMENT] セット削除API呼び出し開始:', toolSetsToDelete)
 
             // セット削除APIを呼び出し
             const response = await fetch('/api/tool-sets/delete-for-individual-move', {
@@ -460,19 +462,23 @@ export function BulkMovementForm({
             })
 
             const result = await response.json()
+            console.log('[BULK MOVEMENT] セット削除APIレスポンス:', response.status, result)
 
             if (response.ok && result.success) {
-              console.log('セット削除成功:', result.deletedSets)
+              console.log('[BULK MOVEMENT] セット削除成功:', result.deletedSets)
             } else {
-              console.error('セット削除APIエラー:', result)
+              console.error('[BULK MOVEMENT] セット削除APIエラー:', result)
             }
 
             // sessionStorageをクリア
             sessionStorage.removeItem('toolSetsToDelete')
+            console.log('[BULK MOVEMENT] sessionStorageクリア完了')
           } catch (err) {
-            console.error('セット削除処理エラー:', err)
+            console.error('[BULK MOVEMENT] セット削除処理エラー:', err)
             // エラーでも移動は成功しているので続行
           }
+        } else {
+          console.log('[BULK MOVEMENT] 削除対象のセットなし（sessionStorageが空）')
         }
 
         router.push(`/movements?success=${encodeURIComponent(`${successCount}件の道具移動が完了しました`)}`)

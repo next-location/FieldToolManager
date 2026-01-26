@@ -1,10 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { isWorkingDay } from '@/lib/attendance/holiday-checker'
 
 /**
  * POST /api/attendance/alerts/checkin-reminder
  * 出勤忘れ通知を生成（定期実行用）
  * 設定時刻（デフォルト10:00）に未出勤のスタッフに通知
+ * MVP版: 営業日・祝日判定に対応
  */
 export async function POST(request: NextRequest) {
   try {
@@ -24,13 +26,19 @@ export async function POST(request: NextRequest) {
     const jstDate = new Date(now.getTime() + jstOffset * 60 * 1000)
     const today = jstDate.toISOString().split('T')[0] // YYYY-MM-DD
 
-    // 出勤リマインダーが有効な組織を取得
+    console.log(`[出勤リマインダー] 処理開始: ${today}`)
+
+    // 出勤リマインダーが有効な組織を取得（MVP: 営業日設定も取得）
     const { data: organizations, error: orgError } = await supabase
       .from('organization_attendance_settings')
       .select(`
         organization_id,
         checkin_reminder_enabled,
         checkin_reminder_time,
+        working_days,
+        exclude_holidays,
+        default_checkin_time,
+        default_alert_time,
         organizations (
           id,
           name
@@ -39,6 +47,7 @@ export async function POST(request: NextRequest) {
       .eq('checkin_reminder_enabled', true)
 
     if (orgError || !organizations || organizations.length === 0) {
+      console.log('[出勤リマインダー] 有効な組織なし')
       return NextResponse.json({
         success: true,
         message: '出勤リマインダーが有効な組織がありません',
@@ -47,10 +56,33 @@ export async function POST(request: NextRequest) {
     }
 
     let totalAlerts = 0
+    let skippedOrgs = 0
 
     // 各組織ごとに処理
     for (const org of organizations) {
       const organizationId = org.organization_id
+
+      // MVP: 営業日判定
+      const workingDays = org.working_days || {
+        mon: true,
+        tue: true,
+        wed: true,
+        thu: true,
+        fri: true,
+        sat: false,
+        sun: false
+      }
+      const excludeHolidays = org.exclude_holidays ?? true
+
+      const isBusinessDay = await isWorkingDay(today, workingDays, excludeHolidays)
+
+      if (!isBusinessDay) {
+        console.log(`[出勤リマインダー] 組織 ${organizationId}: 本日は休日のためスキップ`)
+        skippedOrgs++
+        continue
+      }
+
+      console.log(`[出勤リマインダー] 組織 ${organizationId}: 営業日として処理開始`)
 
       // その組織の全スタッフを取得（削除されていない）
       const { data: users, error: usersError } = await supabase
@@ -60,6 +92,7 @@ export async function POST(request: NextRequest) {
         .is('deleted_at', null)
 
       if (usersError || !users || users.length === 0) {
+        console.log(`[出勤リマインダー] 組織 ${organizationId}: スタッフなし`)
         continue
       }
 
@@ -99,21 +132,25 @@ export async function POST(request: NextRequest) {
         const { error: insertError } = await supabase.from('attendance_alerts').insert(alerts)
 
         if (insertError) {
-          console.error(`組織 ${organizationId} のアラート挿入エラー:`, insertError)
+          console.error(`[出勤リマインダー] 組織 ${organizationId} のアラート挿入エラー:`, insertError)
         } else {
+          console.log(`[出勤リマインダー] 組織 ${organizationId}: ${alerts.length}件のアラートを生成`)
           totalAlerts += alerts.length
         }
       }
     }
 
+    console.log(`[出勤リマインダー] 処理完了: ${totalAlerts}件生成, ${skippedOrgs}組織スキップ`)
+
     return NextResponse.json({
       success: true,
       message: `出勤リマインダー処理完了: ${totalAlerts}件のアラートを生成しました`,
       processed: totalAlerts,
+      skipped_organizations: skippedOrgs,
       date: today,
     })
   } catch (error) {
-    console.error('出勤リマインダー処理エラー:', error)
+    console.error('[出勤リマインダー] 処理エラー:', error)
     return NextResponse.json(
       { error: '出勤リマインダーの処理に失敗しました' },
       { status: 500 }
