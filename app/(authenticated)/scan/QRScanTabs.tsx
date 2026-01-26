@@ -4,14 +4,14 @@ import { useState, useEffect } from 'react'
 import { QRScanner } from './QRScanner'
 import { QRScannerMobile } from './QRScannerMobile'
 
-type TabType = 'bulk' | 'info' | 'location'
+type TabType = 'tool' | 'equipment'
 
 interface QRScanTabsProps {
   showTabs?: boolean
 }
 
 export function QRScanTabs({ showTabs = true }: QRScanTabsProps) {
-  const [activeTab, setActiveTab] = useState<TabType>('bulk')
+  const [activeTab, setActiveTab] = useState<TabType>('tool')
   const [isMobile, setIsMobile] = useState(false)
   const [showMobileScanner, setShowMobileScanner] = useState(false)
 
@@ -22,19 +22,14 @@ export function QRScanTabs({ showTabs = true }: QRScanTabsProps) {
 
   const tabs = [
     {
-      id: 'bulk' as TabType,
-      name: '道具を移動',
-      description: '道具をスキャンして移動登録（1つでも複数でも可能）',
+      id: 'tool' as TabType,
+      name: '道具移動',
+      description: '道具のQRコードをスキャンして移動ページへ',
     },
     {
-      id: 'info' as TabType,
-      name: '道具確認',
-      description: '道具の詳細情報・現在地・状態・履歴を確認',
-    },
-    {
-      id: 'location' as TabType,
-      name: '倉庫/現場確認',
-      description: '倉庫位置や現場のQRコードをスキャンして情報を取得',
+      id: 'equipment' as TabType,
+      name: '重機移動',
+      description: '重機のQRコードをスキャンして移動ページへ',
     },
   ]
 
@@ -100,30 +95,21 @@ export function QRScanTabs({ showTabs = true }: QRScanTabsProps) {
           ) : (
             // PCの場合は従来のスキャナーを使用
             <>
-              {activeTab === 'bulk' && (
+              {activeTab === 'tool' && (
                 <div>
                   <p className="text-gray-600 mb-4">
-                    道具をスキャンした後、移動先を選択して登録します（1つでも複数でも可能）
+                    道具のQRコードをスキャンすると、移動登録ページに移動します
                   </p>
-                  <QRScanner mode="bulk" />
+                  <QRScanner mode="tool" />
                 </div>
               )}
 
-              {activeTab === 'info' && (
+              {activeTab === 'equipment' && (
                 <div>
                   <p className="text-gray-600 mb-4">
-                    道具のQRコードをスキャンすると、詳細情報・現在地・履歴が表示されます
+                    重機のQRコードをスキャンすると、移動登録ページに移動します
                   </p>
-                  <QRScanner mode="info" />
-                </div>
-              )}
-
-              {activeTab === 'location' && (
-                <div>
-                  <p className="text-gray-600 mb-4">
-                    倉庫位置や現場のQRコードをスキャンして情報を表示します
-                  </p>
-                  <QRScanner mode="location" />
+                  <QRScanner mode="equipment" />
                 </div>
               )}
             </>

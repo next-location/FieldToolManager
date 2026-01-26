@@ -65,7 +65,8 @@
       "Bash(xargs:*)",
       "Bash(while read f)",
       "Bash(do [ -f \"docs/manual/$f\" ])",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(do echo \"=== $url ===\" curl -s \"$url\")"
     ],
     "deny": [],
     "ask": []

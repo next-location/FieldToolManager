@@ -5,13 +5,13 @@ import { Html5Qrcode, CameraDevice } from 'html5-qrcode'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-type ScanMode = 'single' | 'bulk' | 'info' | 'location'
+type ScanMode = 'tool' | 'equipment'
 
 interface QRScannerProps {
   mode?: ScanMode
 }
 
-export function QRScanner({ mode = 'single' }: QRScannerProps) {
+export function QRScanner({ mode = 'tool' }: QRScannerProps) {
   const [isScanning, setIsScanning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [availableCameras, setAvailableCameras] = useState<CameraDevice[]>([])
@@ -109,70 +109,45 @@ export function QRScanner({ mode = 'single' }: QRScannerProps) {
           // スキャンを停止
           await stopScanning()
 
-          // locationモードの場合は現場または倉庫を検索
-          if (mode === 'location') {
-            // 現場を検索
-            const { data: site } = await supabase
-              .from('sites')
-              .select('id, name')
+          if (mode === 'tool') {
+            // 道具のQRコードを検索
+            const { data: toolItem, error: itemError } = await supabase
+              .from('tool_items')
+              .select('id')
               .eq('qr_code', decodedText)
               .is('deleted_at', null)
               .single()
 
-            if (site) {
-              console.log('現場発見:', site)
-              router.push(`/sites/${site.id}`)
+            if (itemError || !toolItem) {
+              console.error('道具アイテムが見つかりません:', itemError)
+              setError('QRコードに対応する道具が見つかりませんでした')
               return
             }
 
-            // 倉庫位置を検索
-            const { data: location } = await supabase
-              .from('warehouse_locations')
-              .select('id, display_name')
+            // 移動ページへリダイレクト（スキャンしたアイテムIDを渡す）
+            router.push(`/movements/bulk?items=${toolItem.id}`)
+            return
+          }
+
+          if (mode === 'equipment') {
+            // 重機のQRコードを検索
+            const { data: equipment, error: equipmentError } = await supabase
+              .from('heavy_equipment')
+              .select('id')
               .eq('qr_code', decodedText)
               .is('deleted_at', null)
               .single()
 
-            if (location) {
-              console.log('倉庫位置発見:', location)
-              router.push(`/warehouse-locations/${location.id}`)
+            if (equipmentError || !equipment) {
+              console.error('重機が見つかりません:', equipmentError)
+              setError('QRコードに対応する重機が見つかりませんでした')
               return
             }
 
-            // どちらも見つからない
-            setError('現場または倉庫位置のQRコードが見つかりませんでした')
+            // 重機詳細ページへリダイレクト（TODO: 重機移動ページができたらそちらへ）
+            router.push(`/equipment/${equipment.id}`)
             return
           }
-
-          // 道具モードの場合は個別アイテムを検索
-          const { data: toolItem, error: itemError } = await supabase
-            .from('tool_items')
-            .select(
-              `
-              id,
-              serial_number,
-              tool_id,
-              tools (
-                id,
-                name
-              )
-            `
-            )
-            .eq('qr_code', decodedText)
-            .is('deleted_at', null)
-            .single()
-
-          if (itemError || !toolItem) {
-            console.error('道具アイテムが見つかりません:', itemError)
-            setError('QRコードに対応する道具が見つかりませんでした')
-            return
-          }
-
-          console.log('道具アイテム発見:', toolItem)
-          console.log('リダイレクト先:', `/tool-items/${toolItem.id}`)
-
-          // 個別アイテム詳細ページへリダイレクト
-          router.push(`/tool-items/${toolItem.id}`)
         },
         (errorMessage) => {
           // スキャンエラー（通常は無視）
