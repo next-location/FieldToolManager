@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
+import { LeaveFilterState } from './LeaveFilters'
 
 interface LeaveListProps {
   userRole: string
   userId: string
+  filters: LeaveFilterState
   onEdit: (leave: any) => void
   onRefresh: () => void
 }
@@ -17,8 +19,9 @@ const leaveTypeLabels: Record<string, string> = {
   other: 'その他',
 }
 
-export function LeaveList({ userRole, userId, onEdit, onRefresh }: LeaveListProps) {
-  const [leaves, setLeaves] = useState<any[]>([])
+export function LeaveList({ userRole, userId, filters, onEdit, onRefresh }: LeaveListProps) {
+  const [allLeaves, setAllLeaves] = useState<any[]>([])
+  const [filteredLeaves, setFilteredLeaves] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   const isAdminOrManager = ['admin', 'manager'].includes(userRole)
@@ -27,13 +30,17 @@ export function LeaveList({ userRole, userId, onEdit, onRefresh }: LeaveListProp
     fetchLeaves()
   }, [])
 
+  useEffect(() => {
+    applyFilters()
+  }, [allLeaves, filters])
+
   const fetchLeaves = async () => {
     try {
       setLoading(true)
       const response = await fetch('/api/leave')
       if (response.ok) {
         const data = await response.json()
-        setLeaves(data.leaves || [])
+        setAllLeaves(data.leaves || [])
       } else {
         console.error('Failed to fetch leaves')
       }
@@ -42,6 +49,35 @@ export function LeaveList({ userRole, userId, onEdit, onRefresh }: LeaveListProp
     } finally {
       setLoading(false)
     }
+  }
+
+  const applyFilters = () => {
+    let result = [...allLeaves]
+
+    // スタッフ名検索
+    if (filters.staffName) {
+      const query = filters.staffName.toLowerCase()
+      result = result.filter((leave) =>
+        leave.user?.name?.toLowerCase().includes(query)
+      )
+    }
+
+    // 期間フィルター（開始日）
+    if (filters.startDate) {
+      result = result.filter((leave) => leave.leave_date >= filters.startDate)
+    }
+
+    // 期間フィルター（終了日）
+    if (filters.endDate) {
+      result = result.filter((leave) => leave.leave_date <= filters.endDate)
+    }
+
+    // 休暇種別フィルター
+    if (filters.leaveType) {
+      result = result.filter((leave) => leave.leave_type === filters.leaveType)
+    }
+
+    setFilteredLeaves(result)
   }
 
   const handleDelete = async (id: string) => {
@@ -74,6 +110,16 @@ export function LeaveList({ userRole, userId, onEdit, onRefresh }: LeaveListProp
 
   return (
     <div className="space-y-4">
+      {/* 結果件数表示 */}
+      <div className="text-sm text-gray-600">
+        {filteredLeaves.length}件の休暇
+        {filteredLeaves.length !== allLeaves.length && (
+          <span className="ml-2">
+            (全{allLeaves.length}件中)
+          </span>
+        )}
+      </div>
+
       {/* テーブル（PC） */}
       <div className="hidden sm:block bg-white shadow overflow-hidden rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
@@ -99,7 +145,7 @@ export function LeaveList({ userRole, userId, onEdit, onRefresh }: LeaveListProp
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {leaves.length === 0 ? (
+            {filteredLeaves.length === 0 ? (
               <tr>
                 <td
                   colSpan={isAdminOrManager ? 5 : 4}
@@ -109,7 +155,7 @@ export function LeaveList({ userRole, userId, onEdit, onRefresh }: LeaveListProp
                 </td>
               </tr>
             ) : (
-              leaves.map((leave) => (
+              filteredLeaves.map((leave) => (
                 <tr key={leave.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {new Date(leave.leave_date).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short' })}
@@ -152,12 +198,12 @@ export function LeaveList({ userRole, userId, onEdit, onRefresh }: LeaveListProp
 
       {/* カード表示（モバイル） */}
       <div className="sm:hidden space-y-4">
-        {leaves.length === 0 ? (
+        {filteredLeaves.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
             休暇データがありません
           </div>
         ) : (
-          leaves.map((leave) => (
+          filteredLeaves.map((leave) => (
             <div key={leave.id} className="bg-white rounded-lg shadow p-4 space-y-3">
               <div className="flex justify-between items-start">
                 <div>

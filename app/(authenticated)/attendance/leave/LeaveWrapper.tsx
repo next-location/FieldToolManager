@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { LeaveList } from './LeaveList'
 import { LeaveModal } from './LeaveModal'
+import LeaveFilters, { LeaveFilterState } from './LeaveFilters'
 import { Plus } from 'lucide-react'
 
 interface LeaveWrapperProps {
@@ -20,6 +21,12 @@ export function LeaveWrapper({
   const [editingLeave, setEditingLeave] = useState<any>(null)
   const [tableKey, setTableKey] = useState(0)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [filters, setFilters] = useState<LeaveFilterState>({
+    staffName: '',
+    startDate: '',
+    endDate: '',
+    leaveType: '',
+  })
 
   // スクロールアニメーション
   useEffect(() => {
@@ -82,10 +89,17 @@ export function LeaveWrapper({
         </div>
       </div>
 
+      {/* 検索・フィルター */}
+      <LeaveFilters
+        onFilterChange={setFilters}
+        isAdminOrManager={isAdminOrManager}
+      />
+
       <LeaveList
         key={tableKey}
         userRole={userRole}
         userId={userId}
+        filters={filters}
         onEdit={handleEdit}
         onRefresh={() => setTableKey((prev) => prev + 1)}
       />
