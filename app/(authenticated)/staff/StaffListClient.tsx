@@ -539,7 +539,7 @@ export function StaffListClient({ userRole, organization, departments, isImperso
                                 handleToggleActive(user.id)
                                 setOpenMenuId(null)
                               }}
-                              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3 cursor-pointer"
+                              className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
                               style={{ pointerEvents: 'auto' }}
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
