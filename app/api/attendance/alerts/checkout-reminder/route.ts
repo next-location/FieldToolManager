@@ -165,8 +165,24 @@ export async function GET(request: NextRequest) {
         continue
       }
 
+      // 既にアラートが作成されているユーザーを除外
+      const { data: existingAlerts } = await supabase
+        .from('attendance_alerts')
+        .select('target_user_id')
+        .eq('organization_id', organizationId)
+        .eq('target_date', today)
+        .eq('alert_type', 'checkout_reminder')
+
+      const alreadyAlertedUserIds = new Set(existingAlerts?.map((a) => a.target_user_id) || [])
+      const usersNeedingAlert = missingUsers.filter((user) => !alreadyAlertedUserIds.has(user.id))
+
+      if (usersNeedingAlert.length === 0) {
+        console.log(`[退勤リマインダー] 組織 ${organizationId}: 全員にアラート送信済み`)
+        continue
+      }
+
       // アラート作成
-      const alerts = missingUsers.map((user) => {
+      const alerts = usersNeedingAlert.map((user) => {
         const pattern = workPatterns.find((p) => p.id === user.work_pattern_id)
         return {
           organization_id: organizationId,
@@ -200,7 +216,7 @@ export async function GET(request: NextRequest) {
         await notifyCheckoutReminder({
           organizationId,
           targetDate: today,
-          missingUsers: missingUsers.map(u => ({
+          missingUsers: usersNeedingAlert.map(u => ({
             id: u.id,
             name: u.name,
             email: u.email
@@ -208,7 +224,7 @@ export async function GET(request: NextRequest) {
         })
 
         // 個別通知を全員に送信
-        for (const user of missingUsers) {
+        for (const user of usersNeedingAlert) {
           await notifyIndividualCheckoutReminder({
             organizationId,
             userId: user.id,
