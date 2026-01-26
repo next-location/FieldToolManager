@@ -140,6 +140,7 @@ export async function POST(request: NextRequest) {
     }
 
     // デフォルトパターンとして設定された場合、勤務パターン未設定のスタッフ全員に自動割り当て
+    let autoAssignedCount = 0
     if (is_default && newPattern) {
       const { data: unassignedUsers, error: usersError } = await supabase
         .from('users')
@@ -159,12 +160,17 @@ export async function POST(request: NextRequest) {
         if (updateError) {
           console.error('Failed to auto-assign default pattern to users:', updateError)
         } else {
-          console.log(`[勤務パターン] デフォルトパターン「${newPattern.name}」を${unassignedUsers.length}人のスタッフに自動割り当て`)
+          autoAssignedCount = unassignedUsers.length
+          console.log(`[勤務パターン] デフォルトパターン「${newPattern.name}」を${autoAssignedCount}人のスタッフに自動割り当て`)
         }
       }
     }
 
-    return NextResponse.json({ success: true, pattern: newPattern })
+    return NextResponse.json({
+      success: true,
+      pattern: newPattern,
+      autoAssignedCount
+    })
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json({ error: '予期しないエラーが発生しました' }, { status: 500 })

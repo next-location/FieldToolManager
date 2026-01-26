@@ -112,7 +112,13 @@ export function WorkPatternModal({
         throw new Error(responseData.error || '保存に失敗しました')
       }
 
-      alert(pattern ? '更新しました' : '作成しました')
+      // デフォルトパターンの自動割り当てメッセージ
+      let message = pattern ? '更新しました' : '作成しました'
+      if (responseData.autoAssignedCount > 0) {
+        message += `\n\n${responseData.autoAssignedCount}人のスタッフに自動的に割り当てられました。`
+      }
+
+      alert(message)
       onSuccess()
     } catch (err: any) {
       console.error('[WorkPatternModal] Error:', err)

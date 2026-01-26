@@ -199,6 +199,7 @@ export async function PATCH(
     })
 
     // デフォルトパターンに変更された場合、勤務パターン未設定のスタッフ全員に自動割り当て
+    let autoAssignedCount = 0
     if (is_default && !existingPattern.is_default && updatedPattern) {
       const { data: unassignedUsers, error: usersError } = await supabase
         .from('users')
@@ -218,12 +219,17 @@ export async function PATCH(
         if (updateUsersError) {
           console.error('Failed to auto-assign default pattern to users:', updateUsersError)
         } else {
-          console.log(`[勤務パターン] デフォルトパターン「${updatedPattern.name}」を${unassignedUsers.length}人のスタッフに自動割り当て`)
+          autoAssignedCount = unassignedUsers.length
+          console.log(`[勤務パターン] デフォルトパターン「${updatedPattern.name}」を${autoAssignedCount}人のスタッフに自動割り当て`)
         }
       }
     }
 
-    return NextResponse.json({ success: true, pattern: updatedPattern })
+    return NextResponse.json({
+      success: true,
+      pattern: updatedPattern,
+      autoAssignedCount
+    })
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json({ error: '予期しないエラーが発生しました' }, { status: 500 })
