@@ -1,10 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   console.log('[API DELETE TOOL SET] リクエスト受信')
   try {
     const supabase = await createClient()
+    const supabaseAdmin = createAdminClient()
 
     // 認証チェック
     const {
@@ -62,7 +63,7 @@ export async function POST(request: Request) {
 
       console.log('[API DELETE TOOL SET] セット情報取得成功:', toolSet.name)
 
-      const { data: setItems } = await supabase
+      const { data: setItems } = await supabaseAdmin
         .from('tool_set_items')
         .select(`
           tool_item_id,
@@ -82,12 +83,16 @@ export async function POST(request: Request) {
         tool_name: item.tool_items.tools.name
       }))
 
-      // セットを削除（soft delete）
-      const { error: deleteError } = await supabase
+      // セットを削除（soft delete） - Admin clientでRLSバイパス
+      console.log('[API DELETE TOOL SET] Admin clientで削除実行...')
+      const { data: updateResult, error: deleteError } = await supabaseAdmin
         .from('tool_sets')
         .update({ deleted_at: new Date().toISOString() })
         .eq('id', toolSetId)
         .eq('organization_id', userData.organization_id)
+        .select()
+
+      console.log('[API DELETE TOOL SET] UPDATE結果:', updateResult)
 
       if (deleteError) {
         console.error('[API DELETE TOOL SET] セット削除エラー:', deleteError)
@@ -97,10 +102,18 @@ export async function POST(request: Request) {
         )
       }
 
+      if (!updateResult || updateResult.length === 0) {
+        console.error('[API DELETE TOOL SET] UPDATEが0件。セットが見つからないか、既に削除済み')
+        return NextResponse.json(
+          { error: 'Tool set not found or already deleted' },
+          { status: 404 }
+        )
+      }
+
       console.log('[API DELETE TOOL SET] セット削除成功 (soft delete):', toolSetId)
 
-      // 監査ログを記録
-      const { error: auditError } = await supabase.from('audit_logs').insert({
+      // 監査ログを記録 - Admin clientで記録
+      const { error: auditError } = await supabaseAdmin.from('audit_logs').insert({
         organization_id: userData.organization_id,
         user_id: user.id,
         action: 'delete',
