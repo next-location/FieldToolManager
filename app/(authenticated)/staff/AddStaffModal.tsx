@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface AddStaffModalProps {
   isOpen: boolean
@@ -17,8 +17,34 @@ export function AddStaffModal({ isOpen, onClose, onSuccess, departments }: AddSt
   const [department, setDepartment] = useState('')
   const [employeeId, setEmployeeId] = useState('')
   const [phone, setPhone] = useState('')
+  const [workPatternId, setWorkPatternId] = useState('')
+  const [workPatterns, setWorkPatterns] = useState<Array<{ id: string; name: string; is_default: boolean }>>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // 勤務パターン一覧を取得
+  useEffect(() => {
+    const fetchWorkPatterns = async () => {
+      try {
+        const response = await fetch('/api/attendance/work-patterns')
+        if (response.ok) {
+          const data = await response.json()
+          setWorkPatterns(data.patterns || [])
+
+          // デフォルトパターンがあれば自動選択
+          const defaultPattern = (data.patterns || []).find((p: any) => p.is_default)
+          if (defaultPattern) {
+            setWorkPatternId(defaultPattern.id)
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch work patterns:', err)
+      }
+    }
+    if (isOpen) {
+      fetchWorkPatterns()
+    }
+  }, [isOpen])
 
   if (!isOpen) return null
 
@@ -64,6 +90,7 @@ export function AddStaffModal({ isOpen, onClose, onSuccess, departments }: AddSt
           department: department || null,
           employee_id: employeeId || null,
           phone: phone || null,
+          work_pattern_id: workPatternId || null,
         }),
       })
 
@@ -80,6 +107,7 @@ export function AddStaffModal({ isOpen, onClose, onSuccess, departments }: AddSt
         setDepartment('')
         setEmployeeId('')
         setPhone('')
+        setWorkPatternId('')
       } else {
         setError(data.error || 'スタッフの追加に失敗しました')
       }
@@ -216,6 +244,25 @@ export function AddStaffModal({ isOpen, onClose, onSuccess, departments }: AddSt
               <p>ℹ️ manager: マネージャー（スタッフ管理権限）</p>
               <p>ℹ️ admin: 管理者（全権限）</p>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">勤務パターン</label>
+            <select
+              value={workPatternId}
+              onChange={(e) => setWorkPatternId(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">未設定</option>
+              {workPatterns.map((pattern) => (
+                <option key={pattern.id} value={pattern.id}>
+                  {pattern.name} {pattern.is_default ? '(デフォルト)' : ''}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-gray-500">
+              勤務パターンを設定すると、打刻忘れアラートの時刻が自動設定されます
+            </p>
           </div>
 
           <div className="flex justify-end space-x-3 mt-6">

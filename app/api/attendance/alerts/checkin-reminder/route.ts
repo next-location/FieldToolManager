@@ -6,8 +6,8 @@ import { notifyCheckinReminder, notifyIndividualCheckinReminder } from '@/lib/no
 /**
  * POST /api/attendance/alerts/checkin-reminder
  * 出勤忘れ通知を生成（定期実行用）
- * 設定時刻（デフォルト10:00）に未出勤のスタッフに通知
- * MVP版: 営業日・祝日判定に対応
+ * Phase 2: 勤務パターンごとの時刻に対応
+ * 時間単位で実行し、該当する勤務パターンのアラート時刻に到達したスタッフのみ処理
  */
 export async function POST(request: NextRequest) {
   try {
@@ -21,25 +21,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
     }
 
-    // 日本時間で今日の日付を取得
+    // 日本時間で今日の日付と現在時刻を取得
     const now = new Date()
     const jstOffset = 9 * 60 // 日本は UTC+9
     const jstDate = new Date(now.getTime() + jstOffset * 60 * 1000)
     const today = jstDate.toISOString().split('T')[0] // YYYY-MM-DD
+    const currentHour = jstDate.getHours() // 0-23
+    const currentMinute = jstDate.getMinutes() // 0-59
 
-    console.log(`[出勤リマインダー] 処理開始: ${today}`)
+    console.log(`[出勤リマインダー] 処理開始: ${today} ${currentHour}:${currentMinute}`)
 
-    // 出勤リマインダーが有効な組織を取得（MVP: 営業日設定も取得）
+    // 出勤リマインダーが有効な組織を取得
     const { data: organizations, error: orgError } = await supabase
       .from('organization_attendance_settings')
       .select(`
         organization_id,
         checkin_reminder_enabled,
-        checkin_reminder_time,
         working_days,
         exclude_holidays,
-        default_checkin_time,
-        default_alert_time,
         organizations (
           id,
           name
@@ -63,7 +62,7 @@ export async function POST(request: NextRequest) {
     for (const org of organizations) {
       const organizationId = org.organization_id
 
-      // MVP: 営業日判定
+      // 営業日判定
       const workingDays = org.working_days || {
         mon: true,
         tue: true,
@@ -85,15 +84,57 @@ export async function POST(request: NextRequest) {
 
       console.log(`[出勤リマインダー] 組織 ${organizationId}: 営業日として処理開始`)
 
-      // その組織の全スタッフを取得（削除されていない、role情報も含む）
+      // その組織の勤務パターン一覧を取得
+      const { data: workPatterns, error: patternsError } = await supabase
+        .from('work_patterns')
+        .select('id, name, expected_checkin_time, alert_enabled, alert_hours_after')
+        .eq('organization_id', organizationId)
+
+      if (patternsError || !workPatterns || workPatterns.length === 0) {
+        console.log(`[出勤リマインダー] 組織 ${organizationId}: 勤務パターンなし`)
+        continue
+      }
+
+      // 現在時刻にアラートすべきパターンをフィルタリング
+      const targetPatterns = workPatterns.filter((pattern) => {
+        if (!pattern.alert_enabled) return false
+
+        // expected_checkin_time (HH:MM:SS) をパース
+        const [hours, minutes] = pattern.expected_checkin_time.split(':').map(Number)
+
+        // アラート時刻 = 出勤予定時刻 + alert_hours_after
+        const alertHours = hours + Math.floor(pattern.alert_hours_after)
+        const alertMinutes = minutes + (pattern.alert_hours_after % 1) * 60
+
+        // 正規化
+        const finalAlertHours = alertHours + Math.floor(alertMinutes / 60)
+        const finalAlertMinutes = Math.floor(alertMinutes % 60)
+
+        // 現在時刻がアラート時刻と一致するか（±30分の範囲）
+        const hourMatch = currentHour === finalAlertHours
+        const minuteMatch = Math.abs(currentMinute - finalAlertMinutes) <= 30
+
+        return hourMatch && minuteMatch
+      })
+
+      if (targetPatterns.length === 0) {
+        console.log(`[出勤リマインダー] 組織 ${organizationId}: 現在時刻に該当する勤務パターンなし`)
+        continue
+      }
+
+      const targetPatternIds = targetPatterns.map((p) => p.id)
+      console.log(`[出勤リマインダー] 組織 ${organizationId}: 対象パターン ${targetPatternIds.length}件`)
+
+      // 対象パターンを持つスタッフを取得
       const { data: users, error: usersError } = await supabase
         .from('users')
-        .select('id, name, email, role')
+        .select('id, name, email, role, work_pattern_id')
         .eq('organization_id', organizationId)
+        .in('work_pattern_id', targetPatternIds)
         .is('deleted_at', null)
 
       if (usersError || !users || users.length === 0) {
-        console.log(`[出勤リマインダー] 組織 ${organizationId}: スタッフなし`)
+        console.log(`[出勤リマインダー] 組織 ${organizationId}: 対象スタッフなし`)
         continue
       }
 
@@ -121,19 +162,23 @@ export async function POST(request: NextRequest) {
       }
 
       // アラート作成
-      const alerts = missingUsers.map((user) => ({
-        organization_id: organizationId,
-        target_user_id: user.id,
-        alert_type: 'checkin_reminder',
-        target_date: today,
-        title: '出勤打刻忘れ',
-        message: `${user.name}さん、まだ出勤打刻がされていません。打刻をお願いします。`,
-        metadata: {
-          user_name: user.name,
-          user_email: user.email,
-          reminder_time: org.checkin_reminder_time,
-        },
-      }))
+      const alerts = missingUsers.map((user) => {
+        const pattern = workPatterns.find((p) => p.id === user.work_pattern_id)
+        return {
+          organization_id: organizationId,
+          target_user_id: user.id,
+          alert_type: 'checkin_reminder',
+          target_date: today,
+          title: '出勤打刻忘れ',
+          message: `${user.name}さん、まだ出勤打刻がされていません。打刻をお願いします。`,
+          metadata: {
+            user_name: user.name,
+            user_email: user.email,
+            work_pattern_name: pattern?.name || '未設定',
+            expected_checkin_time: pattern?.expected_checkin_time || null,
+          },
+        }
+      })
 
       const { error: insertError } = await supabase.from('attendance_alerts').insert(alerts)
 
@@ -183,6 +228,7 @@ export async function POST(request: NextRequest) {
       processed: totalAlerts,
       skipped_organizations: skippedOrgs,
       date: today,
+      time: `${currentHour}:${currentMinute}`,
     })
   } catch (error) {
     console.error('[出勤リマインダー] 処理エラー:', error)

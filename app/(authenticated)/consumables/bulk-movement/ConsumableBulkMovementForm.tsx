@@ -112,6 +112,7 @@ export function ConsumableBulkMovementForm({
   const [scanSuccess, setScanSuccess] = useState(false)
   const [lastScannedConsumable, setLastScannedConsumable] = useState<string | null>(null)
   const [quantityErrors, setQuantityErrors] = useState<string[]>([])
+  const [isSearchFocused, setIsSearchFocused] = useState(false)
 
   // QRコードスキャン処理
   const handleQrScan = async (qrCode: string): Promise<{ success: boolean; message?: string }> => {
@@ -447,8 +448,27 @@ export function ConsumableBulkMovementForm({
       })
   }
 
-  // 検索フィルタリング（移動元に在庫がある消耗品のみ）
+  // 検索フィルタリング（在庫がある消耗品のみ）
   const filteredConsumables = consumables.filter((consumable) => {
+    const query = normalizeText(searchQuery)
+    const matchesQuery = searchQuery === '' ||
+      normalizeText(consumable.name).includes(query) ||
+      normalizeText(consumable.model_number || '').includes(query)
+
+    if (!matchesQuery) return false
+
+    // 在庫があるかチェック（どこかに在庫があればOK）
+    const hasInventory = inventories.some(inv => {
+      if (inv.tool_id !== consumable.id) return false
+      if (inv.quantity <= 0) return false
+      return true
+    })
+
+    return hasInventory
+  })
+
+  // 旧バージョン（移動元指定時のフィルタリング）
+  const oldFilteredConsumables = consumables.filter((consumable) => {
     const query = normalizeText(searchQuery)
     const matchesQuery = normalizeText(consumable.name).includes(query) ||
       normalizeText(consumable.model_number || '').includes(query)
@@ -535,13 +555,15 @@ export function ConsumableBulkMovementForm({
             placeholder="消耗品名、型番で検索..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 border-gray-300 focus:ring-blue-500"
             disabled={isSubmitting}
           />
         </div>
 
         {/* 検索結果 */}
-        {searchQuery && filteredConsumables.length > 0 && (
+        {isSearchFocused && filteredConsumables.length > 0 && (
           <div className="border border-gray-300 rounded-md max-h-48 overflow-y-auto">
             {filteredConsumables.slice(0, 10).map((consumable) => {
               const isSelected = selectedConsumables.some(
@@ -569,6 +591,115 @@ export function ConsumableBulkMovementForm({
                 </button>
               )
             })}
+          </div>
+        )}
+      </div>
+
+      {/* 選択中の消耗品 */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-semibold text-gray-900">
+            選択中の消耗品（{selectedConsumables.length}件）
+          </h3>
+          {selectedConsumables.length > 0 && (
+            <button
+              type="button"
+              onClick={handleClearAll}
+              className="text-sm text-red-600 hover:text-red-800"
+              disabled={isSubmitting}
+            >
+              すべてクリア
+            </button>
+          )}
+        </div>
+
+        {selectedConsumableDetails.length > 0 ? (
+          <div className="border-2 border-gray-300 rounded-lg divide-y divide-gray-200">
+            {selectedConsumableDetails.map(({ consumableId, quantity, consumable }) => {
+              // 全ての在庫場所を表示
+              const allInventories = inventories.filter(inv => inv.tool_id === consumableId && inv.quantity > 0)
+
+              return (
+                <div key={consumableId} className="p-4 flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="font-medium text-sm text-gray-900">
+                      {consumable.name}
+                    </div>
+                    {consumable.model_number && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        型番: {consumable.model_number}
+                      </div>
+                    )}
+                    <div className="text-xs text-gray-500 mt-1">
+                      {allInventories.length > 0 ? (
+                        <div>
+                          在庫: {allInventories.map(inv => {
+                            if (inv.location_type === 'warehouse') {
+                              return inv.warehouse_location
+                                ? `倉庫（${inv.warehouse_location.code}）: ${inv.quantity}${consumable.unit}`
+                                : `倉庫: ${inv.quantity}${consumable.unit}`
+                            } else {
+                              return inv.site
+                                ? `${inv.site.name}: ${inv.quantity}${consumable.unit}`
+                                : `現場: ${inv.quantity}${consumable.unit}`
+                            }
+                          }).join(', ')}
+                        </div>
+                      ) : (
+                        <div className="text-red-600">在庫なし</div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="flex flex-col items-end space-y-1">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="number"
+                          min="1"
+                          value={quantity === 0 ? '' : quantity}
+                          placeholder="個数"
+                          onChange={(e) => {
+                            const value = e.target.value
+                            if (value === '') {
+                              handleUpdateQuantity(consumableId, 0)
+                              return
+                            }
+                            const numValue = parseInt(value)
+                            if (!isNaN(numValue) && numValue >= 0) {
+                              handleUpdateQuantity(consumableId, numValue)
+                            }
+                          }}
+                          className={`w-20 px-2 py-1 border rounded text-center ${
+                            quantityErrors.includes(consumableId)
+                              ? 'border-red-300 bg-red-50'
+                              : 'border-gray-300'
+                          }`}
+                          disabled={isSubmitting}
+                        />
+                        <span className="text-sm text-gray-600">{consumable.unit}</span>
+                      </div>
+                      {quantityErrors.includes(consumableId) && (
+                        <p className="text-xs text-red-600">消耗品の数を入力してください</p>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveConsumable(consumableId)}
+                      className="text-red-600 hover:text-red-800 text-sm"
+                      disabled={isSubmitting}
+                    >
+                      削除
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center text-gray-500">
+            消耗品が選択されていません
+            <br />
+            上の検索欄から消耗品を選択してください
           </div>
         )}
       </div>

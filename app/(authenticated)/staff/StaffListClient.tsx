@@ -25,6 +25,7 @@ interface User {
   is_active: boolean
   last_login_at: string | null
   created_at: string
+  work_pattern_id: string | null
 }
 
 interface StaffListClientProps {

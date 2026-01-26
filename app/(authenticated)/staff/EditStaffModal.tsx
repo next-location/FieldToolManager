@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface User {
   id: string
@@ -13,6 +13,7 @@ interface User {
   is_active: boolean
   last_login_at: string | null
   created_at: string
+  work_pattern_id: string | null
 }
 
 interface EditStaffModalProps {
@@ -30,8 +31,28 @@ export function EditStaffModal({ isOpen, onClose, onSuccess, staff, departments 
   const [department, setDepartment] = useState(staff.department || '')
   const [employeeId, setEmployeeId] = useState(staff.employee_id || '')
   const [phone, setPhone] = useState(staff.phone || '')
+  const [workPatternId, setWorkPatternId] = useState(staff.work_pattern_id || '')
+  const [workPatterns, setWorkPatterns] = useState<Array<{ id: string; name: string }>>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // 勤務パターン一覧を取得
+  useEffect(() => {
+    const fetchWorkPatterns = async () => {
+      try {
+        const response = await fetch('/api/attendance/work-patterns')
+        if (response.ok) {
+          const data = await response.json()
+          setWorkPatterns(data.patterns || [])
+        }
+      } catch (err) {
+        console.error('Failed to fetch work patterns:', err)
+      }
+    }
+    if (isOpen) {
+      fetchWorkPatterns()
+    }
+  }, [isOpen])
 
   if (!isOpen) return null
 
@@ -51,6 +72,7 @@ export function EditStaffModal({ isOpen, onClose, onSuccess, staff, departments 
           department: department || null,
           employee_id: employeeId || null,
           phone: phone || null,
+          work_pattern_id: workPatternId || null,
         }),
       })
 
@@ -75,7 +97,8 @@ export function EditStaffModal({ isOpen, onClose, onSuccess, staff, departments 
     role !== staff.role ||
     department !== (staff.department || '') ||
     employeeId !== (staff.employee_id || '') ||
-    phone !== (staff.phone || '')
+    phone !== (staff.phone || '') ||
+    workPatternId !== (staff.work_pattern_id || '')
 
   return (
     <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
@@ -181,6 +204,25 @@ export function EditStaffModal({ isOpen, onClose, onSuccess, staff, departments 
             {staff.role === 'admin' && role !== 'admin' && (
               <p className="mt-1 text-xs text-red-600">⚠️ 最低1人のadminが必要です</p>
             )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">勤務パターン</label>
+            <select
+              value={workPatternId}
+              onChange={(e) => setWorkPatternId(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">未設定</option>
+              {workPatterns.map((pattern) => (
+                <option key={pattern.id} value={pattern.id}>
+                  {pattern.name}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-gray-500">
+              勤務パターンを設定すると、打刻忘れアラートの時刻が自動設定されます
+            </p>
           </div>
 
           <div className="border-t pt-4">
