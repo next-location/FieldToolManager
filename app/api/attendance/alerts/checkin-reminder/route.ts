@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { isWorkingDay } from '@/lib/attendance/holiday-checker'
 import { notifyCheckinReminder, notifyIndividualCheckinReminder } from '@/lib/notifications/attendance-alert-notifications'
@@ -11,7 +11,7 @@ import { notifyCheckinReminder, notifyIndividualCheckinReminder } from '@/lib/no
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     // Cron認証（本番環境ではVercel Cron Secretなどで保護）
     const authHeader = request.headers.get('authorization')
