@@ -418,7 +418,7 @@ export function StaffListClient({ userRole, organization, departments, isImperso
       </div>
 
       {/* カード表示（全デバイス） */}
-      <div className="space-y-4">
+      <div className="space-y-2">
         {loading ? (
           <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
             読み込み中...
@@ -429,76 +429,74 @@ export function StaffListClient({ userRole, organization, departments, isImperso
           </div>
         ) : (
           staff.map((user) => (
-            <div key={user.id} className="bg-white rounded-lg shadow-md overflow-visible">
-              {/* カードヘッダー */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <h3 className="text-base font-bold text-gray-900">{user.name}</h3>
-                    <p className="text-xs text-gray-600 mt-0.5">{user.email}</p>
+            <div key={user.id} className="bg-white border border-gray-200 rounded-md hover:shadow-md transition-shadow">
+              <div className="p-3">
+                {/* 上部: 名前・メール・バッジ */}
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-semibold text-gray-900 truncate">{user.name}</h3>
+                    <p className="text-xs text-gray-500 truncate mt-0.5">{user.email}</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(user.role)}`}>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <span className={`px-1.5 py-0.5 text-xs font-medium rounded ${getRoleColor(user.role)}`}>
                       {getRoleLabel(user.role)}
                     </span>
                     <span
-                      className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      className={`w-5 h-5 flex items-center justify-center text-xs font-bold rounded-full ${
+                        user.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'
                       }`}
                     >
                       {user.is_active ? '✓' : '×'}
                     </span>
                   </div>
                 </div>
-              </div>
 
-              {/* カード本体 */}
-              <div className="px-4 py-3 space-y-2">
-                <div className="flex items-center text-sm">
-                  <span className="text-gray-500 w-24 flex-shrink-0">部署:</span>
-                  <span className="text-gray-900 font-medium">{user.department || '未設定'}</span>
-                </div>
-                <div className="flex items-center text-sm">
-                  <span className="text-gray-500 w-24 flex-shrink-0">ログイン:</span>
-                  <span className="text-gray-700 text-xs">
-                    {user.last_login_at
-                      ? new Date(user.last_login_at).toLocaleDateString('ja-JP', {
-                          year: 'numeric',
-                          month: '2-digit',
-                          day: '2-digit',
-                        })
-                      : '未ログイン'}
+                {/* 中部: 部署・ログイン情報 */}
+                <div className="flex items-center gap-3 text-xs text-gray-600 mb-2">
+                  <span className="flex items-center gap-1">
+                    <span className="text-gray-400">部署:</span>
+                    <span className="font-medium">{user.department || '未設定'}</span>
+                  </span>
+                  <span className="text-gray-300">|</span>
+                  <span className="flex items-center gap-1">
+                    <span className="text-gray-400">最終:</span>
+                    <span>
+                      {user.last_login_at
+                        ? new Date(user.last_login_at).toLocaleDateString('ja-JP', {
+                            month: '2-digit',
+                            day: '2-digit',
+                          })
+                        : '未'}
+                    </span>
                   </span>
                 </div>
-              </div>
 
-              {/* 操作ボタン */}
-              {canManageStaff && (
-                <div className="px-4 pb-4">
+                {/* 下部: 操作ボタン */}
+                {canManageStaff && (
                   <div className="relative">
                     <button
                       onClick={() => setOpenMenuId(openMenuId === user.id ? null : user.id)}
-                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                      className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded hover:bg-gray-100 transition-colors"
                     >
                       操作
-                      <ChevronDown className="w-4 h-4" />
+                      <ChevronDown className="w-3.5 h-3.5" />
                     </button>
 
                     {openMenuId === user.id && (
                       <div
                         ref={menuRef}
-                        className="absolute left-0 right-0 z-[9999] mt-2 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5"
+                        className="absolute left-0 right-0 z-[9999] mt-1 rounded-md bg-white shadow-xl border border-gray-200"
                       >
-                        <div className="py-1">
+                        <div className="py-0.5">
                           {isAdmin && (
                             <button
                               onClick={() => {
                                 setHistoryStaff(user)
                                 setOpenMenuId(null)
                               }}
-                              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                              className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                             >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                               </svg>
                               変更履歴
@@ -510,9 +508,9 @@ export function StaffListClient({ userRole, organization, departments, isImperso
                                 setEditingStaff(user)
                                 setOpenMenuId(null)
                               }}
-                              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                              className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                             >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                               </svg>
                               編集
@@ -524,9 +522,9 @@ export function StaffListClient({ userRole, organization, departments, isImperso
                                 handlePasswordReset(user.id, user.name)
                                 setOpenMenuId(null)
                               }}
-                              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                              className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                             >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                               </svg>
                               パスワードリセット
@@ -544,7 +542,7 @@ export function StaffListClient({ userRole, organization, departments, isImperso
                               className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3 cursor-pointer"
                               style={{ pointerEvents: 'auto' }}
                             >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 {user.is_active ? (
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 715.636 5.636m12.728 12.728L5.636 5.636" />
                                 ) : (
@@ -556,15 +554,15 @@ export function StaffListClient({ userRole, organization, departments, isImperso
                           )}
                           {canEditUser(user) && user.role !== 'admin' && (
                             <>
-                              <div className="border-t border-gray-100"></div>
+                              <div className="border-t border-gray-100 my-0.5"></div>
                               <button
                                 onClick={() => {
                                   setDeletingStaff(user)
                                   setOpenMenuId(null)
                                 }}
-                                className="w-full text-left px-4 py-3 text-sm text-red-700 hover:bg-red-50 flex items-center gap-3"
+                                className="w-full text-left px-3 py-2 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2"
                               >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                                 削除
