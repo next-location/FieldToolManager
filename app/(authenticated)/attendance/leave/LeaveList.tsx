@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Pencil, Trash2, Check, X } from 'lucide-react'
+import { Pencil, Trash2 } from 'lucide-react'
 
 interface LeaveListProps {
   userRole: string
@@ -17,44 +17,20 @@ const leaveTypeLabels: Record<string, string> = {
   other: 'その他',
 }
 
-const statusLabels: Record<string, string> = {
-  pending: '承認待ち',
-  approved: '承認済み',
-  rejected: '却下',
-}
-
-const statusColors: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  approved: 'bg-green-100 text-green-800',
-  rejected: 'bg-red-100 text-red-800',
-}
-
 export function LeaveList({ userRole, userId, onEdit, onRefresh }: LeaveListProps) {
   const [leaves, setLeaves] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedStatus, setSelectedStatus] = useState<string>('all')
 
   const isAdminOrManager = ['admin', 'manager'].includes(userRole)
 
   useEffect(() => {
     fetchLeaves()
-  }, [selectedStatus])
+  }, [])
 
   const fetchLeaves = async () => {
     try {
       setLoading(true)
-      let url = '/api/leave'
-
-      const params = new URLSearchParams()
-      if (selectedStatus !== 'all') {
-        params.append('status', selectedStatus)
-      }
-
-      if (params.toString()) {
-        url += `?${params.toString()}`
-      }
-
-      const response = await fetch(url)
+      const response = await fetch('/api/leave')
       if (response.ok) {
         const data = await response.json()
         setLeaves(data.leaves || [])
@@ -65,49 +41,6 @@ export function LeaveList({ userRole, userId, onEdit, onRefresh }: LeaveListProp
       console.error('Error fetching leaves:', error)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const handleApprove = async (id: string) => {
-    if (!confirm('この休暇を承認しますか？')) return
-
-    try {
-      const response = await fetch(`/api/leave/${id}/approve`, {
-        method: 'POST',
-      })
-
-      if (response.ok) {
-        onRefresh()
-      } else {
-        const data = await response.json()
-        alert(data.error || '承認に失敗しました')
-      }
-    } catch (error) {
-      console.error('Error approving leave:', error)
-      alert('承認処理中にエラーが発生しました')
-    }
-  }
-
-  const handleReject = async (id: string) => {
-    const reason = prompt('却下理由を入力してください（任意）:')
-    if (reason === null) return // キャンセル
-
-    try {
-      const response = await fetch(`/api/leave/${id}/reject`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason }),
-      })
-
-      if (response.ok) {
-        onRefresh()
-      } else {
-        const data = await response.json()
-        alert(data.error || '却下に失敗しました')
-      }
-    } catch (error) {
-      console.error('Error rejecting leave:', error)
-      alert('却下処理中にエラーが発生しました')
     }
   }
 
@@ -141,50 +74,6 @@ export function LeaveList({ userRole, userId, onEdit, onRefresh }: LeaveListProp
 
   return (
     <div className="space-y-4">
-      {/* フィルター */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => setSelectedStatus('all')}
-          className={`px-3 py-1 rounded-md text-sm ${
-            selectedStatus === 'all'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700'
-          }`}
-        >
-          全て
-        </button>
-        <button
-          onClick={() => setSelectedStatus('pending')}
-          className={`px-3 py-1 rounded-md text-sm ${
-            selectedStatus === 'pending'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700'
-          }`}
-        >
-          承認待ち
-        </button>
-        <button
-          onClick={() => setSelectedStatus('approved')}
-          className={`px-3 py-1 rounded-md text-sm ${
-            selectedStatus === 'approved'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700'
-          }`}
-        >
-          承認済み
-        </button>
-        <button
-          onClick={() => setSelectedStatus('rejected')}
-          className={`px-3 py-1 rounded-md text-sm ${
-            selectedStatus === 'rejected'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700'
-          }`}
-        >
-          却下
-        </button>
-      </div>
-
       {/* テーブル（PC） */}
       <div className="hidden sm:block bg-white shadow overflow-hidden rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
@@ -204,9 +93,6 @@ export function LeaveList({ userRole, userId, onEdit, onRefresh }: LeaveListProp
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 理由
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                ステータス
-              </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                 操作
               </th>
@@ -216,7 +102,7 @@ export function LeaveList({ userRole, userId, onEdit, onRefresh }: LeaveListProp
             {leaves.length === 0 ? (
               <tr>
                 <td
-                  colSpan={isAdminOrManager ? 6 : 5}
+                  colSpan={isAdminOrManager ? 5 : 4}
                   className="px-6 py-4 text-center text-sm text-gray-500"
                 >
                   休暇データがありません
@@ -239,35 +125,8 @@ export function LeaveList({ userRole, userId, onEdit, onRefresh }: LeaveListProp
                   <td className="px-6 py-4 text-sm text-gray-900">
                     {leave.reason || '-'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        statusColors[leave.status]
-                      }`}
-                    >
-                      {statusLabels[leave.status]}
-                    </span>
-                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end gap-2">
-                      {isAdminOrManager && leave.status === 'pending' && (
-                        <>
-                          <button
-                            onClick={() => handleApprove(leave.id)}
-                            className="text-green-600 hover:text-green-900"
-                            title="承認"
-                          >
-                            <Check className="h-5 w-5" />
-                          </button>
-                          <button
-                            onClick={() => handleReject(leave.id)}
-                            className="text-red-600 hover:text-red-900"
-                            title="却下"
-                          >
-                            <X className="h-5 w-5" />
-                          </button>
-                        </>
-                      )}
                       <button
                         onClick={() => onEdit(leave)}
                         className="text-blue-600 hover:text-blue-900"
@@ -309,13 +168,6 @@ export function LeaveList({ userRole, userId, onEdit, onRefresh }: LeaveListProp
                     <div className="text-sm text-gray-600">{leave.user?.name || '不明'}</div>
                   )}
                 </div>
-                <span
-                  className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                    statusColors[leave.status]
-                  }`}
-                >
-                  {statusLabels[leave.status]}
-                </span>
               </div>
               <div className="text-sm text-gray-600">
                 種別: {leaveTypeLabels[leave.leave_type] || leave.leave_type}
@@ -324,24 +176,6 @@ export function LeaveList({ userRole, userId, onEdit, onRefresh }: LeaveListProp
                 <div className="text-sm text-gray-600">理由: {leave.reason}</div>
               )}
               <div className="flex justify-end gap-2 pt-2 border-t">
-                {isAdminOrManager && leave.status === 'pending' && (
-                  <>
-                    <button
-                      onClick={() => handleApprove(leave.id)}
-                      className="text-green-600 hover:text-green-900"
-                      title="承認"
-                    >
-                      <Check className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={() => handleReject(leave.id)}
-                      className="text-red-600 hover:text-red-900"
-                      title="却下"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-                  </>
-                )}
                 <button
                   onClick={() => onEdit(leave)}
                   className="text-blue-600 hover:text-blue-900"

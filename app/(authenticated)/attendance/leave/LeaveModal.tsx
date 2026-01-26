@@ -19,12 +19,6 @@ const leaveTypes = [
   { value: 'other', label: 'その他' },
 ]
 
-const statusOptions = [
-  { value: 'approved', label: '承認済み' },
-  { value: 'pending', label: '承認待ち' },
-  { value: 'rejected', label: '却下' },
-]
-
 export function LeaveModal({
   leave,
   isOpen,
@@ -37,7 +31,6 @@ export function LeaveModal({
   const [leaveDate, setLeaveDate] = useState('')
   const [leaveType, setLeaveType] = useState<string>('paid')
   const [reason, setReason] = useState('')
-  const [status, setStatus] = useState<string>('approved')
   const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [users, setUsers] = useState<any[]>([])
@@ -56,7 +49,6 @@ export function LeaveModal({
       setLeaveDate(leave.leave_date || '')
       setLeaveType(leave.leave_type || 'paid')
       setReason(leave.reason || '')
-      setStatus(leave.status || 'approved')
       setNotes(leave.notes || '')
     } else {
       // 新規作成時
@@ -64,7 +56,6 @@ export function LeaveModal({
       setLeaveDate('')
       setLeaveType('paid')
       setReason('')
-      setStatus('approved')
       setNotes('')
     }
   }, [leave, userId])
@@ -97,7 +88,6 @@ export function LeaveModal({
         leave_date: leaveDate,
         leave_type: leaveType,
         reason,
-        status,
         notes,
       }
 
@@ -216,26 +206,6 @@ export function LeaveModal({
               placeholder="休暇の理由を入力（任意）"
             />
           </div>
-
-          {/* ステータス（管理者のみ） */}
-          {isAdminOrManager && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                ステータス
-              </label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
-              >
-                {statusOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
 
           {/* 備考（管理者のみ） */}
           {isAdminOrManager && (

@@ -114,7 +114,7 @@ export async function PATCH(
 
     // リクエストボディ取得
     const body = await request.json()
-    const { leave_date, leave_type, reason, notes, status } = body
+    const { leave_date, leave_type, reason, notes } = body
 
     // 更新データ準備
     const updateData: any = {
@@ -130,14 +130,7 @@ export async function PATCH(
     }
     if (reason !== undefined) updateData.reason = reason
     if (notes !== undefined) updateData.notes = notes
-
-    // ステータス変更は管理者のみ
-    if (status !== undefined && isAdminOrManager) {
-      if (!['pending', 'approved', 'rejected'].includes(status)) {
-        return NextResponse.json({ error: '無効なステータスです' }, { status: 400 })
-      }
-      updateData.status = status
-    }
+    // status は常に 'approved' のため更新不要
 
     // 日付変更時の重複チェック
     if (leave_date && leave_date !== existingLeave.leave_date) {

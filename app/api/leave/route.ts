@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
 
     // リクエストボディ取得
     const body = await request.json()
-    const { user_id, leave_date, leave_type, reason, notes, status } = body
+    const { user_id, leave_date, leave_type, reason, notes } = body
 
     // 必須項目チェック
     if (!leave_date || !leave_type) {
@@ -150,10 +150,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'この日付には既に休暇が登録されています' }, { status: 400 })
     }
 
-    // ステータスの決定（管理者は直接承認可能、スタッフはpending）
-    const leaveStatus = isAdminOrManager && status ? status : 'approved'
-
-    // 休暇作成
+    // 休暇作成（常にstatus='approved'）
     const { data: newLeave, error: insertError } = await supabase
       .from('user_leave_records')
       .insert({
@@ -163,7 +160,7 @@ export async function POST(request: NextRequest) {
         leave_type,
         reason: reason || null,
         notes: notes || null,
-        status: leaveStatus,
+        status: 'approved', // 常に承認済みで登録
         created_by: user.id,
       })
       .select()
