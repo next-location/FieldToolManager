@@ -362,71 +362,47 @@ export function AttendanceSettingsFormSimple({
         </div>
 
         <div className="space-y-4">
-          <div>
-            <div className="flex items-center mb-2">
-              <input
-                id="checkin_reminder_enabled"
-                type="checkbox"
-                checked={settings.checkin_reminder_enabled}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    checkin_reminder_enabled: e.target.checked,
-                  })
-                }
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label htmlFor="checkin_reminder_enabled" className="ml-2 block text-sm text-gray-900">
-                出勤リマインダーを有効にする
-              </label>
-            </div>
-            {settings.checkin_reminder_enabled && (
-              <input
-                type="time"
-                value={settings.checkin_reminder_time}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    checkin_reminder_time: e.target.value,
-                  })
-                }
-                className="ml-6 block w-32 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              />
-            )}
+          <div className="flex items-center">
+            <input
+              id="checkin_reminder_enabled"
+              type="checkbox"
+              checked={settings.checkin_reminder_enabled}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  checkin_reminder_enabled: e.target.checked,
+                })
+              }
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="checkin_reminder_enabled" className="ml-2 block text-sm text-gray-900">
+              出勤リマインダーを有効にする
+            </label>
           </div>
+          <p className="text-xs text-gray-500 ml-6">
+            ※ アラート時刻は「勤務パターン管理」で個別に設定してください
+          </p>
 
-          <div>
-            <div className="flex items-center mb-2">
-              <input
-                id="checkout_reminder_enabled"
-                type="checkbox"
-                checked={settings.checkout_reminder_enabled}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    checkout_reminder_enabled: e.target.checked,
-                  })
-                }
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label htmlFor="checkout_reminder_enabled" className="ml-2 block text-sm text-gray-900">
-                退勤リマインダーを有効にする
-              </label>
-            </div>
-            {settings.checkout_reminder_enabled && (
-              <input
-                type="time"
-                value={settings.checkout_reminder_time}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    checkout_reminder_time: e.target.value,
-                  })
-                }
-                className="ml-6 block w-32 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              />
-            )}
+          <div className="flex items-center">
+            <input
+              id="checkout_reminder_enabled"
+              type="checkbox"
+              checked={settings.checkout_reminder_enabled}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  checkout_reminder_enabled: e.target.checked,
+                })
+              }
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="checkout_reminder_enabled" className="ml-2 block text-sm text-gray-900">
+              退勤リマインダーを有効にする
+            </label>
           </div>
+          <p className="text-xs text-gray-500 ml-6">
+            ※ アラート時刻は「勤務パターン管理」で個別に設定してください
+          </p>
         </div>
       </div>
 
