@@ -58,6 +58,7 @@ interface BulkMovementFormProps {
   warehouseLocations: WarehouseLocation[]
   toolSets: ToolSet[]
   scannedItemIds: string[]
+  selectedToolSetId: string | null
   organizationId: string
   userId: string
   userRole: string
@@ -72,6 +73,7 @@ export function BulkMovementForm({
   warehouseLocations,
   toolSets,
   scannedItemIds,
+  selectedToolSetId: initialToolSetId,
   organizationId,
   userId,
   userRole,
@@ -87,8 +89,8 @@ export function BulkMovementForm({
   const [destinationSiteId, setDestinationSiteId] = useState<string>('')
   const [destinationWarehouseLocationId, setDestinationWarehouseLocationId] = useState<string>('')
 
-  // 選択モード
-  const [selectionMode, setSelectionMode] = useState<SelectionMode>('individual')
+  // 選択モード（セットIDがある場合はset、ない場合はindividual）
+  const [selectionMode, setSelectionMode] = useState<SelectionMode>(initialToolSetId ? 'set' : 'individual')
 
   // 選択された道具の状態（スキャン済みIDで初期化）
   const [selectedToolIds, setSelectedToolIds] = useState<string[]>(scannedItemIds)
@@ -96,8 +98,8 @@ export function BulkMovementForm({
   const [searchQuery, setSearchQuery] = useState('')
   const [showCamera, setShowCamera] = useState(false)
 
-  // 道具セット選択
-  const [selectedToolSetId, setSelectedToolSetId] = useState<string>('')
+  // 道具セット選択（初期値をpropsから設定）
+  const [selectedToolSetId, setSelectedToolSetId] = useState<string>(initialToolSetId || '')
 
   // 同じ場所制限（一括移動は同じ場所の道具のみ）
   const [requiredLocation, setRequiredLocation] = useState<string | null>(null)

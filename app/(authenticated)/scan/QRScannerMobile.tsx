@@ -40,6 +40,7 @@ export function QRScannerMobile({ mode, userRole, onClose }: QRScannerMobileProp
   const [scanSuccess, setScanSuccess] = useState(false)
   const [isListExpanded, setIsListExpanded] = useState(false)
   const [toolSetDialog, setToolSetDialog] = useState<{ toolItem: any; toolSets: ToolSetInfo[] } | null>(null)
+  const [selectedToolSetId, setSelectedToolSetId] = useState<string | null>(null) // セット全体選択時のセットID
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const processingQrRef = useRef<boolean>(false) // QR処理中フラグ
   const lastScannedRef = useRef<string | null>(null) // 最後にスキャンしたQRコード
@@ -235,6 +236,9 @@ export function QRScannerMobile({ mode, userRole, onClose }: QRScannerMobileProp
       // QRコードをスキャン済みSetに追加
       newItems.forEach(item => scannedQrCodesRef.current.add(item.qrCode))
 
+      // セット全体選択時はセットIDを保存
+      setSelectedToolSetId(toolSetInfo.id)
+
       setToolSetDialog(null)
       setScanSuccess(true)
       setTimeout(() => setScanSuccess(false), 500)
@@ -329,19 +333,6 @@ export function QRScannerMobile({ mode, userRole, onClose }: QRScannerMobileProp
         .eq('tool_item_id', toolItem.id)
 
       if (toolSetMemberships && toolSetMemberships.length > 0) {
-        // スタッフ権限の場合はセット登録道具をスキャンできない
-        const isStaff = userRole === 'staff'
-        if (isStaff) {
-          const setNames = toolSetMemberships.map((m: any) => m.tool_sets.name).join('、')
-          setError(
-            `道具セット「${setNames}」に登録されています。\n\n` +
-            `個別での移動は権限リーダー以上でしかできません。`
-          )
-          setTimeout(() => setError(null), 5000)
-          scannedQrCodesRef.current.delete(qrCode) // スキャン済みから削除
-          return
-        }
-
         // セットに登録されている場合、確認ダイアログを表示
         const toolSetIds = toolSetMemberships.map(m => m.tool_set_id)
 
@@ -522,7 +513,13 @@ export function QRScannerMobile({ mode, userRole, onClose }: QRScannerMobileProp
       // 道具移動ページへリダイレクト
       const itemIds = scannedItems.map(item => item.id).join(',')
       console.log('[QR SCAN] 道具移動ページへリダイレクト:', itemIds)
-      router.push(`/movements/bulk?items=${itemIds}`)
+
+      // セット全体選択の場合はセットIDもURLに含める
+      if (selectedToolSetId) {
+        router.push(`/movements/bulk?items=${itemIds}&toolSetId=${selectedToolSetId}`)
+      } else {
+        router.push(`/movements/bulk?items=${itemIds}`)
+      }
     } else if (mode === 'consumable') {
       // 消耗品移動ページへリダイレクト
       const consumableIds = scannedItems.map(item => item.id).join(',')
@@ -807,18 +804,21 @@ export function QRScannerMobile({ mode, userRole, onClose }: QRScannerMobileProp
                   <span>セット全体を選択</span>
                 </button>
 
-                <button
-                  onClick={() => handleConfirmIndividualSelection(toolSetDialog.toolItem, toolSetDialog.toolSets)}
-                  className="w-full py-3 px-4 bg-yellow-50 text-yellow-900 border-2 border-yellow-300 rounded-lg font-medium hover:bg-yellow-100"
-                >
-                  <div className="flex items-center justify-center gap-2 mb-1">
-                    <span className="text-xl">⚠️</span>
-                    <span>この道具のみ選択</span>
-                  </div>
-                  <div className="text-xs text-yellow-700">
-                    ※セット「{toolSetDialog.toolSets[0].name}」が削除されます
-                  </div>
-                </button>
+                {/* リーダー以上のみ個別選択可能 */}
+                {userRole !== 'staff' && (
+                  <button
+                    onClick={() => handleConfirmIndividualSelection(toolSetDialog.toolItem, toolSetDialog.toolSets)}
+                    className="w-full py-3 px-4 bg-yellow-50 text-yellow-900 border-2 border-yellow-300 rounded-lg font-medium hover:bg-yellow-100"
+                  >
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <span className="text-xl">⚠️</span>
+                      <span>この道具のみ選択</span>
+                    </div>
+                    <div className="text-xs text-yellow-700">
+                      ※セット「{toolSetDialog.toolSets[0].name}」が削除されます
+                    </div>
+                  </button>
+                )}
 
                 <button
                   onClick={() => {

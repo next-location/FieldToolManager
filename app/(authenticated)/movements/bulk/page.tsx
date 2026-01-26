@@ -9,13 +9,14 @@ export const revalidate = 0
 export default async function BulkMovementPage({
   searchParams,
 }: {
-  searchParams: Promise<{ items?: string }>
+  searchParams: Promise<{ items?: string; toolSetId?: string }>
 }) {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
-  // スキャンされたアイテムIDを取得
+  // スキャンされたアイテムIDとセットIDを取得
   const params = await searchParams
   const scannedItemIds = params.items ? params.items.split(',') : []
+  const selectedToolSetId = params.toolSetId || null
 
   // 道具個別アイテムを取得（削除されていないもの）
   const { data: toolItems } = await supabase
@@ -129,6 +130,7 @@ export default async function BulkMovementPage({
             warehouseLocations={warehouseLocations || []}
             toolSets={toolSets || []}
             scannedItemIds={scannedItemIds}
+            selectedToolSetId={selectedToolSetId}
             organizationId={organizationId}
             userId={userId}
             userRole={userRole}
