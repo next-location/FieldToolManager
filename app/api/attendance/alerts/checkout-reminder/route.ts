@@ -1,16 +1,19 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { isWorkingDay } from '@/lib/attendance/holiday-checker'
+import { notifyCheckoutReminder, notifyIndividualCheckoutReminder } from '@/lib/notifications/attendance-alert-notifications'
 
 /**
  * POST /api/attendance/alerts/checkout-reminder
  * 退勤忘れ通知を生成（定期実行用）
- * 設定時刻（デフォルト20:00）に退勤打刻忘れのスタッフに通知
+ * Phase 2: 勤務パターンごとの時刻に対応
+ * 時間単位で実行し、該当する勤務パターンのアラート時刻に到達したスタッフのみ処理
  */
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
 
-    // Cron認証
+    // Cron認証（本番環境ではVercel Cron Secretなどで保護）
     const authHeader = request.headers.get('authorization')
     const cronSecret = process.env.CRON_SECRET || 'dev-secret'
 
@@ -18,11 +21,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
     }
 
-    // 日本時間で今日の日付を取得
+    // 日本時間で今日の日付と現在時刻を取得
     const now = new Date()
-    const jstOffset = 9 * 60
+    const jstOffset = 9 * 60 // 日本は UTC+9
     const jstDate = new Date(now.getTime() + jstOffset * 60 * 1000)
-    const today = jstDate.toISOString().split('T')[0]
+    const today = jstDate.toISOString().split('T')[0] // YYYY-MM-DD
+    const currentHour = jstDate.getHours() // 0-23
+    const currentMinute = jstDate.getMinutes() // 0-59
+
+    console.log(`[退勤リマインダー] 処理開始: ${today} ${currentHour}:${currentMinute}`)
 
     // 退勤リマインダーが有効な組織を取得
     const { data: organizations, error: orgError } = await supabase
@@ -30,7 +37,8 @@ export async function POST(request: NextRequest) {
       .select(`
         organization_id,
         checkout_reminder_enabled,
-        checkout_reminder_time,
+        working_days,
+        exclude_holidays,
         organizations (
           id,
           name
@@ -39,6 +47,7 @@ export async function POST(request: NextRequest) {
       .eq('checkout_reminder_enabled', true)
 
     if (orgError || !organizations || organizations.length === 0) {
+      console.log('[退勤リマインダー] 有効な組織なし')
       return NextResponse.json({
         success: true,
         message: '退勤リマインダーが有効な組織がありません',
@@ -47,81 +56,186 @@ export async function POST(request: NextRequest) {
     }
 
     let totalAlerts = 0
+    let skippedOrgs = 0
 
     // 各組織ごとに処理
     for (const org of organizations) {
       const organizationId = org.organization_id
 
-      // 今日の出勤記録で退勤していないレコードを取得
-      const { data: incompleteRecords, error: recordsError } = await supabase
+      // 営業日判定
+      const workingDays = org.working_days || {
+        mon: true,
+        tue: true,
+        wed: true,
+        thu: true,
+        fri: true,
+        sat: false,
+        sun: false
+      }
+      const excludeHolidays = org.exclude_holidays ?? true
+
+      const isBusinessDay = await isWorkingDay(today, workingDays, excludeHolidays)
+
+      if (!isBusinessDay) {
+        console.log(`[退勤リマインダー] 組織 ${organizationId}: 本日は休日のためスキップ`)
+        skippedOrgs++
+        continue
+      }
+
+      console.log(`[退勤リマインダー] 組織 ${organizationId}: 営業日として処理開始`)
+
+      // その組織の勤務パターン一覧を取得
+      const { data: workPatterns, error: patternsError } = await supabase
+        .from('work_patterns')
+        .select('id, name, expected_checkout_time, checkout_alert_enabled, checkout_alert_hours_after')
+        .eq('organization_id', organizationId)
+
+      if (patternsError || !workPatterns || workPatterns.length === 0) {
+        console.log(`[退勤リマインダー] 組織 ${organizationId}: 勤務パターンなし`)
+        continue
+      }
+
+      // 現在時刻にアラートすべきパターンをフィルタリング
+      const targetPatterns = workPatterns.filter((pattern) => {
+        if (!pattern.checkout_alert_enabled || !pattern.expected_checkout_time) return false
+
+        // expected_checkout_time (HH:MM:SS) をパース
+        const [hours, minutes] = pattern.expected_checkout_time.split(':').map(Number)
+
+        // アラート時刻 = 退勤予定時刻 + checkout_alert_hours_after
+        const alertHours = hours + Math.floor(pattern.checkout_alert_hours_after)
+        const alertMinutes = minutes + (pattern.checkout_alert_hours_after % 1) * 60
+
+        // 正規化
+        const finalAlertHours = alertHours + Math.floor(alertMinutes / 60)
+        const finalAlertMinutes = Math.floor(alertMinutes % 60)
+
+        // 現在時刻がアラート時刻と一致するか（±30分の範囲）
+        const hourMatch = currentHour === finalAlertHours
+        const minuteMatch = Math.abs(currentMinute - finalAlertMinutes) <= 30
+
+        return hourMatch && minuteMatch
+      })
+
+      if (targetPatterns.length === 0) {
+        console.log(`[退勤リマインダー] 組織 ${organizationId}: 現在時刻に該当する勤務パターンなし`)
+        continue
+      }
+
+      const targetPatternIds = targetPatterns.map((p) => p.id)
+      console.log(`[退勤リマインダー] 組織 ${organizationId}: 対象パターン ${targetPatternIds.length}件`)
+
+      // 対象パターンを持つスタッフを取得
+      const { data: users, error: usersError } = await supabase
+        .from('users')
+        .select('id, name, email, role, work_pattern_id')
+        .eq('organization_id', organizationId)
+        .in('work_pattern_id', targetPatternIds)
+        .is('deleted_at', null)
+
+      if (usersError || !users || users.length === 0) {
+        console.log(`[退勤リマインダー] 組織 ${organizationId}: 対象スタッフなし`)
+        continue
+      }
+
+      // 今日の出退勤記録を取得（出勤済みで退勤していない人を対象）
+      const { data: todayRecords, error: recordsError } = await supabase
         .from('attendance_records')
-        .select(`
-          id,
-          user_id,
-          clock_in_time,
-          users (
-            id,
-            name,
-            email
-          )
-        `)
+        .select('user_id, check_in_time, check_out_time')
         .eq('organization_id', organizationId)
         .eq('date', today)
-        .is('clock_out_time', null) // 退勤していない
 
       if (recordsError) {
-        console.error(`組織 ${organizationId} の出勤記録取得エラー:`, recordsError)
+        console.error(`組織 ${organizationId} の出退勤記録取得エラー:`, recordsError)
         continue
       }
 
-      if (!incompleteRecords || incompleteRecords.length === 0) {
+      // 出勤済みで退勤していないユーザーIDのSet
+      const needCheckoutUserIds = new Set(
+        (todayRecords || [])
+          .filter((r) => r.check_in_time && !r.check_out_time)
+          .map((r) => r.user_id)
+      )
+
+      // 退勤打刻が必要なユーザーを抽出
+      const missingUsers = users.filter((user) => needCheckoutUserIds.has(user.id))
+
+      if (missingUsers.length === 0) {
+        console.log(`[退勤リマインダー] 組織 ${organizationId}: 全員退勤済みまたは未出勤`)
         continue
       }
 
-      // 退勤忘れのユーザーにアラート作成
-      const alerts = incompleteRecords.map((record) => {
-        const user = record.users as any
-
-        // 勤務時間を計算
-        const clockInTime = new Date(record.clock_in_time)
-        const workingHours = Math.floor((now.getTime() - clockInTime.getTime()) / (1000 * 60 * 60))
-
+      // アラート作成
+      const alerts = missingUsers.map((user) => {
+        const pattern = workPatterns.find((p) => p.id === user.work_pattern_id)
         return {
           organization_id: organizationId,
-          target_user_id: record.user_id,
+          target_user_id: user.id,
           alert_type: 'checkout_reminder',
           target_date: today,
           title: '退勤打刻忘れ',
-          message: `${user.name}さん、退勤打刻がまだされていません。打刻をお願いします。（勤務時間: 約${workingHours}時間）`,
+          message: `${user.name}さん、まだ退勤打刻がされていません。打刻をお願いします。`,
           metadata: {
             user_name: user.name,
             user_email: user.email,
-            clock_in_time: record.clock_in_time,
-            working_hours: workingHours,
-            reminder_time: org.checkout_reminder_time,
+            work_pattern_name: pattern?.name || '未設定',
+            expected_checkout_time: pattern?.expected_checkout_time || null,
           },
         }
       })
 
-      if (alerts.length > 0) {
-        const { error: insertError } = await supabase.from('attendance_alerts').insert(alerts)
+      const { error: insertError } = await supabase.from('attendance_alerts').insert(alerts)
 
-        if (insertError) {
-          console.error(`組織 ${organizationId} のアラート挿入エラー:`, insertError)
-        } else {
-          totalAlerts += alerts.length
+      if (insertError) {
+        console.error(`[退勤リマインダー] 組織 ${organizationId} のアラート挿入エラー:`, insertError)
+        continue
+      }
+
+      console.log(`[退勤リマインダー] 組織 ${organizationId}: ${alerts.length}件のアラートを生成`)
+      totalAlerts += alerts.length
+
+      // 通知を送信
+      try {
+        // 管理者/マネージャーにサマリー通知
+        await notifyCheckoutReminder({
+          organizationId,
+          targetDate: today,
+          missingUsers: missingUsers.map(u => ({
+            id: u.id,
+            name: u.name,
+            email: u.email
+          }))
+        })
+
+        // 個別通知を全員に送信
+        for (const user of missingUsers) {
+          await notifyIndividualCheckoutReminder({
+            organizationId,
+            userId: user.id,
+            userName: user.name,
+            targetDate: today
+          })
         }
+
+        console.log(`[退勤リマインダー] 組織 ${organizationId}: 通知送信完了`)
+      } catch (notifyError) {
+        console.error(`[退勤リマインダー] 組織 ${organizationId} の通知送信エラー:`, notifyError)
+        // 通知エラーがあってもアラート生成は成功しているので続行
       }
     }
+
+    console.log(`[退勤リマインダー] 処理完了: ${totalAlerts}件生成, ${skippedOrgs}組織スキップ`)
 
     return NextResponse.json({
       success: true,
       message: `退勤リマインダー処理完了: ${totalAlerts}件のアラートを生成しました`,
       processed: totalAlerts,
+      skipped_organizations: skippedOrgs,
       date: today,
+      time: `${currentHour}:${currentMinute}`,
     })
   } catch (error) {
-    console.error('退勤リマインダー処理エラー:', error)
+    console.error('[退勤リマインダー] 処理エラー:', error)
     return NextResponse.json(
       { error: '退勤リマインダーの処理に失敗しました' },
       { status: 500 }
