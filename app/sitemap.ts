@@ -23,12 +23,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.8,
     },
-    {
-      url: `${baseUrl}/request-demo/success`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 0.5,
-    },
+    // サンクスページはインデックス不要のため除外
+    // {
+    //   url: `${baseUrl}/request-demo/success`,
+    //   lastModified: new Date(),
+    //   changeFrequency: 'yearly',
+    //   priority: 0.5,
+    // },
     {
       url: `${baseUrl}/privacy-policy`,
       lastModified: new Date(),
