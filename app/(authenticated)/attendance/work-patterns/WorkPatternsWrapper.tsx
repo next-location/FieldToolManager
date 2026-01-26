@@ -48,8 +48,21 @@ export function WorkPatternsWrapper({
     setEditingPattern(null)
   }
 
-  const handleEdit = (pattern: any) => {
-    setEditingPattern(pattern)
+  const handleEdit = async (pattern: any) => {
+    // 最新のデータを取得してからモーダルを開く
+    try {
+      const response = await fetch(`/api/attendance/work-patterns/${pattern.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        setEditingPattern(data.pattern)
+      } else {
+        // 取得失敗時は既存データを使用
+        setEditingPattern(pattern)
+      }
+    } catch (error) {
+      console.error('Failed to fetch latest pattern data:', error)
+      setEditingPattern(pattern)
+    }
     setIsModalOpen(true)
   }
 
