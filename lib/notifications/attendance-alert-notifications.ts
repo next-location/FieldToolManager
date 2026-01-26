@@ -57,7 +57,7 @@ export async function notifyCheckinReminder(params: NotifyCheckinReminderParams)
     title: `出勤打刻忘れアラート（${params.missingUsers.length}名）`,
     message: `${params.targetDate}の出勤打刻がまだ行われていません：${summary}`,
     severity: 'warning' as const,
-    related_user_id: recipient.id,
+    target_user_id: recipient.id,
     sent_via: ['in_app'],
     sent_at: new Date().toISOString(),
   }))
@@ -88,7 +88,7 @@ export async function notifyIndividualCheckinReminder(params: {
     title: '出勤打刻忘れ',
     message: `${params.targetDate}の出勤打刻がまだ行われていません。打刻をお願いします。`,
     severity: 'warning',
-    related_user_id: params.userId,
+    target_user_id: params.userId,
     sent_via: ['in_app'],
     sent_at: new Date().toISOString(),
   })

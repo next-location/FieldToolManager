@@ -25,14 +25,14 @@ export async function GET() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // 未読通知数を取得（related_user_idが指定されている場合はそのユーザー宛、なければ組織全体）
+    // 未読通知数を取得（target_user_idが指定されている場合はそのユーザー宛、なければ組織全体）
     const { count, error } = await supabase
       .from('notifications')
       .select('*', { count: 'exact', head: true })
       .eq('organization_id', userData?.organization_id)
       .eq('is_read', false)
       .is('deleted_at', null)
-      .or(`related_user_id.eq.${user.id},related_user_id.is.null`)
+      .or(`target_user_id.eq.${user.id},target_user_id.is.null`)
 
     if (error) {
       console.error('Failed to fetch unread count:', error)
