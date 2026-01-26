@@ -112,7 +112,7 @@ export async function PATCH(
 
     // リクエストボディ取得
     const body = await request.json()
-    const { name, expected_checkin_time, alert_time, is_night_shift, is_default } = body
+    const { name, expected_checkin_time, is_night_shift, is_default, alert_enabled, alert_hours_after } = body
 
     // デフォルトパターンの場合、既存のデフォルトを解除
     if (is_default && !existingPattern.is_default) {
@@ -130,9 +130,10 @@ export async function PATCH(
 
     if (name !== undefined) updateData.name = name
     if (expected_checkin_time !== undefined) updateData.expected_checkin_time = expected_checkin_time
-    if (alert_time !== undefined) updateData.alert_time = alert_time
     if (is_night_shift !== undefined) updateData.is_night_shift = is_night_shift
     if (is_default !== undefined) updateData.is_default = is_default
+    if (alert_enabled !== undefined) updateData.alert_enabled = alert_enabled
+    if (alert_hours_after !== undefined) updateData.alert_hours_after = alert_hours_after
 
     // 更新実行
     const { data: updatedPattern, error: updateError } = await supabase

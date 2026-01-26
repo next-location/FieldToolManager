@@ -80,6 +80,30 @@ export function ConsumableBulkMovementForm({
   const [searchQuery, setSearchQuery] = useState('')
   const [notes, setNotes] = useState('')
 
+  // 選択された消耗品の在庫がある場所を取得
+  const availableSourceLocations = selectedConsumables.length > 0
+    ? inventories.filter(inv =>
+        selectedConsumables.some(sc => sc.consumableId === inv.tool_id) &&
+        inv.quantity > 0
+      )
+    : []
+
+  // 在庫がある倉庫位置のリスト
+  const availableWarehouseLocations = availableSourceLocations
+    .filter(inv => inv.location_type === 'warehouse' && inv.warehouse_location_id)
+    .map(inv => inv.warehouse_location)
+    .filter((loc, index, self) =>
+      loc && self.findIndex(l => l?.id === loc.id) === index
+    ) as WarehouseLocation[]
+
+  // 在庫がある現場のリスト
+  const availableSites = availableSourceLocations
+    .filter(inv => inv.location_type === 'site' && inv.site_id)
+    .map(inv => inv.site)
+    .filter((site, index, self) =>
+      site && self.findIndex(s => s?.id === site.id) === index
+    ) as Site[]
+
   // UI状態
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -475,89 +499,181 @@ export function ConsumableBulkMovementForm({
         </div>
       )}
 
-      {/* 1. 移動元選択 */}
+      {/* 1. 消耗品選択 */}
       <div className="space-y-4">
-        <h3 className="text-base font-semibold text-gray-900">1. 移動元を選択</h3>
+        <h3 className="text-base font-semibold text-gray-900">1. 消耗品を選択</h3>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <p className="text-sm text-gray-600">QRスキャンまたは検索して消耗品を選択</p>
           <button
             type="button"
-            onClick={() => setSourceLocationType('warehouse')}
+            onClick={() => setShowCamera(true)}
             disabled={isSubmitting}
-            className={`p-4 border-2 rounded-lg text-center transition-colors ${
-              sourceLocationType === 'warehouse'
-                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                : 'border-gray-300 hover:border-gray-400'
-            }`}
+            className="w-full sm:w-auto px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
           >
-            <div className="text-2xl mb-1">🏢</div>
-            <div className="font-medium">倉庫</div>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setSourceLocationType('site')}
-            disabled={isSubmitting}
-            className={`p-4 border-2 rounded-lg text-center transition-colors ${
-              sourceLocationType === 'site'
-                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                : 'border-gray-300 hover:border-gray-400'
-            }`}
-          >
-            <div className="text-2xl mb-1">🏗️</div>
-            <div className="font-medium">現場</div>
+            📷 QRコードをスキャン
           </button>
         </div>
 
-        {/* 現場選択 */}
-        {sourceLocationType === 'site' && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              現場 <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={sourceSiteId}
-              onChange={(e) => setSourceSiteId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={isSubmitting}
-              required
-            >
-              <option value="">現場を選択してください</option>
-              {sites.map((site) => (
-                <option key={site.id} value={site.id}>
-                  {site.name}
-                </option>
-              ))}
-            </select>
+        {/* 成功メッセージ */}
+        {scanSuccess && lastScannedConsumable && (
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded flex items-center gap-2 animate-pulse">
+            <span className="text-2xl">✓</span>
+            <div>
+              <div className="font-semibold">読み取り成功！</div>
+              <div className="text-sm">{lastScannedConsumable}</div>
+            </div>
           </div>
         )}
 
-        {/* 倉庫位置選択（オプション） */}
-        {sourceLocationType === 'warehouse' && warehouseLocations.length > 0 && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              倉庫位置（オプション）
-            </label>
-            <select
-              value={sourceWarehouseLocationId}
-              onChange={(e) => setSourceWarehouseLocationId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={isSubmitting}
-            >
-              <option value="">倉庫位置を選択（任意）</option>
-              {warehouseLocations.map((loc) => (
-                <option key={loc.id} value={loc.id}>
-                  {loc.code} - {loc.display_name}
-                </option>
-              ))}
-            </select>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            消耗品を検索して追加
+          </label>
+          <input
+            type="text"
+            placeholder="消耗品名、型番で検索..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 border-gray-300 focus:ring-blue-500"
+            disabled={isSubmitting}
+          />
+        </div>
+
+        {/* 検索結果 */}
+        {searchQuery && filteredConsumables.length > 0 && (
+          <div className="border border-gray-300 rounded-md max-h-48 overflow-y-auto">
+            {filteredConsumables.slice(0, 10).map((consumable) => {
+              const isSelected = selectedConsumables.some(
+                (sc) => sc.consumableId === consumable.id
+              )
+              return (
+                <button
+                  key={consumable.id}
+                  type="button"
+                  onClick={() => !isSelected && handleAddConsumable(consumable.id)}
+                  disabled={isSubmitting || isSelected}
+                  className={`w-full text-left px-3 py-2 hover:bg-gray-50 border-b border-gray-200 last:border-b-0 ${
+                    isSelected ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''
+                  }`}
+                >
+                  <div className="font-medium text-sm">
+                    {consumable.name}
+                    {isSelected && (
+                      <span className="ml-2 text-xs text-gray-500">(選択済み)</span>
+                    )}
+                  </div>
+                  {consumable.model_number && (
+                    <div className="text-xs text-gray-500">{consumable.model_number}</div>
+                  )}
+                </button>
+              )
+            })}
           </div>
         )}
       </div>
 
-      {/* 2. 移動先選択 */}
+      {/* 2. 移動元選択 */}
       <div className="space-y-4">
-        <h3 className="text-base font-semibold text-gray-900">2. 移動先を選択</h3>
+        <h3 className="text-base font-semibold text-gray-900">2. 移動元を選択</h3>
+        {selectedConsumables.length === 0 && (
+          <p className="text-sm text-gray-500">まず消耗品を選択してください</p>
+        )}
+
+        {selectedConsumables.length > 0 && (
+          <>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setSourceLocationType('warehouse')}
+                disabled={isSubmitting || availableWarehouseLocations.length === 0}
+                className={`p-4 border-2 rounded-lg text-center transition-colors ${
+                  sourceLocationType === 'warehouse'
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : availableWarehouseLocations.length === 0
+                    ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                <div className="text-2xl mb-1">🏢</div>
+                <div className="font-medium">倉庫</div>
+                {availableWarehouseLocations.length === 0 && (
+                  <div className="text-xs mt-1">(在庫なし)</div>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSourceLocationType('site')}
+                disabled={isSubmitting || availableSites.length === 0}
+                className={`p-4 border-2 rounded-lg text-center transition-colors ${
+                  sourceLocationType === 'site'
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : availableSites.length === 0
+                    ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                <div className="text-2xl mb-1">🏗️</div>
+                <div className="font-medium">現場</div>
+                {availableSites.length === 0 && (
+                  <div className="text-xs mt-1">(在庫なし)</div>
+                )}
+              </button>
+            </div>
+
+            {/* 現場選択 */}
+            {sourceLocationType === 'site' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  現場 <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={sourceSiteId}
+                  onChange={(e) => setSourceSiteId(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={isSubmitting}
+                  required
+                >
+                  <option value="">現場を選択してください</option>
+                  {availableSites.map((site) => (
+                    <option key={site.id} value={site.id}>
+                      {site.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* 倉庫位置選択 */}
+            {sourceLocationType === 'warehouse' && availableWarehouseLocations.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  倉庫位置 <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={sourceWarehouseLocationId}
+                  onChange={(e) => setSourceWarehouseLocationId(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={isSubmitting}
+                  required
+                >
+                  <option value="">倉庫位置を選択してください</option>
+                  {availableWarehouseLocations.map((loc) => (
+                    <option key={loc.id} value={loc.id}>
+                      {loc.code} - {loc.display_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* 3. 移動先選択 */}
+      <div className="space-y-4">
+        <h3 className="text-base font-semibold text-gray-900">3. 移動先を選択</h3>
 
         <div className="grid grid-cols-2 gap-3">
           <button
@@ -635,115 +751,11 @@ export function ConsumableBulkMovementForm({
         )}
       </div>
 
-      {/* 3. 消耗品選択 */}
-      <div className="space-y-4">
-        <h3 className="text-base font-semibold text-gray-900">3. 消耗品を選択</h3>
-
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <p className="text-sm text-gray-600">QRスキャンまたは検索して消耗品を選択</p>
-          <button
-            type="button"
-            onClick={() => setShowCamera(true)}
-            disabled={isSubmitting}
-            className="w-full sm:w-auto px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-          >
-            📷 QRコードをスキャン
-          </button>
-        </div>
-
-        {/* 成功メッセージ */}
-        {scanSuccess && lastScannedConsumable && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded flex items-center gap-2 animate-pulse">
-            <span className="text-2xl">✓</span>
-            <div>
-              <div className="font-semibold">読み取り成功！</div>
-              <div className="text-sm">{lastScannedConsumable}</div>
-            </div>
-          </div>
-        )}
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            消耗品を検索して追加
-          </label>
-          <input
-            type="text"
-            placeholder="消耗品名、型番で検索..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 border-gray-300 focus:ring-blue-500"
-            disabled={isSubmitting}
-          />
-        </div>
-
-        {/* 検索結果 */}
-        {searchQuery && filteredConsumables.length > 0 && (
-          <div className="border border-gray-300 rounded-md max-h-48 overflow-y-auto">
-            {filteredConsumables.slice(0, 10).map((consumable) => {
-              const isSelected = selectedConsumables.some(
-                (sc) => sc.consumableId === consumable.id
-              )
-              // 移動元の在庫のみを表示
-              const sourceInventory = inventories.find(inv => {
-                if (inv.tool_id !== consumable.id) return false
-                if (inv.location_type !== sourceLocationType) return false
-                if (sourceLocationType === 'site') {
-                  return inv.site_id === sourceSiteId
-                } else {
-                  if (sourceWarehouseLocationId) {
-                    return inv.warehouse_location_id === sourceWarehouseLocationId
-                  } else {
-                    return inv.warehouse_location_id === null
-                  }
-                }
-              })
-              return (
-                <button
-                  key={consumable.id}
-                  type="button"
-                  onClick={() => !isSelected && handleAddConsumable(consumable.id)}
-                  disabled={isSubmitting || isSelected}
-                  className={`w-full text-left px-3 py-2 hover:bg-gray-50 border-b border-gray-200 last:border-b-0 ${
-                    isSelected ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''
-                  }`}
-                >
-                  <div className="font-medium text-sm">
-                    {consumable.name}
-                    {isSelected && (
-                      <span className="ml-2 text-xs text-gray-500">(選択済み)</span>
-                    )}
-                  </div>
-                  {consumable.model_number && (
-                    <div className="text-xs text-gray-500">{consumable.model_number}</div>
-                  )}
-                  <div className="text-xs text-gray-500 mt-1">
-                    {sourceInventory ? (
-                      <div>
-                        {sourceLocationType === 'warehouse'
-                          ? sourceInventory.warehouse_location
-                            ? `倉庫（${sourceInventory.warehouse_location.code} - ${sourceInventory.warehouse_location.display_name}）: ${sourceInventory.quantity}${consumable.unit}`
-                            : `倉庫: ${sourceInventory.quantity}${consumable.unit}`
-                          : sourceInventory.site
-                          ? `${sourceInventory.site.name}: ${sourceInventory.quantity}${consumable.unit}`
-                          : `現場: ${sourceInventory.quantity}${consumable.unit}`
-                        }
-                      </div>
-                    ) : (
-                      <div className="text-gray-400">在庫なし</div>
-                    )}
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* 4. 選択中の消耗品 */}
+      {/* 選択中の消耗品 */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-semibold text-gray-900">
-            4. 選択中の消耗品（{selectedConsumables.length}件）
+            選択中の消耗品（{selectedConsumables.length}件）
           </h3>
           {selectedConsumables.length > 0 && (
             <button
