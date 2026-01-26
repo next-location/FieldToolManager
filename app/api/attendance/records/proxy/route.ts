@@ -149,9 +149,11 @@ export async function POST(request: NextRequest) {
     const newRecord: any = {
       organization_id: userData.organization_id,
       user_id: user_id,
+      date: targetDate, // YYYY-MM-DD形式
       clock_in_time: clockInDate.toISOString(),
       clock_in_location_type: clock_in_location_type || 'office',
       clock_in_site_id: clock_in_location_type === 'site' ? clock_in_site_id : null,
+      clock_in_method: 'manual', // 代理打刻は常にmanual
       is_manually_edited: true,
       edited_by: user.id,
       edited_at: now.toISOString(),
@@ -164,6 +166,7 @@ export async function POST(request: NextRequest) {
       newRecord.clock_out_time = new Date(clock_out_time).toISOString()
       newRecord.clock_out_location_type = clock_out_location_type || 'office'
       newRecord.clock_out_site_id = clock_out_location_type === 'site' ? clock_out_site_id : null
+      newRecord.clock_out_method = 'manual' // 代理打刻は常にmanual
     }
 
     const { data: createdRecord, error: insertError } = await supabase
