@@ -141,6 +141,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'バリデーションエラー', validation_errors: errors }, { status: 400 })
     }
 
+    // デフォルト勤務パターンを取得（全員に適用）
+    const { data: defaultPattern } = await supabase
+      .from('work_patterns')
+      .select('id')
+      .eq('organization_id', userData?.organization_id)
+      .eq('is_default', true)
+      .single()
+
+    const defaultWorkPatternId = defaultPattern?.id || null
+
     // 一括登録処理
     const results = {
       success: 0,
@@ -164,7 +174,7 @@ export async function POST(request: NextRequest) {
           continue
         }
 
-        // usersテーブルにレコード追加
+        // usersテーブルにレコード追加（デフォルトパターンを自動割り当て）
         const { error: insertError } = await supabase.from('users').insert({
           id: authData.user.id,
           organization_id: userData?.organization_id,
@@ -174,6 +184,7 @@ export async function POST(request: NextRequest) {
           department: s.department || null,
           employee_id: s.employee_id || null,
           phone: s.phone || null,
+          work_pattern_id: defaultWorkPatternId,
           is_active: true,
           invited_at: new Date().toISOString(),
         })

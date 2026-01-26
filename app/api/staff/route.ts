@@ -263,6 +263,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 勤務パターン未指定の場合、デフォルトパターンを取得
+    let finalWorkPatternId = work_pattern_id || null
+    if (!finalWorkPatternId) {
+      const { data: defaultPattern } = await supabaseAdmin
+        .from('work_patterns')
+        .select('id')
+        .eq('organization_id', userData?.organization_id)
+        .eq('is_default', true)
+        .single()
+
+      if (defaultPattern) {
+        finalWorkPatternId = defaultPattern.id
+        console.log('[STAFF POST] Auto-assigned default work pattern:', finalWorkPatternId)
+      }
+    }
+
     // usersテーブルに登録（auth.users.idを使用）
     // Admin clientを使用してRLSをバイパス
     const { data: newUser, error: createError } = await supabaseAdmin
@@ -276,7 +292,7 @@ export async function POST(request: NextRequest) {
         department,
         employee_id,
         phone,
-        work_pattern_id: work_pattern_id || null,
+        work_pattern_id: finalWorkPatternId,
         is_active: true,
         invited_at: new Date().toISOString(),
       })
