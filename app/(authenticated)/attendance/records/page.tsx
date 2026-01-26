@@ -41,13 +41,15 @@ export default async function AttendanceRecordsPage() {
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 pb-6 sm:px-0 sm:py-6">
-        <div className="mb-6">
-          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">勤怠一覧</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            {isAdminOrManager
-              ? `${organization?.name} のスタッフの出退勤記録を確認・編集できます`
-              : `${organization?.name} のスタッフの出退勤記録を確認できます（閲覧のみ）`}
-          </p>
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-900">勤怠一覧</h1>
+            <p className="mt-2 text-sm text-gray-600">
+              {isAdminOrManager
+                ? `${organization?.name} のスタッフの出退勤記録を確認・編集できます`
+                : `${organization?.name} のスタッフの出退勤記録を確認できます（閲覧のみ）`}
+            </p>
+          </div>
         </div>
 
         <AttendanceRecordsWrapper
@@ -55,6 +57,7 @@ export default async function AttendanceRecordsPage() {
           sitesList={sitesList || []}
           userRole={userRole}
           currentUserId={userId}
+          isAdminOrManager={isAdminOrManager}
         />
       </div>
     </div>

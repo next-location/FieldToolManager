@@ -82,11 +82,24 @@ export async function notifyIndividualCheckinReminder(params: {
 }) {
   const supabase = await createClient()
 
+  // ユーザーのroleを取得して、メッセージを分岐
+  const { data: userData } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', params.userId)
+    .single()
+
+  const isAdminOrManager = userData && ['admin', 'manager'].includes(userData.role)
+
+  const message = isAdminOrManager
+    ? `${params.targetDate}の出勤打刻がまだ行われていません。打刻をお願いします。`
+    : `${params.targetDate}の出勤打刻がまだ行われていません。打刻を忘れた場合は、上司に報告して正しい時刻を代理打刻してもらってください。`
+
   const { error } = await supabase.from('notifications').insert({
     organization_id: params.organizationId,
     type: '出退勤アラート',
     title: '出勤打刻忘れ',
-    message: `${params.targetDate}の出勤打刻がまだ行われていません。打刻をお願いします。`,
+    message,
     severity: 'warning',
     target_user_id: params.userId,
     sent_via: ['in_app'],
