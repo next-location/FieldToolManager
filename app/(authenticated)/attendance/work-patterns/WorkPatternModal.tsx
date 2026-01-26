@@ -44,37 +44,36 @@ export function WorkPatternModal({
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (isOpen) {
-      if (pattern) {
-        console.log('[WorkPatternModal] Initializing form with pattern:', pattern)
-        setFormData({
-          name: pattern.name,
-          expected_checkin_time: pattern.expected_checkin_time.slice(0, 5),
-          expected_checkout_time: pattern.expected_checkout_time ? pattern.expected_checkout_time.slice(0, 5) : '18:00',
-          alert_enabled: pattern.alert_enabled,
-          alert_hours_after: String(pattern.alert_hours_after),
-          checkout_alert_enabled: pattern.checkout_alert_enabled,
-          checkout_alert_hours_after: String(pattern.checkout_alert_hours_after),
-          is_night_shift: pattern.is_night_shift,
-          is_default: pattern.is_default,
-        })
-      } else {
-        console.log('[WorkPatternModal] Initializing form for new pattern')
-        setFormData({
-          name: '',
-          expected_checkin_time: '09:00',
-          expected_checkout_time: '18:00',
-          alert_enabled: true,
-          alert_hours_after: '2.0',
-          checkout_alert_enabled: false,
-          checkout_alert_hours_after: '1.0',
-          is_night_shift: false,
-          is_default: false,
-        })
-      }
+    if (isOpen && pattern) {
+      console.log('[WorkPatternModal] Initializing form with pattern:', pattern)
+      setFormData({
+        name: pattern.name,
+        expected_checkin_time: pattern.expected_checkin_time.slice(0, 5),
+        expected_checkout_time: pattern.expected_checkout_time ? pattern.expected_checkout_time.slice(0, 5) : '18:00',
+        alert_enabled: pattern.alert_enabled,
+        alert_hours_after: String(pattern.alert_hours_after),
+        checkout_alert_enabled: pattern.checkout_alert_enabled,
+        checkout_alert_hours_after: String(pattern.checkout_alert_hours_after),
+        is_night_shift: pattern.is_night_shift,
+        is_default: pattern.is_default,
+      })
+      setError(null)
+    } else if (isOpen && !pattern) {
+      console.log('[WorkPatternModal] Initializing form for new pattern')
+      setFormData({
+        name: '',
+        expected_checkin_time: '09:00',
+        expected_checkout_time: '18:00',
+        alert_enabled: true,
+        alert_hours_after: '2.0',
+        checkout_alert_enabled: false,
+        checkout_alert_hours_after: '1.0',
+        is_night_shift: false,
+        is_default: false,
+      })
       setError(null)
     }
-  }, [pattern?.id, pattern?.alert_hours_after, pattern?.checkout_alert_hours_after, isOpen])
+  }, [isOpen, pattern ? JSON.stringify(pattern) : null])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
