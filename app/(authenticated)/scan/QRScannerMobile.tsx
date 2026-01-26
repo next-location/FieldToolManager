@@ -32,6 +32,7 @@ interface ToolSetInfo {
 }
 
 export function QRScannerMobile({ mode, userRole, onClose }: QRScannerMobileProps) {
+  console.log('[QRScannerMobile] userRole:', userRole)
   const [isScanning, setIsScanning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -805,6 +806,7 @@ export function QRScannerMobile({ mode, userRole, onClose }: QRScannerMobileProp
                 </button>
 
                 {/* リーダー以上のみ個別選択可能 */}
+                {console.log('[Dialog] userRole check:', userRole, 'isStaff:', userRole === 'staff', 'showButton:', userRole !== 'staff')}
                 {userRole !== 'staff' && (
                   <button
                     onClick={() => handleConfirmIndividualSelection(toolSetDialog.toolItem, toolSetDialog.toolSets)}
