@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 
 /**
  * 出退勤アラート通知ユーティリティ
@@ -19,7 +19,7 @@ interface NotifyCheckinReminderParams {
  * 出勤打刻忘れアラートの通知を管理者/マネージャーに送信
  */
 export async function notifyCheckinReminder(params: NotifyCheckinReminderParams) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   if (params.missingUsers.length === 0) {
     return // 未出勤者がいない場合は何もしない
@@ -80,7 +80,7 @@ export async function notifyIndividualCheckinReminder(params: {
   userName: string
   targetDate: string
 }) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // ユーザーのroleを取得して、メッセージを分岐
   const { data: userData } = await supabase
@@ -115,7 +115,7 @@ export async function notifyIndividualCheckinReminder(params: {
  * 退勤打刻忘れアラートの通知を管理者/マネージャーに送信
  */
 export async function notifyCheckoutReminder(params: NotifyCheckinReminderParams) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   if (params.missingUsers.length === 0) {
     return // 未退勤者がいない場合は何もしない
@@ -176,7 +176,7 @@ export async function notifyIndividualCheckoutReminder(params: {
   userName: string
   targetDate: string
 }) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // ユーザーのroleを取得して、メッセージを分岐
   const { data: userData } = await supabase
