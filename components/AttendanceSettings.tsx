@@ -195,37 +195,14 @@ export function AttendanceSettings({ organizationId }: Props) {
               </label>
             </div>
 
-            {/* デフォルト出勤時刻 */}
-            <div>
-              <label htmlFor="default_checkin_time" className="block text-sm font-medium text-gray-700 mb-1">
-                標準出勤時刻
-              </label>
-              <input
-                type="time"
-                id="default_checkin_time"
-                value={settings.default_checkin_time}
-                onChange={(e) => setSettings({ ...settings, default_checkin_time: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                ※ この時刻を基準にアラート送信時刻を設定してください
+            {/* 説明文 */}
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+              <p className="text-sm text-blue-800">
+                <strong>アラート時刻の設定について</strong>
               </p>
-            </div>
-
-            {/* アラート送信時刻 */}
-            <div>
-              <label htmlFor="default_alert_time" className="block text-sm font-medium text-gray-700 mb-1">
-                アラート送信時刻
-              </label>
-              <input
-                type="time"
-                id="default_alert_time"
-                value={settings.default_alert_time}
-                onChange={(e) => setSettings({ ...settings, default_alert_time: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                ※ この時刻に未出勤のスタッフにアラートが送信されます
+              <p className="text-xs text-blue-700 mt-2">
+                アラート送信時刻は「勤務パターン管理」で個別に設定してください。<br />
+                各スタッフの出勤予定時刻に合わせて、個別のアラート時刻を設定できます。
               </p>
             </div>
           </>
