@@ -110,6 +110,7 @@ export function BulkMovementForm({
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null)
   const [scanSuccess, setScanSuccess] = useState(false)
   const [lastScannedTool, setLastScannedTool] = useState<string | null>(null)
+  const [confirmDialog, setConfirmDialog] = useState<{ message: string; onConfirm: () => void } | null>(null)
 
   // QRコードスキャン処理（カメラのみ）
   const handleQrScan = async (qrCode: string): Promise<{ success: boolean; message?: string }> => {
@@ -149,30 +150,62 @@ export function BulkMovementForm({
         }
       } else {
         // リーダー以上：確認ダイアログ（削除を明示）
-        const confirmed = window.confirm(
-          `⚠️ 道具セット削除の警告\n\nこの道具はセット「${tool.toolSetName}」に登録されています。\n\n個別移動すると、このセットは完全に削除されます。\n\nセットを削除して個別移動しますか？`
-        )
-        if (!confirmed) {
-          return { success: false, message: 'キャンセルしました' }
-        }
+        return new Promise<{ success: boolean; message?: string }>((resolve) => {
+          setConfirmDialog({
+            message: `⚠️ 道具セット削除の警告\n\nこの道具はセット「${tool.toolSetName}」に登録されています。\n\n個別移動すると、このセットは完全に削除されます。\n\nセットを削除して個別移動しますか？`,
+            onConfirm: async () => {
+              setConfirmDialog(null)
 
-        // セットから解除
-        try {
-          const { error: removeError } = await supabase
-            .from('tool_set_items')
-            .delete()
-            .eq('tool_item_id', tool.id)
+              // セットから解除
+              try {
+                const { error: removeError } = await supabase
+                  .from('tool_set_items')
+                  .delete()
+                  .eq('tool_item_id', tool.id)
 
-          if (removeError) {
-            setError(`セット解除に失敗: ${removeError.message}`)
-            setTimeout(() => setError(null), 5000)
-            return { success: false, message: `セット解除に失敗: ${removeError.message}` }
+                if (removeError) {
+                  setError(`セット解除に失敗: ${removeError.message}`)
+                  setTimeout(() => setError(null), 5000)
+                  resolve({ success: false, message: `セット解除に失敗: ${removeError.message}` })
+                  return
+                }
+
+                // 解除成功後、残りの処理を続行
+                continueAfterRemoval()
+              } catch (err) {
+                setError('セット解除中にエラーが発生しました')
+                setTimeout(() => setError(null), 5000)
+                resolve({ success: false, message: 'セット解除中にエラーが発生しました' })
+              }
+            }
+          })
+
+          const continueAfterRemoval = () => {
+            // 場所チェック以降の処理
+            if (selectionMode === 'individual') {
+              if (requiredLocation === null) {
+                setRequiredLocation(tool.current_location)
+              } else if (tool.current_location !== requiredLocation) {
+                const locationName = requiredLocation === 'warehouse' ? '倉庫' : requiredLocation === 'site' ? '現場' : '修理中'
+                setError(`現在地が異なるため選択できません（選択中は全て${locationName}にある道具のみ）`)
+                setTimeout(() => setError(null), 5000)
+                resolve({ success: false, message: `現在地が異なるため選択できません（選択中は全て${locationName}にある道具のみ）` })
+                return
+              }
+            }
+
+            selectedToolIdsRef.current.add(tool.id)
+            setSelectedToolIds((prev) => [...prev, tool.id])
+            setLastScannedTool(`${tool.tools?.name || '不明'} (${tool.serial_number})`)
+            setScanSuccess(true)
+            setTimeout(() => {
+              setScanSuccess(false)
+              setLastScannedTool(null)
+            }, 2000)
+
+            resolve({ success: true })
           }
-        } catch (err) {
-          setError('セット解除中にエラーが発生しました')
-          setTimeout(() => setError(null), 5000)
-          return { success: false, message: 'セット解除中にエラーが発生しました' }
-        }
+        })
       }
     }
 
@@ -224,29 +257,38 @@ export function BulkMovementForm({
         return
       } else {
         // リーダー以上：確認ダイアログ（削除を明示）
-        const confirmed = window.confirm(
-          `⚠️ 道具セット削除の警告\n\nこの道具はセット「${tool.toolSetName}」に登録されています。\n\n個別移動すると、このセットは完全に削除されます。\n\nセットを削除して個別移動しますか？`
-        )
-        if (!confirmed) return
+        setConfirmDialog({
+          message: `⚠️ 道具セット削除の警告\n\nこの道具はセット「${tool.toolSetName}」に登録されています。\n\n個別移動すると、このセットは完全に削除されます。\n\nセットを削除して個別移動しますか？`,
+          onConfirm: async () => {
+            setConfirmDialog(null)
 
-        // セットから解除
-        try {
-          const { error: removeError } = await supabase
-            .from('tool_set_items')
-            .delete()
-            .eq('tool_item_id', toolId)
+            // セットから解除
+            try {
+              const { error: removeError } = await supabase
+                .from('tool_set_items')
+                .delete()
+                .eq('tool_item_id', toolId)
 
-          if (removeError) {
-            setError(`セット解除に失敗しました: ${removeError.message}`)
-            return
+              if (removeError) {
+                setError(`セット解除に失敗しました: ${removeError.message}`)
+                return
+              }
+
+              // 解除成功後、道具を追加
+              addToolToSelection(toolId, tool)
+            } catch (err) {
+              setError('セット解除中にエラーが発生しました')
+            }
           }
-        } catch (err) {
-          setError('セット解除中にエラーが発生しました')
-          return
-        }
+        })
+        return
       }
     }
 
+    addToolToSelection(toolId, tool)
+  }
+
+  const addToolToSelection = (toolId: string, tool: ToolItem) => {
     // 場所チェック（個別選択モードのみ）
     if (selectionMode === 'individual') {
       if (requiredLocation === null) {
@@ -355,15 +397,21 @@ export function BulkMovementForm({
 
       if (toolsInSet.length > 0) {
         const setNames = [...new Set(toolsInSet.map(t => t.toolSetName).filter(Boolean))].join('、')
-        const confirmed = window.confirm(
-          `⚠️ 道具セット削除の最終確認\n\n選択された道具のうち、以下のセットに登録されている道具が含まれています：\n${setNames}\n\n移動を実行すると、これらのセットは完全に削除されます。\n\n本当に実行しますか？`
-        )
-        if (!confirmed) {
-          return
-        }
+        setConfirmDialog({
+          message: `⚠️ 道具セット削除の最終確認\n\n選択された道具のうち、以下のセットに登録されている道具が含まれています：\n${setNames}\n\n移動を実行すると、これらのセットは完全に削除されます。\n\n本当に実行しますか？`,
+          onConfirm: () => {
+            setConfirmDialog(null)
+            executeMovement()
+          }
+        })
+        return
       }
     }
 
+    executeMovement()
+  }
+
+  const executeMovement = async () => {
     setIsSubmitting(true)
     setError(null)
     setProgress({ current: 0, total: selectedToolIds.length })
@@ -982,6 +1030,34 @@ export function BulkMovementForm({
           onScan={handleQrScan}
           onClose={() => setShowCamera(false)}
         />
+      )}
+
+      {/* カスタム確認ダイアログ */}
+      {confirmDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10001] p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full shadow-xl">
+            <div className="p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">ザイロク</h3>
+              <p className="text-gray-700 whitespace-pre-line leading-relaxed">
+                {confirmDialog.message}
+              </p>
+            </div>
+            <div className="flex gap-2 p-4 border-t border-gray-200">
+              <button
+                onClick={() => setConfirmDialog(null)}
+                className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={confirmDialog.onConfirm}
+                className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </form>
   )
