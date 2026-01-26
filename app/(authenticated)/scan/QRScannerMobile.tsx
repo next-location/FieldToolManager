@@ -18,6 +18,8 @@ interface ScannedItem {
   qrCode: string
   name: string
   serialNumber?: string
+  currentLocation?: string
+  siteId?: string
 }
 
 export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
@@ -27,6 +29,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
   const [scannedItems, setScannedItems] = useState<ScannedItem[]>([])
   const [lastScannedItem, setLastScannedItem] = useState<ScannedItem | null>(null)
   const [scanSuccess, setScanSuccess] = useState(false)
+  const [isListExpanded, setIsListExpanded] = useState(false)
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const processingQrRef = useRef<boolean>(false) // QR処理中フラグ
   const lastScannedRef = useRef<string | null>(null) // 最後にスキャンしたQRコード
@@ -143,10 +146,10 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
   const addScannedItem = async (qrCode: string) => {
     if (mode === 'tool') {
-      // 道具のQRコードを検索
+      // 道具のQRコードを検索（位置情報も取得）
       const { data: toolItem, error: itemError } = await supabase
         .from('tool_items')
-        .select('id, serial_number, tool_id, tools!inner(id, name)')
+        .select('id, serial_number, tool_id, current_location, current_site_id, tools!inner(id, name)')
         .eq('qr_code', qrCode)
         .is('deleted_at', null)
         .single()
@@ -162,10 +165,52 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
         id: toolItem.id,
         qrCode,
         name: (toolItem as any).tools?.name || '不明な道具',
-        serialNumber: toolItem.serial_number
+        serialNumber: toolItem.serial_number,
+        currentLocation: toolItem.current_location,
+        siteId: toolItem.current_site_id || undefined
       }
 
-      setScannedItems(prev => [...prev, newItem])
+      // 位置チェック（setStateのコールバックで最新の値を使用）
+      setScannedItems(prev => {
+        if (prev.length > 0) {
+          const firstItem = prev[0]
+          const firstItemLocation = firstItem.currentLocation
+
+          // 現在地が異なる場合はエラー
+          if (newItem.currentLocation !== firstItemLocation) {
+            const locationNames: Record<string, string> = {
+              warehouse: '倉庫',
+              site: '現場',
+              lost: '紛失'
+            }
+            const firstLocationName = locationNames[firstItemLocation || ''] || firstItemLocation
+            const currentLocationName = locationNames[newItem.currentLocation || ''] || newItem.currentLocation
+
+            setError(
+              `現在地が異なる道具は同時に選択できません。\n\n` +
+              `選択済み: ${firstLocationName}\n` +
+              `スキャンした道具: ${currentLocationName}\n\n` +
+              `同じ場所にある道具のみスキャンしてください。`
+            )
+            setTimeout(() => setError(null), 5000)
+            return prev // 追加しない
+          }
+
+          // 現場の場合、同じ現場かチェック
+          if (newItem.currentLocation === 'site' && newItem.siteId !== firstItem.siteId) {
+            setError(
+              `異なる現場の道具は同時に選択できません。\n\n` +
+              `同じ現場にある道具のみスキャンしてください。`
+            )
+            setTimeout(() => setError(null), 5000)
+            return prev // 追加しない
+          }
+        }
+
+        // チェックOK: 新しいアイテムを追加
+        return [...prev, newItem]
+      })
+
       setLastScannedItem(newItem)
 
       // スキャン成功エフェクト
@@ -391,11 +436,19 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
       {/* スキャン済みアイテム表示 + 完了ボタン */}
       <div className="bg-white border-t p-4">
-        {/* スキャン数表示 */}
-        <div className="mb-3">
+        {/* スキャン数表示 + 一覧表示ボタン */}
+        <div className="mb-3 flex items-center justify-between">
           <p className="text-sm font-medium text-gray-700">
             スキャン済み: <span className="text-blue-600 text-lg font-bold">{scannedItems.length}</span>個
           </p>
+          {scannedItems.length > 0 && (
+            <button
+              onClick={() => setIsListExpanded(true)}
+              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+            >
+              一覧を表示
+            </button>
+          )}
         </div>
 
         {/* 最後にスキャンしたアイテム */}
@@ -427,6 +480,72 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
           完了して移動先を選ぶ ({scannedItems.length}個)
         </button>
       </div>
+
+      {/* スキャン済み一覧（全画面オーバーレイ） */}
+      {isListExpanded && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end">
+          <div className="bg-white w-full rounded-t-2xl shadow-2xl" style={{ maxHeight: '80vh' }}>
+            {/* ヘッダー */}
+            <div className="bg-gray-50 px-4 py-3 border-b rounded-t-2xl flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">
+                スキャン済み一覧 ({scannedItems.length}個)
+              </h3>
+              <button
+                onClick={() => setIsListExpanded(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* リスト */}
+            <div className="overflow-y-auto" style={{ maxHeight: 'calc(80vh - 120px)' }}>
+              {scannedItems.length === 0 ? (
+                <p className="text-center text-gray-500 py-8 text-sm">
+                  QRコードをスキャンしてください
+                </p>
+              ) : (
+                <ul className="divide-y divide-gray-200">
+                  {scannedItems.slice().reverse().map((item) => (
+                    <li key={item.qrCode} className="px-4 py-3 flex items-center justify-between hover:bg-gray-50">
+                      <div className="flex items-center space-x-3 flex-1">
+                        <span className="text-green-500 text-xl">✓</span>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-900">{item.name}</p>
+                          {item.serialNumber && (
+                            <p className="text-xs text-gray-500">シリアル: #{item.serialNumber}</p>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeScannedItem(item.qrCode)}
+                        className="text-gray-400 hover:text-red-500 p-2"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* 一覧画面のアクションボタン */}
+            <div className="px-4 py-3 border-t bg-white">
+              <button
+                onClick={handleComplete}
+                disabled={scannedItems.length === 0}
+                className={`w-full py-2 px-4 rounded-lg text-sm font-medium ${
+                  scannedItems.length === 0
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                完了して移動先を選ぶ ({scannedItems.length}個)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
