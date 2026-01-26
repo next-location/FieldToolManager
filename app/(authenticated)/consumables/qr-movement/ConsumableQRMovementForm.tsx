@@ -273,7 +273,7 @@ export function ConsumableQRMovementForm({
       }
 
       // 移動履歴を記録
-      const { error: movementError } = await supabase.from('consumable_movements').insert({
+      const movementData = {
         organization_id: userData.organization_id,
         tool_id: consumable.id,
         movement_type: 'QR移動',
@@ -288,12 +288,18 @@ export function ConsumableQRMovementForm({
         quantity: moveQuantity,
         performed_by: user.id,
         notes: notes || null,
-      })
+      }
+
+      console.log('[QR Movement] Inserting movement history:', movementData)
+
+      const { error: movementError } = await supabase.from('consumable_movements').insert(movementData)
 
       if (movementError) {
-        console.error('移動履歴の記録エラー:', movementError)
-        // 履歴記録の失敗は処理を止めない（在庫移動は完了しているため）
+        console.error('[QR Movement] 移動履歴の記録エラー:', movementError)
+        throw new Error(`移動履歴の記録に失敗しました: ${movementError.message}`)
       }
+
+      console.log('[QR Movement] Movement history recorded successfully')
 
       // 成功: 移動履歴ページへリダイレクト
       router.push('/movements?tab=consumable&success=' + encodeURIComponent('消耗品を移動しました'))
