@@ -45,6 +45,8 @@ interface ConsumableMovement {
   } | null
   from_site: { name: string; type: string } | null
   to_site: { name: string; type: string } | null
+  from_warehouse_location: { id: string; code: string; display_name: string } | null
+  to_warehouse_location: { id: string; code: string; display_name: string } | null
   users: { name: string } | null
 }
 
@@ -454,9 +456,13 @@ export function MovementTabs({
                       <div className="flex items-center">
                         <span className="text-gray-500 w-16">移動元:</span>
                         <span className="text-gray-900">
-                          {movement.from_location_type === 'warehouse' ? '会社' :
-                           movement.from_location_type === 'site' ? formatLocationWithIcon(movement.from_site, '現場') :
-                           movement.from_location_type}
+                          {movement.from_location_type === 'warehouse'
+                            ? movement.from_warehouse_location
+                              ? `倉庫（${movement.from_warehouse_location.display_name}）`
+                              : '倉庫'
+                            : movement.from_location_type === 'site'
+                            ? formatLocationWithIcon(movement.from_site, '現場')
+                            : movement.from_location_type}
                         </span>
                       </div>
 
@@ -464,9 +470,13 @@ export function MovementTabs({
                         <span className="text-gray-500 w-16">移動先:</span>
                         <span className="text-gray-900">
                           {movement.movement_type === '消費' ? '消費（使用済み）' :
-                           movement.to_location_type === 'warehouse' ? '会社' :
-                           movement.to_location_type === 'site' ? formatLocationWithIcon(movement.to_site, '現場') :
-                           movement.to_location_type}
+                           movement.to_location_type === 'warehouse'
+                            ? movement.to_warehouse_location
+                              ? `倉庫（${movement.to_warehouse_location.display_name}）`
+                              : '倉庫'
+                            : movement.to_location_type === 'site'
+                            ? formatLocationWithIcon(movement.to_site, '現場')
+                            : movement.to_location_type}
                         </span>
                       </div>
 

@@ -62,6 +62,8 @@ export default async function MovementsPage({ searchParams }: MovementsPageProps
       notes,
       created_at,
       tool_id,
+      from_location_id,
+      to_location_id,
       tools!consumable_movements_tool_id_fkey (
         name,
         model_number
@@ -73,6 +75,16 @@ export default async function MovementsPage({ searchParams }: MovementsPageProps
       to_site:sites!consumable_movements_to_site_id_fkey (
         name,
         type
+      ),
+      from_warehouse_location:warehouse_locations!consumable_movements_from_location_id_fkey (
+        id,
+        code,
+        display_name
+      ),
+      to_warehouse_location:warehouse_locations!consumable_movements_to_location_id_fkey (
+        id,
+        code,
+        display_name
       ),
       users!consumable_movements_performed_by_fkey (
         name
@@ -89,6 +101,8 @@ export default async function MovementsPage({ searchParams }: MovementsPageProps
     tools: Array.isArray(movement.tools) ? movement.tools[0] : movement.tools,
     from_site: Array.isArray(movement.from_site) ? movement.from_site[0] : movement.from_site,
     to_site: Array.isArray(movement.to_site) ? movement.to_site[0] : movement.to_site,
+    from_warehouse_location: Array.isArray(movement.from_warehouse_location) ? movement.from_warehouse_location[0] : movement.from_warehouse_location,
+    to_warehouse_location: Array.isArray(movement.to_warehouse_location) ? movement.to_warehouse_location[0] : movement.to_warehouse_location,
     users: Array.isArray(movement.users) ? movement.users[0] : movement.users,
   }))
 
