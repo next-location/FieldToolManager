@@ -123,8 +123,18 @@ export function LeaveModal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4" style={{ zIndex: 9998 }}>
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" style={{ position: 'relative', zIndex: 9999 }}>
+    <div
+      className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4"
+      style={{ zIndex: 9998 }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
+      <div
+        className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        style={{ position: 'relative', zIndex: 9999 }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex justify-between items-center p-6 border-b">
           <h2 className="text-xl font-bold text-gray-900">
             {leave ? '休暇編集' : '休暇登録'}
