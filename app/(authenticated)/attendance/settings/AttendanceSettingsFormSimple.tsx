@@ -150,6 +150,11 @@ export function AttendanceSettingsFormSimple({
         qr_expiry_alert_email: settings.qr_expiry_alert_email,
         overtime_alert_enabled: settings.overtime_alert_enabled,
         overtime_alert_hours: settings.overtime_alert_hours,
+        // MVP用フィールドを保持（上書きしない）
+        working_days: initialSettings?.working_days,
+        exclude_holidays: initialSettings?.exclude_holidays,
+        default_checkin_time: initialSettings?.default_checkin_time,
+        default_alert_time: initialSettings?.default_alert_time,
       }
 
       const response = await fetch('/api/attendance/settings', {

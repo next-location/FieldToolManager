@@ -19,10 +19,10 @@ export async function POST(request: Request) {
 
     console.log('[API DELETE TOOL SET] ユーザーID:', user.id)
 
-    // ユーザーの組織IDを取得
+    // ユーザーの組織IDと権限を取得
     const { data: userData } = await supabase
       .from('users')
-      .select('organization_id')
+      .select('organization_id, role')
       .eq('id', user.id)
       .single()
 
@@ -31,7 +31,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User data not found' }, { status: 404 })
     }
 
-    console.log('[API DELETE TOOL SET] 組織ID:', userData.organization_id)
+    console.log('[API DELETE TOOL SET] 組織ID:', userData.organization_id, 'ユーザー権限:', userData.role)
+
+    // 権限チェック: リーダー以上のみセット削除可能
+    const canDeleteSet = userData.role === 'admin' || userData.role === 'manager' || userData.role === 'leader'
+    if (!canDeleteSet) {
+      console.log('[API DELETE TOOL SET] 権限不足: スタッフはセット削除できません')
+      return NextResponse.json({
+        error: 'Permission denied',
+        message: 'スタッフ権限ではセットを削除できません。リーダー以上の権限が必要です。'
+      }, { status: 403 })
+    }
 
     const { toolSetIds } = await request.json()
     console.log('[API DELETE TOOL SET] 削除対象セットID:', toolSetIds)

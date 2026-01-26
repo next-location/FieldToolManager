@@ -61,7 +61,8 @@ export function AttendanceSettings({ organizationId }: Props) {
     try {
       const res = await fetch('/api/attendance/settings')
       if (res.ok) {
-        const data = await res.json()
+        const response = await res.json()
+        const data = response.settings // APIは { settings: {...} } という構造で返す
         if (data) {
           setSettings({
             working_days: data.working_days || settings.working_days,
