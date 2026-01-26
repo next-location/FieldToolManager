@@ -441,19 +441,9 @@ export function QRScannerMobile({ mode, userRole, onClose }: QRScannerMobileProp
         return
       }
 
-      const newItem: ScannedItem = {
-        id: consumable.id,
-        qrCode,
-        name: consumable.name,
-        serialNumber: consumable.model_number || undefined
-      }
-
-      setScannedItems(prev => [...prev, newItem])
-      setLastScannedItem(newItem)
-
-      // スキャン成功エフェクト
-      setScanSuccess(true)
-      setTimeout(() => setScanSuccess(false), 500)
+      // 消耗品は1個のみスキャン可能：即座に移動ページへ遷移
+      await stopScanning()
+      router.push(`/consumables/qr-movement?item=${consumable.id}`)
       return
     }
 

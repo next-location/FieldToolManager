@@ -145,8 +145,8 @@ export function QRScanner({ mode = 'tool' }: QRScannerProps) {
               return
             }
 
-            // 消耗品移動ページへリダイレクト
-            router.push(`/consumables/bulk-movement?items=${consumable.id}`)
+            // 消耗品QR移動ページへリダイレクト
+            router.push(`/consumables/qr-movement?item=${consumable.id}`)
             return
           }
 
