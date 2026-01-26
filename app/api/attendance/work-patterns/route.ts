@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
 
     // リクエストボディ取得
     const body = await request.json()
-    const { name, expected_checkin_time, is_night_shift, is_default, alert_enabled, alert_hours_after } = body
+    const { name, expected_checkin_time, expected_checkout_time, is_night_shift, is_default, alert_enabled, alert_hours_after, checkout_alert_enabled, checkout_alert_hours_after } = body
 
     // 必須項目チェック
     if (!name || !expected_checkin_time) {
@@ -120,10 +120,13 @@ export async function POST(request: NextRequest) {
         organization_id: userData.organization_id,
         name,
         expected_checkin_time,
+        expected_checkout_time: expected_checkout_time || null,
         is_night_shift: is_night_shift || false,
         is_default: is_default || false,
         alert_enabled: alert_enabled !== undefined ? alert_enabled : true,
         alert_hours_after: alert_hours_after !== undefined ? alert_hours_after : 2.0,
+        checkout_alert_enabled: checkout_alert_enabled !== undefined ? checkout_alert_enabled : false,
+        checkout_alert_hours_after: checkout_alert_hours_after !== undefined ? checkout_alert_hours_after : 1.0,
       })
       .select()
       .single()

@@ -7,8 +7,11 @@ interface WorkPattern {
   id: string
   name: string
   expected_checkin_time: string
+  expected_checkout_time: string | null
   alert_enabled: boolean
   alert_hours_after: number
+  checkout_alert_enabled: boolean
+  checkout_alert_hours_after: number
   is_night_shift: boolean
   is_default: boolean
   user_count: number
@@ -127,11 +130,17 @@ export function WorkPatternsList({ onEdit, onRefresh }: WorkPatternsListProps) {
                   )}
                 </div>
                 <div className="mt-2 flex flex-col sm:flex-row sm:gap-4 text-sm text-gray-600">
-                  <p>出勤予定: {pattern.expected_checkin_time.slice(0, 5)}</p>
+                  <p>出勤: {pattern.expected_checkin_time.slice(0, 5)}</p>
+                  {pattern.expected_checkout_time && (
+                    <p>退勤: {pattern.expected_checkout_time.slice(0, 5)}</p>
+                  )}
                   <p>
-                    アラート: {pattern.alert_enabled ? `${pattern.alert_hours_after}時間後` : 'OFF'}
+                    出勤アラート: {pattern.alert_enabled ? `${pattern.alert_hours_after}時間後` : 'OFF'}
                   </p>
-                  <p className="text-gray-500">{pattern.user_count}人が使用中</p>
+                  {pattern.checkout_alert_enabled && (
+                    <p>退勤アラート: {pattern.checkout_alert_hours_after}時間後</p>
+                  )}
+                  <p className="text-gray-500">{pattern.user_count}人使用中</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 ml-4">

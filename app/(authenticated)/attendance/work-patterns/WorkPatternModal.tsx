@@ -7,8 +7,11 @@ interface WorkPattern {
   id: string
   name: string
   expected_checkin_time: string
+  expected_checkout_time: string | null
   alert_enabled: boolean
   alert_hours_after: number
+  checkout_alert_enabled: boolean
+  checkout_alert_hours_after: number
   is_night_shift: boolean
   is_default: boolean
 }
@@ -29,8 +32,11 @@ export function WorkPatternModal({
   const [formData, setFormData] = useState({
     name: '',
     expected_checkin_time: '09:00',
+    expected_checkout_time: '18:00',
     alert_enabled: true,
     alert_hours_after: '2.0',
+    checkout_alert_enabled: false,
+    checkout_alert_hours_after: '1.0',
     is_night_shift: false,
     is_default: false,
   })
@@ -42,8 +48,11 @@ export function WorkPatternModal({
       setFormData({
         name: pattern.name,
         expected_checkin_time: pattern.expected_checkin_time.slice(0, 5),
+        expected_checkout_time: pattern.expected_checkout_time ? pattern.expected_checkout_time.slice(0, 5) : '18:00',
         alert_enabled: pattern.alert_enabled,
         alert_hours_after: String(pattern.alert_hours_after),
+        checkout_alert_enabled: pattern.checkout_alert_enabled,
+        checkout_alert_hours_after: String(pattern.checkout_alert_hours_after),
         is_night_shift: pattern.is_night_shift,
         is_default: pattern.is_default,
       })
@@ -51,8 +60,11 @@ export function WorkPatternModal({
       setFormData({
         name: '',
         expected_checkin_time: '09:00',
+        expected_checkout_time: '18:00',
         alert_enabled: true,
         alert_hours_after: '2.0',
+        checkout_alert_enabled: false,
+        checkout_alert_hours_after: '1.0',
         is_night_shift: false,
         is_default: false,
       })
@@ -69,6 +81,7 @@ export function WorkPatternModal({
       const payload = {
         ...formData,
         alert_hours_after: parseFloat(formData.alert_hours_after),
+        checkout_alert_hours_after: parseFloat(formData.checkout_alert_hours_after),
       }
 
       const url = pattern
@@ -160,6 +173,24 @@ export function WorkPatternModal({
               />
             </div>
 
+            {/* 退勤予定時刻 */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                退勤予定時刻
+              </label>
+              <input
+                type="time"
+                value={formData.expected_checkout_time}
+                onChange={(e) =>
+                  setFormData({ ...formData, expected_checkout_time: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                勤務時間の管理や残業判定に使用されます
+              </p>
+            </div>
+
             {/* アラート有効/無効 */}
             <div className="mb-4">
               <label className="flex items-center">
@@ -187,6 +218,45 @@ export function WorkPatternModal({
                   value={formData.alert_hours_after}
                   onChange={(e) =>
                     setFormData({ ...formData, alert_hours_after: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="0.5">0.5時間（30分）</option>
+                  <option value="1.0">1.0時間</option>
+                  <option value="1.5">1.5時間</option>
+                  <option value="2.0">2.0時間</option>
+                  <option value="3.0">3.0時間</option>
+                </select>
+              </div>
+            )}
+
+            {/* 退勤アラート有効/無効 */}
+            <div className="mb-4">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={formData.checkout_alert_enabled}
+                  onChange={(e) =>
+                    setFormData({ ...formData, checkout_alert_enabled: e.target.checked })
+                  }
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <span className="ml-2 text-sm font-medium text-gray-700">
+                  退勤打刻忘れアラートを有効にする
+                </span>
+              </label>
+            </div>
+
+            {/* 退勤アラート時間（有効時のみ表示） */}
+            {formData.checkout_alert_enabled && (
+              <div className="mb-4 ml-6">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  退勤予定時刻から何時間後にアラートを送信するか
+                </label>
+                <select
+                  value={formData.checkout_alert_hours_after}
+                  onChange={(e) =>
+                    setFormData({ ...formData, checkout_alert_hours_after: e.target.value })
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
