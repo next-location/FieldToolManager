@@ -31,6 +31,8 @@ export async function GET(
       return NextResponse.json({ error: 'ユーザー情報が見つかりません' }, { status: 404 })
     }
 
+    console.log('[API GET /work-patterns/:id] Fetching pattern ID:', id)
+
     // 勤務パターン取得
     const { data: pattern, error: patternError } = await supabase
       .from('work_patterns')
@@ -40,8 +42,18 @@ export async function GET(
       .single()
 
     if (patternError || !pattern) {
+      console.error('[API GET /work-patterns/:id] Pattern not found:', patternError)
       return NextResponse.json({ error: '勤務パターンが見つかりません' }, { status: 404 })
     }
+
+    console.log('[API GET /work-patterns/:id] Fetched from DB:', {
+      id: pattern.id,
+      name: pattern.name,
+      alert_hours_after: pattern.alert_hours_after,
+      checkout_alert_hours_after: pattern.checkout_alert_hours_after,
+      alert_hours_after_type: typeof pattern.alert_hours_after,
+      checkout_alert_hours_after_type: typeof pattern.checkout_alert_hours_after,
+    })
 
     // 適用スタッフ数をカウント
     const { count } = await supabase
@@ -50,12 +62,19 @@ export async function GET(
       .eq('work_pattern_id', id)
       .is('deleted_at', null)
 
-    return NextResponse.json({
+    const result = {
       pattern: {
         ...pattern,
         user_count: count || 0,
       },
+    }
+
+    console.log('[API GET /work-patterns/:id] Returning to client:', {
+      alert_hours_after: result.pattern.alert_hours_after,
+      checkout_alert_hours_after: result.pattern.checkout_alert_hours_after,
     })
+
+    return NextResponse.json(result)
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json({ error: '予期しないエラーが発生しました' }, { status: 500 })
@@ -158,7 +177,27 @@ export async function PATCH(
       return NextResponse.json({ error: '勤務パターンの更新に失敗しました' }, { status: 500 })
     }
 
-    console.log('[API /work-patterns/:id PATCH] Updated pattern:', updatedPattern)
+    console.log('[API /work-patterns/:id PATCH] Updated pattern from DB:', {
+      id: updatedPattern.id,
+      name: updatedPattern.name,
+      alert_hours_after: updatedPattern.alert_hours_after,
+      checkout_alert_hours_after: updatedPattern.checkout_alert_hours_after,
+      alert_hours_after_type: typeof updatedPattern.alert_hours_after,
+      checkout_alert_hours_after_type: typeof updatedPattern.checkout_alert_hours_after,
+    })
+
+    // DBから再取得して確実に最新の値を返す
+    const { data: verifyPattern } = await supabase
+      .from('work_patterns')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    console.log('[API /work-patterns/:id PATCH] Verify DB value after update:', {
+      alert_hours_after: verifyPattern?.alert_hours_after,
+      checkout_alert_hours_after: verifyPattern?.checkout_alert_hours_after,
+    })
+
     return NextResponse.json({ success: true, pattern: updatedPattern })
   } catch (error) {
     console.error('Unexpected error:', error)
