@@ -82,10 +82,10 @@ export async function notifyIndividualCheckinReminder(params: {
 }) {
   const supabase = createAdminClient()
 
-  // ユーザーのroleを取得して、メッセージを分岐
+  // ユーザーのroleとemailを取得
   const { data: userData } = await supabase
     .from('users')
-    .select('role')
+    .select('role, email')
     .eq('id', params.userId)
     .single()
 
@@ -95,6 +95,7 @@ export async function notifyIndividualCheckinReminder(params: {
     ? `${params.targetDate}の出勤打刻がまだ行われていません。打刻をお願いします。`
     : `${params.targetDate}の出勤打刻がまだ行われていません。打刻を忘れた場合は、上司に報告して正しい時刻を代理打刻してもらってください。`
 
+  // アプリ内通知とメール通知の両方を送信
   const { error } = await supabase.from('notifications').insert({
     organization_id: params.organizationId,
     type: '出退勤アラート',
@@ -102,12 +103,14 @@ export async function notifyIndividualCheckinReminder(params: {
     message,
     severity: 'warning',
     target_user_id: params.userId,
-    sent_via: ['in_app'],
+    sent_via: ['in_app', 'email'],
     sent_at: new Date().toISOString(),
   })
 
   if (error) {
     console.error('[通知] 個別通知作成エラー:', error)
+  } else {
+    console.log(`[通知] ${params.userName}（${userData?.email}）に出勤アラートメールを送信予定`)
   }
 }
 
@@ -178,10 +181,10 @@ export async function notifyIndividualCheckoutReminder(params: {
 }) {
   const supabase = createAdminClient()
 
-  // ユーザーのroleを取得して、メッセージを分岐
+  // ユーザーのroleとemailを取得して、メッセージを分岐
   const { data: userData } = await supabase
     .from('users')
-    .select('role')
+    .select('role, email')
     .eq('id', params.userId)
     .single()
 
@@ -191,6 +194,7 @@ export async function notifyIndividualCheckoutReminder(params: {
     ? `${params.targetDate}の退勤打刻がまだ行われていません。打刻をお願いします。`
     : `${params.targetDate}の退勤打刻がまだ行われていません。打刻を忘れた場合は、上司に報告して正しい時刻を代理打刻してもらってください。`
 
+  // アプリ内通知とメール通知の両方を送信
   const { error } = await supabase.from('notifications').insert({
     organization_id: params.organizationId,
     type: '出退勤アラート',
@@ -198,11 +202,13 @@ export async function notifyIndividualCheckoutReminder(params: {
     message,
     severity: 'warning',
     target_user_id: params.userId,
-    sent_via: ['in_app'],
+    sent_via: ['in_app', 'email'],
     sent_at: new Date().toISOString(),
   })
 
   if (error) {
     console.error('[通知] 個別退勤通知作成エラー:', error)
+  } else {
+    console.log(`[通知] ${params.userName}（${userData?.email}）に退勤アラートメールを送信予定`)
   }
 }
