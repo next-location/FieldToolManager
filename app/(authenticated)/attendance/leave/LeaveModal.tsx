@@ -123,8 +123,8 @@ export function LeaveModal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto relative">
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4" style={{ zIndex: 9998 }}>
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" style={{ position: 'relative', zIndex: 9999 }}>
         <div className="flex justify-between items-center p-6 border-b">
           <h2 className="text-xl font-bold text-gray-900">
             {leave ? '休暇編集' : '休暇登録'}
@@ -161,7 +161,7 @@ export function LeaveModal({
           )}
 
           {/* 休暇日 */}
-          <div>
+          <div className="relative">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               休暇日 <span className="text-red-500">*</span>
             </label>
@@ -169,7 +169,8 @@ export function LeaveModal({
               type="date"
               value={leaveDate}
               onChange={(e) => setLeaveDate(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 relative z-10"
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              style={{ position: 'relative', zIndex: 9999 }}
               required
             />
           </div>
