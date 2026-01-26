@@ -4,12 +4,12 @@ import { isWorkingDay } from '@/lib/attendance/holiday-checker'
 import { notifyCheckinReminder, notifyIndividualCheckinReminder } from '@/lib/notifications/attendance-alert-notifications'
 
 /**
- * POST /api/attendance/alerts/checkin-reminder
+ * GET /api/attendance/alerts/checkin-reminder
  * 出勤忘れ通知を生成（定期実行用）
  * Phase 2: 勤務パターンごとの時刻に対応
  * 時間単位で実行し、該当する勤務パターンのアラート時刻に到達したスタッフのみ処理
  */
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
 
