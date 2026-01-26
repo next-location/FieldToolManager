@@ -4848,3 +4848,45 @@ DROP COLUMN IF EXISTS default_alert_time;
 **マイグレーションファイル**: `supabase/migrations/20260126_attendance_alert_mvp.sql`
 
 ---
+
+
+---
+
+### 20250126_add_warehouse_location_to_movements.sql
+
+**目的**: tool_movementsテーブルに倉庫位置情報カラムを追加
+
+**内容**:
+- from_warehouse_location_id カラム追加（移動元の倉庫位置）
+- to_warehouse_location_id カラム追加（移動先の倉庫位置）
+- インデックス追加
+
+**適用日**: 2025-01-26
+**ステータス**: 適用済み
+
+**SQL**:
+```sql
+ALTER TABLE tool_movements
+ADD COLUMN from_warehouse_location_id UUID REFERENCES warehouse_locations(id) ON DELETE SET NULL,
+ADD COLUMN to_warehouse_location_id UUID REFERENCES warehouse_locations(id) ON DELETE SET NULL;
+
+CREATE INDEX idx_tool_movements_from_warehouse_location
+ON tool_movements(from_warehouse_location_id)
+WHERE from_warehouse_location_id IS NOT NULL;
+
+CREATE INDEX idx_tool_movements_to_warehouse_location
+ON tool_movements(to_warehouse_location_id)
+WHERE to_warehouse_location_id IS NOT NULL;
+
+COMMENT ON COLUMN tool_movements.from_warehouse_location_id IS '移動元の倉庫位置ID（from_location=warehouse時のみ有効）';
+COMMENT ON COLUMN tool_movements.to_warehouse_location_id IS '移動先の倉庫位置ID（to_location=warehouse時のみ有効）';
+```
+
+**ロールバック**:
+```sql
+DROP INDEX IF EXISTS idx_tool_movements_from_warehouse_location;
+DROP INDEX IF EXISTS idx_tool_movements_to_warehouse_location;
+ALTER TABLE tool_movements DROP COLUMN IF EXISTS from_warehouse_location_id;
+ALTER TABLE tool_movements DROP COLUMN IF EXISTS to_warehouse_location_id;
+```
+

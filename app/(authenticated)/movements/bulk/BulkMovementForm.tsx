@@ -454,6 +454,8 @@ export function BulkMovementForm({
             to_location: to,
             from_site_id: tool.current_site_id || null,
             to_site_id: destinationType === 'site' ? destinationSiteId : null,
+            from_warehouse_location_id: from === 'warehouse' ? (tool.warehouse_location_id || null) : null,
+            to_warehouse_location_id: to === 'warehouse' ? (destinationWarehouseLocationId || null) : null,
             quantity: 1,
             notes: selectionMode === 'set' && selectedToolSetId
               ? `[セット: ${toolSets.find(s => s.id === selectedToolSetId)?.name || '不明'}]`

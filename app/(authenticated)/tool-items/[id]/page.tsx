@@ -61,6 +61,8 @@ export default async function ToolItemDetailPage({
       notes,
       created_at,
       performed_by,
+      from_location,
+      to_location,
       users!tool_movements_performed_by_fkey (
         id,
         name
@@ -72,6 +74,16 @@ export default async function ToolItemDetailPage({
       to_site:sites!tool_movements_to_site_id_fkey (
         id,
         name
+      ),
+      from_warehouse_location:warehouse_locations!tool_movements_from_warehouse_location_id_fkey (
+        id,
+        code,
+        display_name
+      ),
+      to_warehouse_location:warehouse_locations!tool_movements_to_warehouse_location_id_fkey (
+        id,
+        code,
+        display_name
       )
     `
     )
@@ -242,6 +254,8 @@ export default async function ToolItemDetailPage({
                     const performer = movement.users as any
                     const fromSite = movement.from_site as any
                     const toSite = movement.to_site as any
+                    const fromWarehouse = movement.from_warehouse_location as any
+                    const toWarehouse = movement.to_warehouse_location as any
 
                     const movementTypeText =
                       movement.movement_type === 'check_out'
@@ -262,10 +276,33 @@ export default async function ToolItemDetailPage({
                         ? '🔧 メンテナンス'
                         : movement.movement_type === 'correction'
                         ? '🔄 位置修正'
+                        : movement.movement_type === 'warehouse_move'
+                        ? '📦 倉庫内移動'
                         : movement.movement_type
 
-                    const fromLocationText = fromSite?.name || '倉庫'
-                    const toLocationText = toSite?.name || '倉庫'
+                    // 移動元の表示テキスト
+                    const fromLocationText =
+                      movement.from_location === 'warehouse'
+                        ? fromWarehouse?.display_name
+                          ? `倉庫（${fromWarehouse.display_name}）`
+                          : '倉庫'
+                        : movement.from_location === 'site'
+                        ? fromSite?.name || '現場'
+                        : movement.from_location === 'repair'
+                        ? '修理中'
+                        : '不明'
+
+                    // 移動先の表示テキスト
+                    const toLocationText =
+                      movement.to_location === 'warehouse'
+                        ? toWarehouse?.display_name
+                          ? `倉庫（${toWarehouse.display_name}）`
+                          : '倉庫'
+                        : movement.to_location === 'site'
+                        ? toSite?.name || '現場'
+                        : movement.to_location === 'repair'
+                        ? '修理中'
+                        : '不明'
 
                     return (
                       <div
