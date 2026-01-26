@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ChevronLeft, X } from 'lucide-react'
 
-type ScanMode = 'tool' | 'equipment'
+type ScanMode = 'tool' | 'consumable' | 'equipment'
 
 interface QRScannerMobileProps {
   mode: ScanMode
@@ -26,6 +26,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
   const [isProcessing, setIsProcessing] = useState(false)
   const [scannedItems, setScannedItems] = useState<ScannedItem[]>([])
   const [lastScannedItem, setLastScannedItem] = useState<ScannedItem | null>(null)
+  const [scanSuccess, setScanSuccess] = useState(false)
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const processingQrRef = useRef<boolean>(false) // QR処理中フラグ
   const lastScannedRef = useRef<string | null>(null) // 最後にスキャンしたQRコード
@@ -166,6 +167,43 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
       setScannedItems(prev => [...prev, newItem])
       setLastScannedItem(newItem)
+
+      // スキャン成功エフェクト
+      setScanSuccess(true)
+      setTimeout(() => setScanSuccess(false), 500)
+      return
+    }
+
+    if (mode === 'consumable') {
+      // 消耗品のQRコードを検索（toolsテーブルのmanagement_type = 'consumable'）
+      const { data: consumable, error: consumableError } = await supabase
+        .from('tools')
+        .select('id, name, model_number, unit')
+        .eq('qr_code', qrCode)
+        .eq('management_type', 'consumable')
+        .is('deleted_at', null)
+        .single()
+
+      if (consumableError || !consumable) {
+        console.error('消耗品が見つかりません:', consumableError)
+        setError('QRコードに対応する消耗品が見つかりませんでした')
+        setTimeout(() => setError(null), 3000)
+        return
+      }
+
+      const newItem: ScannedItem = {
+        id: consumable.id,
+        qrCode,
+        name: consumable.name,
+        serialNumber: consumable.model_number || undefined
+      }
+
+      setScannedItems(prev => [...prev, newItem])
+      setLastScannedItem(newItem)
+
+      // スキャン成功エフェクト
+      setScanSuccess(true)
+      setTimeout(() => setScanSuccess(false), 500)
       return
     }
 
@@ -194,6 +232,10 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
 
       setScannedItems(prev => [...prev, newItem])
       setLastScannedItem(newItem)
+
+      // スキャン成功エフェクト
+      setScanSuccess(true)
+      setTimeout(() => setScanSuccess(false), 500)
       return
     }
   }
@@ -207,6 +249,10 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
       // 道具移動ページへリダイレクト
       const itemIds = scannedItems.map(item => item.id).join(',')
       router.push(`/movements/bulk?items=${itemIds}`)
+    } else if (mode === 'consumable') {
+      // 消耗品移動ページへリダイレクト
+      const consumableIds = scannedItems.map(item => item.id).join(',')
+      router.push(`/consumables/bulk-movement?items=${consumableIds}`)
     } else if (mode === 'equipment') {
       // 重機移動ページへリダイレクト
       const equipmentIds = scannedItems.map(item => item.id).join(',')
@@ -232,6 +278,7 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
   const getModeTitle = () => {
     switch (mode) {
       case 'tool': return '道具移動'
+      case 'consumable': return '消耗品移動'
       case 'equipment': return '重機移動'
       default: return 'QRスキャン'
     }
@@ -305,6 +352,11 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
           >
             <X className="w-6 h-6 text-white" />
           </button>
+        )}
+
+        {/* スキャン成功エフェクト（緑のフラッシュ） */}
+        {scanSuccess && (
+          <div className="absolute inset-0 bg-green-500 z-20 animate-pulse pointer-events-none" style={{ opacity: 0.3 }} />
         )}
 
         {/* エラー表示 */}

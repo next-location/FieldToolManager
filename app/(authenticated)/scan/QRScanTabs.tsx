@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { QRScanner } from './QRScanner'
 import { QRScannerMobile } from './QRScannerMobile'
 
-type TabType = 'tool' | 'equipment'
+type TabType = 'tool' | 'consumable' | 'equipment'
 
 interface QRScanTabsProps {
   showTabs?: boolean
@@ -25,6 +25,11 @@ export function QRScanTabs({ showTabs = true }: QRScanTabsProps) {
       id: 'tool' as TabType,
       name: '道具移動',
       description: '道具のQRコードを複数スキャンして一括移動登録',
+    },
+    {
+      id: 'consumable' as TabType,
+      name: '消耗品移動',
+      description: '消耗品のQRコードを複数スキャンして一括移動登録',
     },
     {
       id: 'equipment' as TabType,
@@ -101,6 +106,15 @@ export function QRScanTabs({ showTabs = true }: QRScanTabsProps) {
                     道具のQRコードをスキャンすると、移動登録ページに移動します
                   </p>
                   <QRScanner mode="tool" />
+                </div>
+              )}
+
+              {activeTab === 'consumable' && (
+                <div>
+                  <p className="text-gray-600 mb-4">
+                    消耗品のQRコードをスキャンすると、移動登録ページに移動します
+                  </p>
+                  <QRScanner mode="consumable" />
                 </div>
               )}
 

@@ -5,7 +5,7 @@ import { Html5Qrcode, CameraDevice } from 'html5-qrcode'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-type ScanMode = 'tool' | 'equipment'
+type ScanMode = 'tool' | 'consumable' | 'equipment'
 
 interface QRScannerProps {
   mode?: ScanMode
@@ -126,6 +126,27 @@ export function QRScanner({ mode = 'tool' }: QRScannerProps) {
 
             // 移動ページへリダイレクト（スキャンしたアイテムIDを渡す）
             router.push(`/movements/bulk?items=${toolItem.id}`)
+            return
+          }
+
+          if (mode === 'consumable') {
+            // 消耗品のQRコードを検索
+            const { data: consumable, error: consumableError } = await supabase
+              .from('tools')
+              .select('id')
+              .eq('qr_code', decodedText)
+              .eq('management_type', 'consumable')
+              .is('deleted_at', null)
+              .single()
+
+            if (consumableError || !consumable) {
+              console.error('消耗品が見つかりません:', consumableError)
+              setError('QRコードに対応する消耗品が見つかりませんでした')
+              return
+            }
+
+            // 消耗品移動ページへリダイレクト
+            router.push(`/consumables/bulk-movement?items=${consumable.id}`)
             return
           }
 

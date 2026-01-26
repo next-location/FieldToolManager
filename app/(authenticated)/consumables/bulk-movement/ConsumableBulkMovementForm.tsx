@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { QrCameraScanner } from '@/components/QrCameraScanner'
 
 interface Consumable {
@@ -62,6 +62,7 @@ export function ConsumableBulkMovementForm({
   warehouseLocations,
 }: ConsumableBulkMovementFormProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
 
   // 移動先と現場・倉庫位置の状態
@@ -151,6 +152,24 @@ export function ConsumableBulkMovementForm({
     setSelectedConsumables([])
     setError(null)
   }
+
+  // URLパラメータから消耗品IDを取得して初期選択
+  useEffect(() => {
+    const itemsParam = searchParams.get('items')
+    if (itemsParam && consumables.length > 0) {
+      const itemIds = itemsParam.split(',').filter(id => id.trim())
+      const initialSelected: SelectedConsumable[] = itemIds
+        .map(id => {
+          const consumable = consumables.find(c => c.id === id.trim())
+          return consumable ? { consumableId: consumable.id, quantity: 0 } : null
+        })
+        .filter((item): item is SelectedConsumable => item !== null)
+
+      if (initialSelected.length > 0) {
+        setSelectedConsumables(initialSelected)
+      }
+    }
+  }, [searchParams, consumables])
 
   // 一括移動実行
   const handleSubmit = async (e: React.FormEvent) => {
