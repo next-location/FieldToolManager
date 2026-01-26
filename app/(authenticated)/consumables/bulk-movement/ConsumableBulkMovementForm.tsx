@@ -53,7 +53,7 @@ interface SelectedConsumable {
   quantity: number
 }
 
-type DestinationType = 'warehouse' | 'site'
+type LocationType = 'warehouse' | 'site'
 
 export function ConsumableBulkMovementForm({
   consumables,
@@ -65,8 +65,13 @@ export function ConsumableBulkMovementForm({
   const searchParams = useSearchParams()
   const supabase = createClient()
 
+  // 移動元の状態
+  const [sourceLocationType, setSourceLocationType] = useState<LocationType>('warehouse')
+  const [sourceSiteId, setSourceSiteId] = useState<string>('')
+  const [sourceWarehouseLocationId, setSourceWarehouseLocationId] = useState<string>('')
+
   // 移動先と現場・倉庫位置の状態
-  const [destinationType, setDestinationType] = useState<DestinationType>('warehouse')
+  const [destinationType, setDestinationType] = useState<LocationType>('warehouse')
   const [destinationSiteId, setDestinationSiteId] = useState<string>('')
   const [destinationWarehouseLocationId, setDestinationWarehouseLocationId] = useState<string>('')
 
@@ -178,8 +183,25 @@ export function ConsumableBulkMovementForm({
     setQuantityErrors([])
 
     // バリデーション
+    if (sourceLocationType === 'site' && !sourceSiteId) {
+      setError('移動元の現場を選択してください')
+      return
+    }
+
     if (destinationType === 'site' && !destinationSiteId) {
-      setError('現場を選択してください')
+      setError('移動先の現場を選択してください')
+      return
+    }
+
+    // 移動元と移動先が同一かチェック
+    const isSameLocation =
+      sourceLocationType === destinationType &&
+      (sourceLocationType === 'warehouse'
+        ? sourceWarehouseLocationId === destinationWarehouseLocationId
+        : sourceSiteId === destinationSiteId)
+
+    if (isSameLocation) {
+      setError('移動元と移動先が同じです。異なる場所を選択してください。')
       return
     }
 
@@ -218,6 +240,10 @@ export function ConsumableBulkMovementForm({
         throw new Error('組織情報が見つかりません')
       }
 
+      const fromLocationType = sourceLocationType
+      const fromSiteId = sourceLocationType === 'site' ? sourceSiteId : null
+      const fromWarehouseLocationId = sourceLocationType === 'warehouse' ? (sourceWarehouseLocationId || null) : null
+
       const toLocationType = destinationType
       const toSiteId = destinationType === 'site' ? destinationSiteId : null
       const toWarehouseLocationId = destinationType === 'warehouse' ? (destinationWarehouseLocationId || null) : null
@@ -227,142 +253,151 @@ export function ConsumableBulkMovementForm({
         const { consumableId, quantity } = selectedConsumables[i]
         setProgress({ current: i + 1, total: selectedConsumables.length })
 
-        // 移動元の在庫を取得（利用可能な在庫を全て取得）
-        const { data: sourceInventories } = await supabase
+        // 移動元の在庫を取得（選択された場所のみ）
+        let sourceInventoryQuery = supabase
           .from('consumable_inventory')
           .select('*')
           .eq('tool_id', consumableId)
           .eq('organization_id', userData?.organization_id)
-          .gt('quantity', 0)
-          .order('quantity', { ascending: false })
+          .eq('location_type', fromLocationType)
 
-        if (!sourceInventories || sourceInventories.length === 0) {
+        if (fromSiteId) {
+          sourceInventoryQuery = sourceInventoryQuery.eq('site_id', fromSiteId)
+        } else {
+          sourceInventoryQuery = sourceInventoryQuery.is('site_id', null)
+        }
+
+        if (fromWarehouseLocationId) {
+          sourceInventoryQuery = sourceInventoryQuery.eq('warehouse_location_id', fromWarehouseLocationId)
+        } else {
+          sourceInventoryQuery = sourceInventoryQuery.is('warehouse_location_id', null)
+        }
+
+        const { data: sourceInventory } = await sourceInventoryQuery.single()
+
+        if (!sourceInventory) {
           const consumable = consumables.find((c) => c.id === consumableId)
+          const locationName = fromLocationType === 'warehouse'
+            ? fromWarehouseLocationId
+              ? `倉庫（${warehouseLocations.find(l => l.id === fromWarehouseLocationId)?.display_name}）`
+              : '倉庫'
+            : sites.find(s => s.id === fromSiteId)?.name || '現場'
           throw new Error(
-            `${consumable?.name || '不明'}の在庫がありません`
+            `${consumable?.name || '不明'}の在庫が${locationName}にありません`
           )
         }
 
-        // 必要な数量を確保できるかチェック
-        const totalAvailable = sourceInventories.reduce((sum, inv) => sum + inv.quantity, 0)
-        if (totalAvailable < quantity) {
+        // 在庫数が足りるかチェック
+        if (sourceInventory.quantity < quantity) {
           const consumable = consumables.find((c) => c.id === consumableId)
+          const locationName = fromLocationType === 'warehouse'
+            ? fromWarehouseLocationId
+              ? `倉庫（${warehouseLocations.find(l => l.id === fromWarehouseLocationId)?.display_name}）`
+              : '倉庫'
+            : sites.find(s => s.id === fromSiteId)?.name || '現場'
           throw new Error(
-            `${consumable?.name || '不明'}の在庫が不足しています（在庫: ${totalAvailable}, 必要: ${quantity}）`
+            `${consumable?.name || '不明'}の在庫が不足しています（${locationName}の在庫: ${sourceInventory.quantity}${consumable?.unit}, 必要: ${quantity}${consumable?.unit}）`
           )
         }
 
-        // 在庫から必要な数量を引いていく
-        let remaining = quantity
-        for (const sourceInventory of sourceInventories) {
-          if (remaining <= 0) break
-
-          const fromLocationType = sourceInventory.location_type
-          const fromSiteId = sourceInventory.site_id
-          const fromWarehouseLocationId = sourceInventory.warehouse_location_id
-          const takeQuantity = Math.min(sourceInventory.quantity, remaining)
-
-          // 移動元の在庫を減らす
-          const newSourceQuantity = sourceInventory.quantity - takeQuantity
-          if (newSourceQuantity === 0) {
-            const { error: deleteError } = await supabase
-              .from('consumable_inventory')
-              .delete()
-              .eq('id', sourceInventory.id)
-
-            if (deleteError) {
-              console.error('在庫削除エラー:', deleteError)
-              throw new Error(`在庫削除に失敗: ${deleteError.message}`)
-            }
-          } else {
-            const { error: updateError } = await supabase
-              .from('consumable_inventory')
-              .update({
-                quantity: newSourceQuantity,
-                updated_at: new Date().toISOString(),
-              })
-              .eq('id', sourceInventory.id)
-
-            if (updateError) {
-              console.error('在庫更新エラー:', updateError)
-              throw new Error(`在庫更新に失敗: ${updateError.message}`)
-            }
-          }
-
-          // 移動先の在庫を取得
-          let destInventoryQuery = supabase
+        // 移動元の在庫を減らす
+        const newSourceQuantity = sourceInventory.quantity - quantity
+        if (newSourceQuantity === 0) {
+          const { error: deleteError } = await supabase
             .from('consumable_inventory')
-            .select('*')
-            .eq('tool_id', consumableId)
-            .eq('organization_id', userData?.organization_id)
-            .eq('location_type', toLocationType)
+            .delete()
+            .eq('id', sourceInventory.id)
 
-          if (toSiteId) {
-            destInventoryQuery = destInventoryQuery.eq('site_id', toSiteId)
-          } else {
-            destInventoryQuery = destInventoryQuery.is('site_id', null)
+          if (deleteError) {
+            console.error('在庫削除エラー:', deleteError)
+            throw new Error(`在庫削除に失敗: ${deleteError.message}`)
           }
-
-          if (toWarehouseLocationId) {
-            destInventoryQuery = destInventoryQuery.eq('warehouse_location_id', toWarehouseLocationId)
-          } else {
-            destInventoryQuery = destInventoryQuery.is('warehouse_location_id', null)
-          }
-
-          const { data: destInventory } = await destInventoryQuery.single()
-
-          // 移動先の在庫を増やす
-          if (destInventory) {
-            const { error: updateError } = await supabase
-              .from('consumable_inventory')
-              .update({
-                quantity: destInventory.quantity + takeQuantity,
-                updated_at: new Date().toISOString(),
-              })
-              .eq('id', destInventory.id)
-
-            if (updateError) {
-              console.error('在庫更新エラー:', updateError)
-              throw new Error(`在庫更新に失敗: ${updateError.message}`)
-            }
-          } else {
-            const { error: insertError } = await supabase.from('consumable_inventory').insert({
-              organization_id: userData?.organization_id,
-              tool_id: consumableId,
-              location_type: toLocationType,
-              site_id: toSiteId,
-              warehouse_location_id: toWarehouseLocationId,
-              quantity: takeQuantity,
+        } else {
+          const { error: updateError } = await supabase
+            .from('consumable_inventory')
+            .update({
+              quantity: newSourceQuantity,
+              updated_at: new Date().toISOString(),
             })
+            .eq('id', sourceInventory.id)
 
-            if (insertError) {
-              console.error('在庫追加エラー:', insertError)
-              throw new Error(`在庫追加に失敗: ${insertError.message}`)
-            }
+          if (updateError) {
+            console.error('在庫更新エラー:', updateError)
+            throw new Error(`在庫更新に失敗: ${updateError.message}`)
           }
+        }
 
-          // 移動履歴を記録
-          const { error: movementError } = await supabase.from('consumable_movements').insert({
+        // 移動先の在庫を取得
+        let destInventoryQuery = supabase
+          .from('consumable_inventory')
+          .select('*')
+          .eq('tool_id', consumableId)
+          .eq('organization_id', userData?.organization_id)
+          .eq('location_type', toLocationType)
+
+        if (toSiteId) {
+          destInventoryQuery = destInventoryQuery.eq('site_id', toSiteId)
+        } else {
+          destInventoryQuery = destInventoryQuery.is('site_id', null)
+        }
+
+        if (toWarehouseLocationId) {
+          destInventoryQuery = destInventoryQuery.eq('warehouse_location_id', toWarehouseLocationId)
+        } else {
+          destInventoryQuery = destInventoryQuery.is('warehouse_location_id', null)
+        }
+
+        const { data: destInventory } = await destInventoryQuery.single()
+
+        // 移動先の在庫を増やす
+        if (destInventory) {
+          const { error: updateError } = await supabase
+            .from('consumable_inventory')
+            .update({
+              quantity: destInventory.quantity + quantity,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', destInventory.id)
+
+          if (updateError) {
+            console.error('在庫更新エラー:', updateError)
+            throw new Error(`在庫更新に失敗: ${updateError.message}`)
+          }
+        } else {
+          const { error: insertError } = await supabase.from('consumable_inventory').insert({
             organization_id: userData?.organization_id,
             tool_id: consumableId,
-            movement_type: '一括移動',
-            from_location_type: fromLocationType,
-            from_site_id: fromSiteId,
-            from_location_id: fromWarehouseLocationId ? null : fromSiteId,
-            to_location_type: toLocationType,
-            to_site_id: toSiteId,
-            to_location_id: toWarehouseLocationId ? null : toSiteId,
-            quantity: takeQuantity,
-            performed_by: user.id,
-            notes: notes || null,
+            location_type: toLocationType,
+            site_id: toSiteId,
+            warehouse_location_id: toWarehouseLocationId,
+            quantity: quantity,
           })
 
-          if (movementError) {
-            console.error('移動履歴記録エラー:', movementError)
-            throw new Error(`移動履歴の記録に失敗しました: ${movementError.message}`)
+          if (insertError) {
+            console.error('在庫追加エラー:', insertError)
+            throw new Error(`在庫追加に失敗: ${insertError.message}`)
           }
+        }
 
-          remaining -= takeQuantity
+        // 移動履歴を記録
+        const { error: movementError } = await supabase.from('consumable_movements').insert({
+          organization_id: userData?.organization_id,
+          tool_id: consumableId,
+          movement_type: '一括移動',
+          from_location_type: fromLocationType,
+          from_site_id: fromSiteId,
+          from_location_id: fromWarehouseLocationId ? null : fromSiteId,
+          to_location_type: toLocationType,
+          to_site_id: toSiteId,
+          to_location_id: toWarehouseLocationId ? null : toSiteId,
+          quantity: quantity,
+          performed_by: user.id,
+          notes: notes || null,
+        })
+
+        if (movementError) {
+          console.error('移動履歴記録エラー:', movementError)
+          throw new Error(`移動履歴の記録に失敗しました: ${movementError.message}`)
         }
       }
 
@@ -388,13 +423,32 @@ export function ConsumableBulkMovementForm({
       })
   }
 
-  // 検索フィルタリング
+  // 検索フィルタリング（移動元に在庫がある消耗品のみ）
   const filteredConsumables = consumables.filter((consumable) => {
     const query = normalizeText(searchQuery)
-    return (
-      normalizeText(consumable.name).includes(query) ||
+    const matchesQuery = normalizeText(consumable.name).includes(query) ||
       normalizeText(consumable.model_number || '').includes(query)
-    )
+
+    if (!matchesQuery) return false
+
+    // 移動元に在庫があるかチェック
+    const hasSourceInventory = inventories.some(inv => {
+      if (inv.tool_id !== consumable.id) return false
+      if (inv.location_type !== sourceLocationType) return false
+
+      if (sourceLocationType === 'site') {
+        return inv.site_id === sourceSiteId
+      } else {
+        // warehouse
+        if (sourceWarehouseLocationId) {
+          return inv.warehouse_location_id === sourceWarehouseLocationId
+        } else {
+          return inv.warehouse_location_id === null
+        }
+      }
+    })
+
+    return hasSourceInventory
   })
 
   // 選択された消耗品の詳細情報
@@ -421,9 +475,89 @@ export function ConsumableBulkMovementForm({
         </div>
       )}
 
-      {/* 1. 移動先選択 */}
+      {/* 1. 移動元選択 */}
       <div className="space-y-4">
-        <h3 className="text-base font-semibold text-gray-900">1. 移動先を選択</h3>
+        <h3 className="text-base font-semibold text-gray-900">1. 移動元を選択</h3>
+
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => setSourceLocationType('warehouse')}
+            disabled={isSubmitting}
+            className={`p-4 border-2 rounded-lg text-center transition-colors ${
+              sourceLocationType === 'warehouse'
+                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                : 'border-gray-300 hover:border-gray-400'
+            }`}
+          >
+            <div className="text-2xl mb-1">🏢</div>
+            <div className="font-medium">倉庫</div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSourceLocationType('site')}
+            disabled={isSubmitting}
+            className={`p-4 border-2 rounded-lg text-center transition-colors ${
+              sourceLocationType === 'site'
+                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                : 'border-gray-300 hover:border-gray-400'
+            }`}
+          >
+            <div className="text-2xl mb-1">🏗️</div>
+            <div className="font-medium">現場</div>
+          </button>
+        </div>
+
+        {/* 現場選択 */}
+        {sourceLocationType === 'site' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              現場 <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={sourceSiteId}
+              onChange={(e) => setSourceSiteId(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={isSubmitting}
+              required
+            >
+              <option value="">現場を選択してください</option>
+              {sites.map((site) => (
+                <option key={site.id} value={site.id}>
+                  {site.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* 倉庫位置選択（オプション） */}
+        {sourceLocationType === 'warehouse' && warehouseLocations.length > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              倉庫位置（オプション）
+            </label>
+            <select
+              value={sourceWarehouseLocationId}
+              onChange={(e) => setSourceWarehouseLocationId(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={isSubmitting}
+            >
+              <option value="">倉庫位置を選択（任意）</option>
+              {warehouseLocations.map((loc) => (
+                <option key={loc.id} value={loc.id}>
+                  {loc.code} - {loc.display_name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
+
+      {/* 2. 移動先選択 */}
+      <div className="space-y-4">
+        <h3 className="text-base font-semibold text-gray-900">2. 移動先を選択</h3>
 
         <div className="grid grid-cols-2 gap-3">
           <button
@@ -501,9 +635,9 @@ export function ConsumableBulkMovementForm({
         )}
       </div>
 
-      {/* 2. 消耗品選択 */}
+      {/* 3. 消耗品選択 */}
       <div className="space-y-4">
-        <h3 className="text-base font-semibold text-gray-900">2. 消耗品を選択</h3>
+        <h3 className="text-base font-semibold text-gray-900">3. 消耗品を選択</h3>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <p className="text-sm text-gray-600">QRスキャンまたは検索して消耗品を選択</p>
@@ -549,7 +683,20 @@ export function ConsumableBulkMovementForm({
               const isSelected = selectedConsumables.some(
                 (sc) => sc.consumableId === consumable.id
               )
-              const consumableInventories = inventories.filter(inv => inv.tool_id === consumable.id)
+              // 移動元の在庫のみを表示
+              const sourceInventory = inventories.find(inv => {
+                if (inv.tool_id !== consumable.id) return false
+                if (inv.location_type !== sourceLocationType) return false
+                if (sourceLocationType === 'site') {
+                  return inv.site_id === sourceSiteId
+                } else {
+                  if (sourceWarehouseLocationId) {
+                    return inv.warehouse_location_id === sourceWarehouseLocationId
+                  } else {
+                    return inv.warehouse_location_id === null
+                  }
+                }
+              })
               return (
                 <button
                   key={consumable.id}
@@ -570,19 +717,17 @@ export function ConsumableBulkMovementForm({
                     <div className="text-xs text-gray-500">{consumable.model_number}</div>
                   )}
                   <div className="text-xs text-gray-500 mt-1">
-                    {consumableInventories.length > 0 ? (
-                      consumableInventories.map((inv, idx) => (
-                        <div key={idx}>
-                          {inv.location_type === 'warehouse'
-                            ? inv.warehouse_location
-                              ? `倉庫（${inv.warehouse_location.code} - ${inv.warehouse_location.display_name}）: ${inv.quantity}${consumable.unit}`
-                              : `倉庫: ${inv.quantity}${consumable.unit}`
-                            : inv.site
-                            ? `${inv.site.name}: ${inv.quantity}${consumable.unit}`
-                            : `現場: ${inv.quantity}${consumable.unit}`
-                          }
-                        </div>
-                      ))
+                    {sourceInventory ? (
+                      <div>
+                        {sourceLocationType === 'warehouse'
+                          ? sourceInventory.warehouse_location
+                            ? `倉庫（${sourceInventory.warehouse_location.code} - ${sourceInventory.warehouse_location.display_name}）: ${sourceInventory.quantity}${consumable.unit}`
+                            : `倉庫: ${sourceInventory.quantity}${consumable.unit}`
+                          : sourceInventory.site
+                          ? `${sourceInventory.site.name}: ${sourceInventory.quantity}${consumable.unit}`
+                          : `現場: ${sourceInventory.quantity}${consumable.unit}`
+                        }
+                      </div>
                     ) : (
                       <div className="text-gray-400">在庫なし</div>
                     )}
@@ -594,11 +739,11 @@ export function ConsumableBulkMovementForm({
         )}
       </div>
 
-      {/* 3. 選択中の消耗品 */}
+      {/* 4. 選択中の消耗品 */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-semibold text-gray-900">
-            3. 選択中の消耗品（{selectedConsumables.length}件）
+            4. 選択中の消耗品（{selectedConsumables.length}件）
           </h3>
           {selectedConsumables.length > 0 && (
             <button
@@ -615,7 +760,20 @@ export function ConsumableBulkMovementForm({
         {selectedConsumableDetails.length > 0 ? (
           <div className="border-2 border-gray-300 rounded-lg divide-y divide-gray-200">
             {selectedConsumableDetails.map(({ consumableId, quantity, consumable }) => {
-              const consumableInventories = inventories.filter(inv => inv.tool_id === consumableId)
+              // 移動元の在庫のみを表示
+              const sourceInventory = inventories.find(inv => {
+                if (inv.tool_id !== consumableId) return false
+                if (inv.location_type !== sourceLocationType) return false
+                if (sourceLocationType === 'site') {
+                  return inv.site_id === sourceSiteId
+                } else {
+                  if (sourceWarehouseLocationId) {
+                    return inv.warehouse_location_id === sourceWarehouseLocationId
+                  } else {
+                    return inv.warehouse_location_id === null
+                  }
+                }
+              })
               return (
                 <div key={consumableId} className="p-4 flex items-center justify-between">
                   <div className="flex-1">
@@ -628,21 +786,20 @@ export function ConsumableBulkMovementForm({
                       </div>
                     )}
                     <div className="text-xs text-gray-500 mt-1">
-                      {consumableInventories.length > 0 ? (
-                        consumableInventories.map((inv, idx) => (
-                          <div key={idx}>
-                            {inv.location_type === 'warehouse'
-                              ? inv.warehouse_location
-                                ? `倉庫（${inv.warehouse_location.code} - ${inv.warehouse_location.display_name}）: ${inv.quantity}${consumable.unit}`
-                                : `倉庫: ${inv.quantity}${consumable.unit}`
-                              : inv.site
-                              ? `${inv.site.name}: ${inv.quantity}${consumable.unit}`
-                              : `現場: ${inv.quantity}${consumable.unit}`
-                            }
-                          </div>
-                        ))
+                      {sourceInventory ? (
+                        <div>
+                          移動元在庫: {' '}
+                          {sourceLocationType === 'warehouse'
+                            ? sourceInventory.warehouse_location
+                              ? `倉庫（${sourceInventory.warehouse_location.code} - ${sourceInventory.warehouse_location.display_name}）: ${sourceInventory.quantity}${consumable.unit}`
+                              : `倉庫: ${sourceInventory.quantity}${consumable.unit}`
+                            : sourceInventory.site
+                            ? `${sourceInventory.site.name}: ${sourceInventory.quantity}${consumable.unit}`
+                            : `現場: ${sourceInventory.quantity}${consumable.unit}`
+                          }
+                        </div>
                       ) : (
-                        <div className="text-gray-400">在庫なし</div>
+                        <div className="text-red-600">移動元に在庫なし</div>
                       )}
                     </div>
                   </div>
