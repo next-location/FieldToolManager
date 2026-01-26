@@ -3889,6 +3889,12 @@ CREATE TABLE organization_attendance_settings (
   overtime_alert_enabled BOOLEAN DEFAULT false,
   overtime_alert_hours INTEGER DEFAULT 12,
 
+  -- MVP追加: 営業日・勤務時間設定（2026-01-26）
+  working_days JSONB NOT NULL DEFAULT '{"mon":true,"tue":true,"wed":true,"thu":true,"fri":true,"sat":false,"sun":false}',
+  exclude_holidays BOOLEAN DEFAULT true,
+  default_checkin_time TIME DEFAULT '09:00',
+  default_alert_time TIME DEFAULT '10:00',
+
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -4146,9 +4152,10 @@ CREATE POLICY "Admins can manage all attendance records"
 CREATE TABLE attendance_alerts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   organization_id UUID NOT NULL REFERENCES organizations(id),
-  alert_type TEXT NOT NULL CHECK (alert_type IN ('missing_checkin', 'missing_checkout', 'qr_expiring', 'overtime')),
+  alert_type TEXT NOT NULL CHECK (alert_type IN ('missing_checkin', 'missing_checkout', 'qr_expiring', 'overtime', 'checkin_reminder')),
   target_user_id UUID REFERENCES users(id),
   target_date DATE,
+  title TEXT,  -- MVP追加（2026-01-26）
   message TEXT NOT NULL,
   metadata JSONB,
   is_resolved BOOLEAN DEFAULT false,

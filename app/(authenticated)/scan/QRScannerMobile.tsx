@@ -20,6 +20,7 @@ interface ScannedItem {
   serialNumber?: string
   currentLocation?: string
   siteId?: string
+  toolSetsToDelete?: string[] // 移動実行時に削除するセットID
 }
 
 interface ToolSetInfo {
@@ -246,44 +247,23 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
   // 個別選択の確認
   const handleConfirmIndividualSelection = (toolItem: any, toolSets: ToolSetInfo[]) => {
     const setNames = toolSets.map(ts => ts.name).join('、')
-    if (confirm(`この道具を選択すると、登録されている道具セット「${setNames}」が削除されます。\n\nよろしいですか？`)) {
+    if (confirm(`この道具を個別で選択し移動すると、登録されている道具セット「${setNames}」が削除されます。\n\nよろしいですか？`)) {
       handleAddIndividualItem(toolItem, toolSets)
     }
   }
 
-  // 個別アイテムを追加（セットを削除）
+  // 個別アイテムを追加（セット削除情報を保持）
   const handleAddIndividualItem = async (toolItem: any, toolSets: ToolSetInfo[]) => {
     try {
-      // API Route経由でセットを削除
-      const response = await fetch('/api/tool-sets/delete-for-individual-move', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          toolSetIds: toolSets.map(ts => ts.id)
-        })
-      })
-
-      const result = await response.json()
-
-      if (!response.ok || !result.success) {
-        console.error('セット削除APIエラー:', result)
-        setError('セットの削除中にエラーが発生しました')
-        setTimeout(() => setError(null), 3000)
-        return
-      }
-
-      console.log('セット削除成功:', result.deletedSets)
-
-      // 個別アイテムとして追加
+      // 個別アイテムとして追加（セット削除IDを保持）
       const newItem: ScannedItem = {
         id: toolItem.id,
         qrCode: toolItem.qr_code || '',
         name: (toolItem as any).tools?.name || '不明な道具',
         serialNumber: toolItem.serial_number,
         currentLocation: toolItem.current_location,
-        siteId: toolItem.current_site_id || undefined
+        siteId: toolItem.current_site_id || undefined,
+        toolSetsToDelete: toolSets.map(ts => ts.id) // 移動実行時に削除するセットIDを保持
       }
 
       // 位置チェック
@@ -506,6 +486,22 @@ export function QRScannerMobile({ mode, onClose }: QRScannerMobileProps) {
     await stopScanning()
 
     if (mode === 'tool') {
+      // セット削除情報を収集
+      const toolSetsToDelete: string[] = []
+      scannedItems.forEach(item => {
+        if (item.toolSetsToDelete) {
+          toolSetsToDelete.push(...item.toolSetsToDelete)
+        }
+      })
+
+      // 重複を除去
+      const uniqueToolSetsToDelete = [...new Set(toolSetsToDelete)]
+
+      // sessionStorageに保存
+      if (uniqueToolSetsToDelete.length > 0) {
+        sessionStorage.setItem('toolSetsToDelete', JSON.stringify(uniqueToolSetsToDelete))
+      }
+
       // 道具移動ページへリダイレクト
       const itemIds = scannedItems.map(item => item.id).join(',')
       router.push(`/movements/bulk?items=${itemIds}`)

@@ -4742,3 +4742,109 @@ DROP POLICY IF EXISTS "estimates_delete" ON estimates;
 ```
 
 ---
+
+## Migration 043: 出退勤アラートMVP対応 (2026-01-26)
+
+### 概要
+出退勤アラートシステムのMVP実装のためのデータベース修正。
+
+### 変更内容
+
+#### 1. `attendance_alerts` テーブル修正
+
+**追加カラム**:
+- `title` (TEXT): アラートのタイトル（例: 「出勤打刻漏れ」）
+
+**制約変更**:
+- `alert_type` の CHECK 制約を更新し、`'checkin_reminder'` を追加
+
+```sql
+ALTER TABLE attendance_alerts
+ADD COLUMN IF NOT EXISTS title TEXT;
+
+ALTER TABLE attendance_alerts
+DROP CONSTRAINT IF EXISTS attendance_alerts_alert_type_check;
+
+ALTER TABLE attendance_alerts
+ADD CONSTRAINT attendance_alerts_alert_type_check
+CHECK (alert_type IN (
+  'missing_checkin',
+  'missing_checkout',
+  'qr_expiring',
+  'overtime',
+  'checkin_reminder'
+));
+```
+
+#### 2. `organization_attendance_settings` テーブル拡張
+
+**追加カラム**:
+- `working_days` (JSONB): 営業日設定（例: `{"mon":true,"tue":true,...,"sun":false}`）
+- `exclude_holidays` (BOOLEAN): 祝日を休日として扱うかどうか（デフォルト: true）
+- `default_checkin_time` (TIME): デフォルト出勤時刻（デフォルト: 09:00）
+- `default_alert_time` (TIME): デフォルトアラート送信時刻（デフォルト: 10:00）
+
+```sql
+ALTER TABLE organization_attendance_settings
+ADD COLUMN IF NOT EXISTS working_days JSONB NOT NULL DEFAULT '{"mon":true,"tue":true,"wed":true,"thu":true,"fri":true,"sat":false,"sun":false}';
+
+ALTER TABLE organization_attendance_settings
+ADD COLUMN IF NOT EXISTS exclude_holidays BOOLEAN DEFAULT true;
+
+ALTER TABLE organization_attendance_settings
+ADD COLUMN IF NOT EXISTS default_checkin_time TIME DEFAULT '09:00';
+
+ALTER TABLE organization_attendance_settings
+ADD COLUMN IF NOT EXISTS default_alert_time TIME DEFAULT '10:00';
+```
+
+### 影響する機能
+- 出退勤アラート生成（Vercel Cron Job）
+- 組織設定ページ（休日・勤務時間設定）
+- アラート通知表示
+
+### 確認方法
+```sql
+-- テーブル構造確認
+\d attendance_alerts
+\d organization_attendance_settings
+
+-- 制約確認
+SELECT conname, pg_get_constraintdef(oid)
+FROM pg_constraint
+WHERE conname LIKE '%attendance_alerts%';
+
+-- 既存データ確認
+SELECT * FROM organization_attendance_settings LIMIT 1;
+```
+
+### ロールバック手順
+```sql
+-- attendance_alerts の修正をロールバック
+ALTER TABLE attendance_alerts
+DROP COLUMN IF EXISTS title;
+
+ALTER TABLE attendance_alerts
+DROP CONSTRAINT IF EXISTS attendance_alerts_alert_type_check;
+
+ALTER TABLE attendance_alerts
+ADD CONSTRAINT attendance_alerts_alert_type_check
+CHECK (alert_type IN ('missing_checkin', 'missing_checkout', 'qr_expiring', 'overtime'));
+
+-- organization_attendance_settings の修正をロールバック
+ALTER TABLE organization_attendance_settings
+DROP COLUMN IF EXISTS working_days;
+
+ALTER TABLE organization_attendance_settings
+DROP COLUMN IF EXISTS exclude_holidays;
+
+ALTER TABLE organization_attendance_settings
+DROP COLUMN IF EXISTS default_checkin_time;
+
+ALTER TABLE organization_attendance_settings
+DROP COLUMN IF EXISTS default_alert_time;
+```
+
+**マイグレーションファイル**: `supabase/migrations/20260126_attendance_alert_mvp.sql`
+
+---

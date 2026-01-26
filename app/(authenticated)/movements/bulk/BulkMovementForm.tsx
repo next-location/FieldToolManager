@@ -442,7 +442,39 @@ export function BulkMovementForm({
       }
 
       if (successCount === selectedToolIds.length) {
-        // すべて成功
+        // すべて成功 - セット削除処理を実行
+        const toolSetsToDeleteStr = sessionStorage.getItem('toolSetsToDelete')
+        if (toolSetsToDeleteStr) {
+          try {
+            const toolSetsToDelete = JSON.parse(toolSetsToDeleteStr) as string[]
+
+            // セット削除APIを呼び出し
+            const response = await fetch('/api/tool-sets/delete-for-individual-move', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                toolSetIds: toolSetsToDelete
+              })
+            })
+
+            const result = await response.json()
+
+            if (response.ok && result.success) {
+              console.log('セット削除成功:', result.deletedSets)
+            } else {
+              console.error('セット削除APIエラー:', result)
+            }
+
+            // sessionStorageをクリア
+            sessionStorage.removeItem('toolSetsToDelete')
+          } catch (err) {
+            console.error('セット削除処理エラー:', err)
+            // エラーでも移動は成功しているので続行
+          }
+        }
+
         router.push(`/movements?success=${encodeURIComponent(`${successCount}件の道具移動が完了しました`)}`)
       } else if (successCount > 0) {
         // 一部成功
