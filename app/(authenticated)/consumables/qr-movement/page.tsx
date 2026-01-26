@@ -63,12 +63,13 @@ export default async function ConsumableQRMovementPage({ searchParams }: QRMovem
     redirect('/consumables/bulk-movement')
   }
 
-  // 現場一覧を取得（移動先用）
+  // 現場一覧を取得（移動先用 - 顧客現場のみ）
   const { data: sites } = await supabase
     .from('sites')
-    .select('id, name, is_active')
+    .select('id, name, is_active, is_own_location')
     .eq('organization_id', organizationId)
     .eq('is_active', true)
+    .eq('is_own_location', false)
     .is('deleted_at', null)
     .order('name')
 

@@ -276,7 +276,7 @@ export function ConsumableQRMovementForm({
       const movementData = {
         organization_id: userData.organization_id,
         tool_id: consumable.id,
-        movement_type: 'QR移動',
+        movement_type: '移動',
         from_location_type: fromLocationType,
         from_site_id: fromSiteId,
         from_location_id: fromSiteId || null,
