@@ -348,6 +348,22 @@ export function BulkMovementForm({
       return
     }
 
+    // 個別選択モードで道具セット登録済みの道具があるかチェック
+    if (selectionMode === 'individual' && canRemoveFromSet) {
+      const selectedTools = toolItems.filter(t => selectedToolIds.includes(t.id))
+      const toolsInSet = selectedTools.filter(t => t.inToolSet)
+
+      if (toolsInSet.length > 0) {
+        const setNames = [...new Set(toolsInSet.map(t => t.toolSetName).filter(Boolean))].join('、')
+        const confirmed = window.confirm(
+          `⚠️ 道具セット削除の最終確認\n\n選択された道具のうち、以下のセットに登録されている道具が含まれています：\n${setNames}\n\n移動を実行すると、これらのセットは完全に削除されます。\n\n本当に実行しますか？`
+        )
+        if (!confirmed) {
+          return
+        }
+      }
+    }
+
     setIsSubmitting(true)
     setError(null)
     setProgress({ current: 0, total: selectedToolIds.length })

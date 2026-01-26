@@ -813,13 +813,13 @@ export function QRScannerMobile({ mode, userRole, onClose }: QRScannerMobileProp
                 {userRole !== 'staff' && (
                   <button
                     onClick={() => handleConfirmIndividualSelection(toolSetDialog.toolItem, toolSetDialog.toolSets)}
-                    className="w-full py-3 px-4 bg-red-600 text-white border-2 border-red-700 rounded-lg font-medium hover:bg-red-700"
+                    className="w-full py-3 px-4 bg-white text-blue-600 border-2 border-blue-600 rounded-lg font-medium hover:bg-blue-50"
                   >
                     <div className="flex items-center justify-center gap-2 mb-1">
                       <span className="text-xl">⚠️</span>
                       <span>この道具のみ選択</span>
                     </div>
-                    <div className="text-xs text-red-100">
+                    <div className="text-xs text-blue-500">
                       ※セット「{toolSetDialog.toolSets[0].name}」が削除されます
                     </div>
                   </button>
@@ -830,7 +830,7 @@ export function QRScannerMobile({ mode, userRole, onClose }: QRScannerMobileProp
                     setToolSetDialog(null)
                     scannedQrCodesRef.current.delete(toolSetDialog.toolItem.qr_code)
                   }}
-                  className="w-full py-2 px-4 text-gray-600 hover:text-gray-800"
+                  className="w-full py-2 px-4 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200"
                 >
                   キャンセル
                 </button>
