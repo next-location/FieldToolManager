@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AttendanceFilter } from './AttendanceFilter'
 import { AttendanceRecordsTable } from './AttendanceRecordsTable'
 import { ProxyClockInModal } from './ProxyClockInModal'
@@ -23,6 +23,7 @@ interface AttendanceRecordsWrapperProps {
   userRole: string
   currentUserId: string
   isAdminOrManager: boolean
+  organizationName: string
 }
 
 export function AttendanceRecordsWrapper({
@@ -31,6 +32,7 @@ export function AttendanceRecordsWrapper({
   userRole,
   currentUserId,
   isAdminOrManager,
+  organizationName,
 }: AttendanceRecordsWrapperProps) {
   const [filters, setFilters] = useState({
     user_id: isAdminOrManager ? '' : currentUserId, // leader/userは自分のIDで固定
@@ -42,6 +44,31 @@ export function AttendanceRecordsWrapper({
 
   const [isProxyModalOpen, setIsProxyModalOpen] = useState(false)
   const [tableKey, setTableKey] = useState(0)
+  const [isScrolled, setIsScrolled] = useState(false)
+
+  // スクロールアニメーション（道具一覧と同じ）
+  useEffect(() => {
+    let lastScrollY = window.scrollY
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+
+      // スクロールダウン時に縮小
+      if (currentScrollY > lastScrollY && currentScrollY > 50) {
+        setIsScrolled(true)
+      } else if (currentScrollY < lastScrollY) {
+        setIsScrolled(false)
+      }
+
+      lastScrollY = currentScrollY
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
 
   const handleProxySuccess = () => {
     setTableKey((prev) => prev + 1) // テーブルを再読み込み
@@ -49,17 +76,27 @@ export function AttendanceRecordsWrapper({
 
   return (
     <>
-      {/* PC表示: 右上に代理打刻ボタン */}
-      {isAdminOrManager && (
-        <div className="hidden sm:flex justify-end mb-4">
-          <button
-            onClick={() => setIsProxyModalOpen(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            + 代理打刻
-          </button>
+      {/* PC表示: タイトルとボタンを横並び */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">勤怠一覧</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            {isAdminOrManager
+              ? `${organizationName} のスタッフの出退勤記録を確認・編集できます`
+              : `${organizationName} のスタッフの出退勤記録を確認できます（閲覧のみ）`}
+          </p>
         </div>
-      )}
+        {isAdminOrManager && (
+          <div className="hidden sm:flex">
+            <button
+              onClick={() => setIsProxyModalOpen(true)}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              + 代理打刻
+            </button>
+          </div>
+        )}
+      </div>
 
       <AttendanceFilter
         staffList={staffList}
@@ -76,14 +113,17 @@ export function AttendanceRecordsWrapper({
         showStaffSort={isAdminOrManager} // admin/managerのみソート表示
       />
 
-      {/* スマホ表示: FABボタン（道具一覧と同じスタイル） */}
+      {/* スマホ表示: FABボタン（道具一覧と同じスタイル・アニメーション） */}
       {isAdminOrManager && (
         <button
           onClick={() => setIsProxyModalOpen(true)}
-          className="fixed right-4 bottom-24 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-all duration-300 flex items-center justify-center z-40 sm:hidden"
+          className={`fixed right-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-all duration-300 flex items-center justify-center z-40 sm:hidden ${
+            isScrolled ? 'w-10 h-10 bottom-20' : 'w-14 h-14 bottom-24'
+          }`}
+          style={{ bottom: isScrolled ? '5rem' : '6rem' }}
           aria-label="代理打刻"
         >
-          <Plus className="h-6 w-6" />
+          <Plus className={`${isScrolled ? 'h-5 w-5' : 'h-6 w-6'}`} />
         </button>
       )}
 
