@@ -148,9 +148,9 @@ export function BulkMovementForm({
           message: `この道具はセット「${tool.toolSetName}」に登録されています。スタッフ権限では移動できません`
         }
       } else {
-        // リーダー以上：確認ダイアログ
+        // リーダー以上：確認ダイアログ（削除を明示）
         const confirmed = window.confirm(
-          `この道具はセット「${tool.toolSetName}」に登録されています。\n\nセットから解除して個別移動しますか？`
+          `⚠️ 道具セット削除の警告\n\nこの道具はセット「${tool.toolSetName}」に登録されています。\n\n個別移動すると、このセットは完全に削除されます。\n\nセットを削除して個別移動しますか？`
         )
         if (!confirmed) {
           return { success: false, message: 'キャンセルしました' }
@@ -223,9 +223,9 @@ export function BulkMovementForm({
         setTimeout(() => setError(null), 5000)
         return
       } else {
-        // リーダー以上：確認ダイアログ
+        // リーダー以上：確認ダイアログ（削除を明示）
         const confirmed = window.confirm(
-          `この道具はセット「${tool.toolSetName}」に登録されています。\n\nセットから解除して個別移動しますか？`
+          `⚠️ 道具セット削除の警告\n\nこの道具はセット「${tool.toolSetName}」に登録されています。\n\n個別移動すると、このセットは完全に削除されます。\n\nセットを削除して個別移動しますか？`
         )
         if (!confirmed) return
 

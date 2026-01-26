@@ -41,6 +41,7 @@ export function QRScannerMobile({ mode, userRole, onClose }: QRScannerMobileProp
   const [isListExpanded, setIsListExpanded] = useState(false)
   const [toolSetDialog, setToolSetDialog] = useState<{ toolItem: any; toolSets: ToolSetInfo[] } | null>(null)
   const [selectedToolSetId, setSelectedToolSetId] = useState<string | null>(null) // セット全体選択時のセットID
+  const [confirmDialog, setConfirmDialog] = useState<{ message: string; onConfirm: () => void } | null>(null)
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const processingQrRef = useRef<boolean>(false) // QR処理中フラグ
   const lastScannedRef = useRef<string | null>(null) // 最後にスキャンしたQRコード
@@ -252,9 +253,13 @@ export function QRScannerMobile({ mode, userRole, onClose }: QRScannerMobileProp
   // 個別選択の確認
   const handleConfirmIndividualSelection = (toolItem: any, toolSets: ToolSetInfo[]) => {
     const setNames = toolSets.map(ts => ts.name).join('、')
-    if (confirm(`この道具を個別で選択し移動すると、登録されている道具セット「${setNames}」が削除されます。\n\nよろしいですか？`)) {
-      handleAddIndividualItem(toolItem, toolSets)
-    }
+    setConfirmDialog({
+      message: `この道具を個別で選択し移動すると、登録されている道具セット「${setNames}」が削除されます。\n\nよろしいですか？`,
+      onConfirm: () => {
+        setConfirmDialog(null)
+        handleAddIndividualItem(toolItem, toolSets)
+      }
+    })
   }
 
   // 個別アイテムを追加（セット削除情報を保持）
@@ -808,13 +813,13 @@ export function QRScannerMobile({ mode, userRole, onClose }: QRScannerMobileProp
                 {userRole !== 'staff' && (
                   <button
                     onClick={() => handleConfirmIndividualSelection(toolSetDialog.toolItem, toolSetDialog.toolSets)}
-                    className="w-full py-3 px-4 bg-yellow-50 text-yellow-900 border-2 border-yellow-300 rounded-lg font-medium hover:bg-yellow-100"
+                    className="w-full py-3 px-4 bg-red-600 text-white border-2 border-red-700 rounded-lg font-medium hover:bg-red-700"
                   >
                     <div className="flex items-center justify-center gap-2 mb-1">
                       <span className="text-xl">⚠️</span>
                       <span>この道具のみ選択</span>
                     </div>
-                    <div className="text-xs text-yellow-700">
+                    <div className="text-xs text-red-100">
                       ※セット「{toolSetDialog.toolSets[0].name}」が削除されます
                     </div>
                   </button>
@@ -830,6 +835,34 @@ export function QRScannerMobile({ mode, userRole, onClose }: QRScannerMobileProp
                   キャンセル
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* カスタム確認ダイアログ */}
+      {confirmDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10001] p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full shadow-xl">
+            <div className="p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">ザイロク</h3>
+              <p className="text-gray-700 whitespace-pre-line leading-relaxed">
+                {confirmDialog.message}
+              </p>
+            </div>
+            <div className="flex gap-2 p-4 border-t border-gray-200">
+              <button
+                onClick={() => setConfirmDialog(null)}
+                className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={confirmDialog.onConfirm}
+                className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
+              >
+                OK
+              </button>
             </div>
           </div>
         </div>

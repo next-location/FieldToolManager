@@ -85,10 +85,10 @@ export async function POST(request: NextRequest) {
 
       console.log(`[出勤リマインダー] 組織 ${organizationId}: 営業日として処理開始`)
 
-      // その組織の全スタッフを取得（削除されていない）
+      // その組織の全スタッフを取得（削除されていない、role情報も含む）
       const { data: users, error: usersError } = await supabase
         .from('users')
-        .select('id, name, email')
+        .select('id, name, email, role')
         .eq('organization_id', organizationId)
         .is('deleted_at', null)
 
@@ -158,8 +158,9 @@ export async function POST(request: NextRequest) {
           }))
         })
 
-        // 個別スタッフにも通知（オプション: 必要に応じてコメントアウト可能）
-        for (const user of missingUsers) {
+        // 個別通知は一般スタッフのみに送信（管理者/マネージャーにはサマリー通知のみ）
+        const regularStaff = missingUsers.filter(u => !['admin', 'manager'].includes(u.role))
+        for (const user of regularStaff) {
           await notifyIndividualCheckinReminder({
             organizationId,
             userId: user.id,

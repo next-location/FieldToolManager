@@ -53,7 +53,7 @@ export async function notifyCheckinReminder(params: NotifyCheckinReminderParams)
   // 各管理者/マネージャーに通知を作成
   const notifications = recipients.map((recipient) => ({
     organization_id: params.organizationId,
-    type: 'attendance_alert',
+    type: '出退勤アラート',
     title: `出勤打刻忘れアラート（${params.missingUsers.length}名）`,
     message: `${params.targetDate}の出勤打刻がまだ行われていません：${summary}`,
     severity: 'warning' as const,
@@ -84,7 +84,7 @@ export async function notifyIndividualCheckinReminder(params: {
 
   const { error } = await supabase.from('notifications').insert({
     organization_id: params.organizationId,
-    type: 'attendance_alert',
+    type: '出退勤アラート',
     title: '出勤打刻忘れ',
     message: `${params.targetDate}の出勤打刻がまだ行われていません。打刻をお願いします。`,
     severity: 'warning',
