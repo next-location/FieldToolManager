@@ -276,6 +276,23 @@ export function BulkMovementForm({
     setRequiredLocation(null)
   }
 
+  // 選択された道具の倉庫位置をデフォルト設定
+  useEffect(() => {
+    if (selectedToolIds.length > 0 && destinationType === 'site') {
+      // 現在倉庫にある道具を探す
+      const selectedTools = toolItems.filter(item => selectedToolIds.includes(item.id))
+      const warehouseTools = selectedTools.filter(item => item.current_location === 'warehouse' && item.warehouse_location_id)
+
+      if (warehouseTools.length > 0) {
+        // 最初の道具の倉庫位置をデフォルトとして設定
+        const defaultLocationId = warehouseTools[0].warehouse_location_id
+        if (defaultLocationId && !destinationWarehouseLocationId) {
+          setDestinationWarehouseLocationId(defaultLocationId)
+        }
+      }
+    }
+  }, [selectedToolIds, destinationType, toolItems])
+
   // タブ切り替え
   const handleTabChange = (mode: SelectionMode) => {
     setSelectionMode(mode)
@@ -384,6 +401,8 @@ export function BulkMovementForm({
               current_location: 'site',
               current_site_id: destinationSiteId,
               status: 'in_use',
+              // 元の倉庫位置を保持（指定されている場合）
+              warehouse_location_id: destinationWarehouseLocationId || tool.warehouse_location_id || null,
             }
           } else if (destinationType === 'warehouse') {
             updateData = {
@@ -543,25 +562,50 @@ export function BulkMovementForm({
 
         {/* 現場選択 */}
         {destinationType === 'site' && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              現場 <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={destinationSiteId}
-              onChange={(e) => setDestinationSiteId(e.target.value)}
-              disabled={isSubmitting}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            >
-              <option value="">現場を選択してください</option>
-              {sites.map((site) => (
-                <option key={site.id} value={site.id}>
-                  {site.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                現場 <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={destinationSiteId}
+                onChange={(e) => setDestinationSiteId(e.target.value)}
+                disabled={isSubmitting}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              >
+                <option value="">現場を選択してください</option>
+                {sites.map((site) => (
+                  <option key={site.id} value={site.id}>
+                    {site.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* 倉庫から現場への移動時：元の倉庫位置を記録（オプション） */}
+            {warehouseLocations.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  元の倉庫位置（任意）
+                  <span className="ml-2 text-xs text-gray-500">現場から戻る際に役立ちます</span>
+                </label>
+                <select
+                  value={destinationWarehouseLocationId}
+                  onChange={(e) => setDestinationWarehouseLocationId(e.target.value)}
+                  disabled={isSubmitting}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">倉庫位置を選択（任意）</option>
+                  {warehouseLocations.map((loc) => (
+                    <option key={loc.id} value={loc.id}>
+                      {loc.code} - {loc.display_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </>
         )}
 
         {/* 倉庫位置選択（オプション） */}
