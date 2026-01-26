@@ -171,42 +171,105 @@ export function ConsumableQRMovementForm({
       const toSiteId = destinationType === 'site' ? destinationSiteId : null
       const toWarehouseLocationId = destinationType === 'warehouse' ? destinationWarehouseLocationId : null
 
-      // 移動元の在庫を減らす
-      const { error: decreaseError } = await supabase.rpc('decrease_consumable_inventory', {
-        p_organization_id: userData.organization_id,
-        p_tool_id: consumable.id,
-        p_location_type: fromLocationType,
-        p_site_id: fromSiteId,
-        p_warehouse_location_id: fromWarehouseLocationId,
-        p_quantity: moveQuantity,
-      })
+      // 移動元の在庫を取得（再確認）
+      let sourceInventoryQuery = supabase
+        .from('consumable_inventory')
+        .select('*')
+        .eq('tool_id', consumable.id)
+        .eq('organization_id', userData.organization_id)
+        .eq('location_type', fromLocationType)
 
-      if (decreaseError) {
-        throw new Error(`在庫の減少に失敗しました: ${decreaseError.message}`)
+      if (fromSiteId) {
+        sourceInventoryQuery = sourceInventoryQuery.eq('site_id', fromSiteId)
+      } else {
+        sourceInventoryQuery = sourceInventoryQuery.is('site_id', null)
       }
 
-      // 移動先の在庫を増やす
-      const { error: increaseError } = await supabase.rpc('increase_consumable_inventory', {
-        p_organization_id: userData.organization_id,
-        p_tool_id: consumable.id,
-        p_location_type: toLocationType,
-        p_site_id: toSiteId,
-        p_warehouse_location_id: toWarehouseLocationId,
-        p_quantity: moveQuantity,
-      })
+      if (fromWarehouseLocationId) {
+        sourceInventoryQuery = sourceInventoryQuery.eq('warehouse_location_id', fromWarehouseLocationId)
+      } else {
+        sourceInventoryQuery = sourceInventoryQuery.is('warehouse_location_id', null)
+      }
 
-      if (increaseError) {
-        // ロールバック: 移動元の在庫を戻す
-        await supabase.rpc('increase_consumable_inventory', {
-          p_organization_id: userData.organization_id,
-          p_tool_id: consumable.id,
-          p_location_type: fromLocationType,
-          p_site_id: fromSiteId,
-          p_warehouse_location_id: fromWarehouseLocationId,
-          p_quantity: moveQuantity,
+      const { data: sourceInventoryData } = await sourceInventoryQuery.single()
+
+      if (!sourceInventoryData) {
+        throw new Error('移動元の在庫が見つかりません')
+      }
+
+      // 移動元の在庫を減らす
+      const newSourceQuantity = sourceInventoryData.quantity - moveQuantity
+      if (newSourceQuantity === 0) {
+        const { error: deleteError } = await supabase
+          .from('consumable_inventory')
+          .delete()
+          .eq('id', sourceInventoryData.id)
+
+        if (deleteError) {
+          throw new Error(`在庫削除に失敗: ${deleteError.message}`)
+        }
+      } else {
+        const { error: updateError } = await supabase
+          .from('consumable_inventory')
+          .update({
+            quantity: newSourceQuantity,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', sourceInventoryData.id)
+
+        if (updateError) {
+          throw new Error(`在庫更新に失敗: ${updateError.message}`)
+        }
+      }
+
+      // 移動先の在庫を取得
+      let destInventoryQuery = supabase
+        .from('consumable_inventory')
+        .select('*')
+        .eq('tool_id', consumable.id)
+        .eq('organization_id', userData.organization_id)
+        .eq('location_type', toLocationType)
+
+      if (toSiteId) {
+        destInventoryQuery = destInventoryQuery.eq('site_id', toSiteId)
+      } else {
+        destInventoryQuery = destInventoryQuery.is('site_id', null)
+      }
+
+      if (toWarehouseLocationId) {
+        destInventoryQuery = destInventoryQuery.eq('warehouse_location_id', toWarehouseLocationId)
+      } else {
+        destInventoryQuery = destInventoryQuery.is('warehouse_location_id', null)
+      }
+
+      const { data: destInventoryData } = await destInventoryQuery.single()
+
+      // 移動先の在庫を増やす
+      if (destInventoryData) {
+        const { error: updateError } = await supabase
+          .from('consumable_inventory')
+          .update({
+            quantity: destInventoryData.quantity + moveQuantity,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', destInventoryData.id)
+
+        if (updateError) {
+          throw new Error(`在庫更新に失敗: ${updateError.message}`)
+        }
+      } else {
+        const { error: insertError } = await supabase.from('consumable_inventory').insert({
+          organization_id: userData.organization_id,
+          tool_id: consumable.id,
+          location_type: toLocationType,
+          site_id: toSiteId,
+          warehouse_location_id: toWarehouseLocationId,
+          quantity: moveQuantity,
         })
 
-        throw new Error(`在庫の増加に失敗しました: ${increaseError.message}`)
+        if (insertError) {
+          throw new Error(`在庫追加に失敗: ${insertError.message}`)
+        }
       }
 
       // 移動履歴を記録
