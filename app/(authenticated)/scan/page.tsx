@@ -5,16 +5,17 @@ import { QRScanTabs } from './QRScanTabs'
 export default async function ScanPage() {
   const { organizationId, supabase } = await requireAuth()
 
-  // 組織の契約パッケージを取得
-  const { data: contract } = await supabase
-    .from('contracts')
-    .select('asset_management_package, dx_efficiency_package, full_features_package')
+  // 組織のパッケージ情報を取得
+  const { data: features } = await supabase
+    .from('organization_features')
+    .select('has_asset_package, package_type')
     .eq('organization_id', organizationId)
-    .eq('status', 'active')
     .single()
 
   // 現場資産パックまたはフル機能統合パックがない場合はアクセス拒否
-  if (!contract?.asset_management_package && !contract?.full_features_package) {
+  const hasAssetAccess = features?.has_asset_package || features?.package_type === 'full'
+
+  if (!hasAssetAccess) {
     redirect('/dashboard')
   }
 
