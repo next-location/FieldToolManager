@@ -227,37 +227,22 @@ export default function MonthlyReport() {
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    スタッフ名
-                  </th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    部署
+                    スタッフ
                   </th>
                   <th className="px-3 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
                     出勤日数
                   </th>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    完了/未完了
+                  <th className="px-3 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    勤務時間
                   </th>
                   <th className="px-3 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    総勤務時間
-                  </th>
-                  <th className="px-3 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    総休憩時間
-                  </th>
-                  <th className="px-3 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    平均勤務時間
+                    休憩時間
                   </th>
                   <th className="px-3 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    残業日数
-                  </th>
-                  <th className="px-3 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    総残業時間
+                    残業
                   </th>
                   <th className="px-3 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    休日出勤日数
-                  </th>
-                  <th className="px-3 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    休日出勤時間
+                    休日出勤
                   </th>
                   <th className="px-3 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
                     遅刻/早退
@@ -267,58 +252,56 @@ export default function MonthlyReport() {
               <tbody className="divide-y divide-gray-200">
                 {staffStats.map((stats) => (
                   <tr key={stats.user_id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-3 py-3 text-sm font-medium text-gray-900">
-                      {stats.user_name}
+                    <td className="px-3 py-3 text-sm">
+                      <div className="flex flex-col">
+                        <span className="font-medium text-gray-900">{stats.user_name}</span>
+                        {stats.department && (
+                          <span className="text-xs text-gray-500">{stats.department}</span>
+                        )}
+                      </div>
                     </td>
-                    <td className="px-3 py-3 text-sm text-gray-600">
-                      {stats.department || '-'}
+                    <td className="px-3 py-3 text-sm text-center">
+                      <div className="flex flex-col">
+                        <span className="font-medium text-gray-900">{stats.total_days}日</span>
+                        <span className="text-xs text-gray-500">完了 {stats.completed_days}/{stats.incomplete_days}</span>
+                      </div>
                     </td>
-                    <td className="px-3 py-3 text-sm text-center text-gray-900">
-                      {stats.total_days}日
-                    </td>
-                    <td className="px-3 py-3 text-sm text-center text-gray-600">
-                      {stats.completed_days}/{stats.incomplete_days}
-                    </td>
-                    <td className="px-3 py-3 text-sm text-right text-gray-900">
-                      {formatMinutes(stats.total_work_minutes)}
+                    <td className="px-3 py-3 text-sm text-right">
+                      <div className="flex flex-col">
+                        <span className="font-medium text-gray-900">{formatMinutes(stats.total_work_minutes)}</span>
+                        <span className="text-xs text-gray-500">平均 {formatMinutes(stats.avg_work_minutes)}</span>
+                      </div>
                     </td>
                     <td className="px-3 py-3 text-sm text-right text-gray-600">
                       {formatMinutes(stats.total_break_minutes)}
                     </td>
-                    <td className="px-3 py-3 text-sm text-right text-gray-900">
-                      {formatMinutes(stats.avg_work_minutes)}
+                    <td className="px-3 py-3 text-sm text-center">
+                      <div className="flex flex-col gap-1">
+                        {stats.overtime_days > 0 ? (
+                          <>
+                            <span className="inline-block rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800">
+                              {stats.overtime_days}日
+                            </span>
+                            <span className="text-xs text-gray-600">{formatMinutes(stats.total_overtime_minutes)}</span>
+                          </>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-3 py-3 text-sm text-center">
-                      {stats.overtime_days > 0 ? (
-                        <span className="inline-block rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800">
-                          {stats.overtime_days}日
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </td>
-                    <td className="px-3 py-3 text-sm text-right text-gray-900">
-                      {stats.total_overtime_minutes > 0 ? (
-                        formatMinutes(stats.total_overtime_minutes)
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </td>
-                    <td className="px-3 py-3 text-sm text-center">
-                      {stats.holiday_work_days > 0 ? (
-                        <span className="inline-block rounded-full bg-pink-100 px-2 py-1 text-xs font-medium text-pink-800">
-                          {stats.holiday_work_days}日
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </td>
-                    <td className="px-3 py-3 text-sm text-right text-gray-900">
-                      {stats.total_holiday_work_minutes > 0 ? (
-                        formatMinutes(stats.total_holiday_work_minutes)
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
+                      <div className="flex flex-col gap-1">
+                        {stats.holiday_work_days > 0 ? (
+                          <>
+                            <span className="inline-block rounded-full bg-pink-100 px-2 py-1 text-xs font-medium text-pink-800">
+                              {stats.holiday_work_days}日
+                            </span>
+                            <span className="text-xs text-gray-600">{formatMinutes(stats.total_holiday_work_minutes)}</span>
+                          </>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-3 py-3 text-sm text-center text-gray-600">
                       {stats.late_days}/{stats.early_leave_days}
