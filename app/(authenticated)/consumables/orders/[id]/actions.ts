@@ -126,16 +126,16 @@ export async function markAsDelivered(formData: FormData) {
     }
   }
 
-  // 3. 移動履歴を記録（入庫）
+  // 3. 移動履歴を記録（調整として記録 - 外部からの入庫）
   const { error: movementError } = await supabase
     .from('consumable_movements')
     .insert({
       organization_id: userData?.organization_id,
       tool_id: order.tool_id,
-      movement_type: '入庫',
+      movement_type: '調整',
       to_location_type: 'warehouse',
       quantity: order.quantity,
-      notes: `発注番号: ${order.order_number} の納品による入庫${deliveryNotes ? `\n${deliveryNotes}` : ''}`,
+      notes: `【入庫】発注番号: ${order.order_number} の納品による入庫${deliveryNotes ? `\n${deliveryNotes}` : ''}`,
       performed_by: userId,
     })
 
