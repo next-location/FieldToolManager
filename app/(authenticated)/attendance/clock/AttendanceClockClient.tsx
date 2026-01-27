@@ -58,6 +58,10 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
   const canUseQR = orgSettings?.allow_qr || false
   const shouldRecordBreak = orgSettings?.break_time_mode === 'simple'
 
+  console.log('[AttendanceClockClient] orgSettings:', orgSettings)
+  console.log('[AttendanceClockClient] break_time_mode:', orgSettings?.break_time_mode)
+  console.log('[AttendanceClockClient] shouldRecordBreak:', shouldRecordBreak)
+
 
   // 当日の出退勤記録を取得
   useEffect(() => {
