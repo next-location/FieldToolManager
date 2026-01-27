@@ -57,6 +57,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       clock_out_location_type,
       clock_out_site_id,
       edited_reason,
+      is_holiday_work,
     } = body
 
     // 必須項目チェック
@@ -129,6 +130,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       edited_by: user.id,
       edited_at: now.toISOString(),
       edited_reason,
+      is_holiday_work: is_holiday_work !== undefined ? is_holiday_work : existingRecord.is_holiday_work,
       updated_at: now.toISOString(),
     }
 

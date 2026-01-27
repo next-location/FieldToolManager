@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
       clock_out_location_type,
       clock_out_site_id,
       proxy_reason,
+      is_holiday_work,
     } = body
 
     // 必須項目チェック
@@ -158,6 +159,7 @@ export async function POST(request: NextRequest) {
       edited_by: user.id,
       edited_at: now.toISOString(),
       edited_reason: `【代理打刻】${proxy_reason}`,
+      is_holiday_work: is_holiday_work || false,
       created_at: now.toISOString(),
       updated_at: now.toISOString(),
     }

@@ -113,6 +113,35 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
     setMessage(null)
 
     try {
+      // 休日判定
+      const today = new Date()
+      const dateStr = today.toISOString().split('T')[0]
+
+      const holidayCheckRes = await fetch('/api/attendance/check-holiday', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: dateStr }),
+      })
+
+      let isHolidayWork = false
+
+      if (holidayCheckRes.ok) {
+        const holidayCheck = await holidayCheckRes.json()
+
+        if (holidayCheck.is_holiday) {
+          const confirmed = confirm(
+            `今日は${holidayCheck.reason}です。\n休日出勤として記録しますか？`
+          )
+
+          if (!confirmed) {
+            setActionLoading(false)
+            return
+          }
+
+          isHolidayWork = true
+        }
+      }
+
       const response = await fetch('/api/attendance/clock-in', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -121,6 +150,7 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
           site_id: location === 'site' ? selectedSiteId : null,
           method: 'manual',
           device_type: 'mobile',
+          is_holiday_work: isHolidayWork,
         }),
       })
 

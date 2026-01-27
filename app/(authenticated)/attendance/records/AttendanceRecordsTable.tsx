@@ -232,7 +232,14 @@ export function AttendanceRecordsTable({
             {records.map((record) => (
               <tr key={record.id} className="hover:bg-gray-50">
                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {formatDate(record.date)}
+                  <div className="flex items-center gap-2">
+                    {formatDate(record.date)}
+                    {record.is_holiday_work && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-800">
+                        ● 休日出勤
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                   <div className="flex flex-col gap-1">

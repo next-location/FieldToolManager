@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
 
     // リクエストボディ取得
     const body: ClockInRequest = await request.json()
+    const isHolidayWork = body.is_holiday_work || false
 
     // バリデーション（打刻方法）
     if (!['manual', 'qr'].includes(body.method)) {
@@ -176,6 +177,7 @@ export async function POST(request: NextRequest) {
       clock_in_device_type: body.device_type || null,
       planned_checkout_location_type: body.planned_checkout_location_type || null,
       planned_checkout_site_id: body.planned_checkout_site_id || null,
+      is_holiday_work: isHolidayWork,
     }
 
     const { data: newRecord, error: insertError } = await supabase

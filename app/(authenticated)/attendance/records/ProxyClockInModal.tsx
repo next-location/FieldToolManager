@@ -43,6 +43,7 @@ export function ProxyClockInModal({
     clock_out_location_type: 'office' as 'office' | 'site' | 'remote' | 'direct_home',
     clock_out_site_id: '',
     proxy_reason: '',
+    is_holiday_work: false,
   })
 
   // モーダルが開いたらフォームをリセット
@@ -61,6 +62,7 @@ export function ProxyClockInModal({
         clock_out_location_type: 'office',
         clock_out_site_id: '',
         proxy_reason: '',
+        is_holiday_work: false,
       })
       setError(null)
     }
@@ -102,6 +104,7 @@ export function ProxyClockInModal({
               ? formData.clock_out_site_id
               : null,
           proxy_reason: formData.proxy_reason,
+          is_holiday_work: formData.is_holiday_work,
         }),
       })
 
@@ -349,6 +352,29 @@ export function ProxyClockInModal({
                     </select>
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* 休日出勤 */}
+            <div className="border-t pt-4">
+              <div className="flex items-start">
+                <input
+                  type="checkbox"
+                  id="is_holiday_work"
+                  checked={formData.is_holiday_work}
+                  onChange={(e) =>
+                    setFormData({ ...formData, is_holiday_work: e.target.checked })
+                  }
+                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-0.5"
+                />
+                <div className="ml-3 flex-1">
+                  <label htmlFor="is_holiday_work" className="block text-sm font-medium text-gray-900">
+                    休日出勤として記録
+                  </label>
+                  <p className="mt-1 text-xs text-gray-500">
+                    祝日・休日の勤務の場合はチェックしてください
+                  </p>
+                </div>
               </div>
             </div>
 

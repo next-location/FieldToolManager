@@ -136,18 +136,26 @@ export function AttendanceMVPSettings({ organizationId }: Props) {
       )}
 
       <div className="space-y-6">
-        {/* アラート有効化 */}
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="checkin_reminder_enabled"
-            checked={settings.checkin_reminder_enabled}
-            onChange={(e) => setSettings({ ...settings, checkin_reminder_enabled: e.target.checked })}
-            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-          />
-          <label htmlFor="checkin_reminder_enabled" className="ml-2 block text-sm text-gray-700">
-            出勤アラートを有効にする
-          </label>
+        {/* アラート有効化（マスタースイッチ） */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+          <div className="flex items-start">
+            <input
+              type="checkbox"
+              id="checkin_reminder_enabled"
+              checked={settings.checkin_reminder_enabled}
+              onChange={(e) => setSettings({ ...settings, checkin_reminder_enabled: e.target.checked })}
+              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-0.5"
+            />
+            <div className="ml-3 flex-1">
+              <label htmlFor="checkin_reminder_enabled" className="block text-sm font-medium text-gray-900">
+                出勤アラート機能を有効にする（全体スイッチ）
+              </label>
+              <p className="mt-1 text-xs text-yellow-700">
+                ⚠️ OFFにすると、すべての勤務パターンのアラートが無効になります。<br />
+                個別のON/OFFは「勤務パターン」ページで設定してください。
+              </p>
+            </div>
+          </div>
         </div>
 
         {settings.checkin_reminder_enabled && (
@@ -155,8 +163,13 @@ export function AttendanceMVPSettings({ organizationId }: Props) {
             {/* 営業日設定 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                営業日（アラートを送信する曜日）
+                営業日設定
               </label>
+              <p className="text-xs text-gray-500 mb-3">
+                選択された曜日が営業日として扱われます。<br />
+                • 営業日: 通常勤務として記録、アラート送信対象<br />
+                • 休日: 休日出勤として記録、アラート送信なし
+              </p>
               <div className="flex gap-2 flex-wrap">
                 {(Object.keys(DAY_LABELS) as Array<keyof typeof DAY_LABELS>).map((day) => (
                   <button
@@ -173,23 +186,29 @@ export function AttendanceMVPSettings({ organizationId }: Props) {
                   </button>
                 ))}
               </div>
-              <p className="mt-2 text-xs text-gray-500">
-                ※ 選択した曜日のみアラートが送信されます
-              </p>
             </div>
 
             {/* 祝日除外 */}
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="exclude_holidays"
-                checked={settings.exclude_holidays}
-                onChange={(e) => setSettings({ ...settings, exclude_holidays: e.target.checked })}
-                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <label htmlFor="exclude_holidays" className="ml-2 block text-sm text-gray-700">
-                祝日はアラートを送信しない
-              </label>
+            <div className="border-t pt-4">
+              <div className="flex items-start">
+                <input
+                  type="checkbox"
+                  id="exclude_holidays"
+                  checked={settings.exclude_holidays}
+                  onChange={(e) => setSettings({ ...settings, exclude_holidays: e.target.checked })}
+                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-0.5"
+                />
+                <div className="ml-3 flex-1">
+                  <label htmlFor="exclude_holidays" className="block text-sm font-medium text-gray-900">
+                    祝日を休日として扱う
+                  </label>
+                  <p className="mt-1 text-xs text-gray-500">
+                    ONにすると、以下の動作になります：<br />
+                    • 祝日は出勤アラートが送信されません<br />
+                    • 祝日の出勤は「休日出勤」として記録されます
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* 説明文 */}
