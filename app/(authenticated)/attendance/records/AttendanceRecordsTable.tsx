@@ -197,32 +197,26 @@ export function AttendanceRecordsTable({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 日付
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 スタッフ
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 出勤
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 退勤
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 休憩
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 勤務時間
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                出勤場所
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                退勤場所
-              </th>
               {isAdminOrManager && (
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   操作
                 </th>
               )}
@@ -231,7 +225,7 @@ export function AttendanceRecordsTable({
           <tbody className="bg-white divide-y divide-gray-200">
             {records.map((record) => (
               <tr key={record.id} className="hover:bg-gray-50">
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-3 py-3 text-sm text-gray-900">
                   <div className="flex items-center gap-2">
                     {formatDate(record.date)}
                     {record.is_holiday_work && (
@@ -241,7 +235,7 @@ export function AttendanceRecordsTable({
                     )}
                   </div>
                 </td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-3 py-3 text-sm text-gray-900">
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
                       <span>{record.user_name}</span>
@@ -266,30 +260,30 @@ export function AttendanceRecordsTable({
                     )}
                   </div>
                 </td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {formatTime(record.clock_in_time)}
+                <td className="px-3 py-3 text-sm text-gray-900">
+                  <div className="flex flex-col">
+                    <span className="font-medium">{formatTime(record.clock_in_time)}</span>
+                    <span className="text-xs text-gray-500">{formatLocation(record.clock_in_location_type, record.clock_in_site_name)}</span>
+                  </div>
                 </td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-3 py-3 text-sm text-gray-900">
                   {record.clock_out_time ? (
-                    formatTime(record.clock_out_time)
+                    <div className="flex flex-col">
+                      <span className="font-medium">{formatTime(record.clock_out_time)}</span>
+                      <span className="text-xs text-gray-500">{formatLocation(record.clock_out_location_type, record.clock_out_site_name)}</span>
+                    </div>
                   ) : (
                     <span className="text-green-600 font-medium">勤務中</span>
                   )}
                 </td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-3 py-3 text-sm text-gray-500">
                   {formatBreakTime(record)}
                 </td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-3 py-3 text-sm text-gray-900 font-medium">
                   {calculateWorkHours(record)}
                 </td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {formatLocation(record.clock_in_location_type, record.clock_in_site_name)}
-                </td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {record.clock_out_time ? formatLocation(record.clock_out_location_type, record.clock_out_site_name) : <span className="text-gray-400">---</span>}
-                </td>
                 {isAdminOrManager && (
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-3 py-3 text-sm text-gray-500">
                     <button
                       onClick={() => handleEdit(record)}
                       className="text-blue-600 hover:text-blue-900"
