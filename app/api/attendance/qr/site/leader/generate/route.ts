@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     // 有効期限を計算（rotationDays日後の23:59:59）
     const expiresDate = new Date(jstDate)
-    expiresDate.setDate(expiresDate.getDate() + rotationDays)
+    expiresDate.setDate(expiresDate.getDate() + rotationDays - 1) // 今日を含むので-1
     expiresDate.setHours(23, 59, 59, 999)
     const expiresAt = new Date(expiresDate.getTime() - jstOffset * 60 * 1000) // UTC に戻す
 

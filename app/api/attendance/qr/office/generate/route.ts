@@ -78,7 +78,11 @@ export async function POST(request: NextRequest) {
     // 新しいQRコードを生成
     const randomToken = crypto.randomBytes(32).toString('hex')
     const validFrom = now
-    const validUntil = new Date(now.getTime() + rotationDays * 24 * 60 * 60 * 1000)
+
+    // 有効期限を計算（その日の23:59:59まで）
+    const validUntil = new Date(now)
+    validUntil.setDate(validUntil.getDate() + rotationDays - 1) // 日数を加算（今日を含むので-1）
+    validUntil.setHours(23, 59, 59, 999) // その日の23:59:59.999に設定
 
     // QRデータフォーマット: ATT|${organization_id}|${random_token}|${valid_until}
     const qrData = `ATT|${userData?.organization_id}|${randomToken}|${validUntil.toISOString()}`

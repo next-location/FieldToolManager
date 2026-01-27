@@ -239,13 +239,13 @@ export function AttendanceBasicSettings({
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
             >
-              <option value={1}>毎日</option>
-              <option value={3}>3日ごと</option>
-              <option value={7}>7日ごと（推奨）</option>
-              <option value={30}>30日ごと</option>
+              <option value={1}>1日（当日23:59まで有効）</option>
+              <option value={3}>3日（3日後の23:59まで有効）</option>
+              <option value={7}>7日（7日後の23:59まで有効・推奨）</option>
+              <option value={30}>30日（30日後の23:59まで有効）</option>
             </select>
             <p className="mt-1 text-sm text-gray-500">
-              セキュリティのため、定期的にQRコードが自動更新されます
+              QRコードは指定した日数後の23:59まで有効です。それ以降は新しいQRコードが必要になります。
             </p>
           </div>
         )}
