@@ -16,7 +16,7 @@ interface BasicAttendanceSettings {
   // 休憩設定
   break_recording_enabled: boolean
   auto_break_deduction: boolean
-  auto_break_minutes: number
+  auto_break_minutes: number | ''
 }
 
 const DEFAULT_SETTINGS: BasicAttendanceSettings = {
@@ -89,7 +89,7 @@ export function AttendanceBasicSettings({
         site_qr_type: 'both' as const,
         break_time_mode: settings.break_recording_enabled ? 'simple' : 'none',
         auto_break_deduction: settings.auto_break_deduction,
-        auto_break_minutes: settings.auto_break_minutes,
+        auto_break_minutes: settings.auto_break_minutes === '' ? 0 : settings.auto_break_minutes,
         // アラート設定は既存値を保持
         checkin_reminder_enabled: initialSettings?.checkin_reminder_enabled,
         checkin_reminder_time: initialSettings?.checkin_reminder_time,
@@ -295,12 +295,17 @@ export function AttendanceBasicSettings({
               <input
                 type="number"
                 value={settings.auto_break_minutes}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    auto_break_minutes: parseInt(e.target.value) || 0,
-                  })
-                }
+                onChange={(e) => {
+                  const value = e.target.value
+                  if (value === '') {
+                    setSettings({ ...settings, auto_break_minutes: '' })
+                  } else {
+                    const num = parseInt(value)
+                    if (!isNaN(num)) {
+                      setSettings({ ...settings, auto_break_minutes: num })
+                    }
+                  }
+                }}
                 min="0"
                 max="180"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
