@@ -205,7 +205,7 @@ export function AttendanceAlertsSettings({
                       checkin_reminder_time: e.target.value,
                     })
                   }
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
                 />
                 <p className="mt-1 text-xs text-gray-500">
                   設定時刻に未出勤のスタッフへ通知を送信します
@@ -245,7 +245,7 @@ export function AttendanceAlertsSettings({
                       checkout_reminder_time: e.target.value,
                     })
                   }
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
                 />
                 <p className="mt-1 text-xs text-gray-500">
                   設定時刻に未退勤のスタッフへ通知を送信します
@@ -299,7 +299,7 @@ export function AttendanceAlertsSettings({
                       admin_daily_report_time: e.target.value,
                     })
                   }
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
                 />
               </div>
 
@@ -415,7 +415,7 @@ export function AttendanceAlertsSettings({
                   }
                   min="1"
                   max="24"
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
                 />
                 <p className="mt-1 text-xs text-gray-500">
                   設定時間を超えた場合に管理者へアラートを送信します
