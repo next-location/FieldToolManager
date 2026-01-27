@@ -16,11 +16,12 @@ export default async function AttendanceQRPage() {
 
   const isAdminOrManager = ['admin', 'manager'].includes(userRole)
 
-  // 現場リスト取得
+  // 現場リスト取得（有効な現場のみ）
   const { data: sites } = await supabase
     .from('sites')
     .select('id, name')
     .eq('organization_id', organizationId)
+    .eq('is_active', true)
     .is('deleted_at', null)
     .order('name')
 
