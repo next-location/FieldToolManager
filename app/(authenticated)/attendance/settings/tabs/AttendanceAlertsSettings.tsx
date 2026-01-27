@@ -5,12 +5,6 @@ import { useRouter } from 'next/navigation'
 
 // アラート設定のみの型定義
 interface AlertsSettings {
-  // リマインダー設定
-  checkin_reminder_enabled: boolean
-  checkin_reminder_time: string
-  checkout_reminder_enabled: boolean
-  checkout_reminder_time: string
-
   // レポート設定
   admin_daily_report_enabled: boolean
   admin_daily_report_time: string
@@ -24,10 +18,6 @@ interface AlertsSettings {
 }
 
 const DEFAULT_SETTINGS: AlertsSettings = {
-  checkin_reminder_enabled: true,
-  checkin_reminder_time: '10:00',
-  checkout_reminder_enabled: true,
-  checkout_reminder_time: '20:00',
   admin_daily_report_enabled: true,
   admin_daily_report_time: '10:00',
   admin_daily_report_email: true,
@@ -59,10 +49,6 @@ export function AttendanceAlertsSettings({
     if (!old) return DEFAULT_SETTINGS
 
     return {
-      checkin_reminder_enabled: old.checkin_reminder_enabled ?? true,
-      checkin_reminder_time: normalizeTime(old.checkin_reminder_time) || '10:00',
-      checkout_reminder_enabled: old.checkout_reminder_enabled ?? true,
-      checkout_reminder_time: normalizeTime(old.checkout_reminder_time) || '20:00',
       admin_daily_report_enabled: old.admin_daily_report_enabled ?? true,
       admin_daily_report_time: normalizeTime(old.admin_daily_report_time) || '10:00',
       admin_daily_report_email: old.admin_daily_report_email ?? true,
@@ -105,11 +91,12 @@ export function AttendanceAlertsSettings({
         break_time_mode: initialSettings?.break_time_mode,
         auto_break_deduction: initialSettings?.auto_break_deduction,
         auto_break_minutes: initialSettings?.auto_break_minutes,
+        // リマインダー設定は保持（勤務パターンで管理）
+        checkin_reminder_enabled: initialSettings?.checkin_reminder_enabled,
+        checkin_reminder_time: initialSettings?.checkin_reminder_time,
+        checkout_reminder_enabled: initialSettings?.checkout_reminder_enabled,
+        checkout_reminder_time: initialSettings?.checkout_reminder_time,
         // アラート設定を更新
-        checkin_reminder_enabled: settings.checkin_reminder_enabled,
-        checkin_reminder_time: settings.checkin_reminder_time,
-        checkout_reminder_enabled: settings.checkout_reminder_enabled,
-        checkout_reminder_time: settings.checkout_reminder_time,
         admin_daily_report_enabled: settings.admin_daily_report_enabled,
         admin_daily_report_time: settings.admin_daily_report_time,
         admin_daily_report_email: settings.admin_daily_report_email,
@@ -161,100 +148,6 @@ export function AttendanceAlertsSettings({
           <p className="text-sm font-medium">{message.text}</p>
         </div>
       )}
-
-      {/* スタッフへのリマインダー */}
-      <div className="space-y-6 pt-6">
-        <div>
-          <h3 className="text-lg font-medium leading-6 text-gray-900">
-            スタッフへのリマインダー
-          </h3>
-          <p className="mt-1 text-sm text-gray-500">
-            出勤・退勤の打刻忘れを防ぐリマインダー通知を設定します
-          </p>
-        </div>
-
-        <div className="space-y-6">
-          {/* 出勤リマインダー */}
-          <div>
-            <div className="flex items-center mb-2">
-              <input
-                id="checkin_reminder"
-                type="checkbox"
-                checked={settings.checkin_reminder_enabled}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    checkin_reminder_enabled: e.target.checked,
-                  })
-                }
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label htmlFor="checkin_reminder" className="ml-2 block text-sm font-medium text-gray-900">
-                出勤リマインダー
-              </label>
-            </div>
-            {settings.checkin_reminder_enabled && (
-              <div className="pl-6">
-                <label className="block text-sm text-gray-700 mb-1">送信時刻</label>
-                <input
-                  type="time"
-                  value={settings.checkin_reminder_time}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      checkin_reminder_time: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  設定時刻に未出勤のスタッフへ通知を送信します
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* 退勤リマインダー */}
-          <div>
-            <div className="flex items-center mb-2">
-              <input
-                id="checkout_reminder"
-                type="checkbox"
-                checked={settings.checkout_reminder_enabled}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    checkout_reminder_enabled: e.target.checked,
-                  })
-                }
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label htmlFor="checkout_reminder" className="ml-2 block text-sm font-medium text-gray-900">
-                退勤リマインダー
-              </label>
-            </div>
-            {settings.checkout_reminder_enabled && (
-              <div className="pl-6">
-                <label className="block text-sm text-gray-700 mb-1">送信時刻</label>
-                <input
-                  type="time"
-                  value={settings.checkout_reminder_time}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      checkout_reminder_time: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  設定時刻に未退勤のスタッフへ通知を送信します
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
 
       {/* 管理者向けレポート */}
       <div className="space-y-6 pt-6">
