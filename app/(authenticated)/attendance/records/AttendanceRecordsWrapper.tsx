@@ -5,7 +5,7 @@ import { AttendanceFilter } from './AttendanceFilter'
 import { AttendanceRecordsTable } from './AttendanceRecordsTable'
 import { ProxyClockInModal } from './ProxyClockInModal'
 import { AttendanceExportButton } from './AttendanceExportButton'
-import { Plus, Menu } from 'lucide-react'
+import AttendanceRecordsFAB from '@/components/attendance/AttendanceRecordsFAB'
 
 interface Staff {
   id: string
@@ -45,32 +45,6 @@ export function AttendanceRecordsWrapper({
 
   const [isProxyModalOpen, setIsProxyModalOpen] = useState(false)
   const [tableKey, setTableKey] = useState(0)
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
-  // スクロールアニメーション（道具一覧と同じ）
-  useEffect(() => {
-    let lastScrollY = window.scrollY
-
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY
-
-      // スクロールダウン時に縮小
-      if (currentScrollY > lastScrollY && currentScrollY > 50) {
-        setIsScrolled(true)
-      } else if (currentScrollY < lastScrollY) {
-        setIsScrolled(false)
-      }
-
-      lastScrollY = currentScrollY
-    }
-
-    window.addEventListener('scroll', handleScroll, { passive: true })
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
-    }
-  }, [])
 
   const handleProxySuccess = () => {
     setTableKey((prev) => prev + 1) // テーブルを再読み込み
@@ -81,7 +55,7 @@ export function AttendanceRecordsWrapper({
       {/* ヘッダー */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-2">
-          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">勤怠一覧</h1>
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">勤務記録一覧</h1>
           <div className="hidden sm:flex gap-3">
             <AttendanceExportButton filters={filters} />
             {isAdminOrManager && (
@@ -94,12 +68,7 @@ export function AttendanceRecordsWrapper({
             )}
           </div>
           <div className="sm:hidden flex items-center gap-2">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
-            >
-              <Menu className="h-6 w-6" />
-            </button>
+            <AttendanceExportButton filters={filters} mobileMenuOnly />
           </div>
         </div>
         <p className="text-sm text-gray-600">
@@ -107,33 +76,6 @@ export function AttendanceRecordsWrapper({
             ? `${organizationName} のスタッフの出退勤記録を確認・編集できます`
             : `${organizationName} のスタッフの出退勤記録を確認できます（閲覧のみ）`}
         </p>
-
-        {/* モバイルメニュー */}
-        {mobileMenuOpen && (
-          <>
-            <div
-              className="fixed inset-0 z-40 bg-black bg-opacity-25 sm:hidden"
-              onClick={() => setMobileMenuOpen(false)}
-            />
-            <div className="absolute right-4 mt-2 w-48 bg-white rounded-lg shadow-lg z-50 sm:hidden">
-              <div className="py-1">
-                <AttendanceExportButton filters={filters} mobileMenuOnly onClose={() => setMobileMenuOpen(false)} />
-                {isAdminOrManager && (
-                  <button
-                    onClick={() => {
-                      setIsProxyModalOpen(true)
-                      setMobileMenuOpen(false)
-                    }}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    代理打刻
-                  </button>
-                )}
-              </div>
-            </div>
-          </>
-        )}
       </div>
 
       <AttendanceFilter
@@ -158,6 +100,12 @@ export function AttendanceRecordsWrapper({
         isOpen={isProxyModalOpen}
         onClose={() => setIsProxyModalOpen(false)}
         onSuccess={handleProxySuccess}
+      />
+
+      {/* FAB for mobile */}
+      <AttendanceRecordsFAB
+        onClick={() => setIsProxyModalOpen(true)}
+        isAdminOrManager={isAdminOrManager}
       />
     </>
   )

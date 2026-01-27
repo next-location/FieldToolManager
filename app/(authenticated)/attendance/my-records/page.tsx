@@ -45,7 +45,7 @@ export default async function MyAttendanceRecordsPage({ searchParams }: PageProp
         <div className="px-4 pb-6 sm:px-0 sm:py-6">
           <div className="mb-6">
             <h1 className="text-lg sm:text-2xl font-bold text-gray-900">
-              勤怠履歴 - {targetUser.name}
+              勤務記録 - {targetUser.name}
             </h1>
             <p className="mt-2 text-sm text-gray-600">
               {targetUser.name} の出退勤記録を確認できます
@@ -71,7 +71,7 @@ export default async function MyAttendanceRecordsPage({ searchParams }: PageProp
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 pb-6 sm:px-0 sm:py-6">
         <div className="mb-6">
-          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">勤怠履歴</h1>
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">勤務記録</h1>
           <p className="mt-2 text-sm text-gray-600">
             あなたの出退勤記録を確認できます
           </p>

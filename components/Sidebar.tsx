@@ -477,7 +477,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                     出退勤
                   </Link>
 
-                  {/* 勤怠履歴（全員） */}
+                  {/* 勤務記録（全員） */}
                   <Link
                     href="/attendance/my-records"
                     onClick={onClose}
@@ -487,28 +487,8 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                         : 'text-gray-600 hover:bg-gray-50'
                     }`}
                   >
-                    勤怠履歴
+                    勤務記録
                   </Link>
-
-                  {/* マネージャー・管理者のみ表示 */}
-                  {isManagerOrAdmin && (
-                    <div className="space-y-1.5">
-                      <Link
-                        href="/attendance/leave"
-                        onClick={onClose}
-                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                          isActive('/attendance/leave')
-                            ? 'bg-blue-50 text-blue-700 font-medium'
-                            : 'text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span className="flex items-center justify-between">
-                          <span>休暇管理</span>
-                          <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                        </span>
-                      </Link>
-                    </div>
-                  )}
 
                   {/* リーダー以上のみ表示 */}
                   {isLeaderOrAbove && (
@@ -523,10 +503,26 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                         }`}
                       >
                         <span className="flex items-center justify-between">
-                          <span>勤怠一覧</span>
+                          <span>勤務記録一覧</span>
                           <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                         </span>
                       </Link>
+                      {isManagerOrAdmin && (
+                        <Link
+                          href="/attendance/leave"
+                          onClick={onClose}
+                          className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                            isActive('/attendance/leave')
+                              ? 'bg-blue-50 text-blue-700 font-medium'
+                              : 'text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          <span className="flex items-center justify-between">
+                            <span>休暇管理</span>
+                            <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                          </span>
+                        </Link>
+                      )}
                       <Link
                         href="/attendance/qr/leader"
                         onClick={onClose}

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Download } from 'lucide-react'
+import AttendanceRecordsMobileMenu from '@/components/attendance/AttendanceRecordsMobileMenu'
 
 interface AttendanceExportButtonProps {
   filters: {
@@ -12,19 +13,16 @@ interface AttendanceExportButtonProps {
     site_id: string
   }
   mobileMenuOnly?: boolean
-  onClose?: () => void
 }
 
 export function AttendanceExportButton({
   filters,
   mobileMenuOnly = false,
-  onClose,
 }: AttendanceExportButtonProps) {
   const [exporting, setExporting] = useState(false)
 
   const handleExport = async () => {
     setExporting(true)
-    if (onClose) onClose()
 
     try {
       // フィルターをクエリパラメータに変換
@@ -59,17 +57,13 @@ export function AttendanceExportButton({
     }
   }
 
-  // モバイルメニュー内のボタン
+  // モバイルメニューモード
   if (mobileMenuOnly) {
     return (
-      <button
-        onClick={handleExport}
-        disabled={exporting}
-        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-      >
-        <Download className="h-4 w-4 mr-2" />
-        {exporting ? 'エクスポート中...' : 'CSVエクスポート'}
-      </button>
+      <AttendanceRecordsMobileMenu
+        onExport={handleExport}
+        exporting={exporting}
+      />
     )
   }
 
