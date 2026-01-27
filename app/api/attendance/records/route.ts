@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
       .select(
         `
         *,
-        user:users!attendance_records_user_id_fkey(name, email),
+        user:users!attendance_records_user_id_fkey(name, email, work_pattern_id),
         clock_in_site:sites!attendance_records_clock_in_site_id_fkey(name),
         clock_out_site:sites!attendance_records_clock_out_site_id_fkey(name),
         editor:users!attendance_records_edited_by_fkey(name)
@@ -113,14 +113,30 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // 勤務パターン情報を取得
+    const { data: workPatterns } = await supabase
+      .from('work_patterns')
+      .select('id, expected_checkin_time, expected_checkout_time')
+      .eq('organization_id', userData?.organization_id)
+
+    const workPatternMap = new Map(
+      workPatterns?.map((wp) => [wp.id, wp]) || []
+    )
+
     // レスポンス整形
-    const formattedRecords = (records || []).map((record: any) => ({
-      ...record,
-      user_name: record.user?.name || '',
-      user_email: record.user?.email || '',
-      clock_in_site_name: record.clock_in_site?.name || null,
-      clock_out_site_name: record.clock_out_site?.name || null,
-    }))
+    const formattedRecords = (records || []).map((record: any) => {
+      const workPatternId = record.user?.work_pattern_id
+      const workPattern = workPatternId ? workPatternMap.get(workPatternId) : null
+
+      return {
+        ...record,
+        user_name: record.user?.name || '',
+        user_email: record.user?.email || '',
+        clock_in_site_name: record.clock_in_site?.name || null,
+        clock_out_site_name: record.clock_out_site?.name || null,
+        work_pattern: workPattern || null,
+      }
+    })
 
     const totalPages = Math.ceil((count || 0) / limit)
 

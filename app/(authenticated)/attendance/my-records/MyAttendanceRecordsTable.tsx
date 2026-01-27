@@ -217,26 +217,50 @@ export function MyAttendanceRecordsTable({
 
   // 残業時間の計算と表示（30分単位切り捨て、勤務パターン基準）
   const calculateOvertimeHours = (record: any) => {
-    if (!record.clock_in_time || !record.clock_out_time) return '---'
+    if (!record.clock_in_time || !record.clock_out_time || !record.work_pattern) return '---'
 
-    // 勤務パターン情報が必要
-    // 注意: この関数は現在勤務パターン情報を持っていないため、
-    // 従来通り実打刻時刻ベースで計算します
-    // 正確な計算には、recordにwork_pattern情報を含める必要があります
+    const workPattern = record.work_pattern
 
-    const clockIn = new Date(record.clock_in_time)
-    const clockOut = new Date(record.clock_out_time)
-    const diffMs = clockOut.getTime() - clockIn.getTime()
-    let diffMinutes = Math.floor(diffMs / (1000 * 60))
+    // 遅刻しているかチェック（5分猶予）
+    const clockInTime = new Date(record.clock_in_time)
+    const clockInHours = clockInTime.getUTCHours() + 9 // JST変換
+    const clockInMinutes = clockInTime.getUTCMinutes()
+    const clockInTotalMinutes = clockInHours * 60 + clockInMinutes
+
+    const [startHour, startMinute] = workPattern.expected_checkin_time.split(':').map(Number)
+    const startTotalMinutes = startHour * 60 + startMinute
+
+    const isLate = clockInTotalMinutes > startTotalMinutes + 5
+
+    // 退勤時刻（分）
+    const clockOutTime = new Date(record.clock_out_time)
+    const clockOutHours = clockOutTime.getUTCHours() + 9 // JST変換
+    const clockOutMinutes = clockOutTime.getUTCMinutes()
+    let clockOutTotalMinutes = clockOutHours * 60 + clockOutMinutes
+
+    // 夜勤対応: 退勤時刻が出勤時刻より小さい場合は翌日とみなす
+    const [endHour, endMinute] = workPattern.expected_checkout_time.split(':').map(Number)
+    const endTotalMinutes = endHour * 60 + endMinute
+
+    if (endTotalMinutes < startTotalMinutes && clockOutTotalMinutes < startTotalMinutes) {
+      // 夜勤パターン（22:00-07:00など）で退勤が翌日の場合
+      clockOutTotalMinutes += 24 * 60 // 1440分を加算
+    }
+
+    // 勤務開始時刻を決定（遅刻していない場合は勤務パターンの開始時刻、遅刻の場合は実打刻時刻）
+    const effectiveStartMinutes = isLate ? clockInTotalMinutes : startTotalMinutes
+
+    // 勤務パターンの開始時刻（または実打刻時刻）から退勤時刻までの時間を計算
+    const totalWorkMinutes = clockOutTotalMinutes - effectiveStartMinutes
 
     // 休憩時間を差し引く
     const breakMinutes = (record.break_minutes || 0) + (record.auto_break_deducted_minutes || 0)
-    const workMinutes = Math.max(0, diffMinutes - breakMinutes)
+    const actualWorkMinutes = Math.max(0, totalWorkMinutes - breakMinutes)
 
-    // 8時間（480分）を超えた分を残業時間とする
-    if (workMinutes <= 480) return '---'
+    // 8時間（480分）を超えた分が残業
+    if (actualWorkMinutes <= 480) return '---'
 
-    const overtimeMinutes = workMinutes - 480
+    const overtimeMinutes = actualWorkMinutes - 480
     // 30分単位で切り捨て
     const roundedOvertime = Math.floor(overtimeMinutes / 30) * 30
 

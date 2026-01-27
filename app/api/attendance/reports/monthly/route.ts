@@ -209,7 +209,16 @@ export async function GET(request: NextRequest) {
           const clockOutTime = new Date(record.clock_out_time)
           const clockOutHours = clockOutTime.getUTCHours() + 9 // JST変換
           const clockOutMinutes = clockOutTime.getUTCMinutes()
-          const clockOutTotalMinutes = clockOutHours * 60 + clockOutMinutes
+          let clockOutTotalMinutes = clockOutHours * 60 + clockOutMinutes
+
+          // 夜勤対応: 退勤時刻が出勤時刻より小さい場合は翌日とみなす
+          const [endHour, endMinute] = workPattern.expected_checkout_time.split(':').map(Number)
+          const endTotalMinutes = endHour * 60 + endMinute
+
+          if (endTotalMinutes < startTotalMinutes && clockOutTotalMinutes < startTotalMinutes) {
+            // 夜勤パターン（22:00-07:00など）で退勤が翌日の場合
+            clockOutTotalMinutes += 24 * 60 // 1440分を加算
+          }
 
           // 勤務開始時刻を決定（遅刻していない場合は勤務パターンの開始時刻、遅刻の場合は実打刻時刻）
           const effectiveStartMinutes = isLate ? clockInTotalMinutes : startTotalMinutes
