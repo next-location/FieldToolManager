@@ -58,6 +58,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       clock_out_site_id,
       edited_reason,
       is_holiday_work,
+      manual_overtime_minutes,
     } = body
 
     // 必須項目チェック
@@ -144,6 +145,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       edited_reason,
       is_holiday_work: is_holiday_work !== undefined ? is_holiday_work : existingRecord.is_holiday_work,
       auto_break_deducted_minutes: autoBreakMinutes,
+      manual_overtime_minutes: manual_overtime_minutes !== undefined ? manual_overtime_minutes : existingRecord.manual_overtime_minutes,
       updated_at: now.toISOString(),
     }
 

@@ -217,8 +217,15 @@ export function MyAttendanceRecordsTable({
 
   // 残業時間の計算と表示（30分単位切り捨て、勤務パターン基準）
   const calculateOvertimeHours = (record: any) => {
-    // シフト制スタッフは自動計算しない
-    if (record.is_shift_work) return '---'
+    // シフト制スタッフは手動入力値を表示
+    if (record.is_shift_work) {
+      const manualOvertimeMinutes = record.manual_overtime_minutes || 0
+      if (manualOvertimeMinutes === 0) return '---'
+
+      const hours = Math.floor(manualOvertimeMinutes / 60)
+      const minutes = manualOvertimeMinutes % 60
+      return `${hours}:${minutes.toString().padStart(2, '0')}`
+    }
 
     if (!record.clock_in_time || !record.clock_out_time || !record.work_pattern) return '---'
 

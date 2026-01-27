@@ -193,9 +193,18 @@ export async function GET(request: NextRequest) {
         stats.total_break_minutes += totalBreakMinutes
 
         // 残業判定（勤務パターンの開始時刻から計算、遅刻時は実打刻時刻から）
-        // シフト制スタッフは自動計算しない
-        const workPattern = userInfo?.work_pattern_id ? workPatternMap.get(userInfo.work_pattern_id) : null
-        if (!userInfo?.is_shift_work && workPattern && workPattern.expected_checkin_time) {
+        // シフト制スタッフは手動入力値を使用
+        if (userInfo?.is_shift_work) {
+          // シフト制スタッフ: 手動入力された残業時間を使用
+          const manualOvertimeMinutes = record.manual_overtime_minutes || 0
+          if (manualOvertimeMinutes > 0) {
+            stats.overtime_days++
+            stats.total_overtime_minutes += manualOvertimeMinutes
+          }
+        } else {
+          // 固定勤務パターンスタッフ: 自動計算
+          const workPattern = userInfo?.work_pattern_id ? workPatternMap.get(userInfo.work_pattern_id) : null
+          if (workPattern && workPattern.expected_checkin_time) {
           // 遅刻しているかチェック（5分猶予）
           const clockInTime = new Date(record.clock_in_time)
           const clockInHours = clockInTime.getUTCHours() + 9 // JST変換
@@ -239,6 +248,7 @@ export async function GET(request: NextRequest) {
             const overtimeMinutes = actualWorkMinutes - 480
             const roundedOvertimeMinutes = Math.floor(overtimeMinutes / 30) * 30
             stats.total_overtime_minutes += roundedOvertimeMinutes
+          }
           }
         }
 

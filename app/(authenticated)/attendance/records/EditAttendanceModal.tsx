@@ -37,6 +37,7 @@ export function EditAttendanceModal({
     clock_out_site_id: '',
     edited_reason: '',
     is_holiday_work: false,
+    manual_overtime_minutes: 0,
   })
 
   // レコードが変わったらフォームを初期化
@@ -65,6 +66,7 @@ export function EditAttendanceModal({
         clock_out_site_id: record.clock_out_site_id || '',
         edited_reason: '',
         is_holiday_work: record.is_holiday_work || false,
+        manual_overtime_minutes: record.manual_overtime_minutes || 0,
       })
     }
   }, [record])
@@ -105,6 +107,7 @@ export function EditAttendanceModal({
               : null,
           edited_reason: formData.edited_reason,
           is_holiday_work: formData.is_holiday_work,
+          manual_overtime_minutes: formData.manual_overtime_minutes,
         }),
       })
 
@@ -380,6 +383,31 @@ export function EditAttendanceModal({
                 </div>
               </div>
             </div>
+
+            {/* 手動残業時間（シフト制スタッフのみ表示） */}
+            {record.is_shift_work && (
+              <div className="border-t pt-4">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
+                  残業時間（手動入力）
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    step="30"
+                    value={formData.manual_overtime_minutes}
+                    onChange={(e) =>
+                      setFormData({ ...formData, manual_overtime_minutes: parseInt(e.target.value) || 0 })
+                    }
+                    className="block w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  />
+                  <span className="text-sm text-gray-600">分</span>
+                </div>
+                <p className="mt-1 text-xs text-gray-500">
+                  シフト制スタッフの残業時間を手動で入力してください（30分単位推奨）
+                </p>
+              </div>
+            )}
 
             {/* 編集理由 */}
             <div>
