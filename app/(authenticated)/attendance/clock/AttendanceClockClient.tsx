@@ -15,6 +15,8 @@ interface OrgSettings {
   allow_qr: boolean
   allow_location: boolean
   break_time_mode?: 'none' | 'simple' | 'detailed'
+  auto_break_deduction?: boolean
+  auto_break_minutes?: number
 }
 
 interface AttendanceClockClientProps {
@@ -57,10 +59,6 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
   const canUseManual = orgSettings?.allow_manual || false
   const canUseQR = orgSettings?.allow_qr || false
   const shouldRecordBreak = orgSettings?.break_time_mode === 'simple'
-
-  console.log('[AttendanceClockClient] orgSettings:', orgSettings)
-  console.log('[AttendanceClockClient] break_time_mode:', orgSettings?.break_time_mode)
-  console.log('[AttendanceClockClient] shouldRecordBreak:', shouldRecordBreak)
 
 
   // 当日の出退勤記録を取得
@@ -777,7 +775,9 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
                     />
                     <p className="mt-1 text-xs text-gray-500">
-                      本日の休憩時間を分単位で入力してください
+                      {orgSettings?.auto_break_deduction
+                        ? `本日の休憩時間を分単位で入力してください（自動で${orgSettings.auto_break_minutes || 0}分の休憩時間は記録されます）`
+                        : '本日の休憩時間を分単位で入力してください'}
                     </p>
                   </div>
                 )}
