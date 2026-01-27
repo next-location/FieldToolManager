@@ -146,6 +146,18 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // 休憩時間の自動控除設定を取得
+    const { data: attendanceSettings } = await supabase
+      .from('organization_attendance_settings')
+      .select('auto_break_deduction, auto_break_minutes')
+      .eq('organization_id', userData.organization_id)
+      .single()
+
+    let autoBreakMinutes = 0
+    if (clock_out_time && attendanceSettings?.auto_break_deduction) {
+      autoBreakMinutes = attendanceSettings.auto_break_minutes || 0
+    }
+
     // 新規レコード作成
     const now = new Date()
     const newRecord: any = {
@@ -161,6 +173,7 @@ export async function POST(request: NextRequest) {
       edited_at: now.toISOString(),
       edited_reason: `【代理打刻】${proxy_reason}`,
       is_holiday_work: is_holiday_work || false,
+      auto_break_deducted_minutes: autoBreakMinutes,
       created_at: now.toISOString(),
       updated_at: now.toISOString(),
     }
