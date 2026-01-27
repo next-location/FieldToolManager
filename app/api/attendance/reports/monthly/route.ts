@@ -75,12 +75,7 @@ export async function GET(request: NextRequest) {
           name,
           email,
           department,
-          work_pattern_id,
-          work_patterns (
-            id,
-            start_time,
-            end_time
-          )
+          work_pattern_id
         )
       `)
       .eq('organization_id', userData?.organization_id)
@@ -98,6 +93,17 @@ export async function GET(request: NextRequest) {
       console.error('出勤記録取得エラー:', recordsError)
       return NextResponse.json({ error: '出勤記録の取得に失敗しました' }, { status: 500 })
     }
+
+    // 勤務パターン情報を取得
+    const { data: workPatterns } = await supabase
+      .from('work_patterns')
+      .select('id, start_time, end_time')
+      .eq('organization_id', userData?.organization_id)
+
+    // 勤務パターンをIDでマップ化
+    const workPatternMap = new Map(
+      workPatterns?.map(wp => [wp.id, wp]) || []
+    )
 
     // ユーザー別に集計
     const userStats = new Map<
@@ -186,7 +192,7 @@ export async function GET(request: NextRequest) {
         stats.total_break_minutes += totalBreakMinutes
 
         // 残業判定（勤務パターンの開始時刻から計算、遅刻時は実打刻時刻から）
-        const workPattern = userInfo?.work_patterns
+        const workPattern = userInfo?.work_pattern_id ? workPatternMap.get(userInfo.work_pattern_id) : null
         if (workPattern && workPattern.start_time) {
           // 遅刻しているかチェック（5分猶予）
           const clockInTime = new Date(record.clock_in_time)
@@ -233,7 +239,7 @@ export async function GET(request: NextRequest) {
       }
 
       // 遅刻・早退判定（勤務パターンの時刻を基準にする）
-      const workPattern = userInfo?.work_patterns
+      const workPattern = userInfo?.work_pattern_id ? workPatternMap.get(userInfo.work_pattern_id) : null
       if (workPattern) {
         // 遅刻判定（5分の猶予）
         if (record.clock_in_time && workPattern.start_time) {
