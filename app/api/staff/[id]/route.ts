@@ -56,7 +56,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     // リクエストボディ取得
     const body = await request.json()
-    const { name, email, role, department, employee_id, phone, work_pattern_id } = body
+    const { name, email, role, department, employee_id, phone, work_pattern_id, is_shift_work } = body
 
     // managerは roleを admin/manager に変更できない
     if (isManager && (role === 'admin' || role === 'manager')) {
@@ -89,6 +89,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         employee_id,
         phone,
         work_pattern_id: work_pattern_id || null,
+        is_shift_work: is_shift_work !== undefined ? is_shift_work : false,
         updated_at: new Date().toISOString(),
       })
       .eq('id', userId)

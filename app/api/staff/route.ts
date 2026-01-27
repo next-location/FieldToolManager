@@ -158,8 +158,8 @@ export async function POST(request: NextRequest) {
 
     // リクエストボディ取得
     const body = await request.json()
-    const { name, email, password, role, department, employee_id, phone, work_pattern_id } = body
-    console.log('[STAFF POST] Request body:', { name, email, role, department, employee_id, phone, work_pattern_id, passwordLength: password?.length })
+    const { name, email, password, role, department, employee_id, phone, work_pattern_id, is_shift_work } = body
+    console.log('[STAFF POST] Request body:', { name, email, role, department, employee_id, phone, work_pattern_id, is_shift_work, passwordLength: password?.length })
 
     // バリデーション
     if (!name || !email || !password || !role) {
@@ -293,6 +293,7 @@ export async function POST(request: NextRequest) {
         employee_id,
         phone,
         work_pattern_id: finalWorkPatternId,
+        is_shift_work: is_shift_work || false,
         is_active: true,
         invited_at: new Date().toISOString(),
       })

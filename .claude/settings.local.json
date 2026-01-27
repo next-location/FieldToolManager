@@ -71,7 +71,9 @@
       "Bash(git ls-tree:*)",
       "Bash(PGPASSWORD=\"$SUPABASE_DB_PASSWORD\" psql -h aws-0-ap-northeast-1.pooler.supabase.com -p 6543 -d postgres -U postgres.ufmuxaekjnriqbfqcumj)",
       "Bash(PGPASSWORD:*)",
-      "Bash(PGPASSWORD=\"$SUPABASE_DB_PASSWORD\" psql -h aws-0-ap-northeast-1.pooler.supabase.com -p 6543 -d postgres -U postgres.ufmuxaekjnriqbfqcumj -f /Users/youichiakashi/FieldToolManager/supabase/migrations/20260127_add_break_minutes_column.sql)"
+      "Bash(PGPASSWORD=\"$SUPABASE_DB_PASSWORD\" psql -h aws-0-ap-northeast-1.pooler.supabase.com -p 6543 -d postgres -U postgres.ufmuxaekjnriqbfqcumj -f /Users/youichiakashi/FieldToolManager/supabase/migrations/20260127_add_break_minutes_column.sql)",
+      "Bash(PGPASSWORD=\"$SUPABASE_DB_PASSWORD\" psql -h aws-0-ap-northeast-1.pooler.supabase.com -p 6543 -d postgres -U postgres.ufmuxaekjnriqbfqcumj -c \"SELECT id, name, expected_checkin_time, expected_checkout_time FROM work_patterns WHERE organization_id = ''76ddfa0b-c9f0-4bdb-851f-3e6bb677a110'';\")",
+      "Bash(PGPASSWORD=\"$SUPABASE_DB_PASSWORD\" psql -h \"$SUPABASE_DB_HOST\" -p \"$SUPABASE_DB_PORT\" -d postgres -U \"$SUPABASE_DB_USER\" -f /Users/youichiakashi/FieldToolManager/supabase/migrations/20260127_add_shift_work_flag.sql)"
     ],
     "deny": [],
     "ask": []

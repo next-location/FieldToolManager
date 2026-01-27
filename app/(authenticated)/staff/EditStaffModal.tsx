@@ -14,6 +14,7 @@ interface User {
   last_login_at: string | null
   created_at: string
   work_pattern_id: string | null
+  is_shift_work: boolean
 }
 
 interface EditStaffModalProps {
@@ -32,6 +33,7 @@ export function EditStaffModal({ isOpen, onClose, onSuccess, staff, departments 
   const [employeeId, setEmployeeId] = useState(staff.employee_id || '')
   const [phone, setPhone] = useState(staff.phone || '')
   const [workPatternId, setWorkPatternId] = useState(staff.work_pattern_id || '')
+  const [isShiftWork, setIsShiftWork] = useState(staff.is_shift_work || false)
   const [workPatterns, setWorkPatterns] = useState<Array<{ id: string; name: string }>>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -72,7 +74,8 @@ export function EditStaffModal({ isOpen, onClose, onSuccess, staff, departments 
           department: department || null,
           employee_id: employeeId || null,
           phone: phone || null,
-          work_pattern_id: workPatternId || null,
+          work_pattern_id: isShiftWork ? null : (workPatternId || null),
+          is_shift_work: isShiftWork,
         }),
       })
 
@@ -98,7 +101,8 @@ export function EditStaffModal({ isOpen, onClose, onSuccess, staff, departments 
     department !== (staff.department || '') ||
     employeeId !== (staff.employee_id || '') ||
     phone !== (staff.phone || '') ||
-    workPatternId !== (staff.work_pattern_id || '')
+    workPatternId !== (staff.work_pattern_id || '') ||
+    isShiftWork !== staff.is_shift_work
 
   return (
     <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50 pt-20 sm:pt-24">
@@ -207,23 +211,59 @@ export function EditStaffModal({ isOpen, onClose, onSuccess, staff, departments 
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">勤務パターン</label>
-            <select
-              value={workPatternId}
-              onChange={(e) => setWorkPatternId(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">未設定</option>
-              {workPatterns.map((pattern) => (
-                <option key={pattern.id} value={pattern.id}>
-                  {pattern.name}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-gray-500">
-              勤務パターンを設定すると、打刻忘れアラートの時刻が自動設定されます
-            </p>
+            <label className="block text-sm font-medium text-gray-700 mb-2">勤務形態</label>
+            <div className="space-y-3">
+              <label className="flex items-start">
+                <input
+                  type="radio"
+                  checked={!isShiftWork}
+                  onChange={() => setIsShiftWork(false)}
+                  className="mt-1 mr-2"
+                />
+                <div className="flex-1">
+                  <span className="text-sm font-medium text-gray-900">固定勤務パターン</span>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    遅刻・早退・残業を自動判定します
+                  </p>
+                </div>
+              </label>
+              <label className="flex items-start">
+                <input
+                  type="radio"
+                  checked={isShiftWork}
+                  onChange={() => setIsShiftWork(true)}
+                  className="mt-1 mr-2"
+                />
+                <div className="flex-1">
+                  <span className="text-sm font-medium text-gray-900">シフト制</span>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    打刻ベースで記録、残業は手動入力
+                  </p>
+                </div>
+              </label>
+            </div>
           </div>
+
+          {!isShiftWork && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">勤務パターン</label>
+              <select
+                value={workPatternId}
+                onChange={(e) => setWorkPatternId(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">未設定</option>
+                {workPatterns.map((pattern) => (
+                  <option key={pattern.id} value={pattern.id}>
+                    {pattern.name}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                勤務パターンを設定すると、打刻忘れアラートの時刻が自動設定されます
+              </p>
+            </div>
+          )}
 
           <div className="border-t pt-4">
             <p className="text-sm text-gray-600">
