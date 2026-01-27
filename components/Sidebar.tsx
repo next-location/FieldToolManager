@@ -554,26 +554,6 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                       </Link>
                     </div>
                   )}
-
-                  {/* マネージャー・管理者のみ表示 */}
-                  {isManagerOrAdmin && (
-                    <div className="space-y-1.5">
-                      <Link
-                        href="/attendance/work-patterns"
-                        onClick={onClose}
-                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                          isActive('/attendance/work-patterns')
-                            ? 'bg-blue-50 text-blue-700 font-medium'
-                            : 'text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span className="flex items-center justify-between">
-                          <span>勤務パターン管理</span>
-                          <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                        </span>
-                      </Link>
-                    </div>
-                  )}
                 </div>
               )}
             </div>
@@ -1136,7 +1116,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                           }`}
                         >
                           <span className="flex items-center justify-between">
-                            <span>出退勤設定</span>
+                            <span>勤怠管理設定</span>
                             <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                           </span>
                         </Link>

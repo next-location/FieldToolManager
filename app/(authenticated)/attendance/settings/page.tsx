@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/page-auth'
-import { AttendanceSettingsFormSimple } from './AttendanceSettingsFormSimple'
+import { AttendanceSettingsUnified } from './AttendanceSettingsUnified'
 
 export default async function AttendanceSettingsPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
@@ -28,16 +28,18 @@ export default async function AttendanceSettingsPage() {
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">出退勤管理設定</h1>
+          <h1 className="text-2xl font-bold text-gray-900">勤怠管理設定</h1>
           <p className="mt-2 text-sm text-gray-600">
-            {organization?.name} の出退勤管理に関する設定を変更できます
+            {organization?.name} の勤怠管理に関する設定を変更できます
           </p>
         </div>
 
-        <div className="bg-white shadow sm:rounded-lg">
-          <AttendanceSettingsFormSimple
+        <div className="bg-white shadow sm:rounded-lg p-6">
+          <AttendanceSettingsUnified
             initialSettings={attendanceSettings}
             organizationId={organizationId}
+            organizationName={organization?.name || ''}
+            userRole={userRole}
           />
         </div>
       </div>
