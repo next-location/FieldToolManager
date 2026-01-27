@@ -255,7 +255,7 @@ export function MyAttendanceRecordsTable({
       </div>
 
       {/* 月ナビゲーション */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <button
             onClick={() => changeMonth(-1)}
@@ -275,8 +275,16 @@ export function MyAttendanceRecordsTable({
             <ChevronRight className="h-5 w-5" />
           </button>
         </div>
-        <div className="text-sm text-gray-600">
-          {dailyRecords.length}日分の記録
+        <div className="flex items-center gap-3">
+          <input
+            type="month"
+            value={currentMonth}
+            onChange={(e) => setCurrentMonth(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <div className="text-sm text-gray-600">
+            {dailyRecords.length}日分の記録
+          </div>
         </div>
       </div>
 
