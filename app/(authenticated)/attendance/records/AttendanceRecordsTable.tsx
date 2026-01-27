@@ -129,6 +129,9 @@ export function AttendanceRecordsTable({
 
   // 残業時間の計算と表示（30分単位切り捨て、勤務パターン基準）
   const calculateOvertimeHours = (record: any) => {
+    // シフト制スタッフは自動計算しない
+    if (record.is_shift_work) return '---'
+
     if (!record.clock_in_time || !record.clock_out_time || !record.work_pattern) return '---'
 
     const workPattern = record.work_pattern

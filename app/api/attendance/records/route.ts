@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
       .select(
         `
         *,
-        user:users!attendance_records_user_id_fkey(name, email, work_pattern_id),
+        user:users!attendance_records_user_id_fkey(name, email, work_pattern_id, is_shift_work),
         clock_in_site:sites!attendance_records_clock_in_site_id_fkey(name),
         clock_out_site:sites!attendance_records_clock_out_site_id_fkey(name),
         editor:users!attendance_records_edited_by_fkey(name)
@@ -127,6 +127,7 @@ export async function GET(request: NextRequest) {
     const formattedRecords = (records || []).map((record: any) => {
       const workPatternId = record.user?.work_pattern_id
       const workPattern = workPatternId ? workPatternMap.get(workPatternId) : null
+      const isShiftWork = record.user?.is_shift_work || false
 
       return {
         ...record,
@@ -135,6 +136,7 @@ export async function GET(request: NextRequest) {
         clock_in_site_name: record.clock_in_site?.name || null,
         clock_out_site_name: record.clock_out_site?.name || null,
         work_pattern: workPattern || null,
+        is_shift_work: isShiftWork,
       }
     })
 

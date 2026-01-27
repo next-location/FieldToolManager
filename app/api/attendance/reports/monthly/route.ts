@@ -75,7 +75,8 @@ export async function GET(request: NextRequest) {
           name,
           email,
           department,
-          work_pattern_id
+          work_pattern_id,
+          is_shift_work
         )
       `)
       .eq('organization_id', userData?.organization_id)
@@ -192,8 +193,9 @@ export async function GET(request: NextRequest) {
         stats.total_break_minutes += totalBreakMinutes
 
         // 残業判定（勤務パターンの開始時刻から計算、遅刻時は実打刻時刻から）
+        // シフト制スタッフは自動計算しない
         const workPattern = userInfo?.work_pattern_id ? workPatternMap.get(userInfo.work_pattern_id) : null
-        if (workPattern && workPattern.expected_checkin_time) {
+        if (!userInfo?.is_shift_work && workPattern && workPattern.expected_checkin_time) {
           // 遅刻しているかチェック（5分猶予）
           const clockInTime = new Date(record.clock_in_time)
           const clockInHours = clockInTime.getUTCHours() + 9 // JST変換
@@ -248,8 +250,9 @@ export async function GET(request: NextRequest) {
       }
 
       // 遅刻・早退判定（勤務パターンの時刻を基準にする）
+      // シフト制スタッフは判定しない
       const workPattern = userInfo?.work_pattern_id ? workPatternMap.get(userInfo.work_pattern_id) : null
-      if (workPattern) {
+      if (!userInfo?.is_shift_work && workPattern) {
         // 遅刻判定（5分の猶予）
         if (record.clock_in_time && workPattern.expected_checkin_time) {
           const clockInTime = new Date(record.clock_in_time)
