@@ -62,7 +62,8 @@ export async function GET(request: NextRequest) {
         *,
         user:users!attendance_records_user_id_fkey(name, email),
         clock_in_site:sites!attendance_records_clock_in_site_id_fkey(name),
-        clock_out_site:sites!attendance_records_clock_out_site_id_fkey(name)
+        clock_out_site:sites!attendance_records_clock_out_site_id_fkey(name),
+        editor:users!attendance_records_edited_by_fkey(name)
       `,
         { count: 'exact' }
       )

@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
         clock_in_location_type,
         clock_out_location_type,
         is_manually_edited,
+        edited_reason,
         created_at,
         users!attendance_records_user_id_fkey (
           id,
@@ -58,6 +59,9 @@ export async function GET(request: NextRequest) {
         ),
         clock_out_site:sites!attendance_records_clock_out_site_id_fkey (
           id,
+          name
+        ),
+        editor:users!attendance_records_edited_by_fkey (
           name
         )
       `
@@ -111,6 +115,8 @@ export async function GET(request: NextRequest) {
         '退勤場所種別',
         '退勤現場',
         '編集済み',
+        '編集者',
+        '編集理由',
         '登録日時',
       ].join(',')
     )
@@ -120,6 +126,7 @@ export async function GET(request: NextRequest) {
       const user = record.users as any
       const clockInSite = record.clock_in_site as any
       const clockOutSite = record.clock_out_site as any
+      const editor = record.editor as any
 
       // 勤務時間計算
       let workHours = ''
@@ -173,6 +180,8 @@ export async function GET(request: NextRequest) {
           getLocationLabel(record.clock_out_location_type),
           clockOutSite?.name || '',
           record.is_manually_edited ? 'はい' : 'いいえ',
+          record.is_manually_edited && editor?.name ? editor.name : '',
+          record.edited_reason || '',
           new Date(record.created_at).toLocaleString('ja-JP'),
         ]
           .map((cell) => `"${String(cell).replace(/"/g, '""')}"`) // CSVエスケープ

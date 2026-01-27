@@ -206,19 +206,26 @@ export function AttendanceRecordsTable({
                   {formatDate(record.date)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <div className="flex items-center gap-2">
-                    <span>{record.user_name}</span>
-                    {isAdminOrManager && (
-                      <button
-                        onClick={() => router.push(`/attendance/my-records?user_id=${record.user_id}`)}
-                        className="text-xs text-blue-600 hover:text-blue-900 underline"
-                      >
-                        詳細
-                      </button>
-                    )}
-                    {record.is_manually_edited && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                        編集済
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <span>{record.user_name}</span>
+                      {isAdminOrManager && (
+                        <button
+                          onClick={() => router.push(`/attendance/my-records?user_id=${record.user_id}`)}
+                          className="text-xs text-blue-600 hover:text-blue-900 underline"
+                        >
+                          詳細
+                        </button>
+                      )}
+                      {record.is_manually_edited && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                          編集済
+                        </span>
+                      )}
+                    </div>
+                    {record.is_manually_edited && record.editor?.name && (
+                      <span className="text-xs text-gray-500">
+                        編集者: {record.editor.name}
                       </span>
                     )}
                   </div>
@@ -277,6 +284,11 @@ export function AttendanceRecordsTable({
                 <div className="text-xs text-gray-500 mt-0.5">
                   {formatDate(record.date)}
                 </div>
+                {record.is_manually_edited && record.editor?.name && (
+                  <div className="text-xs text-gray-500 mt-1">
+                    編集者: {record.editor.name}
+                  </div>
+                )}
               </div>
               <div className="flex flex-col items-end gap-1">
                 {!record.clock_out_time && (

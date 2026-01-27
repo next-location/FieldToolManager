@@ -68,7 +68,8 @@
       "Bash(npm uninstall:*)",
       "Bash(do echo \"=== $url ===\" curl -s \"$url\")",
       "Bash(npm test:*)",
-      "Bash(git ls-tree:*)"
+      "Bash(git ls-tree:*)",
+      "Bash(PGPASSWORD=\"$SUPABASE_DB_PASSWORD\" psql -h aws-0-ap-northeast-1.pooler.supabase.com -p 6543 -d postgres -U postgres.ufmuxaekjnriqbfqcumj)"
     ],
     "deny": [],
     "ask": []
