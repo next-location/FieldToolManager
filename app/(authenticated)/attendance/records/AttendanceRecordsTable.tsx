@@ -206,12 +206,22 @@ export function AttendanceRecordsTable({
                   {formatDate(record.date)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {record.user_name}
-                  {record.is_manually_edited && (
-                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                      編集済
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <span>{record.user_name}</span>
+                    {isAdminOrManager && (
+                      <button
+                        onClick={() => router.push(`/attendance/my-records?user_id=${record.user_id}`)}
+                        className="text-xs text-blue-600 hover:text-blue-900 underline"
+                      >
+                        詳細
+                      </button>
+                    )}
+                    {record.is_manually_edited && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                        編集済
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {formatTime(record.clock_in_time)}
@@ -307,12 +317,20 @@ export function AttendanceRecordsTable({
             </div>
 
             {isAdminOrManager && (
-              <button
-                onClick={() => handleEdit(record)}
-                className="w-full px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
-              >
-                編集
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => router.push(`/attendance/my-records?user_id=${record.user_id}`)}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                >
+                  詳細
+                </button>
+                <button
+                  onClick={() => handleEdit(record)}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+                >
+                  編集
+                </button>
+              </div>
             )}
           </div>
         ))}
