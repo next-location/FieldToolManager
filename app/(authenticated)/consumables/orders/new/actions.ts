@@ -46,9 +46,7 @@ export async function createConsumableOrder(formData: FormData) {
     const newConsumableModel = formData.get('new_consumable_model') as string
     const newConsumableManufacturer = formData.get('new_consumable_manufacturer') as string
 
-    // QRコード生成
-    const qrCode = `CONSUMABLE-${Date.now()}-${Math.random().toString(36).substring(7)}`
-
+    // QRコード生成（UUID型なのでデフォルト値を使用）
     const { data: newConsumable, error: consumableError } = await supabase
       .from('tools')
       .insert({
@@ -59,9 +57,9 @@ export async function createConsumableOrder(formData: FormData) {
         unit: newConsumableUnit,
         management_type: 'consumable',
         minimum_stock: 0,
-        qr_code: qrCode,
+        // qr_codeはUUID型でデフォルト値が設定されているので省略
       })
-      .select('id')
+      .select('id, qr_code')
       .single()
 
     if (consumableError || !newConsumable) {
@@ -76,7 +74,7 @@ export async function createConsumableOrder(formData: FormData) {
       manufacturer: newConsumableManufacturer || null,
       unit: newConsumableUnit,
       management_type: 'consumable',
-      qr_code: qrCode
+      qr_code: newConsumable.qr_code
     }, user.id, userData.organization_id)
 
     toolId = newConsumable.id
