@@ -127,9 +127,14 @@ export function AttendanceRecordsTable({
     return `${breakMinutes}分`
   }
 
-  // 残業時間の計算と表示（15分単位切り捨て）
+  // 残業時間の計算と表示（30分単位切り捨て、勤務パターン基準）
   const calculateOvertimeHours = (record: any) => {
     if (!record.clock_in_time || !record.clock_out_time) return '---'
+
+    // 勤務パターン情報が必要
+    // 注意: この関数は現在勤務パターン情報を持っていないため、
+    // 従来通り実打刻時刻ベースで計算します
+    // 正確な計算には、recordにwork_pattern情報を含める必要があります
 
     const clockIn = new Date(record.clock_in_time)
     const clockOut = new Date(record.clock_out_time)
@@ -144,8 +149,8 @@ export function AttendanceRecordsTable({
     if (workMinutes <= 480) return '---'
 
     const overtimeMinutes = workMinutes - 480
-    // 15分単位で切り捨て
-    const roundedOvertime = Math.floor(overtimeMinutes / 15) * 15
+    // 30分単位で切り捨て
+    const roundedOvertime = Math.floor(overtimeMinutes / 30) * 30
 
     if (roundedOvertime === 0) return '---'
 

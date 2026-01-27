@@ -185,14 +185,44 @@ export async function GET(request: NextRequest) {
         stats.total_work_minutes += workMinutes
         stats.total_break_minutes += totalBreakMinutes
 
-        // 残業判定（8時間 = 480分超）
-        if (workMinutes > 480) {
-          stats.overtime_days++
+        // 残業判定（勤務パターンの開始時刻から計算、遅刻時は実打刻時刻から）
+        const workPattern = userInfo?.work_patterns
+        if (workPattern && workPattern.start_time) {
+          // 遅刻しているかチェック（5分猶予）
+          const clockInTime = new Date(record.clock_in_time)
+          const clockInHours = clockInTime.getUTCHours() + 9 // JST変換
+          const clockInMinutes = clockInTime.getUTCMinutes()
+          const clockInTotalMinutes = clockInHours * 60 + clockInMinutes
 
-          // 残業時間を15分単位で切り捨て
-          const overtimeMinutes = workMinutes - 480
-          const roundedOvertimeMinutes = Math.floor(overtimeMinutes / 15) * 15
-          stats.total_overtime_minutes += roundedOvertimeMinutes
+          const [startHour, startMinute] = workPattern.start_time.split(':').map(Number)
+          const startTotalMinutes = startHour * 60 + startMinute
+
+          const isLate = clockInTotalMinutes > startTotalMinutes + 5
+
+          // 退勤時刻（分）
+          const clockOutTime = new Date(record.clock_out_time)
+          const clockOutHours = clockOutTime.getUTCHours() + 9 // JST変換
+          const clockOutMinutes = clockOutTime.getUTCMinutes()
+          const clockOutTotalMinutes = clockOutHours * 60 + clockOutMinutes
+
+          // 勤務開始時刻を決定（遅刻していない場合は勤務パターンの開始時刻、遅刻の場合は実打刻時刻）
+          const effectiveStartMinutes = isLate ? clockInTotalMinutes : startTotalMinutes
+
+          // 勤務パターンの開始時刻（または実打刻時刻）から退勤時刻までの時間を計算
+          const totalWorkMinutes = clockOutTotalMinutes - effectiveStartMinutes
+
+          // 休憩時間を差し引く
+          const actualWorkMinutes = Math.max(0, totalWorkMinutes - totalBreakMinutes)
+
+          // 8時間（480分）を超えた分が残業
+          if (actualWorkMinutes > 480) {
+            stats.overtime_days++
+
+            // 残業時間を30分単位で切り捨て
+            const overtimeMinutes = actualWorkMinutes - 480
+            const roundedOvertimeMinutes = Math.floor(overtimeMinutes / 30) * 30
+            stats.total_overtime_minutes += roundedOvertimeMinutes
+          }
         }
 
         // 休日出勤判定
@@ -205,7 +235,7 @@ export async function GET(request: NextRequest) {
       // 遅刻・早退判定（勤務パターンの時刻を基準にする）
       const workPattern = userInfo?.work_patterns
       if (workPattern) {
-        // 遅刻判定
+        // 遅刻判定（5分の猶予）
         if (record.clock_in_time && workPattern.start_time) {
           const clockInTime = new Date(record.clock_in_time)
           const clockInHours = clockInTime.getUTCHours() + 9 // JST変換
@@ -216,12 +246,13 @@ export async function GET(request: NextRequest) {
           const [startHour, startMinute] = workPattern.start_time.split(':').map(Number)
           const startTotalMinutes = startHour * 60 + startMinute
 
-          if (clockInTotalMinutes > startTotalMinutes) {
+          // 5分の猶予を追加
+          if (clockInTotalMinutes > startTotalMinutes + 5) {
             stats.late_days++
           }
         }
 
-        // 早退判定
+        // 早退判定（30分の猶予）
         if (record.clock_out_time && workPattern.end_time) {
           const clockOutTime = new Date(record.clock_out_time)
           const clockOutHours = clockOutTime.getUTCHours() + 9 // JST変換
@@ -232,7 +263,8 @@ export async function GET(request: NextRequest) {
           const [endHour, endMinute] = workPattern.end_time.split(':').map(Number)
           const endTotalMinutes = endHour * 60 + endMinute
 
-          if (clockOutTotalMinutes < endTotalMinutes) {
+          // 30分の猶予（終了時刻の30分前より早い退勤を早退とする）
+          if (clockOutTotalMinutes < endTotalMinutes - 30) {
             stats.early_leave_days++
           }
         }
