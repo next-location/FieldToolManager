@@ -27,15 +27,10 @@ export function AttendanceFilter({
   onFiltersChange,
   showStaffFilter = true,
 }: AttendanceFilterProps) {
-  // デフォルトは今月
-  const getDefaultYearMonth = () => {
-    const now = new Date()
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-  }
-
   const [filters, setFilters] = useState({
     user_id: '',
-    year_month: getDefaultYearMonth(), // 年月フィルター（デフォルト: 今月）
+    start_date: '',
+    end_date: '',
     location_type: '',
     site_id: '',
   })
@@ -49,7 +44,8 @@ export function AttendanceFilter({
   const handleResetFilters = () => {
     const resetFilters = {
       user_id: '',
-      year_month: getDefaultYearMonth(),
+      start_date: '',
+      end_date: '',
       location_type: '',
       site_id: '',
     }
@@ -57,12 +53,13 @@ export function AttendanceFilter({
     setKeyword('')
   }
 
-  const hasActiveFilters = filters.user_id || filters.year_month !== getDefaultYearMonth() || filters.location_type || filters.site_id
+  const hasActiveFilters = filters.user_id || filters.start_date || filters.end_date || filters.location_type || filters.site_id
 
   // フィルター適用数をカウント
   const filterCount = [
     filters.user_id !== '',
-    filters.year_month !== getDefaultYearMonth(),
+    filters.start_date !== '',
+    filters.end_date !== '',
     filters.location_type !== '',
     filters.site_id !== '',
   ].filter(Boolean).length
@@ -111,39 +108,51 @@ export function AttendanceFilter({
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* スタッフ */}
-        {showStaffFilter && (
-          <div>
-            <label htmlFor="user_id" className="block text-sm font-medium text-gray-700 mb-1">
-              スタッフ
-            </label>
-            <select
-              id="user_id"
-              value={filters.user_id}
-              onChange={(e) => setFilters({ ...filters, user_id: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">全員</option>
-              {staffList.map((staff) => (
-                <option key={staff.id} value={staff.id}>
-                  {staff.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {/* 年月 */}
         <div>
-          <label htmlFor="year_month" className="block text-sm font-medium text-gray-700 mb-1">
-            年月
+          <label htmlFor="user_id" className="block text-sm font-medium text-gray-700 mb-1">
+            スタッフ
+          </label>
+          <select
+            id="user_id"
+            value={filters.user_id}
+            onChange={(e) => setFilters({ ...filters, user_id: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">全員</option>
+            {staffList.map((staff) => (
+              <option key={staff.id} value={staff.id}>
+                {staff.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 開始日 */}
+        <div>
+          <label htmlFor="start_date" className="block text-sm font-medium text-gray-700 mb-1">
+            開始日
           </label>
           <input
-            id="year_month"
-            type="month"
-            value={filters.year_month}
-            onChange={(e) => setFilters({ ...filters, year_month: e.target.value })}
+            id="start_date"
+            type="date"
+            value={filters.start_date}
+            onChange={(e) => setFilters({ ...filters, start_date: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        {/* 終了日 */}
+        <div>
+          <label htmlFor="end_date" className="block text-sm font-medium text-gray-700 mb-1">
+            終了日
+          </label>
+          <input
+            id="end_date"
+            type="date"
+            value={filters.end_date}
+            onChange={(e) => setFilters({ ...filters, end_date: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
@@ -194,8 +203,10 @@ export function AttendanceFilter({
         onClose={() => setIsFilterModalOpen(false)}
         userId={filters.user_id}
         setUserId={(value) => setFilters({ ...filters, user_id: value })}
-        yearMonth={filters.year_month}
-        setYearMonth={(value) => setFilters({ ...filters, year_month: value })}
+        startDate={filters.start_date}
+        setStartDate={(value) => setFilters({ ...filters, start_date: value })}
+        endDate={filters.end_date}
+        setEndDate={(value) => setFilters({ ...filters, end_date: value })}
         locationType={filters.location_type}
         setLocationType={(value) => setFilters({ ...filters, location_type: value })}
         siteId={filters.site_id}
