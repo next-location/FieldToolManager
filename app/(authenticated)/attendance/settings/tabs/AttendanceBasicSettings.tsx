@@ -67,6 +67,16 @@ export function AttendanceBasicSettings({
     setLoading(true)
     setMessage(null)
 
+    // バリデーション: 少なくとも1つの打刻方法を有効にする必要がある
+    if (!settings.allow_manual && !settings.allow_qr) {
+      setMessage({
+        type: 'error',
+        text: '少なくとも1つの打刻方法を有効にしてください（手動打刻またはQRコード打刻）',
+      })
+      setLoading(false)
+      return
+    }
+
     try {
       // 基本設定のみを更新（既存のアラート設定は保持）
       const requestBody = {
@@ -164,12 +174,21 @@ export function AttendanceBasicSettings({
               id="allow_manual"
               type="checkbox"
               checked={settings.allow_manual}
-              onChange={(e) =>
+              onChange={(e) => {
+                // 両方OFFにならないようにする
+                if (!e.target.checked && !settings.allow_qr) {
+                  setMessage({
+                    type: 'error',
+                    text: '少なくとも1つの打刻方法を有効にする必要があります',
+                  })
+                  return
+                }
+                setMessage(null)
                 setSettings({
                   ...settings,
                   allow_manual: e.target.checked,
                 })
-              }
+              }}
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <label htmlFor="allow_manual" className="ml-2 block text-sm text-gray-900">
@@ -182,12 +201,21 @@ export function AttendanceBasicSettings({
               id="allow_qr"
               type="checkbox"
               checked={settings.allow_qr}
-              onChange={(e) =>
+              onChange={(e) => {
+                // 両方OFFにならないようにする
+                if (!e.target.checked && !settings.allow_manual) {
+                  setMessage({
+                    type: 'error',
+                    text: '少なくとも1つの打刻方法を有効にする必要があります',
+                  })
+                  return
+                }
+                setMessage(null)
                 setSettings({
                   ...settings,
                   allow_qr: e.target.checked,
                 })
-              }
+              }}
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <label htmlFor="allow_qr" className="ml-2 block text-sm text-gray-900">
