@@ -127,6 +127,34 @@ export function AttendanceRecordsTable({
     return `${breakMinutes}分`
   }
 
+  // 残業時間の計算と表示（15分単位切り捨て）
+  const calculateOvertimeHours = (record: any) => {
+    if (!record.clock_in_time || !record.clock_out_time) return '---'
+
+    const clockIn = new Date(record.clock_in_time)
+    const clockOut = new Date(record.clock_out_time)
+    const diffMs = clockOut.getTime() - clockIn.getTime()
+    let diffMinutes = Math.floor(diffMs / (1000 * 60))
+
+    // 休憩時間を差し引く
+    const breakMinutes = (record.break_minutes || 0) + (record.auto_break_deducted_minutes || 0)
+    const workMinutes = Math.max(0, diffMinutes - breakMinutes)
+
+    // 8時間（480分）を超えた分を残業時間とする
+    if (workMinutes <= 480) return '---'
+
+    const overtimeMinutes = workMinutes - 480
+    // 15分単位で切り捨て
+    const roundedOvertime = Math.floor(overtimeMinutes / 15) * 15
+
+    if (roundedOvertime === 0) return '---'
+
+    const hours = Math.floor(roundedOvertime / 60)
+    const minutes = roundedOvertime % 60
+
+    return `${hours}:${minutes.toString().padStart(2, '0')}`
+  }
+
   // 場所の表示（出勤・退勤共通）
   const formatLocation = (locationType: string, siteName: string | null) => {
     if (locationType === 'office') return '会社'
@@ -215,6 +243,9 @@ export function AttendanceRecordsTable({
               <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 勤務時間
               </th>
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                残業時間
+              </th>
               {isAdminOrManager && (
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   操作
@@ -281,6 +312,9 @@ export function AttendanceRecordsTable({
                 </td>
                 <td className="px-3 py-3 text-sm text-gray-900 font-medium">
                   {calculateWorkHours(record)}
+                </td>
+                <td className="px-3 py-3 text-sm text-gray-500">
+                  {calculateOvertimeHours(record)}
                 </td>
                 {isAdminOrManager && (
                   <td className="px-3 py-3 text-sm text-gray-500">

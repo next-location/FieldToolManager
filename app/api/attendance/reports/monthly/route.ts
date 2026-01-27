@@ -69,6 +69,7 @@ export async function GET(request: NextRequest) {
         break_records,
         auto_break_deducted_minutes,
         is_manually_edited,
+        is_holiday_work,
         users!attendance_records_user_id_fkey (
           id,
           name,
@@ -108,6 +109,8 @@ export async function GET(request: NextRequest) {
         avg_work_minutes: number // 平均勤務時間（分）
         overtime_days: number // 残業日数（8時間超）
         total_overtime_minutes: number // 総残業時間（分、15分単位切り捨て）
+        holiday_work_days: number // 休日出勤日数
+        total_holiday_work_minutes: number // 休日出勤の総勤務時間（分）
         late_days: number // 遅刻日数（10:00以降出勤）
         early_leave_days: number // 早退日数（17:00前退勤）
         manually_edited_days: number // 手動修正日数
@@ -133,6 +136,8 @@ export async function GET(request: NextRequest) {
           avg_work_minutes: 0,
           overtime_days: 0,
           total_overtime_minutes: 0,
+          holiday_work_days: 0,
+          total_holiday_work_minutes: 0,
           late_days: 0,
           early_leave_days: 0,
           manually_edited_days: 0,
@@ -182,6 +187,12 @@ export async function GET(request: NextRequest) {
           const overtimeMinutes = workMinutes - 480
           const roundedOvertimeMinutes = Math.floor(overtimeMinutes / 15) * 15
           stats.total_overtime_minutes += roundedOvertimeMinutes
+        }
+
+        // 休日出勤判定
+        if (record.is_holiday_work) {
+          stats.holiday_work_days++
+          stats.total_holiday_work_minutes += workMinutes
         }
       }
 

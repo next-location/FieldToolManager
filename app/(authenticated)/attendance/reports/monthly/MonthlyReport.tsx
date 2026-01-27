@@ -15,6 +15,8 @@ interface StaffStats {
   avg_work_minutes: number
   overtime_days: number
   total_overtime_minutes: number
+  holiday_work_days: number
+  total_holiday_work_minutes: number
   late_days: number
   early_leave_days: number
   manually_edited_days: number
@@ -87,6 +89,8 @@ export default function MonthlyReport() {
       '平均勤務時間',
       '残業日数',
       '総残業時間',
+      '休日出勤日数',
+      '休日出勤時間',
       '遅刻日数',
       '早退日数',
       '手動修正日数',
@@ -104,6 +108,8 @@ export default function MonthlyReport() {
       formatMinutes(stats.avg_work_minutes),
       stats.overtime_days,
       formatMinutes(stats.total_overtime_minutes),
+      stats.holiday_work_days,
+      formatMinutes(stats.total_holiday_work_minutes),
       stats.late_days,
       stats.early_leave_days,
       stats.manually_edited_days,
@@ -248,6 +254,12 @@ export default function MonthlyReport() {
                     総残業時間
                   </th>
                   <th className="px-3 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    休日出勤日数
+                  </th>
+                  <th className="px-3 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    休日出勤時間
+                  </th>
+                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
                     遅刻/早退
                   </th>
                 </tr>
@@ -288,6 +300,22 @@ export default function MonthlyReport() {
                     <td className="px-3 py-3 text-sm text-right text-gray-900">
                       {stats.total_overtime_minutes > 0 ? (
                         formatMinutes(stats.total_overtime_minutes)
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-3 text-sm text-center">
+                      {stats.holiday_work_days > 0 ? (
+                        <span className="inline-block rounded-full bg-pink-100 px-2 py-1 text-xs font-medium text-pink-800">
+                          {stats.holiday_work_days}日
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-3 text-sm text-right text-gray-900">
+                      {stats.total_holiday_work_minutes > 0 ? (
+                        formatMinutes(stats.total_holiday_work_minutes)
                       ) : (
                         <span className="text-gray-400">-</span>
                       )}
