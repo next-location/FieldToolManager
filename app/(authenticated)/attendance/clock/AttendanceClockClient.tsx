@@ -14,6 +14,7 @@ interface OrgSettings {
   allow_manual: boolean
   allow_qr: boolean
   allow_location: boolean
+  break_time_mode?: 'none' | 'simple' | 'detailed'
 }
 
 interface AttendanceClockClientProps {
@@ -47,11 +48,15 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
   const [location, setLocation] = useState<'office' | 'site' | ''>('')
   const [selectedSiteId, setSelectedSiteId] = useState<string>('')
 
+  // 休憩時間入力用
+  const [breakMinutes, setBreakMinutes] = useState<string>('')
+
   // 勤務時間表示用の状態（1分ごとに更新）
   const [currentTime, setCurrentTime] = useState(new Date())
 
   const canUseManual = orgSettings?.allow_manual || false
   const canUseQR = orgSettings?.allow_qr || false
+  const shouldRecordBreak = orgSettings?.break_time_mode === 'simple'
 
 
   // 当日の出退勤記録を取得
@@ -147,6 +152,12 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
       return
     }
 
+    // 休憩時間記録が有効な場合のバリデーション
+    if (shouldRecordBreak && breakMinutes === '') {
+      setMessage({ type: 'error', text: '休憩時間を入力してください' })
+      return
+    }
+
     setActionLoading(true)
     setMessage(null)
 
@@ -159,6 +170,7 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
           site_id: location === 'site' ? selectedSiteId : null,
           method: 'manual',
           device_type: 'mobile',
+          break_minutes: shouldRecordBreak ? parseInt(breakMinutes) || 0 : undefined,
         }),
       })
 
@@ -171,6 +183,7 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
       setMessage({ type: 'success', text: '退勤打刻が完了しました' })
       setLocation('')
       setSelectedSiteId('')
+      setBreakMinutes('')
       await fetchTodayRecord()
       // router.refresh() // スクロール位置リセットを防ぐため削除
     } catch (error: any) {
@@ -739,6 +752,29 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
                         </option>
                       ))}
                     </select>
+                  </div>
+                )}
+
+                {/* 休憩時間入力 */}
+                {shouldRecordBreak && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      休憩時間（分）
+                    </label>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={breakMinutes}
+                      onChange={(e) => setBreakMinutes(e.target.value.replace(/[^0-9]/g, ''))}
+                      placeholder="例: 60"
+                      min="0"
+                      max="480"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      本日の休憩時間を分単位で入力してください
+                    </p>
                   </div>
                 )}
 

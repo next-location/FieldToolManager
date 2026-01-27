@@ -14,7 +14,7 @@ interface BasicAttendanceSettings {
   qr_rotation_days: 1 | 3 | 7 | 30
 
   // 休憩設定
-  break_time_mode: 'none' | 'simple' | 'detailed'
+  break_recording_enabled: boolean
   auto_break_deduction: boolean
   auto_break_minutes: number
 }
@@ -24,7 +24,7 @@ const DEFAULT_SETTINGS: BasicAttendanceSettings = {
   allow_qr: false,
   allow_location: false,
   qr_rotation_days: 7,
-  break_time_mode: 'simple',
+  break_recording_enabled: false,
   auto_break_deduction: false,
   auto_break_minutes: 45,
 }
@@ -45,7 +45,7 @@ export function AttendanceBasicSettings({
       allow_qr: old.allow_qr ?? false,
       allow_location: old.allow_location ?? false,
       qr_rotation_days: old.office_qr_rotation_days ?? 7,
-      break_time_mode: old.break_time_mode ?? 'simple',
+      break_recording_enabled: old.break_time_mode === 'simple' || old.break_time_mode === 'detailed',
       auto_break_deduction: old.auto_break_deduction ?? false,
       auto_break_minutes: old.auto_break_minutes ?? 45,
     }
@@ -87,7 +87,7 @@ export function AttendanceBasicSettings({
           qr_display: settings.allow_qr,
         },
         site_qr_type: 'both' as const,
-        break_time_mode: settings.break_time_mode,
+        break_time_mode: settings.break_recording_enabled ? 'simple' : 'none',
         auto_break_deduction: settings.auto_break_deduction,
         auto_break_minutes: settings.auto_break_minutes,
         // アラート設定は既存値を保持
@@ -237,95 +237,80 @@ export function AttendanceBasicSettings({
         <div className="space-y-4">
           <div className="flex items-center">
             <input
-              id="break_none"
+              id="break_not_record"
               type="radio"
-              checked={settings.break_time_mode === 'none'}
+              name="break_recording"
+              checked={!settings.break_recording_enabled}
               onChange={() =>
-                setSettings({ ...settings, break_time_mode: 'none' })
+                setSettings({ ...settings, break_recording_enabled: false })
               }
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
             />
-            <label htmlFor="break_none" className="ml-2 block text-sm text-gray-900">
-              なし - 休憩時間を記録しない
+            <label htmlFor="break_not_record" className="ml-2 block text-sm text-gray-900">
+              休憩時刻をスタッフは記録しない
             </label>
           </div>
 
           <div className="flex items-center">
             <input
-              id="break_simple"
+              id="break_record"
               type="radio"
-              checked={settings.break_time_mode === 'simple'}
+              name="break_recording"
+              checked={settings.break_recording_enabled}
               onChange={() =>
-                setSettings({ ...settings, break_time_mode: 'simple' })
+                setSettings({ ...settings, break_recording_enabled: true })
               }
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
             />
-            <label htmlFor="break_simple" className="ml-2 block text-sm text-gray-900">
-              シンプル - 休憩開始・終了のみ記録（1回まで）
-            </label>
-          </div>
-
-          <div className="flex items-center">
-            <input
-              id="break_detailed"
-              type="radio"
-              checked={settings.break_time_mode === 'detailed'}
-              onChange={() =>
-                setSettings({ ...settings, break_time_mode: 'detailed' })
-              }
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-            />
-            <label htmlFor="break_detailed" className="ml-2 block text-sm text-gray-900">
-              詳細 - 複数回の休憩を記録可能
+            <label htmlFor="break_record" className="ml-2 block text-sm text-gray-900">
+              休憩時間をスタッフが記録する
             </label>
           </div>
         </div>
 
-        {settings.break_time_mode !== 'none' && (
-          <div className="pl-6 space-y-4">
-            <div className="flex items-center">
+        <div className="space-y-4">
+          <div className="flex items-center">
+            <input
+              id="auto_break"
+              type="checkbox"
+              checked={settings.auto_break_deduction}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  auto_break_deduction: e.target.checked,
+                })
+              }
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="auto_break" className="ml-2 block text-sm text-gray-900">
+              自動休憩控除を有効化
+            </label>
+          </div>
+
+          {settings.auto_break_deduction && (
+            <div className="pl-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                控除時間（分）
+              </label>
               <input
-                id="auto_break"
-                type="checkbox"
-                checked={settings.auto_break_deduction}
+                type="number"
+                value={settings.auto_break_minutes}
                 onChange={(e) =>
                   setSettings({
                     ...settings,
-                    auto_break_deduction: e.target.checked,
+                    auto_break_minutes: parseInt(e.target.value) || 0,
                   })
                 }
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                min="0"
+                max="180"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
               />
-              <label htmlFor="auto_break" className="ml-2 block text-sm text-gray-900">
-                自動休憩控除を有効化
-              </label>
+              <p className="mt-1 text-sm text-gray-500">
+                勤務時間から自動的に控除される休憩時間
+              </p>
             </div>
-
-            {settings.auto_break_deduction && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  自動控除時間（分）
-                </label>
-                <input
-                  type="number"
-                  value={settings.auto_break_minutes}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      auto_break_minutes: parseInt(e.target.value) || 0,
-                    })
-                  }
-                  min="0"
-                  max="180"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
-                />
-                <p className="mt-1 text-sm text-gray-500">
-                  勤務時間から自動的に控除される休憩時間（推奨: 45分）
-                </p>
-              </div>
-            )}
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* 保存ボタン */}

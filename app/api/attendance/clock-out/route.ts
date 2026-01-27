@@ -162,16 +162,23 @@ export async function POST(request: NextRequest) {
     }
 
     // 退勤記録を更新
+    const updateData: any = {
+      clock_out_time: now.toISOString(),
+      clock_out_location_type: body.location_type,
+      clock_out_site_id: body.site_id || null,
+      clock_out_method: body.method,
+      clock_out_device_type: body.device_type || null,
+      updated_at: now.toISOString(),
+    }
+
+    // 休憩時間が指定されている場合は記録
+    if (body.break_minutes !== undefined && body.break_minutes !== null) {
+      updateData.break_minutes = body.break_minutes
+    }
+
     const { data: updatedRecord, error: updateError } = await supabase
       .from('attendance_records')
-      .update({
-        clock_out_time: now.toISOString(),
-        clock_out_location_type: body.location_type,
-        clock_out_site_id: body.site_id || null,
-        clock_out_method: body.method,
-        clock_out_device_type: body.device_type || null,
-        updated_at: now.toISOString(),
-      })
+      .update(updateData)
       .eq('id', todayRecord.id)
       .select()
       .single()

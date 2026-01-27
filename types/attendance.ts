@@ -244,6 +244,7 @@ export interface ClockOutRequest {
   method: 'manual' | 'qr';
   qr_data?: string;
   device_type: 'mobile' | 'tablet' | 'desktop';
+  break_minutes?: number; // 休憩時間（分）
 }
 
 // POST /api/attendance/clock-out のレスポンス
