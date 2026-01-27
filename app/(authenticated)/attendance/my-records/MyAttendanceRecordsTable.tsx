@@ -6,11 +6,13 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 interface MyAttendanceRecordsTableProps {
   userName: string
   userId: string
+  onMonthChange?: (month: string) => void
 }
 
 export function MyAttendanceRecordsTable({
   userName,
   userId,
+  onMonthChange,
 }: MyAttendanceRecordsTableProps) {
   // デフォルトは今月
   const getDefaultYearMonth = () => {
@@ -23,6 +25,13 @@ export function MyAttendanceRecordsTable({
   const [dailyRecords, setDailyRecords] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [currentMonth, setCurrentMonth] = useState(getDefaultYearMonth())
+
+  // 月が変わったら親に通知
+  useEffect(() => {
+    if (onMonthChange) {
+      onMonthChange(currentMonth)
+    }
+  }, [currentMonth, onMonthChange])
 
   // 月次集計
   const [monthlyStats, setMonthlyStats] = useState({
