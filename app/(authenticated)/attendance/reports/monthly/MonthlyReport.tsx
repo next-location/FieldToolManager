@@ -14,6 +14,7 @@ interface StaffStats {
   total_break_minutes: number
   avg_work_minutes: number
   overtime_days: number
+  total_overtime_minutes: number
   late_days: number
   early_leave_days: number
   manually_edited_days: number
@@ -85,6 +86,7 @@ export default function MonthlyReport() {
       '総休憩時間',
       '平均勤務時間',
       '残業日数',
+      '総残業時間',
       '遅刻日数',
       '早退日数',
       '手動修正日数',
@@ -101,6 +103,7 @@ export default function MonthlyReport() {
       formatMinutes(stats.total_break_minutes),
       formatMinutes(stats.avg_work_minutes),
       stats.overtime_days,
+      formatMinutes(stats.total_overtime_minutes),
       stats.late_days,
       stats.early_leave_days,
       stats.manually_edited_days,
@@ -217,28 +220,34 @@ export default function MonthlyReport() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                     スタッフ名
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                     部署
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
                     出勤日数
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
                     完了/未完了
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
                     総勤務時間
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    総休憩時間
+                  </th>
+                  <th className="px-3 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
                     平均勤務時間
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
                     残業日数
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    総残業時間
+                  </th>
+                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
                     遅刻/早退
                   </th>
                 </tr>
@@ -246,25 +255,28 @@ export default function MonthlyReport() {
               <tbody className="divide-y divide-gray-200">
                 {staffStats.map((stats) => (
                   <tr key={stats.user_id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                    <td className="px-3 py-3 text-sm font-medium text-gray-900">
                       {stats.user_name}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
+                    <td className="px-3 py-3 text-sm text-gray-600">
                       {stats.department || '-'}
                     </td>
-                    <td className="px-4 py-3 text-sm text-center text-gray-900">
+                    <td className="px-3 py-3 text-sm text-center text-gray-900">
                       {stats.total_days}日
                     </td>
-                    <td className="px-4 py-3 text-sm text-center text-gray-600">
+                    <td className="px-3 py-3 text-sm text-center text-gray-600">
                       {stats.completed_days}/{stats.incomplete_days}
                     </td>
-                    <td className="px-4 py-3 text-sm text-right text-gray-900">
+                    <td className="px-3 py-3 text-sm text-right text-gray-900">
                       {formatMinutes(stats.total_work_minutes)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-right text-gray-900">
+                    <td className="px-3 py-3 text-sm text-right text-gray-600">
+                      {formatMinutes(stats.total_break_minutes)}
+                    </td>
+                    <td className="px-3 py-3 text-sm text-right text-gray-900">
                       {formatMinutes(stats.avg_work_minutes)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-center">
+                    <td className="px-3 py-3 text-sm text-center">
                       {stats.overtime_days > 0 ? (
                         <span className="inline-block rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800">
                           {stats.overtime_days}日
@@ -273,7 +285,14 @@ export default function MonthlyReport() {
                         <span className="text-gray-400">-</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-sm text-center text-gray-600">
+                    <td className="px-3 py-3 text-sm text-right text-gray-900">
+                      {stats.total_overtime_minutes > 0 ? (
+                        formatMinutes(stats.total_overtime_minutes)
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-3 text-sm text-center text-gray-600">
                       {stats.late_days}/{stats.early_leave_days}
                     </td>
                   </tr>

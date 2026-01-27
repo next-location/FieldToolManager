@@ -107,6 +107,7 @@ export async function GET(request: NextRequest) {
         total_break_minutes: number // 総休憩時間（分）
         avg_work_minutes: number // 平均勤務時間（分）
         overtime_days: number // 残業日数（8時間超）
+        total_overtime_minutes: number // 総残業時間（分、15分単位切り捨て）
         late_days: number // 遅刻日数（10:00以降出勤）
         early_leave_days: number // 早退日数（17:00前退勤）
         manually_edited_days: number // 手動修正日数
@@ -131,6 +132,7 @@ export async function GET(request: NextRequest) {
           total_break_minutes: 0,
           avg_work_minutes: 0,
           overtime_days: 0,
+          total_overtime_minutes: 0,
           late_days: 0,
           early_leave_days: 0,
           manually_edited_days: 0,
@@ -172,9 +174,14 @@ export async function GET(request: NextRequest) {
         stats.total_work_minutes += workMinutes
         stats.total_break_minutes += totalBreakMinutes
 
-        // 残業日数（8時間 = 480分超）
+        // 残業判定（8時間 = 480分超）
         if (workMinutes > 480) {
           stats.overtime_days++
+
+          // 残業時間を15分単位で切り捨て
+          const overtimeMinutes = workMinutes - 480
+          const roundedOvertimeMinutes = Math.floor(overtimeMinutes / 15) * 15
+          stats.total_overtime_minutes += roundedOvertimeMinutes
         }
       }
 
