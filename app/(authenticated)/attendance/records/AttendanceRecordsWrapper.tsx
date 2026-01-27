@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { AttendanceFilter } from './AttendanceFilter'
 import { AttendanceRecordsTable } from './AttendanceRecordsTable'
 import { ProxyClockInModal } from './ProxyClockInModal'
-import { Plus } from 'lucide-react'
+import { AttendanceExportButton } from './AttendanceExportButton'
+import { Plus, Menu } from 'lucide-react'
 
 interface Staff {
   id: string
@@ -45,6 +46,7 @@ export function AttendanceRecordsWrapper({
   const [isProxyModalOpen, setIsProxyModalOpen] = useState(false)
   const [tableKey, setTableKey] = useState(0)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // スクロールアニメーション（道具一覧と同じ）
   useEffect(() => {
@@ -76,25 +78,61 @@ export function AttendanceRecordsWrapper({
 
   return (
     <>
-      {/* PC表示: タイトルとボタンを横並び */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
+      {/* ヘッダー */}
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-2">
           <h1 className="text-lg sm:text-2xl font-bold text-gray-900">勤怠一覧</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            {isAdminOrManager
-              ? `${organizationName} のスタッフの出退勤記録を確認・編集できます`
-              : `${organizationName} のスタッフの出退勤記録を確認できます（閲覧のみ）`}
-          </p>
-        </div>
-        {isAdminOrManager && (
-          <div className="hidden sm:flex">
+          <div className="hidden sm:flex gap-3">
+            <AttendanceExportButton filters={filters} />
+            {isAdminOrManager && (
+              <button
+                onClick={() => setIsProxyModalOpen(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+              >
+                + 代理打刻
+              </button>
+            )}
+          </div>
+          <div className="sm:hidden flex items-center gap-2">
             <button
-              onClick={() => setIsProxyModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
             >
-              + 代理打刻
+              <Menu className="h-6 w-6" />
             </button>
           </div>
+        </div>
+        <p className="text-sm text-gray-600">
+          {isAdminOrManager
+            ? `${organizationName} のスタッフの出退勤記録を確認・編集できます`
+            : `${organizationName} のスタッフの出退勤記録を確認できます（閲覧のみ）`}
+        </p>
+
+        {/* モバイルメニュー */}
+        {mobileMenuOpen && (
+          <>
+            <div
+              className="fixed inset-0 z-40 bg-black bg-opacity-25 sm:hidden"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            <div className="absolute right-4 mt-2 w-48 bg-white rounded-lg shadow-lg z-50 sm:hidden">
+              <div className="py-1">
+                <AttendanceExportButton filters={filters} mobileMenuOnly onClose={() => setMobileMenuOpen(false)} />
+                {isAdminOrManager && (
+                  <button
+                    onClick={() => {
+                      setIsProxyModalOpen(true)
+                      setMobileMenuOpen(false)
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    代理打刻
+                  </button>
+                )}
+              </div>
+            </div>
+          </>
         )}
       </div>
 
@@ -112,20 +150,6 @@ export function AttendanceRecordsWrapper({
         showStaffName={true} // スタッフ名を常に表示
         showStaffSort={isAdminOrManager} // admin/managerのみソート表示
       />
-
-      {/* スマホ表示: FABボタン（道具一覧と同じスタイル・アニメーション） */}
-      {isAdminOrManager && (
-        <button
-          onClick={() => setIsProxyModalOpen(true)}
-          className={`fixed right-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-all duration-300 flex items-center justify-center z-40 sm:hidden ${
-            isScrolled ? 'w-10 h-10 bottom-20' : 'w-14 h-14 bottom-24'
-          }`}
-          style={{ bottom: isScrolled ? '5rem' : '6rem' }}
-          aria-label="代理打刻"
-        >
-          <Plus className={`${isScrolled ? 'h-5 w-5' : 'h-6 w-6'}`} />
-        </button>
-      )}
 
       {/* 代理打刻モーダル */}
       <ProxyClockInModal
