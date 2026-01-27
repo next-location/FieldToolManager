@@ -46,7 +46,6 @@ export async function GET(request: NextRequest) {
         clock_in_location_type,
         clock_out_location_type,
         is_manually_edited,
-        edited_by_user_id,
         created_at,
         users!attendance_records_user_id_fkey (
           id,
