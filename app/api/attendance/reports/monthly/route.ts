@@ -70,6 +70,7 @@ export async function GET(request: NextRequest) {
         auto_break_deducted_minutes,
         is_manually_edited,
         is_holiday_work,
+        manual_overtime_minutes,
         users!attendance_records_user_id_fkey (
           id,
           name,
