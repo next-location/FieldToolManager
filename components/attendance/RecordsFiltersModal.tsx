@@ -17,10 +17,8 @@ interface RecordsFiltersModalProps {
   onClose: () => void
   userId: string
   setUserId: (value: string) => void
-  startDate: string
-  setStartDate: (value: string) => void
-  endDate: string
-  setEndDate: (value: string) => void
+  yearMonth: string
+  setYearMonth: (value: string) => void
   locationType: string
   setLocationType: (value: string) => void
   siteId: string
@@ -35,10 +33,8 @@ export default function RecordsFiltersModal({
   onClose,
   userId,
   setUserId,
-  startDate,
-  setStartDate,
-  endDate,
-  setEndDate,
+  yearMonth,
+  setYearMonth,
   locationType,
   setLocationType,
   siteId,
@@ -92,28 +88,15 @@ export default function RecordsFiltersModal({
             </select>
           </div>
 
-          {/* 開始日 */}
+          {/* 年月 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              開始日
+              年月
             </label>
             <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* 終了日 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              終了日
-            </label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+              type="month"
+              value={yearMonth}
+              onChange={(e) => setYearMonth(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>

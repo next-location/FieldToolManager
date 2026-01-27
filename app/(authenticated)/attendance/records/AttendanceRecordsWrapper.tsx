@@ -34,10 +34,15 @@ export function AttendanceRecordsWrapper({
   isAdminOrManager,
   organizationName,
 }: AttendanceRecordsWrapperProps) {
+  // デフォルトは今月
+  const getDefaultYearMonth = () => {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  }
+
   const [filters, setFilters] = useState({
     user_id: isAdminOrManager ? '' : currentUserId, // leader/userは自分のIDで固定
-    start_date: '',
-    end_date: '',
+    year_month: getDefaultYearMonth(),
     location_type: '',
     site_id: '',
   })
