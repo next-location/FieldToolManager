@@ -92,6 +92,7 @@ export function StaffListClient({ userRole, organization, departments, isImperso
   // role表示用のヘルパー関数
   const getRoleLabel = (role: string) => {
     const labels: Record<string, string> = {
+      user: 'スタッフ',
       staff: 'スタッフ',
       leader: 'リーダー',
       manager: 'マネージャー',
@@ -103,6 +104,7 @@ export function StaffListClient({ userRole, organization, departments, isImperso
 
   const getRoleColor = (role: string) => {
     const colors: Record<string, string> = {
+      user: 'bg-gray-100 text-gray-800',
       staff: 'bg-gray-100 text-gray-800',
       leader: 'bg-blue-100 text-blue-800',
       manager: 'bg-green-100 text-green-800',
