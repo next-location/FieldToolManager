@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     const startDateStr = startDate.toISOString().split('T')[0]
     const endDateStr = endDate.toISOString().split('T')[0]
 
-    // 出勤記録を取得
+    // 出勤記録を取得（勤務パターン情報も含む）
     let query = supabase
       .from('attendance_records')
       .select(`
@@ -74,7 +74,13 @@ export async function GET(request: NextRequest) {
           id,
           name,
           email,
-          department
+          department,
+          work_pattern_id,
+          work_patterns (
+            id,
+            start_time,
+            end_time
+          )
         )
       `)
       .eq('organization_id', userData?.organization_id)
@@ -196,21 +202,39 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // 遅刻判定（10:00以降出勤）
-      if (record.clock_in_time) {
-        const clockInTime = new Date(record.clock_in_time)
-        const clockInHour = clockInTime.getUTCHours() + 9 // JST変換
-        if (clockInHour >= 10) {
-          stats.late_days++
-        }
-      }
+      // 遅刻・早退判定（勤務パターンの時刻を基準にする）
+      const workPattern = userInfo?.work_patterns
+      if (workPattern) {
+        // 遅刻判定
+        if (record.clock_in_time && workPattern.start_time) {
+          const clockInTime = new Date(record.clock_in_time)
+          const clockInHours = clockInTime.getUTCHours() + 9 // JST変換
+          const clockInMinutes = clockInTime.getUTCMinutes()
+          const clockInTotalMinutes = clockInHours * 60 + clockInMinutes
 
-      // 早退判定（17:00前退勤）
-      if (record.clock_out_time) {
-        const clockOutTime = new Date(record.clock_out_time)
-        const clockOutHour = clockOutTime.getUTCHours() + 9 // JST変換
-        if (clockOutHour < 17) {
-          stats.early_leave_days++
+          // start_time (例: "09:00:00")を分に変換
+          const [startHour, startMinute] = workPattern.start_time.split(':').map(Number)
+          const startTotalMinutes = startHour * 60 + startMinute
+
+          if (clockInTotalMinutes > startTotalMinutes) {
+            stats.late_days++
+          }
+        }
+
+        // 早退判定
+        if (record.clock_out_time && workPattern.end_time) {
+          const clockOutTime = new Date(record.clock_out_time)
+          const clockOutHours = clockOutTime.getUTCHours() + 9 // JST変換
+          const clockOutMinutes = clockOutTime.getUTCMinutes()
+          const clockOutTotalMinutes = clockOutHours * 60 + clockOutMinutes
+
+          // end_time (例: "18:00:00")を分に変換
+          const [endHour, endMinute] = workPattern.end_time.split(':').map(Number)
+          const endTotalMinutes = endHour * 60 + endMinute
+
+          if (clockOutTotalMinutes < endTotalMinutes) {
+            stats.early_leave_days++
+          }
         }
       }
 
