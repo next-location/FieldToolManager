@@ -120,6 +120,18 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       }
     }
 
+    // 休憩時間の自動控除設定を取得
+    const { data: attendanceSettings } = await supabase
+      .from('organization_attendance_settings')
+      .select('auto_break_deduction, auto_break_minutes')
+      .eq('organization_id', userData.organization_id)
+      .single()
+
+    let autoBreakMinutes = 0
+    if (clock_out_time && attendanceSettings?.auto_break_deduction) {
+      autoBreakMinutes = attendanceSettings.auto_break_minutes || 0
+    }
+
     // 更新データ準備
     const now = new Date()
     const updateData: any = {
@@ -131,6 +143,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       edited_at: now.toISOString(),
       edited_reason,
       is_holiday_work: is_holiday_work !== undefined ? is_holiday_work : existingRecord.is_holiday_work,
+      auto_break_deducted_minutes: autoBreakMinutes,
       updated_at: now.toISOString(),
     }
 
