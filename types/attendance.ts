@@ -124,6 +124,9 @@ export interface AttendanceRecord {
   break_records: BreakRecord[];
   auto_break_deducted_minutes: number;
 
+  // 休日出勤
+  is_holiday_work: boolean;
+
   // メタ情報
   notes: string | null;
   is_offline_sync: boolean;
@@ -230,6 +233,7 @@ export interface ClockInRequest {
   device_type: 'mobile' | 'tablet' | 'desktop';
   planned_checkout_location_type?: 'office' | 'site' | 'remote' | 'direct_home';
   planned_checkout_site_id?: string;
+  is_holiday_work?: boolean;
 }
 
 // POST /api/attendance/clock-in のレスポンス
@@ -292,6 +296,7 @@ export interface UpdateAttendanceRecordRequest {
   clock_out_time?: string;
   break_records?: BreakRecord[];
   notes?: string;
+  is_holiday_work?: boolean;
   edited_reason: string; // 必須
 }
 
