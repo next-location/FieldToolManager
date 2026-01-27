@@ -26,6 +26,7 @@ interface User {
   last_login_at: string | null
   created_at: string
   work_pattern_id: string | null
+  is_shift_work: boolean
 }
 
 interface StaffListClientProps {
