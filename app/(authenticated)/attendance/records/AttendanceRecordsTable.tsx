@@ -98,19 +98,42 @@ export function AttendanceRecordsTable({
     }
   }
 
-  // 勤務時間計算（時間:分）
+  // 勤務時間計算（時間:分）- 休憩時間を差し引く
   const calculateWorkHours = (record: any) => {
     if (!record.clock_in_time || !record.clock_out_time) return '---'
 
     const clockIn = new Date(record.clock_in_time)
     const clockOut = new Date(record.clock_out_time)
     const diffMs = clockOut.getTime() - clockIn.getTime()
-    const diffMinutes = Math.floor(diffMs / (1000 * 60))
+    let diffMinutes = Math.floor(diffMs / (1000 * 60))
+
+    // 休憩時間を差し引く（ユーザー入力 + 自動控除）
+    const breakMinutes = (record.break_minutes || 0) + (record.auto_break_deducted_minutes || 0)
+    diffMinutes -= breakMinutes
+
+    // マイナスにならないようにする
+    if (diffMinutes < 0) diffMinutes = 0
 
     const hours = Math.floor(diffMinutes / 60)
     const minutes = diffMinutes % 60
 
     return `${hours}:${minutes.toString().padStart(2, '0')}`
+  }
+
+  // 休憩時間の表示（分）
+  const formatBreakTime = (record: any) => {
+    const breakMinutes = (record.break_minutes || 0) + (record.auto_break_deducted_minutes || 0)
+    if (breakMinutes === 0) return '---'
+    return `${breakMinutes}分`
+  }
+
+  // 場所の表示（出勤・退勤共通）
+  const formatLocation = (locationType: string, siteName: string | null) => {
+    if (locationType === 'office') return '会社'
+    if (locationType === 'site') return siteName || '現場'
+    if (locationType === 'remote') return 'リモート'
+    if (locationType === 'direct_home') return '直帰'
+    return '---'
   }
 
   // 時刻フォーマット
@@ -169,31 +192,37 @@ export function AttendanceRecordsTable({
       </div>
 
       {/* PC: テーブル表示 */}
-      <div className="hidden sm:block bg-white shadow sm:rounded-lg p-6">
+      <div className="hidden md:block bg-white shadow sm:rounded-lg p-6">
         <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 日付
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 スタッフ
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 出勤
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 退勤
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                休憩
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 勤務時間
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                場所
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                出勤場所
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                退勤場所
               </th>
               {isAdminOrManager && (
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   操作
                 </th>
               )}
@@ -202,10 +231,10 @@ export function AttendanceRecordsTable({
           <tbody className="bg-white divide-y divide-gray-200">
             {records.map((record) => (
               <tr key={record.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                   {formatDate(record.date)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
                       <span>{record.user_name}</span>
@@ -230,27 +259,30 @@ export function AttendanceRecordsTable({
                     )}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                   {formatTime(record.clock_in_time)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                   {record.clock_out_time ? (
                     formatTime(record.clock_out_time)
                   ) : (
                     <span className="text-green-600 font-medium">勤務中</span>
                   )}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {formatBreakTime(record)}
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                   {calculateWorkHours(record)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {record.clock_in_location_type === 'office' && '会社'}
-                  {record.clock_in_location_type === 'site' &&
-                    `現場: ${record.clock_in_site_name || '---'}`}
-                  {record.clock_in_location_type === 'remote' && 'リモート'}
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {formatLocation(record.clock_in_location_type, record.clock_in_site_name)}
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {record.clock_out_time ? formatLocation(record.clock_out_location_type, record.clock_out_site_name) : <span className="text-gray-400">---</span>}
                 </td>
                 {isAdminOrManager && (
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                     <button
                       onClick={() => handleEdit(record)}
                       className="text-blue-600 hover:text-blue-900"
@@ -273,7 +305,7 @@ export function AttendanceRecordsTable({
       </div>
 
       {/* モバイル: カード表示 */}
-      <div className="sm:hidden space-y-3">
+      <div className="md:hidden space-y-3">
         {records.map((record) => (
           <div key={record.id} className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex justify-between items-start mb-3">
@@ -304,32 +336,47 @@ export function AttendanceRecordsTable({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-sm mb-3">
-              <div>
-                <div className="text-xs text-gray-500 mb-1">出勤</div>
-                <div className="font-medium text-gray-900">{formatTime(record.clock_in_time)}</div>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <div className="text-xs text-gray-500 mb-1">出勤</div>
+                  <div className="font-medium text-gray-900">{formatTime(record.clock_in_time)}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-500 mb-1">退勤</div>
+                  <div className="font-medium text-gray-900">
+                    {record.clock_out_time ? formatTime(record.clock_out_time) : <span className="text-green-600">勤務中</span>}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-500 mb-1">休憩</div>
+                  <div className="font-medium text-gray-900">{formatBreakTime(record)}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-500 mb-1">勤務時間</div>
+                  <div className="font-medium text-gray-900">{calculateWorkHours(record)}</div>
+                </div>
               </div>
-              <div>
-                <div className="text-xs text-gray-500 mb-1">退勤</div>
-                <div className="font-medium text-gray-900">{formatTime(record.clock_out_time)}</div>
-              </div>
-              <div>
-                <div className="text-xs text-gray-500 mb-1">勤務時間</div>
-                <div className="font-medium text-gray-900">{calculateWorkHours(record)}</div>
-              </div>
-              <div>
-                <div className="text-xs text-gray-500 mb-1">場所</div>
-                <div className="font-medium text-gray-900">
-                  {record.clock_in_location_type === 'office' && '会社'}
-                  {record.clock_in_location_type === 'site' &&
-                    `${record.clock_in_site_name || '現場'}`}
-                  {record.clock_in_location_type === 'remote' && 'リモート'}
+              <div className="border-t border-gray-100 pt-3">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">出勤場所</div>
+                    <div className="font-medium text-gray-900">
+                      {formatLocation(record.clock_in_location_type, record.clock_in_site_name)}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">退勤場所</div>
+                    <div className="font-medium text-gray-900">
+                      {record.clock_out_time ? formatLocation(record.clock_out_location_type, record.clock_out_site_name) : <span className="text-gray-400">---</span>}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
             {isAdminOrManager && (
-              <div className="flex gap-2">
+              <div className="flex gap-2 mt-3">
                 <button
                   onClick={() => router.push(`/attendance/my-records?user_id=${record.user_id}`)}
                   className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
