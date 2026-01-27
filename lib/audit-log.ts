@@ -1110,6 +1110,24 @@ export async function logSettingsChanged(
 /**
  * 勤怠記録の監査ログ
  */
+export async function logAttendanceRecordCreated(
+  recordId: string,
+  recordData: Record<string, any>,
+  userId?: string,
+  organizationId?: string
+) {
+  await createAuditLog(
+    {
+      action: 'create',
+      entity_type: 'attendance_records',
+      entity_id: recordId,
+      new_values: recordData,
+    },
+    userId,
+    organizationId
+  )
+}
+
 export async function logAttendanceRecordUpdated(
   recordId: string,
   oldData: Record<string, any>,
