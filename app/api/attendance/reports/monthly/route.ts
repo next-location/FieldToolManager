@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
     // 勤務パターン情報を取得
     const { data: workPatterns } = await supabase
       .from('work_patterns')
-      .select('id, start_time, end_time')
+      .select('id, expected_checkin_time, expected_checkout_time')
       .eq('organization_id', userData?.organization_id)
 
     // 勤務パターンをIDでマップ化
@@ -193,14 +193,14 @@ export async function GET(request: NextRequest) {
 
         // 残業判定（勤務パターンの開始時刻から計算、遅刻時は実打刻時刻から）
         const workPattern = userInfo?.work_pattern_id ? workPatternMap.get(userInfo.work_pattern_id) : null
-        if (workPattern && workPattern.start_time) {
+        if (workPattern && workPattern.expected_checkin_time) {
           // 遅刻しているかチェック（5分猶予）
           const clockInTime = new Date(record.clock_in_time)
           const clockInHours = clockInTime.getUTCHours() + 9 // JST変換
           const clockInMinutes = clockInTime.getUTCMinutes()
           const clockInTotalMinutes = clockInHours * 60 + clockInMinutes
 
-          const [startHour, startMinute] = workPattern.start_time.split(':').map(Number)
+          const [startHour, startMinute] = workPattern.expected_checkin_time.split(':').map(Number)
           const startTotalMinutes = startHour * 60 + startMinute
 
           const isLate = clockInTotalMinutes > startTotalMinutes + 5
@@ -242,14 +242,14 @@ export async function GET(request: NextRequest) {
       const workPattern = userInfo?.work_pattern_id ? workPatternMap.get(userInfo.work_pattern_id) : null
       if (workPattern) {
         // 遅刻判定（5分の猶予）
-        if (record.clock_in_time && workPattern.start_time) {
+        if (record.clock_in_time && workPattern.expected_checkin_time) {
           const clockInTime = new Date(record.clock_in_time)
           const clockInHours = clockInTime.getUTCHours() + 9 // JST変換
           const clockInMinutes = clockInTime.getUTCMinutes()
           const clockInTotalMinutes = clockInHours * 60 + clockInMinutes
 
-          // start_time (例: "09:00:00")を分に変換
-          const [startHour, startMinute] = workPattern.start_time.split(':').map(Number)
+          // expected_checkin_time (例: "09:00:00")を分に変換
+          const [startHour, startMinute] = workPattern.expected_checkin_time.split(':').map(Number)
           const startTotalMinutes = startHour * 60 + startMinute
 
           // 5分の猶予を追加
@@ -259,14 +259,14 @@ export async function GET(request: NextRequest) {
         }
 
         // 早退判定（30分の猶予）
-        if (record.clock_out_time && workPattern.end_time) {
+        if (record.clock_out_time && workPattern.expected_checkout_time) {
           const clockOutTime = new Date(record.clock_out_time)
           const clockOutHours = clockOutTime.getUTCHours() + 9 // JST変換
           const clockOutMinutes = clockOutTime.getUTCMinutes()
           const clockOutTotalMinutes = clockOutHours * 60 + clockOutMinutes
 
-          // end_time (例: "18:00:00")を分に変換
-          const [endHour, endMinute] = workPattern.end_time.split(':').map(Number)
+          // expected_checkout_time (例: "18:00:00")を分に変換
+          const [endHour, endMinute] = workPattern.expected_checkout_time.split(':').map(Number)
           const endTotalMinutes = endHour * 60 + endMinute
 
           // 30分の猶予（終了時刻の30分前より早い退勤を早退とする）
