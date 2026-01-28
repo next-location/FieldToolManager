@@ -150,38 +150,40 @@ export default function MonthlyReport() {
       )}
 
       {/* 年月選択 */}
-      <div className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      <div className="rounded-lg bg-white p-4 sm:p-6 shadow-sm border border-gray-200">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <label className="text-sm font-medium text-gray-700">対象年月</label>
-            <select
-              value={year}
-              onChange={(e) => setYear(parseInt(e.target.value))}
-              className="rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            >
-              {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => (
-                <option key={y} value={y}>
-                  {y}年
-                </option>
-              ))}
-            </select>
-            <select
-              value={month}
-              onChange={(e) => setMonth(parseInt(e.target.value))}
-              className="rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            >
-              {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                <option key={m} value={m}>
-                  {m}月
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center gap-2">
+              <select
+                value={year}
+                onChange={(e) => setYear(parseInt(e.target.value))}
+                className="h-10 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => (
+                  <option key={y} value={y}>
+                    {y}年
+                  </option>
+                ))}
+              </select>
+              <select
+                value={month}
+                onChange={(e) => setMonth(parseInt(e.target.value))}
+                className="h-10 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                  <option key={m} value={m}>
+                    {m}月
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <button
             onClick={handleExportCSV}
             disabled={!staffStats || staffStats.length === 0}
-            className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             CSVエクスポート
           </button>
@@ -190,27 +192,27 @@ export default function MonthlyReport() {
 
       {/* サマリー */}
       {summary && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
-            <p className="text-sm text-gray-600">総スタッフ数</p>
-            <p className="mt-2 text-3xl font-bold text-gray-900">{summary.total_staff}人</p>
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <div className="rounded-lg bg-white p-4 sm:p-6 shadow-sm border border-gray-200">
+            <p className="text-xs sm:text-sm text-gray-600">総スタッフ数</p>
+            <p className="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-gray-900">{summary.total_staff}人</p>
           </div>
-          <div className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
-            <p className="text-sm text-gray-600">総出勤日数</p>
-            <p className="mt-2 text-3xl font-bold text-gray-900">{summary.total_attendance_days}日</p>
+          <div className="rounded-lg bg-white p-4 sm:p-6 shadow-sm border border-gray-200">
+            <p className="text-xs sm:text-sm text-gray-600">総出勤日数</p>
+            <p className="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-gray-900">{summary.total_attendance_days}日</p>
           </div>
-          <div className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
-            <p className="text-sm text-gray-600">総勤務時間</p>
-            <p className="mt-2 text-3xl font-bold text-gray-900">{summary.total_work_hours}h</p>
+          <div className="rounded-lg bg-white p-4 sm:p-6 shadow-sm border border-gray-200">
+            <p className="text-xs sm:text-sm text-gray-600">総勤務時間</p>
+            <p className="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-gray-900">{summary.total_work_hours}h</p>
           </div>
-          <div className="rounded-lg bg-white p-6 shadow-sm border border-gray-200">
-            <p className="text-sm text-gray-600">平均勤務時間/人</p>
-            <p className="mt-2 text-3xl font-bold text-gray-900">{summary.avg_work_hours_per_staff}h</p>
+          <div className="rounded-lg bg-white p-4 sm:p-6 shadow-sm border border-gray-200">
+            <p className="text-xs sm:text-sm text-gray-600">平均勤務時間/人</p>
+            <p className="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-gray-900">{summary.avg_work_hours_per_staff}h</p>
           </div>
         </div>
       )}
 
-      {/* スタッフ別統計テーブル */}
+      {/* スタッフ別統計 */}
       {isLoading ? (
         <div className="text-center py-12">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
@@ -221,97 +223,148 @@ export default function MonthlyReport() {
           <p className="text-gray-500">選択した期間の勤怠データがありません</p>
         </div>
       ) : (
-        <div className="rounded-lg bg-white shadow-sm border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    スタッフ
-                  </th>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    出勤日数
-                  </th>
-                  <th className="px-3 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    勤務時間
-                  </th>
-                  <th className="px-3 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    休憩時間
-                  </th>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    残業
-                  </th>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    休日出勤
-                  </th>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    遅刻/早退
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {staffStats.map((stats) => (
-                  <tr key={stats.user_id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-3 py-3 text-sm">
-                      <div className="flex flex-col">
-                        <span className="font-medium text-gray-900">{stats.user_name}</span>
-                        {stats.department && (
-                          <span className="text-xs text-gray-500">{stats.department}</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 text-sm text-center">
-                      <div className="flex flex-col">
-                        <span className="font-medium text-gray-900">{stats.total_days}日</span>
-                        <span className="text-xs text-gray-500">完了 {stats.completed_days}/{stats.incomplete_days}</span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 text-sm text-right">
-                      <div className="flex flex-col">
-                        <span className="font-medium text-gray-900">{formatMinutes(stats.total_work_minutes)}</span>
-                        <span className="text-xs text-gray-500">平均 {formatMinutes(stats.avg_work_minutes)}</span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 text-sm text-right text-gray-600">
-                      {formatMinutes(stats.total_break_minutes)}
-                    </td>
-                    <td className="px-3 py-3 text-sm text-center">
-                      <div className="flex flex-col gap-1">
-                        {stats.overtime_days > 0 ? (
-                          <>
-                            <span className="inline-block rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800">
-                              {stats.overtime_days}日
-                            </span>
-                            <span className="text-xs text-gray-600">{formatMinutes(stats.total_overtime_minutes)}</span>
-                          </>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 text-sm text-center">
-                      <div className="flex flex-col gap-1">
-                        {stats.holiday_work_days > 0 ? (
-                          <>
-                            <span className="inline-block rounded-full bg-pink-100 px-2 py-1 text-xs font-medium text-pink-800">
-                              {stats.holiday_work_days}日
-                            </span>
-                            <span className="text-xs text-gray-600">{formatMinutes(stats.total_holiday_work_minutes)}</span>
-                          </>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 text-sm text-center text-gray-600">
-                      {stats.late_days}/{stats.early_leave_days}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <>
+          {/* スマホ: カード表示 */}
+          <div className="space-y-4 sm:hidden">
+            {staffStats.map((stats) => (
+              <div key={stats.user_id} className="rounded-lg bg-white p-4 shadow-sm border border-gray-200">
+                <div className="mb-3 pb-3 border-b border-gray-200">
+                  <h3 className="font-semibold text-gray-900">{stats.user_name}</h3>
+                  {stats.department && <p className="text-xs text-gray-500 mt-1">{stats.department}</p>}
+                </div>
+                <div className="space-y-2.5 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">出勤日数</span>
+                    <span className="font-medium">{stats.total_days}日 (完了 {stats.completed_days})</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">総勤務時間</span>
+                    <span className="font-medium">{formatMinutes(stats.total_work_minutes)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">平均勤務時間</span>
+                    <span className="font-medium">{formatMinutes(stats.avg_work_minutes)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">総休憩時間</span>
+                    <span className="font-medium">{formatMinutes(stats.total_break_minutes)}</span>
+                  </div>
+                  {stats.overtime_days > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">残業</span>
+                      <span className="font-medium text-orange-700">{stats.overtime_days}日 ({formatMinutes(stats.total_overtime_minutes)})</span>
+                    </div>
+                  )}
+                  {stats.holiday_work_days > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">休日出勤</span>
+                      <span className="font-medium text-pink-700">{stats.holiday_work_days}日 ({formatMinutes(stats.total_holiday_work_minutes)})</span>
+                    </div>
+                  )}
+                  {(stats.late_days > 0 || stats.early_leave_days > 0) && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">遅刻/早退</span>
+                      <span className="font-medium">{stats.late_days}回 / {stats.early_leave_days}回</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+
+          {/* デスクトップ: テーブル表示 */}
+          <div className="hidden sm:block rounded-lg bg-white shadow-sm border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      スタッフ
+                    </th>
+                    <th className="px-3 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      出勤日数
+                    </th>
+                    <th className="px-3 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      勤務時間
+                    </th>
+                    <th className="px-3 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      休憩時間
+                    </th>
+                    <th className="px-3 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      残業
+                    </th>
+                    <th className="px-3 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      休日出勤
+                    </th>
+                    <th className="px-3 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      遅刻/早退
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {staffStats.map((stats) => (
+                    <tr key={stats.user_id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-3 py-3 text-sm">
+                        <div className="flex flex-col">
+                          <span className="font-medium text-gray-900">{stats.user_name}</span>
+                          {stats.department && (
+                            <span className="text-xs text-gray-500">{stats.department}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 text-sm text-center">
+                        <div className="flex flex-col">
+                          <span className="font-medium text-gray-900">{stats.total_days}日</span>
+                          <span className="text-xs text-gray-500">完了 {stats.completed_days}/{stats.incomplete_days}</span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 text-sm text-right">
+                        <div className="flex flex-col">
+                          <span className="font-medium text-gray-900">{formatMinutes(stats.total_work_minutes)}</span>
+                          <span className="text-xs text-gray-500">平均 {formatMinutes(stats.avg_work_minutes)}</span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 text-sm text-right text-gray-600">
+                        {formatMinutes(stats.total_break_minutes)}
+                      </td>
+                      <td className="px-3 py-3 text-sm text-center">
+                        <div className="flex flex-col gap-1">
+                          {stats.overtime_days > 0 ? (
+                            <>
+                              <span className="inline-block rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800">
+                                {stats.overtime_days}日
+                              </span>
+                              <span className="text-xs text-gray-600">{formatMinutes(stats.total_overtime_minutes)}</span>
+                            </>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 text-sm text-center">
+                        <div className="flex flex-col gap-1">
+                          {stats.holiday_work_days > 0 ? (
+                            <>
+                              <span className="inline-block rounded-full bg-pink-100 px-2 py-1 text-xs font-medium text-pink-800">
+                                {stats.holiday_work_days}日
+                              </span>
+                              <span className="text-xs text-gray-600">{formatMinutes(stats.total_holiday_work_minutes)}</span>
+                            </>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 text-sm text-center text-gray-600">
+                        {stats.late_days}/{stats.early_leave_days}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
     </div>
   )
