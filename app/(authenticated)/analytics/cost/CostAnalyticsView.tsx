@@ -322,107 +322,109 @@ export default function CostAnalyticsView({
       </div>
 
       {/* コスト分析テーブル - PC */}
-      <div className="hidden sm:block bg-white shadow overflow-hidden sm:rounded-lg overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                種別
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                名前
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                カテゴリ
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                購入価格
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                現場持ち出し
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                持ち出し単価
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                最終使用日
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                在庫数
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                在庫金額
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                月平均消費
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredAndSorted.map((analysis) => (
-              <tr key={analysis.tool_id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 whitespace-nowrap text-sm">
-                  <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                      analysis.is_consumable
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-blue-100 text-blue-800'
-                    }`}
-                  >
-                    {analysis.is_consumable ? '消耗品' : '道具'}
-                  </span>
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {analysis.tool_name}
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                  {analysis.category_name || '未分類'}
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
-                  {analysis.purchase_price ? `¥${analysis.purchase_price.toLocaleString()}` : '-'}
-                </td>
-                {/* 道具の場合 */}
-                {!analysis.is_consumable && (
-                  <>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
-                      {analysis.site_checkout_count}回
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
-                      {analysis.site_checkout_unit_cost ? `¥${Math.round(analysis.site_checkout_unit_cost).toLocaleString()}` : '-'}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">
-                      {analysis.last_used_date ? new Date(analysis.last_used_date).toLocaleDateString('ja-JP') : '-'}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
-                      {analysis.current_inventory.toLocaleString()}台
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
-                      ¥{Math.round(analysis.inventory_value).toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">-</td>
-                  </>
-                )}
-                {/* 消耗品の場合 */}
-                {analysis.is_consumable && (
-                  <>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">-</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">-</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">-</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
-                      {analysis.current_inventory.toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
-                      ¥{Math.round(analysis.inventory_value).toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
-                      {Math.round(analysis.monthly_avg_consumption).toLocaleString()}
-                    </td>
-                  </>
-                )}
+      <div className="hidden sm:block bg-white shadow overflow-hidden sm:rounded-lg">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                  種別
+                </th>
+                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                  名前
+                </th>
+                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap hidden lg:table-cell">
+                  カテゴリ
+                </th>
+                <th className="px-2 py-2 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap hidden md:table-cell">
+                  購入価格
+                </th>
+                <th className="px-2 py-2 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                  現場持出
+                </th>
+                <th className="px-2 py-2 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap hidden lg:table-cell">
+                  持出単価
+                </th>
+                <th className="px-2 py-2 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap hidden xl:table-cell">
+                  最終使用日
+                </th>
+                <th className="px-2 py-2 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                  在庫数
+                </th>
+                <th className="px-2 py-2 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                  在庫金額
+                </th>
+                <th className="px-2 py-2 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap hidden lg:table-cell">
+                  月平均消費
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredAndSorted.map((analysis) => (
+                <tr key={analysis.tool_id} className="hover:bg-gray-50">
+                  <td className="px-2 py-2 whitespace-nowrap">
+                    <span
+                      className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
+                        analysis.is_consumable
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}
+                    >
+                      {analysis.is_consumable ? '消耗品' : '道具'}
+                    </span>
+                  </td>
+                  <td className="px-2 py-2 whitespace-nowrap font-medium text-gray-900">
+                    {analysis.tool_name}
+                  </td>
+                  <td className="px-2 py-2 whitespace-nowrap text-gray-500 hidden lg:table-cell">
+                    {analysis.category_name || '未分類'}
+                  </td>
+                  <td className="px-2 py-2 whitespace-nowrap text-gray-900 text-right hidden md:table-cell">
+                    {analysis.purchase_price ? `¥${analysis.purchase_price.toLocaleString()}` : '-'}
+                  </td>
+                  {/* 道具の場合 */}
+                  {!analysis.is_consumable && (
+                    <>
+                      <td className="px-2 py-2 whitespace-nowrap text-gray-900 text-right">
+                        {analysis.site_checkout_count}回
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap text-gray-900 text-right hidden lg:table-cell">
+                        {analysis.site_checkout_unit_cost ? `¥${Math.round(analysis.site_checkout_unit_cost).toLocaleString()}` : '-'}
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap text-gray-500 text-right hidden xl:table-cell">
+                        {analysis.last_used_date ? new Date(analysis.last_used_date).toLocaleDateString('ja-JP') : '-'}
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap text-gray-900 text-right">
+                        {analysis.current_inventory.toLocaleString()}台
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap text-gray-900 text-right">
+                        ¥{Math.round(analysis.inventory_value).toLocaleString()}
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap text-gray-500 text-right hidden lg:table-cell">-</td>
+                    </>
+                  )}
+                  {/* 消耗品の場合 */}
+                  {analysis.is_consumable && (
+                    <>
+                      <td className="px-2 py-2 whitespace-nowrap text-gray-500 text-right">-</td>
+                      <td className="px-2 py-2 whitespace-nowrap text-gray-500 text-right hidden lg:table-cell">-</td>
+                      <td className="px-2 py-2 whitespace-nowrap text-gray-500 text-right hidden xl:table-cell">-</td>
+                      <td className="px-2 py-2 whitespace-nowrap text-gray-900 text-right">
+                        {analysis.current_inventory.toLocaleString()}
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap text-gray-900 text-right">
+                        ¥{Math.round(analysis.inventory_value).toLocaleString()}
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap text-gray-900 text-right hidden lg:table-cell">
+                        {Math.round(analysis.monthly_avg_consumption).toLocaleString()}
+                      </td>
+                    </>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* モバイル用カードビュー */}
@@ -447,21 +449,59 @@ export default function CostAnalyticsView({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <span className="text-gray-500">総コスト</span>
-                <p className="font-semibold text-gray-900">¥{analysis.total_cost.toLocaleString()}</p>
-              </div>
-              <div>
-                <span className="text-gray-500">移動回数</span>
-                <p className="font-medium text-gray-900">{analysis.movement_count}回</p>
-              </div>
-              <div>
-                <span className="text-gray-500">購入価格</span>
+                <span className="text-xs text-gray-500">購入価格</span>
                 <p className="font-medium text-gray-900">
                   {analysis.purchase_price ? `¥${analysis.purchase_price.toLocaleString()}` : '-'}
                 </p>
               </div>
+
+              {/* 道具固有の指標 */}
+              {!analysis.is_consumable && (
+                <>
+                  <div>
+                    <span className="text-xs text-gray-500">現場持ち出し</span>
+                    <p className="font-medium text-gray-900">{analysis.site_checkout_count}回</p>
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-500">持ち出し単価</span>
+                    <p className="font-medium text-gray-900">
+                      {analysis.site_checkout_unit_cost ? `¥${Math.round(analysis.site_checkout_unit_cost).toLocaleString()}` : '-'}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-500">最終使用日</span>
+                    <p className="font-medium text-gray-900">
+                      {analysis.last_used_date ? new Date(analysis.last_used_date).toLocaleDateString('ja-JP') : '-'}
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {/* 共通指標 */}
+              <div>
+                <span className="text-xs text-gray-500">在庫数</span>
+                <p className="font-medium text-gray-900">
+                  {analysis.current_inventory.toLocaleString()}{analysis.is_consumable ? '' : '台'}
+                </p>
+              </div>
+              <div>
+                <span className="text-xs text-gray-500">在庫金額</span>
+                <p className="font-semibold text-gray-900">
+                  ¥{Math.round(analysis.inventory_value).toLocaleString()}
+                </p>
+              </div>
+
+              {/* 消耗品固有の指標 */}
+              {analysis.is_consumable && (
+                <div>
+                  <span className="text-xs text-gray-500">月平均消費</span>
+                  <p className="font-medium text-gray-900">
+                    {Math.round(analysis.monthly_avg_consumption).toLocaleString()}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         ))}
