@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useFeatures } from '@/hooks/useFeatures'
 import { useDemo } from '@/hooks/useDemo'
+import { useNewSettingsMenu } from '@/lib/feature-flags'
 
 interface SidebarProps {
   userRole: 'staff' | 'leader' | 'manager' | 'admin' | 'super_admin'
@@ -22,6 +23,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
   const [submittedPurchaseOrdersCount, setSubmittedPurchaseOrdersCount] = useState(0)
   const features = useFeatures()
   const { isDemo } = useDemo()
+  const [useNewMenu, setUseNewMenu] = useState(false)
 
   const isAdmin = userRole === 'admin' || userRole === 'super_admin'
   const isManagerOrAdmin = userRole === 'manager' || userRole === 'admin' || userRole === 'super_admin'
@@ -34,6 +36,11 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
 
   // DX機能が使えるか（DXパック または フルパック）
   const canUseDxFeatures = hasDxPackage || hasFullPackage
+
+  // フィーチャーフラグの初期化
+  useEffect(() => {
+    setUseNewMenu(useNewSettingsMenu())
+  }, [])
 
   const isActive = (path: string) => pathname === path || pathname?.startsWith(path + '/')
 
@@ -616,39 +623,21 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                   >
                     現場マスタ
                   </Link>
-                  {isAdmin && hasAssetPackage && (
-                    <>
-                      <Link
-                        href="/warehouse-locations"
-                        onClick={onClose}
-                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                          isActive('/warehouse-locations')
-                            ? 'bg-blue-50 text-blue-700 font-medium'
-                            : 'text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span className="flex items-center justify-between">
-                          <span>倉庫位置管理</span>
-                          <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                        </span>
-                      </Link>
-                      {heavyEquipmentEnabled && (
-                        <Link
-                          href="/master/equipment-categories"
-                          onClick={onClose}
-                          className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                            isActive('/master/equipment-categories')
-                              ? 'bg-blue-50 text-blue-700 font-medium'
-                              : 'text-gray-600 hover:bg-gray-50'
-                          }`}
-                        >
-                          <span className="flex items-center justify-between">
-                            <span>重機カテゴリ管理</span>
-                            <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                          </span>
-                        </Link>
-                      )}
-                    </>
+                  {isAdmin && hasAssetPackage && heavyEquipmentEnabled && (
+                    <Link
+                      href="/master/equipment-categories"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive('/master/equipment-categories')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="flex items-center justify-between">
+                        <span>重機カテゴリ管理</span>
+                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      </span>
+                    </Link>
                   )}
                   {/* マスタ管理（道具・消耗品）- Manager/Admin only + 現場資産パック必須 */}
                   {isManagerOrAdmin && hasAssetPackage && (
@@ -1013,154 +1002,213 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
 
             {expandedMenu === 'settings' && (
               <div className="ml-6 mt-2 space-y-1.5">
-                {isAdmin && (
+                {useNewMenu ? (
+                  /* 新メニュー構造 */
                   <>
-                    <Link
-                      href="/organization"
-                      onClick={onClose}
-                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive('/organization')
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className="flex items-center justify-between">
-                        <span>組織情報設定</span>
-                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                      </span>
-                    </Link>
-                    <Link
-                      href="/settings/locations"
-                      onClick={onClose}
-                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive('/settings/locations')
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className="flex items-center justify-between">
-                        <span>自社拠点管理</span>
-                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                      </span>
-                    </Link>
-                  </>
-                )}
-                <Link
-                  href="/settings"
-                  onClick={onClose}
-                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                    pathname === '/settings'
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  アカウント設定
-                </Link>
-                {isAdmin && (
-                  <div className="space-y-1.5">
-                    <Link
-                      href="/staff"
-                      onClick={onClose}
-                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive('/staff')
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className="flex items-center justify-between">
-                        <span>スタッフ管理</span>
-                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                      </span>
-                    </Link>
-                    <Link
-                      href="/settings/organization"
-                      onClick={onClose}
-                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive('/settings/organization')
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className="flex items-center justify-between">
-                        <span>運用設定</span>
-                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                      </span>
-                    </Link>
-                    <Link
-                      href="/settings/data-export"
-                      onClick={onClose}
-                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive('/settings/data-export')
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className="flex items-center justify-between">
-                        <span>データエクスポート</span>
-                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                      </span>
-                    </Link>
-                    {hasDxPackage && (
+                    {isAdmin && (
                       <>
                         <Link
-                          href="/attendance/settings"
+                          href="/settings/organization-management"
                           onClick={onClose}
                           className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                            isActive('/attendance/settings')
+                            isActive('/settings/organization-management')
+                              ? 'bg-blue-50 text-blue-700 font-medium'
+                              : 'text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          組織管理
+                        </Link>
+                        {hasDxPackage && (
+                          <Link
+                            href="/settings/feature-settings"
+                            onClick={onClose}
+                            className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                              isActive('/settings/feature-settings')
+                                ? 'bg-blue-50 text-blue-700 font-medium'
+                                : 'text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            機能設定
+                          </Link>
+                        )}
+                        <Link
+                          href="/settings/data-management"
+                          onClick={onClose}
+                          className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                            isActive('/settings/data-management')
+                              ? 'bg-blue-50 text-blue-700 font-medium'
+                              : 'text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          データ管理
+                        </Link>
+                      </>
+                    )}
+                    <Link
+                      href="/settings"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        pathname === '/settings'
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      マイアカウント
+                    </Link>
+                  </>
+                ) : (
+                  /* 旧メニュー構造（既存のまま） */
+                  <>
+                    {isAdmin && (
+                      <>
+                        <Link
+                          href="/organization"
+                          onClick={onClose}
+                          className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                            isActive('/organization')
                               ? 'bg-blue-50 text-blue-700 font-medium'
                               : 'text-gray-600 hover:bg-gray-50'
                           }`}
                         >
                           <span className="flex items-center justify-between">
-                            <span>勤怠管理設定</span>
+                            <span>組織情報設定</span>
                             <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                           </span>
                         </Link>
                         <Link
-                          href="/work-reports/settings"
+                          href="/settings/locations"
                           onClick={onClose}
                           className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                            isActive('/work-reports/settings')
+                            isActive('/settings/locations')
                               ? 'bg-blue-50 text-blue-700 font-medium'
                               : 'text-gray-600 hover:bg-gray-50'
                           }`}
                         >
                           <span className="flex items-center justify-between">
-                            <span>作業報告書設定</span>
-                            <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                          </span>
-                        </Link>
-                        <Link
-                          href="/attendance/terminals"
-                          onClick={onClose}
-                          className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                            isActive('/attendance/terminals')
-                              ? 'bg-blue-50 text-blue-700 font-medium'
-                              : 'text-gray-600 hover:bg-gray-50'
-                          }`}
-                        >
-                          <span className="flex items-center justify-between">
-                            <span>タブレット端末管理</span>
+                            <span>自社拠点管理</span>
                             <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                           </span>
                         </Link>
                       </>
                     )}
                     <Link
-                      href="/admin/audit-logs"
+                      href="/settings"
                       onClick={onClose}
                       className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive('/admin/audit-logs')
+                        pathname === '/settings'
                           ? 'bg-blue-50 text-blue-700 font-medium'
                           : 'text-gray-600 hover:bg-gray-50'
                       }`}
                     >
-                      <span className="flex items-center justify-between">
-                        <span>監査ログ</span>
-                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                      </span>
+                      アカウント設定
                     </Link>
-                  </div>
+                    {isAdmin && (
+                      <div className="space-y-1.5">
+                        <Link
+                          href="/staff"
+                          onClick={onClose}
+                          className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                            isActive('/staff')
+                              ? 'bg-blue-50 text-blue-700 font-medium'
+                              : 'text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          <span className="flex items-center justify-between">
+                            <span>スタッフ管理</span>
+                            <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                          </span>
+                        </Link>
+                        <Link
+                          href="/settings/organization"
+                          onClick={onClose}
+                          className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                            isActive('/settings/organization')
+                              ? 'bg-blue-50 text-blue-700 font-medium'
+                              : 'text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          <span className="flex items-center justify-between">
+                            <span>運用設定</span>
+                            <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                          </span>
+                        </Link>
+                        <Link
+                          href="/settings/data-export"
+                          onClick={onClose}
+                          className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                            isActive('/settings/data-export')
+                              ? 'bg-blue-50 text-blue-700 font-medium'
+                              : 'text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          <span className="flex items-center justify-between">
+                            <span>データエクスポート</span>
+                            <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                          </span>
+                        </Link>
+                        {hasDxPackage && (
+                          <>
+                            <Link
+                              href="/attendance/settings"
+                              onClick={onClose}
+                              className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                                isActive('/attendance/settings')
+                                  ? 'bg-blue-50 text-blue-700 font-medium'
+                                  : 'text-gray-600 hover:bg-gray-50'
+                              }`}
+                            >
+                              <span className="flex items-center justify-between">
+                                <span>勤怠管理設定</span>
+                                <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                              </span>
+                            </Link>
+                            <Link
+                              href="/work-reports/settings"
+                              onClick={onClose}
+                              className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                                isActive('/work-reports/settings')
+                                  ? 'bg-blue-50 text-blue-700 font-medium'
+                                  : 'text-gray-600 hover:bg-gray-50'
+                              }`}
+                            >
+                              <span className="flex items-center justify-between">
+                                <span>作業報告書設定</span>
+                                <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                              </span>
+                            </Link>
+                            <Link
+                              href="/attendance/terminals"
+                              onClick={onClose}
+                              className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                                isActive('/attendance/terminals')
+                                  ? 'bg-blue-50 text-blue-700 font-medium'
+                                  : 'text-gray-600 hover:bg-gray-50'
+                              }`}
+                            >
+                              <span className="flex items-center justify-between">
+                                <span>タブレット端末管理</span>
+                                <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                              </span>
+                            </Link>
+                          </>
+                        )}
+                        <Link
+                          href="/admin/audit-logs"
+                          onClick={onClose}
+                          className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                            isActive('/admin/audit-logs')
+                              ? 'bg-blue-50 text-blue-700 font-medium'
+                              : 'text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          <span className="flex items-center justify-between">
+                            <span>監査ログ</span>
+                            <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                          </span>
+                        </Link>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}

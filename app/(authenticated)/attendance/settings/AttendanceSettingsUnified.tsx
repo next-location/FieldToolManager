@@ -5,14 +5,16 @@ import { AttendanceBasicSettings } from './tabs/AttendanceBasicSettings'
 import { AttendanceWorkPatterns } from './tabs/AttendanceWorkPatterns'
 import { AttendanceAlertsSettings } from './tabs/AttendanceAlertsSettings'
 import { AttendanceMVPSettings } from './tabs/AttendanceMVPSettings'
+import { AttendanceTerminalsTab } from './tabs/AttendanceTerminalsTab'
 
-type Tab = 'basic' | 'patterns' | 'alerts' | 'mvp'
+type Tab = 'basic' | 'patterns' | 'alerts' | 'mvp' | 'terminals'
 
 interface AttendanceSettingsUnifiedProps {
   initialSettings: any | null
   organizationId: string
   organizationName: string
   userRole: string
+  sitesList?: Array<{ id: string; name: string }>
 }
 
 export function AttendanceSettingsUnified({
@@ -20,6 +22,7 @@ export function AttendanceSettingsUnified({
   organizationId,
   organizationName,
   userRole,
+  sitesList = [],
 }: AttendanceSettingsUnifiedProps) {
   const [activeTab, setActiveTab] = useState<Tab>('basic')
 
@@ -28,6 +31,7 @@ export function AttendanceSettingsUnified({
     { id: 'patterns' as Tab, label: '勤務パターン' },
     { id: 'alerts' as Tab, label: 'アラート・通知' },
     { id: 'mvp' as Tab, label: '出退勤アラート' },
+    { id: 'terminals' as Tab, label: 'タブレット端末' },
   ]
 
   return (
@@ -75,6 +79,12 @@ export function AttendanceSettingsUnified({
         {activeTab === 'mvp' && (
           <AttendanceMVPSettings
             organizationId={organizationId}
+          />
+        )}
+        {activeTab === 'terminals' && (
+          <AttendanceTerminalsTab
+            sitesList={sitesList}
+            userRole={userRole}
           />
         )}
       </div>

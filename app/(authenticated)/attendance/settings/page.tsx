@@ -24,6 +24,14 @@ export default async function AttendanceSettingsPage() {
     .eq('organization_id', organizationId)
     .maybeSingle()
 
+  // 現場一覧取得（タブレット端末タブで使用）
+  const { data: sites } = await supabase
+    .from('sites')
+    .select('id, name')
+    .eq('organization_id', organizationId)
+    .is('deleted_at', null)
+    .order('name')
+
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
@@ -40,6 +48,7 @@ export default async function AttendanceSettingsPage() {
             organizationId={organizationId}
             organizationName={organization?.name || ''}
             userRole={userRole}
+            sitesList={sites || []}
           />
         </div>
       </div>
