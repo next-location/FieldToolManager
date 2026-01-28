@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/page-auth'
 import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
 import { PackageRequired } from '@/components/PackageRequired'
+import CashflowChart from './CashflowChart'
 
 export default async function CashflowAnalytics() {
   const { organizationId, userRole, supabase } = await requireAuth()
@@ -268,11 +269,10 @@ export default async function CashflowAnalytics() {
           </table>
         </div>
 
-        {/* グラフ表示エリア */}
-        <div className="mt-6 h-64 flex items-center justify-center bg-gray-50 rounded border-2 border-dashed border-gray-300">
-          <p className="text-gray-400">キャッシュフローグラフ（チャートライブラリ統合で実装予定）</p>
-        </div>
       </div>
+
+      {/* キャッシュフロー推移グラフ */}
+      <CashflowChart data={forecastArray as any} />
 
       {/* 入出金予定カレンダー */}
       <div className="bg-white rounded-lg shadow-sm p-6">

@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/auth/page-auth'
 import Link from 'next/link'
 import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
 import { PackageRequired } from '@/components/PackageRequired'
+import SalesChart from './SalesChart'
 
 export default async function SalesAnalytics() {
   const { organizationId, userRole, supabase } = await requireAuth()
@@ -226,11 +227,10 @@ export default async function SalesAnalytics() {
           </table>
         </div>
 
-        {/* グラフ表示エリア */}
-        <div className="mt-6 h-64 flex items-center justify-center bg-gray-50 rounded border-2 border-dashed border-gray-300">
-          <p className="text-gray-400">月次推移グラフ（チャートライブラリ統合で実装予定）</p>
-        </div>
       </div>
+
+      {/* 月次推移グラフ */}
+      <SalesChart data={monthlySalesArray as any} />
 
       {/* 取引先別売上 */}
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
