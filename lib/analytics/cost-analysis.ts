@@ -191,7 +191,7 @@ export function analyzeCosts(
     analyses.push({
       tool_id: tool.id,
       tool_name: tool.name,
-      category_name: tool.category_name || null,
+      category_name: isConsumable ? '消耗品' : (tool.category_name || null),
       is_consumable: isConsumable,
       purchase_price: purchasePrice,
       purchase_date: tool.purchase_date,
