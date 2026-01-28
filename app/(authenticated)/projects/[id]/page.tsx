@@ -98,6 +98,14 @@ export default async function ProjectDetailPage({
             >
               一覧に戻る
             </Link>
+            {['admin', 'leader', 'manager'].includes(userRole) && (
+              <Link
+                href={`/projects/${id}/ledger`}
+                className="px-4 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 text-center"
+              >
+                台帳を見る
+              </Link>
+            )}
             {['admin', 'leader'].includes(userRole) && (
               <Link
                 href={`/projects/${id}/edit`}
