@@ -192,7 +192,7 @@ export default function MonthlyReport() {
 
       {/* サマリー */}
       {summary && (
-        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           <div className="rounded-lg bg-white p-4 sm:p-6 shadow-sm border border-gray-200">
             <p className="text-xs sm:text-sm text-gray-600">総スタッフ数</p>
             <p className="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-gray-900">{summary.total_staff}人</p>
