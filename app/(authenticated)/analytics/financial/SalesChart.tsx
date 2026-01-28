@@ -44,11 +44,12 @@ export default function SalesChart({ data }: SalesChartProps) {
           <YAxis
             tickFormatter={(value) => `${value}万円`}
             tick={{ fontSize: 12 }}
+            label={{ value: '売上額（万円）/ 回収率(%)', angle: -90, position: 'insideLeft', style: { fontSize: 12 } }}
           />
           <Tooltip
             formatter={(value, name) => {
               if (typeof value !== 'number') return [value, name]
-              if (name === '回収率') return [`${value}%`, name]
+              if (name === '回収率 (%)' || name === '回収率') return [`${value}%`, name]
               return [`¥${(value * 10000).toLocaleString()}`, name]
             }}
           />
