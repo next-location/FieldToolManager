@@ -2,11 +2,24 @@
  * Google Analytics 4 イベントトラッキング用ユーティリティ
  */
 
-// GA4が有効かチェック
+// GA4が有効かチェック（環境変数のみ確認、gtagの存在は後で確認）
 const isGAEnabled = (): boolean => {
-  return typeof window !== 'undefined' &&
-         typeof window.gtag !== 'undefined' &&
-         !!process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
+  return typeof window !== 'undefined' && !!process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
+}
+
+/**
+ * gtag関数を安全に実行（準備ができるまで待つ）
+ */
+const safeGtag = (command: string, ...args: any[]) => {
+  if (typeof window === 'undefined') return
+
+  // gtagがまだ準備できていない場合、dataLayerに直接push
+  if (typeof window.gtag === 'undefined') {
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push(arguments)
+  } else {
+    window.gtag(command, ...args)
+  }
 }
 
 /**
@@ -18,9 +31,8 @@ export const trackEvent = (
 ) => {
   if (!isGAEnabled()) return
 
-  window.gtag('event', eventName, {
+  safeGtag('event', eventName, {
     ...params,
-    send_to: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
   })
 }
 
@@ -33,10 +45,9 @@ export const trackPageView = (
 ) => {
   if (!isGAEnabled()) return
 
-  window.gtag('event', 'page_view', {
+  safeGtag('event', 'page_view', {
     page_path: pagePath,
     page_title: pageTitle,
-    send_to: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
   })
 }
 
@@ -90,6 +101,7 @@ export const trackUTMSource = () => {
   const utmCampaign = urlParams.get('utm_campaign')
 
   if (utmSource || utmMedium || utmCampaign) {
+    console.log('[GA4] UTM parameters detected:', { utmSource, utmMedium, utmCampaign })
     trackEvent('utm_landing', {
       event_category: 'acquisition',
       utm_source: utmSource || 'unknown',
@@ -104,6 +116,7 @@ export const trackUTMSource = () => {
  * トップページ閲覧（重要KPI）
  */
 export const trackHomepageView = () => {
+  console.log('[GA4] trackHomepageView called')
   trackEvent('view_homepage', {
     event_category: 'engagement',
     event_label: 'homepage_view',
@@ -121,5 +134,6 @@ declare global {
       targetId: string | Date,
       config?: Record<string, any>
     ) => void
+    dataLayer: any[]
   }
 }
