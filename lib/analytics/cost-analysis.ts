@@ -94,6 +94,11 @@ export function analyzeCosts(
   // デバッグ：入力データ確認
   console.log(`[Cost Analysis Debug] Period: ${periodStart.toISOString().split('T')[0]} - ${periodEnd.toISOString().split('T')[0]}`)
   console.log(`[Cost Analysis Debug] tools count: ${tools.length}`)
+  console.log(`[Cost Analysis Debug] ALL tools with management_type:`, tools.map((t: any) => ({
+    id: t.id,
+    name: t.name,
+    management_type: t.management_type
+  })))
   console.log(`[Cost Analysis Debug] orders count: ${orders.length} -> filtered: ${filteredOrders.length}`)
   console.log(`[Cost Analysis Debug] movements count: ${movements.length} -> filtered: ${filteredMovements.length}`)
   console.log(`[Cost Analysis Debug] toolItems count: ${toolItems.length}`)
