@@ -31,11 +31,11 @@ export async function middleware(request: NextRequest) {
     response.headers.set(
       'Content-Security-Policy',
       "default-src 'self'; " +
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline'; " +
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; " +
       "style-src 'self' 'unsafe-inline'; " +
       "img-src 'self' data: blob: https: http://localhost:54321; " +
       "font-src 'self' data:; " +
-      `connect-src ${connectSrc}; ` +
+      `connect-src ${connectSrc} https://www.google-analytics.com https://analytics.google.com; ` +
       "frame-ancestors 'none';"
     )
   }
