@@ -571,14 +571,25 @@ export default function ClientsStats() {
               </div>
 
               {/* 取引先ランキング */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">取引額TOP5（顧客）</h3>
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                <h3 className="text-sm sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">取引額TOP5（顧客）</h3>
                 <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={stats.topClients} layout="horizontal">
+                  <BarChart data={stats.topClients?.map((client, index) => ({
+                    ...client,
+                    shortName: client.name.length > 8 ? `${client.name.substring(0, 8)}...` : client.name
+                  }))} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" tickFormatter={(value) => `${(value / 10000).toFixed(0)}万円`} />
-                    <YAxis dataKey="name" type="category" width={120} />
-                    <Tooltip formatter={(value: number | undefined) => `¥${(value || 0).toLocaleString()}`} />
+                    <XAxis type="number" tickFormatter={(value) => `${(value / 10000).toFixed(0)}万`} tick={{ fontSize: 10 }} />
+                    <YAxis dataKey="shortName" type="category" width={80} tick={{ fontSize: 10 }} />
+                    <Tooltip
+                      formatter={(value: number | undefined) => `¥${(value || 0).toLocaleString()}`}
+                      labelFormatter={(label) => {
+                        const client = stats.topClients?.find(c =>
+                          c.name.length > 8 ? c.name.startsWith(label.replace('...', '')) : c.name === label
+                        )
+                        return client?.name || label
+                      }}
+                    />
                     <Bar dataKey="amount" fill={COLORS.primary} />
                   </BarChart>
                 </ResponsiveContainer>
