@@ -338,7 +338,7 @@ export default function ClientsStats() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 activeTab === tab.id
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
@@ -352,11 +352,11 @@ export default function ClientsStats() {
         {/* 期間選択フィルター */}
         <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:ml-auto">
           <div className="flex items-center gap-1.5 sm:gap-2 justify-end sm:justify-start">
-            <label className="text-[10px] sm:text-xs font-medium text-gray-600 whitespace-nowrap">集計期間:</label>
+            <label className="text-xs font-medium text-gray-600 whitespace-nowrap">集計期間:</label>
             <select
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value as typeof dateRange)}
-              className="px-1.5 sm:px-2 py-1 sm:py-1.5 border border-gray-300 rounded text-[10px] sm:text-xs bg-white hover:border-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              className="h-8 px-2 border border-gray-300 rounded text-xs bg-white hover:border-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">全期間</option>
               <option value="1month">直近1ヶ月</option>
@@ -373,15 +373,15 @@ export default function ClientsStats() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="px-1.5 sm:px-2 py-1 sm:py-1.5 border border-gray-300 rounded text-[10px] sm:text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-28 sm:w-auto"
+                className="h-8 px-2 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-32 sm:w-auto"
                 placeholder="開始日"
               />
-              <span className="text-gray-400 text-[10px] sm:text-xs">〜</span>
+              <span className="text-gray-400 text-xs">〜</span>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="px-1.5 sm:px-2 py-1 sm:py-1.5 border border-gray-300 rounded text-[10px] sm:text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-28 sm:w-auto"
+                className="h-8 px-2 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-32 sm:w-auto"
                 placeholder="終了日"
               />
             </div>
