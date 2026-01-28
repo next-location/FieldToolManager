@@ -165,34 +165,34 @@ export default async function CashflowAnalytics() {
   return (
     <div>
       {/* 全体サマリー */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <p className="text-sm text-gray-600 mb-1">予想入金額（6ヶ月）</p>
-          <p className="text-2xl font-bold text-blue-600">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+          <p className="text-xs sm:text-sm text-gray-600 mb-1">予想入金額（6ヶ月）</p>
+          <p className="text-lg sm:text-2xl font-bold text-blue-600">
             ¥{totalExpectedIncome.toLocaleString()}
           </p>
           <p className="text-xs text-gray-500 mt-1">
             請求書 {(invoices || []).filter(i => i.total_amount - (i.paid_amount || 0) > 0).length}件
           </p>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <p className="text-sm text-gray-600 mb-1">予想支払額（6ヶ月）</p>
-          <p className="text-2xl font-bold text-orange-600">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+          <p className="text-xs sm:text-sm text-gray-600 mb-1">予想支払額（6ヶ月）</p>
+          <p className="text-lg sm:text-2xl font-bold text-orange-600">
             ¥{totalExpectedExpense.toLocaleString()}
           </p>
           <p className="text-xs text-gray-500 mt-1">
             発注書 {(purchaseOrders || []).filter(po => po.total_amount - (po.paid_amount || 0) > 0).length}件
           </p>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <p className="text-sm text-gray-600 mb-1">予想キャッシュフロー</p>
-          <p className={`text-2xl font-bold ${totalNetCashflow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+          <p className="text-xs sm:text-sm text-gray-600 mb-1">予想キャッシュフロー</p>
+          <p className={`text-lg sm:text-2xl font-bold ${totalNetCashflow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             ¥{totalNetCashflow.toLocaleString()}
           </p>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <p className="text-sm text-gray-600 mb-1">当月キャッシュフロー</p>
-          <p className={`text-2xl font-bold ${thisMonthData.netCashflow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+          <p className="text-xs sm:text-sm text-gray-600 mb-1">当月キャッシュフロー</p>
+          <p className={`text-lg sm:text-2xl font-bold ${thisMonthData.netCashflow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             ¥{thisMonthData.netCashflow.toLocaleString()}
           </p>
           <p className="text-xs text-gray-500 mt-1">
@@ -203,24 +203,24 @@ export default async function CashflowAnalytics() {
       </div>
 
       {/* 実績キャッシュフロー（過去3ヶ月） */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <h2 className="text-lg font-bold mb-4">実績キャッシュフロー（過去3ヶ月）</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="border rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">実績入金額</p>
-            <p className="text-xl font-bold text-green-600">
+      <div className="bg-white rounded-lg shadow-sm p-3 sm:p-6 mb-6">
+        <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4">実績キャッシュフロー（過去3ヶ月）</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          <div className="border rounded-lg p-3 sm:p-4">
+            <p className="text-xs sm:text-sm text-gray-600 mb-1">実績入金額</p>
+            <p className="text-lg sm:text-xl font-bold text-green-600">
               ¥{((receivedPayments || []).reduce((sum, p) => sum + p.amount, 0)).toLocaleString()}
             </p>
           </div>
-          <div className="border rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">実績支払額</p>
-            <p className="text-xl font-bold text-orange-600">
+          <div className="border rounded-lg p-3 sm:p-4">
+            <p className="text-xs sm:text-sm text-gray-600 mb-1">実績支払額</p>
+            <p className="text-lg sm:text-xl font-bold text-orange-600">
               ¥{((paidPayments || []).reduce((sum, p) => sum + p.amount, 0)).toLocaleString()}
             </p>
           </div>
-          <div className="border rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">実績キャッシュフロー</p>
-            <p className={`text-xl font-bold ${actualCashflow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <div className="border rounded-lg p-3 sm:p-4">
+            <p className="text-xs sm:text-sm text-gray-600 mb-1">実績キャッシュフロー</p>
+            <p className={`text-lg sm:text-xl font-bold ${actualCashflow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               ¥{actualCashflow.toLocaleString()}
             </p>
           </div>
@@ -228,9 +228,43 @@ export default async function CashflowAnalytics() {
       </div>
 
       {/* 月別資金繰り予測 */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <h2 className="text-lg font-bold mb-4">月別資金繰り予測</h2>
-        <div className="overflow-x-auto">
+      <div className="bg-white rounded-lg shadow-sm p-3 sm:p-6 mb-6">
+        <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4">月別資金繰り予測</h2>
+
+        {/* スマホ: カードレイアウト */}
+        <div className="space-y-3 sm:hidden">
+          {forecastArray.map((month: any) => (
+            <div key={month.month} className="border rounded-lg p-3">
+              <div className="flex justify-between items-center mb-2 pb-2 border-b">
+                <span className="font-bold text-gray-900">{month.month}</span>
+                <div className="text-xs text-gray-500">
+                  入: {month.incomeItems.length}件 / 出: {month.expenseItems.length}件
+                </div>
+              </div>
+              <div className="space-y-1.5 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">予想入金</span>
+                  <span className="font-medium text-blue-600">¥{month.expectedIncome.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">予想支払</span>
+                  <span className="font-medium text-orange-600">¥{month.expectedExpense.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between pt-1 border-t">
+                  <span className="text-gray-600 font-medium">キャッシュフロー</span>
+                  <span className={`font-bold ${
+                    month.netCashflow >= 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    ¥{month.netCashflow.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* PC: テーブルレイアウト */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
@@ -275,20 +309,20 @@ export default async function CashflowAnalytics() {
       <CashflowChart data={forecastArray as any} />
 
       {/* 入出金予定カレンダー */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-lg font-bold mb-4">入出金予定カレンダー</h2>
-        <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow-sm p-3 sm:p-6">
+        <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4">入出金予定カレンダー</h2>
+        <div className="space-y-4 sm:space-y-6">
           {forecastArray.slice(0, 3).map((month: any) => (
-            <div key={month.month} className="border rounded-lg p-4">
-              <h3 className="font-bold mb-3">{month.month}</h3>
+            <div key={month.month} className="border rounded-lg p-3 sm:p-4">
+              <h3 className="font-bold mb-2 sm:mb-3 text-sm sm:text-base">{month.month}</h3>
 
               {/* 入金予定 */}
               {month.incomeItems.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-sm font-medium text-blue-600 mb-2">入金予定</p>
+                <div className="mb-3 sm:mb-4">
+                  <p className="text-xs sm:text-sm font-medium text-blue-600 mb-2">入金予定</p>
                   <div className="space-y-1">
                     {month.incomeItems.slice(0, 5).map((item: any) => (
-                      <div key={item.id} className="text-sm flex justify-between items-center py-1 border-b">
+                      <div key={item.id} className="text-xs sm:text-sm flex flex-col sm:flex-row sm:justify-between sm:items-center py-1 border-b gap-1">
                         <span className="text-gray-600">
                           {new Date(item.date).toLocaleDateString('ja-JP')} - {item.client}
                         </span>
@@ -305,10 +339,10 @@ export default async function CashflowAnalytics() {
               {/* 支払予定 */}
               {month.expenseItems.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-orange-600 mb-2">支払予定</p>
+                  <p className="text-xs sm:text-sm font-medium text-orange-600 mb-2">支払予定</p>
                   <div className="space-y-1">
                     {month.expenseItems.slice(0, 5).map((item: any) => (
-                      <div key={item.id} className="text-sm flex justify-between items-center py-1 border-b">
+                      <div key={item.id} className="text-xs sm:text-sm flex flex-col sm:flex-row sm:justify-between sm:items-center py-1 border-b gap-1">
                         <span className="text-gray-600">
                           {new Date(item.date).toLocaleDateString('ja-JP')} - {item.supplier}
                         </span>

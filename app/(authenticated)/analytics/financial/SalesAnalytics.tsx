@@ -147,30 +147,30 @@ export default async function SalesAnalytics() {
   return (
     <div>
       {/* 全体サマリー */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <p className="text-sm text-gray-600 mb-1">総売上（12ヶ月）</p>
-          <p className="text-2xl font-bold text-blue-600">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+          <p className="text-xs sm:text-sm text-gray-600 mb-1">総売上（12ヶ月）</p>
+          <p className="text-lg sm:text-2xl font-bold text-blue-600">
             ¥{totalSales.toLocaleString()}
           </p>
           <p className="text-xs text-gray-500 mt-1">請求書 {invoices?.length || 0}件</p>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <p className="text-sm text-gray-600 mb-1">入金済</p>
-          <p className="text-2xl font-bold text-green-600">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+          <p className="text-xs sm:text-sm text-gray-600 mb-1">入金済</p>
+          <p className="text-lg sm:text-2xl font-bold text-green-600">
             ¥{totalPaid.toLocaleString()}
           </p>
           <p className="text-xs text-gray-500 mt-1">回収率: {collectionRate.toFixed(1)}%</p>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <p className="text-sm text-gray-600 mb-1">未回収</p>
-          <p className="text-2xl font-bold text-orange-600">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+          <p className="text-xs sm:text-sm text-gray-600 mb-1">未回収</p>
+          <p className="text-lg sm:text-2xl font-bold text-orange-600">
             ¥{totalUnpaid.toLocaleString()}
           </p>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <p className="text-sm text-gray-600 mb-1">今月売上</p>
-          <p className="text-2xl font-bold text-gray-900">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+          <p className="text-xs sm:text-sm text-gray-600 mb-1">今月売上</p>
+          <p className="text-lg sm:text-2xl font-bold text-gray-900">
             ¥{thisMonthData.totalAmount.toLocaleString()}
           </p>
           <p className={`text-xs mt-1 ${monthOverMonthChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -180,9 +180,49 @@ export default async function SalesAnalytics() {
       </div>
 
       {/* 月次売上推移 */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <h2 className="text-lg font-bold mb-4">月次売上推移</h2>
-        <div className="overflow-x-auto">
+      <div className="bg-white rounded-lg shadow-sm p-3 sm:p-6 mb-6">
+        <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4">月次売上推移</h2>
+
+        {/* スマホ: カードレイアウト */}
+        <div className="space-y-3 sm:hidden">
+          {monthlySalesArray.map((month: any) => {
+            const unpaid = month.totalAmount - month.paidAmount
+            const rate = month.totalAmount > 0 ? (month.paidAmount / month.totalAmount) * 100 : 0
+            return (
+              <div key={month.month} className="border rounded-lg p-3">
+                <div className="flex justify-between items-center mb-2 pb-2 border-b">
+                  <span className="font-bold text-gray-900">{month.month}</span>
+                  <span className="text-xs text-gray-500">{month.invoiceCount}件</span>
+                </div>
+                <div className="space-y-1.5 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">請求金額</span>
+                    <span className="font-medium text-blue-600">¥{month.totalAmount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">入金済</span>
+                    <span className="font-medium text-green-600">¥{month.paidAmount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">未回収</span>
+                    <span className="font-medium text-orange-600">¥{unpaid.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between pt-1 border-t">
+                    <span className="text-gray-600">回収率</span>
+                    <span className={`font-bold ${
+                      rate >= 90 ? 'text-green-600' : rate >= 70 ? 'text-orange-600' : 'text-red-600'
+                    }`}>
+                      {rate.toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* PC: テーブルレイアウト */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
@@ -233,9 +273,51 @@ export default async function SalesAnalytics() {
       <SalesChart data={monthlySalesArray as any} />
 
       {/* 取引先別売上 */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <h2 className="text-lg font-bold mb-4">取引先別売上 Top 10</h2>
-        <div className="overflow-x-auto">
+      <div className="bg-white rounded-lg shadow-sm p-3 sm:p-6 mb-6">
+        <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4">取引先別売上 Top 10</h2>
+
+        {/* スマホ: カードレイアウト */}
+        <div className="space-y-3 sm:hidden">
+          {clientSalesArray.map((client: any, index: number) => {
+            const rate = client.totalAmount > 0 ? (client.paidAmount / client.totalAmount) * 100 : 0
+            const share = totalSales > 0 ? (client.totalAmount / totalSales) * 100 : 0
+            return (
+              <div key={client.clientId} className="border rounded-lg p-3">
+                <div className="flex justify-between items-center mb-2 pb-2 border-b">
+                  <div className="flex items-center gap-2">
+                    <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">{index + 1}位</span>
+                    <span className="font-bold text-gray-900">{client.clientName}</span>
+                  </div>
+                </div>
+                <div className="space-y-1.5 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">売上金額</span>
+                    <span className="font-medium text-blue-600">¥{client.totalAmount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">入金済</span>
+                    <span className="font-medium text-green-600">¥{client.paidAmount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">回収率</span>
+                    <span className={`font-bold ${
+                      rate >= 90 ? 'text-green-600' : rate >= 70 ? 'text-orange-600' : 'text-red-600'
+                    }`}>
+                      {rate.toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between pt-1 border-t">
+                    <span className="text-gray-600">請求件数 / 構成比</span>
+                    <span className="font-medium text-gray-700">{client.invoiceCount}件 / {share.toFixed(1)}%</span>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* PC: テーブルレイアウト */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
@@ -284,9 +366,56 @@ export default async function SalesAnalytics() {
       </div>
 
       {/* 工事別売上 */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-lg font-bold mb-4">工事別売上 Top 10</h2>
-        <div className="overflow-x-auto">
+      <div className="bg-white rounded-lg shadow-sm p-3 sm:p-6">
+        <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4">工事別売上 Top 10</h2>
+
+        {/* スマホ: カードレイアウト */}
+        <div className="space-y-3 sm:hidden">
+          {projectSalesArray.map((project: any, index: number) => {
+            const rate = project.totalAmount > 0 ? (project.paidAmount / project.totalAmount) * 100 : 0
+            return (
+              <div key={project.projectId} className="border rounded-lg p-3">
+                <div className="flex justify-between items-start mb-2 pb-2 border-b">
+                  <div className="flex items-start gap-2 flex-1">
+                    <span className="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded flex-shrink-0">{index + 1}位</span>
+                    <span className="font-bold text-gray-900 text-sm">{project.projectName}</span>
+                  </div>
+                  <Link
+                    href={`/projects/${project.projectId}/ledger`}
+                    className="text-blue-600 hover:text-blue-800 text-xs font-medium ml-2 flex-shrink-0"
+                  >
+                    台帳 →
+                  </Link>
+                </div>
+                <div className="space-y-1.5 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">売上金額</span>
+                    <span className="font-medium text-blue-600">¥{project.totalAmount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">入金済</span>
+                    <span className="font-medium text-green-600">¥{project.paidAmount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">回収率</span>
+                    <span className={`font-bold ${
+                      rate >= 90 ? 'text-green-600' : rate >= 70 ? 'text-orange-600' : 'text-red-600'
+                    }`}>
+                      {rate.toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between pt-1 border-t">
+                    <span className="text-gray-600">請求件数</span>
+                    <span className="font-medium text-gray-700">{project.invoiceCount}件</span>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* PC: テーブルレイアウト */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
