@@ -100,3 +100,7 @@ pnpm-lock.yaml
 # Test environment (do not commit)
 .env.test
 .env.vercel-production
+
+# Local development files
+.claude/settings.local.json
+scripts/create-simple-test-user.sql
