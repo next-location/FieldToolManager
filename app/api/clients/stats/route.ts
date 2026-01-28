@@ -137,7 +137,76 @@ export async function GET(request: Request) {
       taxExempt: clients.filter((c) => c.is_tax_exempt).length,
     }
 
-    return NextResponse.json({ data: stats })
+    // 月次取引データを取得（過去12ヶ月）
+    const { data: invoices } = await supabase
+      .from('billing_invoices')
+      .select('client_id, total_amount, invoice_date')
+      .eq('organization_id', userData.organization_id)
+      .gte('invoice_date', new Date(now.getFullYear(), now.getMonth() - 11, 1).toISOString().split('T')[0])
+      .order('invoice_date', { ascending: true })
+
+    // 月次データを集計
+    const monthlyMap = new Map<string, { sales: number; purchases: number; profit: number }>()
+
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+      const label = `${date.getMonth() + 1}月`
+      monthlyMap.set(key, { sales: 0, purchases: 0, profit: 0 })
+    }
+
+    // 請求書データから月次売上を集計
+    invoices?.forEach((invoice) => {
+      const date = new Date(invoice.invoice_date)
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+      const data = monthlyMap.get(key)
+      if (data) {
+        const client = clients.find((c) => c.id === invoice.client_id)
+        if (client?.client_type === 'customer' || client?.client_type === 'both') {
+          data.sales += Number(invoice.total_amount || 0)
+        } else if (client?.client_type === 'supplier') {
+          data.purchases += Number(invoice.total_amount || 0)
+        }
+        data.profit = data.sales - data.purchases
+      }
+    })
+
+    const monthlyData = Array.from(monthlyMap.entries()).map(([key, data]) => {
+      const [year, month] = key.split('-')
+      return {
+        month: `${parseInt(month)}月`,
+        sales: data.sales,
+        purchases: data.purchases,
+        profit: data.profit,
+      }
+    })
+
+    // 取引先TOP5を取得
+    const clientTotals = new Map<string, number>()
+    invoices?.forEach((invoice) => {
+      const current = clientTotals.get(invoice.client_id) || 0
+      clientTotals.set(invoice.client_id, current + Number(invoice.total_amount || 0))
+    })
+
+    const topClients = Array.from(clientTotals.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([clientId, amount]) => {
+        const client = clients.find((c) => c.id === clientId)
+        return {
+          name: client?.name || '不明',
+          amount,
+          type: client?.client_type || 'customer',
+        }
+      })
+
+    return NextResponse.json({
+      data: {
+        ...stats,
+        monthlyData,
+        topClients,
+      }
+    })
   } catch (error) {
     console.error('Error fetching client stats:', error)
     return NextResponse.json(

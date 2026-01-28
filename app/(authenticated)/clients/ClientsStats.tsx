@@ -244,27 +244,7 @@ export default function ClientsStats() {
         throw new Error(data.error || '統計情報の取得に失敗しました')
       }
 
-      // ダミーの月次データを追加（実際はAPIから取得）
-      const enhancedData = {
-        ...data.data,
-        monthlyData: [
-          { month: '8月', sales: 2400000, purchases: 1200000, profit: 1200000 },
-          { month: '9月', sales: 2800000, purchases: 1400000, profit: 1400000 },
-          { month: '10月', sales: 3200000, purchases: 1500000, profit: 1700000 },
-          { month: '11月', sales: 2900000, purchases: 1300000, profit: 1600000 },
-          { month: '12月', sales: 3500000, purchases: 1600000, profit: 1900000 },
-          { month: '1月', sales: 2600000, purchases: 1100000, profit: 1500000 },
-        ],
-        topClients: [
-          { name: '株式会社ABC建設', amount: 5200000, type: 'customer' },
-          { name: '山田工務店', amount: 4800000, type: 'customer' },
-          { name: '佐藤建材株式会社', amount: 3200000, type: 'supplier' },
-          { name: '鈴木電設', amount: 2800000, type: 'partner' },
-          { name: 'タナカ重機', amount: 2400000, type: 'supplier' },
-        ],
-      }
-
-      setStats(enhancedData)
+      setStats(data.data)
     } catch (err) {
       setError(err instanceof Error ? err.message : '統計情報の取得に失敗しました')
     } finally {
