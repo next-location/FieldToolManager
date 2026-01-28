@@ -78,6 +78,7 @@
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-qr-scanner": "^1.0.0-alpha.11",
+    "recharts": "^3.7.0",
     "rehype-autolink-headings": "^7.1.0",
     "rehype-slug": "^6.0.0",
     "remark": "^15.0.1",
