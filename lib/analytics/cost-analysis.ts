@@ -155,11 +155,12 @@ export function analyzeCosts(
     const toolItemsForTool = toolItems.filter((ti: any) => ti.tool_id === tool.id)
     const totalItems = toolItemsForTool.length
 
+    // 在庫数：消耗品は数量、道具は保有台数
     const currentInventory = isConsumable
       ? consumableInventory
           .filter((inv: any) => inv.tool_id === tool.id)
           .reduce((sum: number, inv: any) => sum + inv.quantity, 0)
-      : 0
+      : toolItemsForTool.length
 
     const movementCount = filteredMovements.filter((m: any) => m.tool_id === tool.id).length
 
@@ -198,13 +199,13 @@ export function analyzeCosts(
       }
     }
 
-    // 消耗品の指標計算
+    // 在庫金額と消費指標の計算
     let inventoryValue = 0
     let monthlyAvgConsumption = 0
     let inventoryDays: number | null = null
 
     if (isConsumable) {
-      // 在庫金額（加重平均単価 × 在庫数）
+      // 消耗品：在庫金額（加重平均単価 × 在庫数）
       const weightedAvgPrice = averageUnitPrice || 0
       inventoryValue = currentInventory * weightedAvgPrice
 
@@ -215,6 +216,9 @@ export function analyzeCosts(
       // 在庫日数
       const dailyConsumption = monthlyAvgConsumption / 30
       inventoryDays = dailyConsumption > 0 ? currentInventory / dailyConsumption : null
+    } else {
+      // 道具：在庫金額（保有している全tool_itemsの購入金額合計）
+      inventoryValue = toolItemsForTool.reduce((sum: number, ti: any) => sum + (ti.purchase_price || 0), 0)
     }
 
     analyses.push({

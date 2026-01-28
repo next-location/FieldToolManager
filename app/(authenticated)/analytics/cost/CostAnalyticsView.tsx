@@ -110,8 +110,8 @@ export default function CostAnalyticsView({
       !analysis.is_consumable ? analysis.site_checkout_count : '-',
       !analysis.is_consumable ? (analysis.site_checkout_unit_cost ? Math.round(analysis.site_checkout_unit_cost) : '-') : '-',
       !analysis.is_consumable ? (analysis.last_used_date ? new Date(analysis.last_used_date).toLocaleDateString('ja-JP') : '-') : '-',
-      analysis.is_consumable ? analysis.current_inventory : '-',
-      analysis.is_consumable ? Math.round(analysis.inventory_value) : '-',
+      analysis.current_inventory,
+      Math.round(analysis.inventory_value),
       analysis.is_consumable ? Math.round(analysis.monthly_avg_consumption) : '-',
     ])
 
@@ -393,8 +393,12 @@ export default function CostAnalyticsView({
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">
                       {analysis.last_used_date ? new Date(analysis.last_used_date).toLocaleDateString('ja-JP') : '-'}
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">-</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">-</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
+                      {analysis.current_inventory.toLocaleString()}台
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
+                      ¥{Math.round(analysis.inventory_value).toLocaleString()}
+                    </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">-</td>
                   </>
                 )}
