@@ -462,9 +462,9 @@ export default function ClientsStats() {
                   </ResponsiveContainer>
                 </div>
 
-                {/* 2. 売上 vs 仕入れ（棒グラフ） */}
+                {/* 2. 売上・仕入れ比較（棒グラフ） */}
                 <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">売上 vs 仕入れ</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">売上・仕入れ比較</h3>
                   <ResponsiveContainer width="100%" height={250}>
                     <BarChart data={[
                       {
@@ -475,7 +475,7 @@ export default function ClientsStats() {
                     ]}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
-                      <YAxis tickFormatter={(value) => `¥${(value / 1000000).toFixed(1)}M`} />
+                      <YAxis tickFormatter={(value) => `${(value / 10000).toFixed(0)}万円`} />
                       <Tooltip formatter={(value: number | undefined) => `¥${(value || 0).toLocaleString()}`} />
                       <Legend />
                       <Bar dataKey="売上" fill={COLORS.primary} />
@@ -491,7 +491,7 @@ export default function ClientsStats() {
                     <LineChart data={getFilteredMonthlyData()}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
-                      <YAxis tickFormatter={(value) => `${value.toFixed(1)}%`} />
+                      <YAxis tickFormatter={(value) => `${value.toFixed(0)}%`} />
                       <Tooltip formatter={(value: number | undefined) => `${(value || 0).toFixed(1)}%`} />
                       <Legend />
                       <Line
@@ -539,7 +539,7 @@ export default function ClientsStats() {
                   <LineChart data={getFilteredMonthlyData()}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
-                    <YAxis tickFormatter={(value) => `¥${(value / 1000000).toFixed(1)}M`} />
+                    <YAxis tickFormatter={(value) => `${(value / 10000).toFixed(0)}万円`} />
                     <Tooltip
                       formatter={(value: number | undefined) => `¥${(value || 0).toLocaleString()}`}
                       labelStyle={{ color: '#000' }}
@@ -576,7 +576,7 @@ export default function ClientsStats() {
                 <ResponsiveContainer width="100%" height={250}>
                   <BarChart data={stats.topClients} layout="horizontal">
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" tickFormatter={(value) => `¥${(value / 1000000).toFixed(1)}M`} />
+                    <XAxis type="number" tickFormatter={(value) => `${(value / 10000).toFixed(0)}万円`} />
                     <YAxis dataKey="name" type="category" width={120} />
                     <Tooltip formatter={(value: number | undefined) => `¥${(value || 0).toLocaleString()}`} />
                     <Bar dataKey="amount" fill={COLORS.primary} />
