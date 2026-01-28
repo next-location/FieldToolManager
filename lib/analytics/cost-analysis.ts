@@ -217,8 +217,20 @@ export function analyzeCosts(
       const dailyConsumption = monthlyAvgConsumption / 30
       inventoryDays = dailyConsumption > 0 ? currentInventory / dailyConsumption : null
     } else {
-      // 道具：在庫金額（保有している全tool_itemsの購入金額合計）
-      inventoryValue = toolItemsForTool.reduce((sum: number, ti: any) => sum + (ti.purchase_price || 0), 0)
+      // 道具：在庫金額（ハイブリッド方式）
+      // 1. 購入価格が入力されているtool_itemsから平均を計算
+      const itemsWithPrice = toolItemsForTool.filter((ti: any) => ti.purchase_price != null && ti.purchase_price > 0)
+
+      if (itemsWithPrice.length > 0) {
+        // 実際の購入データがある場合：平均購入価格 × 総台数
+        const totalPriceOfInputItems = itemsWithPrice.reduce((sum: number, ti: any) => sum + ti.purchase_price, 0)
+        const avgPrice = totalPriceOfInputItems / itemsWithPrice.length
+        inventoryValue = avgPrice * toolItemsForTool.length
+      } else {
+        // 購入データが1つもない場合：参考価格 × 総台数
+        const referencPrice = tool.purchase_price || 0
+        inventoryValue = referencPrice * toolItemsForTool.length
+      }
     }
 
     analyses.push({
