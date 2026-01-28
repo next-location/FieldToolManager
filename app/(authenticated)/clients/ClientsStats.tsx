@@ -44,19 +44,25 @@ interface ClientStats {
   totalCreditLimit: number
   invoiceRegistered: number
   taxExempt: number
-  // 月次データ（ダミー）
   monthlyData?: Array<{
     month: string
     sales: number
     purchases: number
     profit: number
+    profitRate: number
   }>
-  // 取引先ランキング（ダミー）
   topClients?: Array<{
     name: string
     amount: number
     type: string
   }>
+  periodSummary?: {
+    totalSales: number
+    totalPurchases: number
+    totalProfit: number
+    averageProfitRate: number
+    averageAmountPerClient: number
+  }
 }
 
 // タブのタイプ定義
@@ -429,28 +435,87 @@ export default function ClientsStats() {
                 </div>
               </div>
 
-              {/* 取引先構成グラフ */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">取引先構成</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={typeData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {typeData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value: number | undefined) => `${value || 0}社`} />
-                  </PieChart>
-                </ResponsiveContainer>
+              {/* グラフエリア（2行×2列 = 4グラフ） */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 1. 取引先構成（円グラフ） */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">取引先構成</h3>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                      <Pie
+                        data={typeData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {typeData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value: number | undefined) => `${value || 0}社`} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* 2. 売上 vs 仕入れ（棒グラフ） */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">売上 vs 仕入れ</h3>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <BarChart data={[
+                      {
+                        name: '選択期間',
+                        売上: stats.periodSummary?.totalSales || 0,
+                        仕入: stats.periodSummary?.totalPurchases || 0
+                      }
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis tickFormatter={(value) => `¥${(value / 1000000).toFixed(1)}M`} />
+                      <Tooltip formatter={(value: number | undefined) => `¥${(value || 0).toLocaleString()}`} />
+                      <Legend />
+                      <Bar dataKey="売上" fill={COLORS.primary} />
+                      <Bar dataKey="仕入" fill={COLORS.danger} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* 3. 粗利益率の推移（折れ線グラフ） */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">粗利益率の推移</h3>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={getFilteredMonthlyData()}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis tickFormatter={(value) => `${value.toFixed(1)}%`} />
+                      <Tooltip formatter={(value: number | undefined) => `${(value || 0).toFixed(1)}%`} />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="profitRate"
+                        stroke={COLORS.secondary}
+                        strokeWidth={2}
+                        name="粗利益率"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* 4. 1取引先あたり平均単価（カード表示） */}
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-sm text-purple-600 font-medium mb-2">1取引先あたり平均単価</div>
+                    <div className="text-4xl font-bold text-purple-900 mb-2">
+                      ¥{Math.round(stats.periodSummary?.averageAmountPerClient || 0).toLocaleString()}
+                    </div>
+                    <div className="text-xs text-purple-700">
+                      選択期間の売上 ÷ 取引先数
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}

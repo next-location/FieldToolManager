@@ -145,6 +145,15 @@ export async function GET(request: Request) {
       .gte('invoice_date', new Date(now.getFullYear(), now.getMonth() - 11, 1).toISOString().split('T')[0])
       .order('invoice_date', { ascending: true })
 
+    // 支払いデータを取得（過去12ヶ月）
+    const { data: payments } = await supabase
+      .from('payments')
+      .select('payment_type, amount, payment_date, invoice_id, purchase_order_id')
+      .eq('organization_id', userData.organization_id)
+      .gte('payment_date', new Date(now.getFullYear(), now.getMonth() - 11, 1).toISOString().split('T')[0])
+      .is('deleted_at', null)
+      .order('payment_date', { ascending: true })
+
     // 月次データを集計
     const monthlyMap = new Map<string, { sales: number; purchases: number; profit: number }>()
 
@@ -156,8 +165,6 @@ export async function GET(request: Request) {
     }
 
     // 請求書データから月次売上を集計
-    // 注: billing_invoicesは「顧客への請求書」のため、売上のみ計算可能
-    // 仕入先への支払いデータは別テーブル（将来実装予定）
     invoices?.forEach((invoice) => {
       const date = new Date(invoice.invoice_date)
       const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
@@ -167,18 +174,35 @@ export async function GET(request: Request) {
         if (client?.client_type === 'customer' || client?.client_type === 'both') {
           data.sales += Number(invoice.total_amount || 0)
         }
-        // 仕入先への支払いは別テーブルから取得する必要があるため、現状は0
-        data.profit = data.sales - data.purchases
       }
+    })
+
+    // 支払いデータから仕入を集計
+    payments?.forEach((payment) => {
+      if (payment.payment_type === 'payment') {
+        const date = new Date(payment.payment_date)
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+        const data = monthlyMap.get(key)
+        if (data) {
+          data.purchases += Number(payment.amount || 0)
+        }
+      }
+    })
+
+    // 粗利益と粗利益率を計算
+    monthlyMap.forEach((data) => {
+      data.profit = data.sales - data.purchases
     })
 
     const monthlyData = Array.from(monthlyMap.entries()).map(([key, data]) => {
       const [year, month] = key.split('-')
+      const profitRate = data.sales > 0 ? (data.profit / data.sales) * 100 : 0
       return {
         month: `${parseInt(month)}月`,
         sales: data.sales,
         purchases: data.purchases,
         profit: data.profit,
+        profitRate, // 粗利益率（%）
       }
     })
 
@@ -201,11 +225,25 @@ export async function GET(request: Request) {
         }
       })
 
+    // 選択期間の集計データを計算
+    const periodSummary = {
+      totalSales: monthlyData.reduce((sum, m) => sum + m.sales, 0),
+      totalPurchases: monthlyData.reduce((sum, m) => sum + m.purchases, 0),
+      totalProfit: monthlyData.reduce((sum, m) => sum + m.profit, 0),
+      averageProfitRate: monthlyData.length > 0
+        ? monthlyData.reduce((sum, m) => sum + m.profitRate, 0) / monthlyData.length
+        : 0,
+      averageAmountPerClient: clients.length > 0
+        ? monthlyData.reduce((sum, m) => sum + m.sales, 0) / clients.length
+        : 0,
+    }
+
     return NextResponse.json({
       data: {
         ...stats,
         monthlyData,
         topClients,
+        periodSummary, // 期間サマリーを追加
       }
     })
   } catch (error) {
