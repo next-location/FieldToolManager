@@ -469,7 +469,7 @@ export default function ClientsStats() {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value: number) => `${value}社`} />
+                      <Tooltip formatter={(value: number | undefined) => `${value || 0}社`} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -481,7 +481,7 @@ export default function ClientsStats() {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="rating" />
                       <YAxis />
-                      <Tooltip formatter={(value: number) => `${value}社`} />
+                      <Tooltip formatter={(value: number | undefined) => `${value || 0}社`} />
                       <Bar dataKey="count" fill={COLORS.warning} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -502,7 +502,7 @@ export default function ClientsStats() {
                     <XAxis dataKey="month" />
                     <YAxis tickFormatter={(value) => `¥${(value / 1000000).toFixed(1)}M`} />
                     <Tooltip
-                      formatter={(value: number) => `¥${value.toLocaleString()}`}
+                      formatter={(value: number | undefined) => `¥${(value || 0).toLocaleString()}`}
                       labelStyle={{ color: '#000' }}
                     />
                     <Legend />
@@ -539,7 +539,7 @@ export default function ClientsStats() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" tickFormatter={(value) => `¥${(value / 1000000).toFixed(1)}M`} />
                     <YAxis dataKey="name" type="category" width={120} />
-                    <Tooltip formatter={(value: number) => `¥${value.toLocaleString()}`} />
+                    <Tooltip formatter={(value: number | undefined) => `¥${(value || 0).toLocaleString()}`} />
                     <Bar dataKey="amount" fill={COLORS.primary} />
                   </BarChart>
                 </ResponsiveContainer>
