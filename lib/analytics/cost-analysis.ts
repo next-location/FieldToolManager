@@ -79,6 +79,14 @@ export function analyzeCosts(
       // 消耗品の場合：発注コストの合計
       const toolOrders = orders.filter((o: any) => o.tool_id === tool.id)
       purchasePrice = toolOrders.reduce((sum: number, o: any) => sum + (o.total_price || 0), 0)
+
+      // デバッグログ
+      if (toolOrders.length > 0) {
+        console.log(`[Cost Analysis] 消耗品: ${tool.name}`)
+        console.log(`  - 発注件数: ${toolOrders.length}`)
+        console.log(`  - 購入価格合計: ${purchasePrice}`)
+        console.log(`  - 発注データ:`, toolOrders.map((o: any) => ({ id: o.id, total_price: o.total_price })))
+      }
     } else {
       // 道具の場合：個別アイテムの購入価格の合計
       const toolItemsForTool = toolItems.filter((ti: any) => ti.tool_id === tool.id)
