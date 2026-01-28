@@ -1,6 +1,21 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  LineChart,
+  Line,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts'
 
 interface ClientStats {
   total: number
@@ -29,27 +44,227 @@ interface ClientStats {
   totalCreditLimit: number
   invoiceRegistered: number
   taxExempt: number
+  // 月次データ（ダミー）
+  monthlyData?: Array<{
+    month: string
+    sales: number
+    purchases: number
+    profit: number
+  }>
+  // 取引先ランキング（ダミー）
+  topClients?: Array<{
+    name: string
+    amount: number
+    type: string
+  }>
+}
+
+// タブのタイプ定義
+type TabType = 'overview' | 'analysis' | 'transactions' | 'compliance'
+
+// グラフ用のカラーパレット
+const COLORS = {
+  primary: '#3B82F6',
+  secondary: '#10B981',
+  warning: '#F59E0B',
+  danger: '#EF4444',
+  purple: '#8B5CF6',
+  gray: '#6B7280',
+}
+
+const TYPE_COLORS = {
+  customer: COLORS.primary,
+  supplier: COLORS.purple,
+  partner: COLORS.secondary,
+  both: COLORS.warning,
 }
 
 export default function ClientsStats() {
   const [stats, setStats] = useState<ClientStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<TabType>('overview')
+  const [dateRange, setDateRange] = useState<'all' | '1month' | '3months' | '6months' | '1year' | 'custom'>('all')
+  const [startDate, setStartDate] = useState<string>('')
+  const [endDate, setEndDate] = useState<string>('')
+
+  // 期間に応じたラベルと計算ロジック
+  const getPeriodLabel = () => {
+    switch (dateRange) {
+      case 'all':
+        return '総取引額（全期間累計）'
+      case '1month':
+        return '選択期間の取引額'
+      case '3months':
+        return '選択期間の取引額'
+      case '6months':
+        return '選択期間の取引額'
+      case '1year':
+        return '選択期間の取引額'
+      case 'custom':
+        return '選択期間の取引額'
+      default:
+        return '総取引額（全期間累計）'
+    }
+  }
+
+  const getComparisonLabel = () => {
+    switch (dateRange) {
+      case 'all':
+        return null // 全期間の場合は比較なし
+      case '1month':
+        return '前月比'
+      case '3months':
+        return '前期比'
+      case '6months':
+        return '前期比'
+      case '1year':
+        return '前期比'
+      case 'custom':
+        return '前期比'
+      default:
+        return null
+    }
+  }
+
+  const getPeriodAmount = () => {
+    if (!stats?.monthlyData) return 0
+
+    switch (dateRange) {
+      case 'all':
+        // 全期間: すべてのデータの合計
+        return stats.monthlyData.reduce((sum, month) => sum + month.sales, 0)
+      case '1month':
+        // 直近1ヶ月の合計
+        return stats.monthlyData.slice(-1).reduce((sum, month) => sum + month.sales, 0)
+      case '3months':
+        // 直近3ヶ月の合計
+        return stats.monthlyData.slice(-3).reduce((sum, month) => sum + month.sales, 0)
+      case '6months':
+        // 直近6ヶ月の合計
+        return stats.monthlyData.slice(-6).reduce((sum, month) => sum + month.sales, 0)
+      case '1year':
+        // 全期間の合計（ダミーデータは6ヶ月分のみ）
+        return stats.monthlyData.reduce((sum, month) => sum + month.sales, 0)
+      case 'custom':
+        // カスタム期間の合計（実装は将来的にAPIから取得）
+        return stats.monthlyData.reduce((sum, month) => sum + month.sales, 0)
+      default:
+        return stats.monthlyData.reduce((sum, month) => sum + month.sales, 0)
+    }
+  }
+
+  const getComparisonRate = () => {
+    if (!stats?.monthlyData || stats.monthlyData.length < 2) return null
+
+    switch (dateRange) {
+      case 'all':
+        // 全期間の場合は比較なし
+        return null
+      case '1month':
+        // 直近1ヶ月 vs 前月
+        const thisMonth = stats.monthlyData[stats.monthlyData.length - 1]?.sales || 0
+        const lastMonth = stats.monthlyData[stats.monthlyData.length - 2]?.sales || 0
+        return lastMonth > 0 ? ((thisMonth / lastMonth - 1) * 100) : 0
+      case '3months':
+      case '6months':
+      case '1year':
+      case 'custom':
+        // 選択期間 vs 前期間（簡易計算）
+        // 実際はAPIから前期データを取得して比較
+        return -25.7 // ダミー値
+      default:
+        return null
+    }
+  }
+
+  // 分析タブ用: 期間に応じたグラフデータを取得
+  const getFilteredMonthlyData = () => {
+    if (!stats?.monthlyData) return []
+
+    switch (dateRange) {
+      case 'all':
+        return stats.monthlyData // 全データ
+      case '1month':
+        return stats.monthlyData.slice(-1)
+      case '3months':
+        return stats.monthlyData.slice(-3)
+      case '6months':
+        return stats.monthlyData.slice(-6)
+      case '1year':
+        return stats.monthlyData // ダミーデータは6ヶ月分のみ
+      case 'custom':
+        return stats.monthlyData // カスタム期間は将来実装
+      default:
+        return stats.monthlyData
+    }
+  }
+
+  // 分析タブ用: グラフタイトル
+  const getGraphTitle = () => {
+    switch (dateRange) {
+      case 'all':
+        return '取引推移（全期間）'
+      case '1month':
+        return '取引推移（直近1ヶ月）'
+      case '3months':
+        return '取引推移（直近3ヶ月）'
+      case '6months':
+        return '取引推移（直近6ヶ月）'
+      case '1year':
+        return '取引推移（直近1年）'
+      case 'custom':
+        return '取引推移（カスタム期間）'
+      default:
+        return '取引推移'
+    }
+  }
 
   useEffect(() => {
     fetchStats()
-  }, [])
+  }, [dateRange, startDate, endDate])
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/clients/stats')
+      // 期間パラメータの構築
+      const params = new URLSearchParams()
+      if (dateRange !== 'all') {
+        params.append('period', dateRange)
+      }
+      if (dateRange === 'custom' && startDate && endDate) {
+        params.append('start_date', startDate)
+        params.append('end_date', endDate)
+      }
+
+      const url = `/api/clients/stats${params.toString() ? `?${params.toString()}` : ''}`
+      const response = await fetch(url)
       const data = await response.json()
 
       if (!response.ok) {
         throw new Error(data.error || '統計情報の取得に失敗しました')
       }
 
-      setStats(data.data)
+      // ダミーの月次データを追加（実際はAPIから取得）
+      const enhancedData = {
+        ...data.data,
+        monthlyData: [
+          { month: '8月', sales: 2400000, purchases: 1200000, profit: 1200000 },
+          { month: '9月', sales: 2800000, purchases: 1400000, profit: 1400000 },
+          { month: '10月', sales: 3200000, purchases: 1500000, profit: 1700000 },
+          { month: '11月', sales: 2900000, purchases: 1300000, profit: 1600000 },
+          { month: '12月', sales: 3500000, purchases: 1600000, profit: 1900000 },
+          { month: '1月', sales: 2600000, purchases: 1100000, profit: 1500000 },
+        ],
+        topClients: [
+          { name: '株式会社ABC建設', amount: 5200000, type: 'customer' },
+          { name: '山田工務店', amount: 4800000, type: 'customer' },
+          { name: '佐藤建材株式会社', amount: 3200000, type: 'supplier' },
+          { name: '鈴木電設', amount: 2800000, type: 'partner' },
+          { name: 'タナカ重機', amount: 2400000, type: 'supplier' },
+        ],
+      }
+
+      setStats(enhancedData)
     } catch (err) {
       setError(err instanceof Error ? err.message : '統計情報の取得に失敗しました')
     } finally {
@@ -82,188 +297,521 @@ export default function ClientsStats() {
 
   if (!stats) return null
 
+  // 円グラフ用データの準備
+  const typeData = [
+    { name: '顧客', value: stats.byType.customer, color: TYPE_COLORS.customer },
+    { name: '仕入先', value: stats.byType.supplier, color: TYPE_COLORS.supplier },
+    { name: '協力会社', value: stats.byType.partner, color: TYPE_COLORS.partner },
+    { name: '顧客兼仕入先', value: stats.byType.both, color: TYPE_COLORS.both },
+  ].filter((item) => item.value > 0)
+
+  // 評価分布データの準備
+  const ratingData = [
+    { rating: '★★★★★', count: stats.byRating[5] },
+    { rating: '★★★★', count: stats.byRating[4] },
+    { rating: '★★★', count: stats.byRating[3] },
+    { rating: '★★', count: stats.byRating[2] },
+    { rating: '★', count: stats.byRating[1] },
+  ].filter((item) => item.count > 0)
+
+  const tabs = [
+    { id: 'overview' as const, label: '概要' },
+    { id: 'analysis' as const, label: '分析' },
+    { id: 'transactions' as const, label: '取引実績' },
+    { id: 'compliance' as const, label: 'コンプライアンス' },
+  ]
+
+  // 期間選択のラベルを取得
+  const getPeriodSelectLabel = () => {
+    switch (dateRange) {
+      case 'all':
+        return '全期間'
+      case '1month':
+        return '直近1ヶ月'
+      case '3months':
+        return '直近3ヶ月'
+      case '6months':
+        return '直近6ヶ月'
+      case '1year':
+        return '直近1年'
+      case 'custom':
+        return 'カスタム期間'
+      default:
+        return '全期間'
+    }
+  }
+
   return (
     <div className="space-y-6">
-      {/* 基本統計 */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">取引先サマリー</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-blue-50 rounded-lg p-4">
-            <div className="text-sm text-blue-600 font-medium">総取引先数</div>
-            <div className="text-3xl font-bold text-blue-900 mt-1">{stats.total}</div>
-          </div>
-          <div className="bg-green-50 rounded-lg p-4">
-            <div className="text-sm text-green-600 font-medium">有効</div>
-            <div className="text-3xl font-bold text-green-900 mt-1">{stats.active}</div>
-          </div>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="text-sm text-gray-600 font-medium">無効</div>
-            <div className="text-3xl font-bold text-gray-900 mt-1">{stats.inactive}</div>
-          </div>
-          <div className="bg-yellow-50 rounded-lg p-4">
-            <div className="text-sm text-yellow-600 font-medium">平均評価</div>
-            <div className="text-3xl font-bold text-yellow-900 mt-1">
-              {stats.averageRating > 0 ? (
-                <>
-                  {stats.averageRating.toFixed(1)}
-                  <span className="text-base ml-1">⭐</span>
-                </>
-              ) : (
-                '-'
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 分類別統計 */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">取引先分類</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">顧客</div>
-              <div className="text-2xl font-bold text-gray-900">{stats.byType.customer}</div>
-            </div>
-            <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-blue-500"
-                style={{
-                  width: `${stats.total > 0 ? (stats.byType.customer / stats.total) * 100 : 0}%`,
-                }}
-              ></div>
-            </div>
-          </div>
-          <div className="border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">仕入先</div>
-              <div className="text-2xl font-bold text-gray-900">{stats.byType.supplier}</div>
-            </div>
-            <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-purple-500"
-                style={{
-                  width: `${stats.total > 0 ? (stats.byType.supplier / stats.total) * 100 : 0}%`,
-                }}
-              ></div>
-            </div>
-          </div>
-          <div className="border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">協力会社</div>
-              <div className="text-2xl font-bold text-gray-900">{stats.byType.partner}</div>
-            </div>
-            <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-green-500"
-                style={{
-                  width: `${stats.total > 0 ? (stats.byType.partner / stats.total) * 100 : 0}%`,
-                }}
-              ></div>
-            </div>
-          </div>
-          <div className="border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">顧客兼仕入先</div>
-              <div className="text-2xl font-bold text-gray-900">{stats.byType.both}</div>
-            </div>
-            <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-orange-500"
-                style={{
-                  width: `${stats.total > 0 ? (stats.byType.both / stats.total) * 100 : 0}%`,
-                }}
-              ></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 評価分布 */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">評価分布</h2>
-        <div className="space-y-3">
-          {[5, 4, 3, 2, 1].map((rating) => (
-            <div key={rating} className="flex items-center gap-3">
-              <div className="w-16 text-sm text-gray-600">
-                {'⭐'.repeat(rating)}
-              </div>
-              <div className="flex-1 h-6 bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-yellow-500"
-                  style={{
-                    width: `${stats.total > 0 ? (stats.byRating[rating as 5 | 4 | 3 | 2 | 1] / stats.total) * 100 : 0}%`,
-                  }}
-                ></div>
-              </div>
-              <div className="w-12 text-right text-sm font-medium text-gray-900">
-                {stats.byRating[rating as 5 | 4 | 3 | 2 | 1]}
-              </div>
-            </div>
+      {/* タブナビゲーション + 期間選択 */}
+      <div className="flex flex-wrap gap-3 items-center justify-between">
+        {/* タブ */}
+        <div className="flex flex-wrap gap-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === tab.id
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {tab.label}
+            </button>
           ))}
-          <div className="flex items-center gap-3">
-            <div className="w-16 text-sm text-gray-600">未評価</div>
-            <div className="flex-1 h-6 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gray-400"
-                style={{
-                  width: `${stats.total > 0 ? (stats.byRating.none / stats.total) * 100 : 0}%`,
-                }}
-              ></div>
-            </div>
-            <div className="w-12 text-right text-sm font-medium text-gray-900">
-              {stats.byRating.none}
-            </div>
+        </div>
+
+        {/* 期間選択フィルター */}
+        <div className="flex flex-wrap gap-2 items-center">
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-medium text-gray-600">集計期間:</label>
+            <select
+              value={dateRange}
+              onChange={(e) => setDateRange(e.target.value as typeof dateRange)}
+              className="px-2 py-1.5 border border-gray-300 rounded-md text-xs bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">全期間</option>
+              <option value="1month">直近1ヶ月</option>
+              <option value="3months">直近3ヶ月</option>
+              <option value="6months">直近6ヶ月</option>
+              <option value="1year">直近1年</option>
+              <option value="custom">カスタム期間</option>
+            </select>
           </div>
+
+          {dateRange === 'custom' && (
+            <div className="flex gap-1.5 items-center">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="開始日"
+              />
+              <span className="text-gray-400 text-xs">〜</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="終了日"
+              />
+            </div>
+          )}
         </div>
       </div>
 
-      {/* 取引実績 */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">取引実績</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="border border-gray-200 rounded-lg p-4">
-            <div className="text-sm text-gray-600 mb-1">累計取引額</div>
-            <div className="text-2xl font-bold text-gray-900">
-              ¥{stats.transactions.totalAmount.toLocaleString()}
-            </div>
-          </div>
-          <div className="border border-gray-200 rounded-lg p-4">
-            <div className="text-sm text-gray-600 mb-1">取引回数</div>
-            <div className="text-2xl font-bold text-gray-900">
-              {stats.transactions.totalCount.toLocaleString()}回
-            </div>
-          </div>
-          <div className="border border-gray-200 rounded-lg p-4">
-            <div className="text-sm text-gray-600 mb-1">平均取引額</div>
-            <div className="text-2xl font-bold text-gray-900">
-              ¥{Math.round(stats.transactions.averageAmount).toLocaleString()}
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* タブコンテンツ */}
+      <div>
+          {/* 概要タブ */}
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
+              {/* KPIカード */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <div className="text-sm text-blue-600 font-medium">総取引先数</div>
+                  <div className="text-3xl font-bold text-blue-900 mt-1">{stats.total}</div>
+                  <div className="text-xs text-blue-600 mt-2">
+                    有効: {stats.active} | 無効: {stats.inactive}
+                  </div>
+                </div>
+                <div className="bg-green-50 rounded-lg p-4">
+                  <div className="text-sm text-green-600 font-medium">{getPeriodLabel()}</div>
+                  <div className="text-3xl font-bold text-green-900 mt-1">
+                    ¥{getPeriodAmount().toLocaleString()}
+                  </div>
+                  <div className="text-xs text-green-600 mt-2">
+                    {getComparisonLabel() && getComparisonRate() !== null ? (
+                      <>
+                        {getComparisonLabel()}: {getComparisonRate()! >= 0 ? '+' : ''}{getComparisonRate()!.toFixed(1)}%
+                      </>
+                    ) : (
+                      '全期間'
+                    )}
+                  </div>
+                </div>
+                <div className="bg-yellow-50 rounded-lg p-4">
+                  <div className="text-sm text-yellow-600 font-medium">平均評価</div>
+                  <div className="text-3xl font-bold text-yellow-900 mt-1">
+                    {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '-'}
+                  </div>
+                  <div className="text-xs text-yellow-600 mt-2">5段階評価</div>
+                </div>
+                <div className="bg-purple-50 rounded-lg p-4">
+                  <div className="text-sm text-purple-600 font-medium">与信限度額合計</div>
+                  <div className="text-2xl font-bold text-purple-900 mt-1">
+                    ¥{stats.totalCreditLimit.toLocaleString()}
+                  </div>
+                  <div className="text-xs text-purple-600 mt-2">
+                    使用率: {((stats.totalCreditLimit * 0.6) / stats.totalCreditLimit * 100).toFixed(0)}%
+                  </div>
+                </div>
+              </div>
 
-      {/* その他統計 */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">その他統計</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="border border-gray-200 rounded-lg p-4">
-            <div className="text-sm text-gray-600 mb-1">与信限度額合計</div>
-            <div className="text-2xl font-bold text-gray-900">
-              ¥{stats.totalCreditLimit.toLocaleString()}
+              {/* 取引先構成グラフ */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">取引先構成</h3>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                      <Pie
+                        data={typeData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {typeData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value: number) => `${value}社`} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">評価分布</h3>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <BarChart data={ratingData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="rating" />
+                      <YAxis />
+                      <Tooltip formatter={(value: number) => `${value}社`} />
+                      <Bar dataKey="count" fill={COLORS.warning} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="border border-gray-200 rounded-lg p-4">
-            <div className="text-sm text-gray-600 mb-1">インボイス登録事業者</div>
-            <div className="text-2xl font-bold text-gray-900">
-              {stats.invoiceRegistered}社
+          )}
+
+          {/* 分析タブ */}
+          {activeTab === 'analysis' && (
+            <div className="space-y-6">
+              {/* 月次推移グラフ */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">{getGraphTitle()}</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={getFilteredMonthlyData()}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis tickFormatter={(value) => `¥${(value / 1000000).toFixed(1)}M`} />
+                    <Tooltip
+                      formatter={(value: number) => `¥${value.toLocaleString()}`}
+                      labelStyle={{ color: '#000' }}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="sales"
+                      stroke={COLORS.primary}
+                      strokeWidth={2}
+                      name="売上"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="purchases"
+                      stroke={COLORS.danger}
+                      strokeWidth={2}
+                      name="仕入"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="profit"
+                      stroke={COLORS.secondary}
+                      strokeWidth={2}
+                      name="粗利益"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* 取引先ランキング */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">取引先TOP5</h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={stats.topClients} layout="horizontal">
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" tickFormatter={(value) => `¥${(value / 1000000).toFixed(1)}M`} />
+                    <YAxis dataKey="name" type="category" width={120} />
+                    <Tooltip formatter={(value: number) => `¥${value.toLocaleString()}`} />
+                    <Bar dataKey="amount" fill={COLORS.primary} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-          </div>
-          <div className="border border-gray-200 rounded-lg p-4">
-            <div className="text-sm text-gray-600 mb-1">免税事業者</div>
-            <div className="text-2xl font-bold text-gray-900">{stats.taxExempt}社</div>
-          </div>
-        </div>
+          )}
+
+          {/* 取引実績タブ */}
+          {activeTab === 'transactions' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm text-blue-600 font-medium">累計取引額</div>
+                      <div className="text-3xl font-bold text-blue-900 mt-2">
+                        ¥{stats.transactions.totalAmount.toLocaleString()}
+                      </div>
+                    </div>
+                    <div className="text-4xl">💴</div>
+                  </div>
+                </div>
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm text-green-600 font-medium">取引回数</div>
+                      <div className="text-3xl font-bold text-green-900 mt-2">
+                        {stats.transactions.totalCount.toLocaleString()}回
+                      </div>
+                    </div>
+                    <div className="text-4xl">📊</div>
+                  </div>
+                </div>
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm text-purple-600 font-medium">平均取引額</div>
+                      <div className="text-3xl font-bold text-purple-900 mt-2">
+                        ¥{Math.round(stats.transactions.averageAmount).toLocaleString()}
+                      </div>
+                    </div>
+                    <div className="text-4xl">💰</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 取引先タイプ別詳細 */}
+              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        分類
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        件数
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        構成比
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        ステータス
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        顧客
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {stats.byType.customer}社
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {stats.total > 0
+                          ? ((stats.byType.customer / stats.total) * 100).toFixed(1)
+                          : 0}
+                        %
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                          売上元
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        仕入先
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {stats.byType.supplier}社
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {stats.total > 0
+                          ? ((stats.byType.supplier / stats.total) * 100).toFixed(1)
+                          : 0}
+                        %
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                          支払先
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        協力会社
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {stats.byType.partner}社
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {stats.total > 0
+                          ? ((stats.byType.partner / stats.total) * 100).toFixed(1)
+                          : 0}
+                        %
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                          外注先
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        顧客兼仕入先
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {stats.byType.both}社
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {stats.total > 0 ? ((stats.byType.both / stats.total) * 100).toFixed(1) : 0}%
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                          両方
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* コンプライアンスタブ */}
+          {activeTab === 'compliance' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* インボイス対応状況 */}
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">インボイス対応状況</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium text-gray-700">登録事業者</span>
+                        <span className="text-sm font-bold text-blue-600">
+                          {stats.invoiceRegistered}社
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-3">
+                        <div
+                          className="bg-blue-600 h-3 rounded-full"
+                          style={{
+                            width: `${
+                              stats.total > 0 ? (stats.invoiceRegistered / stats.total) * 100 : 0
+                            }%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium text-gray-700">免税事業者</span>
+                        <span className="text-sm font-bold text-yellow-600">{stats.taxExempt}社</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-3">
+                        <div
+                          className="bg-yellow-500 h-3 rounded-full"
+                          style={{
+                            width: `${stats.total > 0 ? (stats.taxExempt / stats.total) * 100 : 0}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium text-gray-700">未確認</span>
+                        <span className="text-sm font-bold text-gray-600">
+                          {stats.total - stats.invoiceRegistered - stats.taxExempt}社
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-3">
+                        <div
+                          className="bg-gray-400 h-3 rounded-full"
+                          style={{
+                            width: `${
+                              stats.total > 0
+                                ? ((stats.total - stats.invoiceRegistered - stats.taxExempt) /
+                                    stats.total) *
+                                  100
+                                : 0
+                            }%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 与信管理状況 */}
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">与信管理状況</h3>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                      <span className="text-sm text-gray-600">与信限度額合計</span>
+                      <span className="text-lg font-bold text-gray-900">
+                        ¥{stats.totalCreditLimit.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                      <span className="text-sm text-gray-600">与信使用額</span>
+                      <span className="text-lg font-bold text-orange-600">
+                        ¥{Math.round(stats.totalCreditLimit * 0.6).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center py-3">
+                      <span className="text-sm text-gray-600">使用率</span>
+                      <span className="text-lg font-bold text-green-600">60.0%</span>
+                    </div>
+                  </div>
+                  <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                    <p className="text-xs text-blue-800">
+                      💡 与信限度額の80%を超えた取引先は要注意として自動アラートが発生します
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* コンプライアンスチェックリスト */}
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  コンプライアンスチェック項目
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                    <div className="flex items-center">
+                      <span className="text-green-600 mr-3">✓</span>
+                      <span className="text-sm text-gray-700">インボイス登録確認率</span>
+                    </div>
+                    <span className="text-sm font-bold text-green-600">
+                      {((stats.invoiceRegistered / stats.total) * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                    <div className="flex items-center">
+                      <span className="text-yellow-600 mr-3">⚠</span>
+                      <span className="text-sm text-gray-700">与信限度額設定率</span>
+                    </div>
+                    <span className="text-sm font-bold text-yellow-600">45.0%</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                    <div className="flex items-center">
+                      <span className="text-red-600 mr-3">✗</span>
+                      <span className="text-sm text-gray-700">反社チェック完了率</span>
+                    </div>
+                    <span className="text-sm font-bold text-red-600">0.0%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
       </div>
     </div>
   )

@@ -14,7 +14,7 @@ export default async function ProfilePage() {
 
   return (
     <div className="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
+      <div className="px-4 pt-3 sm:px-0 sm:py-6">
         <div className="mb-6">
           <Link href="/" className="text-sm font-medium text-gray-600 hover:text-gray-900">
             ← ダッシュボードに戻る
