@@ -331,14 +331,14 @@ export default function ClientsStats() {
   return (
     <div className="space-y-6">
       {/* タブナビゲーション + 期間選択 */}
-      <div className="flex flex-wrap gap-3 items-center justify-between">
+      <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
         {/* タブ */}
         <div className="flex flex-wrap gap-2">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
                 activeTab === tab.id
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
@@ -350,13 +350,13 @@ export default function ClientsStats() {
         </div>
 
         {/* 期間選択フィルター */}
-        <div className="flex flex-wrap gap-2 items-center">
-          <div className="flex items-center gap-2">
-            <label className="text-xs font-medium text-gray-600">集計期間:</label>
+        <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:ml-auto">
+          <div className="flex items-center gap-1.5 sm:gap-2 justify-end sm:justify-start">
+            <label className="text-[10px] sm:text-xs font-medium text-gray-600 whitespace-nowrap">集計期間:</label>
             <select
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value as typeof dateRange)}
-              className="px-2 py-1.5 border border-gray-300 rounded-md text-xs bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="px-1.5 sm:px-2 py-1 sm:py-1.5 border border-gray-300 rounded text-[10px] sm:text-xs bg-white hover:border-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">全期間</option>
               <option value="1month">直近1ヶ月</option>
@@ -368,20 +368,20 @@ export default function ClientsStats() {
           </div>
 
           {dateRange === 'custom' && (
-            <div className="flex gap-1.5 items-center">
+            <div className="flex gap-1 sm:gap-1.5 items-center justify-end sm:justify-start">
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="px-1.5 sm:px-2 py-1 sm:py-1.5 border border-gray-300 rounded text-[10px] sm:text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-28 sm:w-auto"
                 placeholder="開始日"
               />
-              <span className="text-gray-400 text-xs">〜</span>
+              <span className="text-gray-400 text-[10px] sm:text-xs">〜</span>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="px-1.5 sm:px-2 py-1 sm:py-1.5 border border-gray-300 rounded text-[10px] sm:text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-28 sm:w-auto"
                 placeholder="終了日"
               />
             </div>
@@ -395,20 +395,20 @@ export default function ClientsStats() {
           {activeTab === 'overview' && (
             <div className="space-y-6">
               {/* KPIカード */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <div className="text-sm text-blue-600 font-medium">総取引先数</div>
-                  <div className="text-3xl font-bold text-blue-900 mt-1">{stats.total}</div>
-                  <div className="text-xs text-blue-600 mt-2">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div className="bg-blue-50 rounded-lg p-3 sm:p-4">
+                  <div className="text-xs sm:text-sm text-blue-600 font-medium">総取引先数</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-blue-900 mt-1">{stats.total}</div>
+                  <div className="text-[10px] sm:text-xs text-blue-600 mt-1 sm:mt-2">
                     有効: {stats.active} | 無効: {stats.inactive}
                   </div>
                 </div>
-                <div className="bg-green-50 rounded-lg p-4">
-                  <div className="text-sm text-green-600 font-medium">{getPeriodLabel()}</div>
-                  <div className="text-3xl font-bold text-green-900 mt-1">
+                <div className="bg-green-50 rounded-lg p-3 sm:p-4">
+                  <div className="text-xs sm:text-sm text-green-600 font-medium">{getPeriodLabel()}</div>
+                  <div className="text-xl sm:text-3xl font-bold text-green-900 mt-1">
                     ¥{getPeriodAmount().toLocaleString()}
                   </div>
-                  <div className="text-xs text-green-600 mt-2">
+                  <div className="text-[10px] sm:text-xs text-green-600 mt-1 sm:mt-2">
                     {getComparisonLabel() && getComparisonRate() !== null ? (
                       <>
                         {getComparisonLabel()}: {getComparisonRate()! >= 0 ? '+' : ''}{getComparisonRate()!.toFixed(1)}%
@@ -418,30 +418,30 @@ export default function ClientsStats() {
                     )}
                   </div>
                 </div>
-                <div className="bg-yellow-50 rounded-lg p-4">
-                  <div className="text-sm text-yellow-600 font-medium">平均評価</div>
-                  <div className="text-3xl font-bold text-yellow-900 mt-1">
+                <div className="bg-yellow-50 rounded-lg p-3 sm:p-4">
+                  <div className="text-xs sm:text-sm text-yellow-600 font-medium">平均評価</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-yellow-900 mt-1">
                     {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '-'}
                   </div>
-                  <div className="text-xs text-yellow-600 mt-2">5段階評価</div>
+                  <div className="text-[10px] sm:text-xs text-yellow-600 mt-1 sm:mt-2">5段階評価</div>
                 </div>
-                <div className="bg-purple-50 rounded-lg p-4">
-                  <div className="text-sm text-purple-600 font-medium">1取引先あたり平均単価</div>
-                  <div className="text-2xl font-bold text-purple-900 mt-1">
+                <div className="bg-purple-50 rounded-lg p-3 sm:p-4">
+                  <div className="text-xs sm:text-sm text-purple-600 font-medium">1取引先あたり平均単価</div>
+                  <div className="text-xl sm:text-2xl font-bold text-purple-900 mt-1">
                     ¥{Math.round(stats.periodSummary?.averageAmountPerClient || 0).toLocaleString()}
                   </div>
-                  <div className="text-xs text-purple-600 mt-2">
+                  <div className="text-[10px] sm:text-xs text-purple-600 mt-1 sm:mt-2">
                     選択期間の売上 ÷ 取引先数
                   </div>
                 </div>
               </div>
 
               {/* グラフエリア（2行×2列 = 4グラフ） */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {/* 1. 取引先構成（円グラフ） */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">取引先構成</h3>
-                  <ResponsiveContainer width="100%" height={250}>
+                <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                  <h3 className="text-sm sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">取引先構成</h3>
+                  <ResponsiveContainer width="100%" height={200}>
                     <PieChart>
                       <Pie
                         data={typeData}
@@ -449,7 +449,7 @@ export default function ClientsStats() {
                         cy="50%"
                         labelLine={false}
                         label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
-                        outerRadius={80}
+                        outerRadius={60}
                         fill="#8884d8"
                         dataKey="value"
                       >
@@ -463,9 +463,9 @@ export default function ClientsStats() {
                 </div>
 
                 {/* 2. 売上・仕入れ比較（棒グラフ） */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">売上・仕入れ比較</h3>
-                  <ResponsiveContainer width="100%" height={250}>
+                <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                  <h3 className="text-sm sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">売上・仕入れ比較</h3>
+                  <ResponsiveContainer width="100%" height={200}>
                     <BarChart data={[
                       {
                         name: '選択期間',
@@ -474,10 +474,10 @@ export default function ClientsStats() {
                       }
                     ]}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis tickFormatter={(value) => `${(value / 10000).toFixed(0)}万円`} />
+                      <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                      <YAxis tickFormatter={(value) => `${(value / 10000).toFixed(0)}万`} tick={{ fontSize: 10 }} />
                       <Tooltip formatter={(value: number | undefined) => `¥${(value || 0).toLocaleString()}`} />
-                      <Legend />
+                      <Legend wrapperStyle={{ fontSize: '12px' }} />
                       <Bar dataKey="売上" fill={COLORS.primary} />
                       <Bar dataKey="仕入" fill={COLORS.danger} />
                     </BarChart>
@@ -485,15 +485,15 @@ export default function ClientsStats() {
                 </div>
 
                 {/* 3. 粗利益率の推移（折れ線グラフ） */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">粗利益率の推移</h3>
-                  <ResponsiveContainer width="100%" height={250}>
+                <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                  <h3 className="text-sm sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">粗利益率の推移</h3>
+                  <ResponsiveContainer width="100%" height={200}>
                     <LineChart data={getFilteredMonthlyData()}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis tickFormatter={(value) => `${value.toFixed(0)}%`} />
+                      <XAxis dataKey="month" tick={{ fontSize: 10 }} />
+                      <YAxis tickFormatter={(value) => `${value.toFixed(0)}%`} tick={{ fontSize: 10 }} />
                       <Tooltip formatter={(value: number | undefined) => `${(value || 0).toFixed(1)}%`} />
-                      <Legend />
+                      <Legend wrapperStyle={{ fontSize: '12px' }} />
                       <Line
                         type="monotone"
                         dataKey="profitRate"
@@ -506,15 +506,15 @@ export default function ClientsStats() {
                 </div>
 
                 {/* 4. 月次取引件数の推移（折れ線グラフ） */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">月次取引件数の推移</h3>
-                  <ResponsiveContainer width="100%" height={250}>
+                <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                  <h3 className="text-sm sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">月次取引件数の推移</h3>
+                  <ResponsiveContainer width="100%" height={200}>
                     <LineChart data={getFilteredMonthlyData()}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
+                      <XAxis dataKey="month" tick={{ fontSize: 10 }} />
+                      <YAxis tick={{ fontSize: 10 }} />
                       <Tooltip formatter={(value: number | undefined) => `${value || 0}件`} />
-                      <Legend />
+                      <Legend wrapperStyle={{ fontSize: '12px' }} />
                       <Line
                         type="monotone"
                         dataKey="transactionCount"
@@ -588,132 +588,132 @@ export default function ClientsStats() {
 
           {/* 取引実績タブ */}
           {activeTab === 'transactions' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-sm text-blue-600 font-medium">累計取引額</div>
-                      <div className="text-3xl font-bold text-blue-900 mt-2">
+                      <div className="text-xs sm:text-sm text-blue-600 font-medium">累計取引額</div>
+                      <div className="text-2xl sm:text-3xl font-bold text-blue-900 mt-1 sm:mt-2">
                         ¥{stats.transactions.totalAmount.toLocaleString()}
                       </div>
                     </div>
-                    <div className="text-4xl">💴</div>
+                    <div className="text-3xl sm:text-4xl">💴</div>
                   </div>
                 </div>
-                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6">
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-sm text-green-600 font-medium">取引回数</div>
-                      <div className="text-3xl font-bold text-green-900 mt-2">
+                      <div className="text-xs sm:text-sm text-green-600 font-medium">取引回数</div>
+                      <div className="text-2xl sm:text-3xl font-bold text-green-900 mt-1 sm:mt-2">
                         {stats.transactions.totalCount.toLocaleString()}回
                       </div>
                     </div>
-                    <div className="text-4xl">📊</div>
+                    <div className="text-3xl sm:text-4xl">📊</div>
                   </div>
                 </div>
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6">
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-sm text-purple-600 font-medium">平均取引額</div>
-                      <div className="text-3xl font-bold text-purple-900 mt-2">
+                      <div className="text-xs sm:text-sm text-purple-600 font-medium">平均取引額</div>
+                      <div className="text-2xl sm:text-3xl font-bold text-purple-900 mt-1 sm:mt-2">
                         ¥{Math.round(stats.transactions.averageAmount).toLocaleString()}
                       </div>
                     </div>
-                    <div className="text-4xl">💰</div>
+                    <div className="text-3xl sm:text-4xl">💰</div>
                   </div>
                 </div>
               </div>
 
               {/* 取引先タイプ別詳細 */}
-              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <div className="bg-white border border-gray-200 rounded-lg overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">
                         分類
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">
                         件数
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">
                         構成比
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider">
                         ステータス
                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     <tr>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
                         顧客
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
                         {stats.byType.customer}社
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
                         {stats.total > 0
                           ? ((stats.byType.customer / stats.total) * 100).toFixed(1)
                           : 0}
                         %
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <span className="px-1.5 sm:px-2 inline-flex text-[10px] sm:text-xs leading-4 sm:leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                           売上元
                         </span>
                       </td>
                     </tr>
                     <tr>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
                         仕入先
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
                         {stats.byType.supplier}社
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
                         {stats.total > 0
                           ? ((stats.byType.supplier / stats.total) * 100).toFixed(1)
                           : 0}
                         %
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <span className="px-1.5 sm:px-2 inline-flex text-[10px] sm:text-xs leading-4 sm:leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
                           支払先
                         </span>
                       </td>
                     </tr>
                     <tr>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
                         協力会社
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
                         {stats.byType.partner}社
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
                         {stats.total > 0
                           ? ((stats.byType.partner / stats.total) * 100).toFixed(1)
                           : 0}
                         %
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <span className="px-1.5 sm:px-2 inline-flex text-[10px] sm:text-xs leading-4 sm:leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                           外注先
                         </span>
                       </td>
                     </tr>
                     <tr>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
                         顧客兼仕入先
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
                         {stats.byType.both}社
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
                         {stats.total > 0 ? ((stats.byType.both / stats.total) * 100).toFixed(1) : 0}%
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <span className="px-1.5 sm:px-2 inline-flex text-[10px] sm:text-xs leading-4 sm:leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
                           両方
                         </span>
                       </td>
