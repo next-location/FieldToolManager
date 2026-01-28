@@ -10,7 +10,7 @@ export default function LandingPage() {
   const pricingSectionRef = useRef<HTMLElement>(null)
   const hasPricingTracked = useRef(false)
 
-  // ページ表示時にトラッキング（FAX流入のUTMパラメータも自動検知）
+  // GA4トラッキング: ページ表示時にトラッキング（FAX流入のUTMパラメータも自動検知）
   useEffect(() => {
     trackHomepageView()
   }, [])
