@@ -50,6 +50,7 @@ interface ClientStats {
     purchases: number
     profit: number
     profitRate: number
+    transactionCount: number
   }>
   topClients?: Array<{
     name: string
@@ -425,12 +426,12 @@ export default function ClientsStats() {
                   <div className="text-xs text-yellow-600 mt-2">5段階評価</div>
                 </div>
                 <div className="bg-purple-50 rounded-lg p-4">
-                  <div className="text-sm text-purple-600 font-medium">与信限度額合計</div>
+                  <div className="text-sm text-purple-600 font-medium">1取引先あたり平均単価</div>
                   <div className="text-2xl font-bold text-purple-900 mt-1">
-                    ¥{stats.totalCreditLimit.toLocaleString()}
+                    ¥{Math.round(stats.periodSummary?.averageAmountPerClient || 0).toLocaleString()}
                   </div>
                   <div className="text-xs text-purple-600 mt-2">
-                    使用率: {((stats.totalCreditLimit * 0.6) / stats.totalCreditLimit * 100).toFixed(0)}%
+                    選択期間の売上 ÷ 取引先数
                   </div>
                 </div>
               </div>
@@ -504,17 +505,25 @@ export default function ClientsStats() {
                   </ResponsiveContainer>
                 </div>
 
-                {/* 4. 1取引先あたり平均単価（カード表示） */}
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-sm text-purple-600 font-medium mb-2">1取引先あたり平均単価</div>
-                    <div className="text-4xl font-bold text-purple-900 mb-2">
-                      ¥{Math.round(stats.periodSummary?.averageAmountPerClient || 0).toLocaleString()}
-                    </div>
-                    <div className="text-xs text-purple-700">
-                      選択期間の売上 ÷ 取引先数
-                    </div>
-                  </div>
+                {/* 4. 月次取引件数の推移（折れ線グラフ） */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">月次取引件数の推移</h3>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={getFilteredMonthlyData()}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip formatter={(value: number | undefined) => `${value || 0}件`} />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="transactionCount"
+                        stroke={COLORS.warning}
+                        strokeWidth={2}
+                        name="取引件数"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
             </div>

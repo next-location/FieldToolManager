@@ -155,16 +155,16 @@ export async function GET(request: Request) {
       .order('payment_date', { ascending: true })
 
     // 月次データを集計
-    const monthlyMap = new Map<string, { sales: number; purchases: number; profit: number }>()
+    const monthlyMap = new Map<string, { sales: number; purchases: number; profit: number; transactionCount: number }>()
 
     for (let i = 11; i >= 0; i--) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
       const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
       const label = `${date.getMonth() + 1}月`
-      monthlyMap.set(key, { sales: 0, purchases: 0, profit: 0 })
+      monthlyMap.set(key, { sales: 0, purchases: 0, profit: 0, transactionCount: 0 })
     }
 
-    // 請求書データから月次売上を集計
+    // 請求書データから月次売上と取引件数を集計
     invoices?.forEach((invoice) => {
       const date = new Date(invoice.invoice_date)
       const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
@@ -173,6 +173,7 @@ export async function GET(request: Request) {
         const client = clients.find((c) => c.id === invoice.client_id)
         if (client?.client_type === 'customer' || client?.client_type === 'both') {
           data.sales += Number(invoice.total_amount || 0)
+          data.transactionCount += 1
         }
       }
     })
@@ -203,6 +204,7 @@ export async function GET(request: Request) {
         purchases: data.purchases,
         profit: data.profit,
         profitRate, // 粗利益率（%）
+        transactionCount: data.transactionCount, // 取引件数
       }
     })
 
