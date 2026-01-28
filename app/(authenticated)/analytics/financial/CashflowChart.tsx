@@ -40,7 +40,12 @@ export default function CashflowChart({ data }: CashflowChartProps) {
             tick={{ fontSize: 12 }}
           />
           <Tooltip
-            formatter={(value: number) => `¥${(value * 10000).toLocaleString()}`}
+            formatter={(value) => {
+              if (typeof value === 'number') {
+                return `¥${(value * 10000).toLocaleString()}`
+              }
+              return value
+            }}
           />
           <Legend />
           <ReferenceLine y={0} stroke="#666" strokeDasharray="3 3" />

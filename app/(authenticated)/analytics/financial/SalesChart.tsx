@@ -54,7 +54,8 @@ export default function SalesChart({ data }: SalesChartProps) {
             domain={[0, 100]}
           />
           <Tooltip
-            formatter={(value: number, name: string) => {
+            formatter={(value, name) => {
+              if (typeof value !== 'number') return [value, name]
               if (name === '回収率') return [`${value}%`, name]
               return [`¥${(value * 10000).toLocaleString()}`, name]
             }}
