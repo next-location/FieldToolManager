@@ -60,10 +60,12 @@ export default function CostAnalyticsView({
     // タイプフィルタ
     if (filterType === 'tool') {
       filtered = filtered.filter((a) => !a.is_consumable)
-      console.log('[Cost View] Filtered to tools only:', filtered.length)
+      console.log('[Cost View] Filtered to tools only:', filtered.length, 'items')
     } else if (filterType === 'consumable') {
       filtered = filtered.filter((a) => a.is_consumable)
-      console.log('[Cost View] Filtered to consumables only:', filtered.length)
+      console.log('[Cost View] Filtered to consumables only:', filtered.length, 'items')
+    } else {
+      console.log('[Cost View] No filter applied, showing all:', filtered.length, 'items')
     }
 
     // ソート
