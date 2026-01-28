@@ -103,7 +103,7 @@ export function analyzeCosts(
   console.log(`[Cost Analysis Debug] movements count: ${movements.length} -> filtered: ${filteredMovements.length}`)
   console.log(`[Cost Analysis Debug] toolItems count: ${toolItems.length}`)
 
-  const consumableTools = tools.filter((t: any) => t.management_type === 'quantity')
+  const consumableTools = tools.filter((t: any) => t.management_type === 'consumable')
   console.log(`[Cost Analysis Debug] consumable tools count: ${consumableTools.length}`)
   if (consumableTools.length > 0) {
     console.log(`[Cost Analysis Debug] consumable tools:`, consumableTools.map((t: any) => ({ id: t.id, name: t.name, management_type: t.management_type })))
@@ -113,8 +113,8 @@ export function analyzeCosts(
   }
 
   for (const tool of tools) {
-    // management_type が 'quantity' の場合が消耗品
-    const isConsumable = tool.management_type === 'quantity'
+    // management_type が 'consumable' の場合が消耗品
+    const isConsumable = tool.management_type === 'consumable'
 
     // 購入価格計算
     let purchasePrice = 0
