@@ -15,7 +15,7 @@ export default function FinancialTabs({ salesContent, cashflowContent }: Financi
       <div className="px-4 pb-6 sm:px-0 sm:py-6">
       <div className="mb-6">
         <h1 className="text-lg sm:text-2xl font-bold mb-2">財務分析</h1>
-        <p className="text-sm text-gray-600">売上分析と資金繰り予測を確認できます</p>
+        <p className="text-sm text-gray-600">売上分析と未収・未払管理を確認できます</p>
       </div>
 
       {/* タブナビゲーション */}
@@ -39,7 +39,7 @@ export default function FinancialTabs({ salesContent, cashflowContent }: Financi
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
           >
-            資金繰り予測
+            未収・未払管理
           </button>
         </div>
       </div>

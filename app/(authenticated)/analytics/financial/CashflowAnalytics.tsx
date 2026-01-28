@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/page-auth'
 import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
 import { PackageRequired } from '@/components/PackageRequired'
-import CashflowChart from './CashflowChart'
 
 export default async function CashflowAnalytics() {
   const { organizationId, userRole, supabase } = await requireAuth()
@@ -16,15 +15,13 @@ export default async function CashflowAnalytics() {
   const features = await getOrganizationFeatures(organizationId)
   if (!hasPackage(features, 'dx')) {
     const currentPackage = features.package_type as 'asset' | 'dx' | 'none'
-    return <PackageRequired packageType="dx" featureName="売上分析・資金繰り予測" userRole={userRole} currentPackage={currentPackage} />
+    return <PackageRequired packageType="dx" featureName="売上分析・未収未払管理" userRole={userRole} currentPackage={currentPackage} />
   }
 
-  // 今日から6ヶ月先までのデータを取得
+  // 未収・未払データを取得
   const today = new Date()
-  const sixMonthsLater = new Date()
-  sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6)
 
-  // 入金予定（請求書）
+  // 未収請求書（未入金の請求書）
   const { data: invoices } = await supabase
     .from('billing_invoices')
     .select(`
@@ -37,24 +34,23 @@ export default async function CashflowAnalytics() {
       client:clients(name)
     `)
     .eq('organization_id', organizationId)
-    .lte('due_date', sixMonthsLater.toISOString())
+    .is('deleted_at', null)
     .order('due_date', { ascending: true })
 
-  // 支払予定（発注書）
+  // 未払い発注書（支払期限フィールドがないため、未払い総額のみ表示）
   const { data: purchaseOrders } = await supabase
     .from('purchase_orders')
     .select(`
       id,
-      po_number,
+      order_number,
       order_date,
-      payment_due_date,
       total_amount,
       paid_amount,
-      supplier:clients(name)
+      client:clients(name)
     `)
     .eq('organization_id', organizationId)
-    .lte('payment_due_date', sixMonthsLater.toISOString())
-    .order('payment_due_date', { ascending: true })
+    .is('deleted_at', null)
+    .order('order_date', { ascending: false })
 
   // 入金済み実績（過去3ヶ月）
   const threeMonthsAgo = new Date()
@@ -74,10 +70,9 @@ export default async function CashflowAnalytics() {
     .eq('payment_type', 'payment')
     .gte('payment_date', threeMonthsAgo.toISOString())
 
-  // 月別入出金予測を計算
-  const monthlyForecast: any = {}
+  // 未収請求書を期限別に集計
+  const monthlyReceivables: any = {}
 
-  // 入金予定を月別に集計
   ;(invoices || []).forEach((invoice) => {
     const remaining = invoice.total_amount - (invoice.paid_amount || 0)
     if (remaining <= 0) return
@@ -85,19 +80,16 @@ export default async function CashflowAnalytics() {
     const dueDate = new Date(invoice.due_date)
     const monthKey = `${dueDate.getFullYear()}-${String(dueDate.getMonth() + 1).padStart(2, '0')}`
 
-    if (!monthlyForecast[monthKey]) {
-      monthlyForecast[monthKey] = {
+    if (!monthlyReceivables[monthKey]) {
+      monthlyReceivables[monthKey] = {
         month: monthKey,
-        expectedIncome: 0,
-        expectedExpense: 0,
-        netCashflow: 0,
-        incomeItems: [],
-        expenseItems: []
+        amount: 0,
+        items: []
       }
     }
 
-    monthlyForecast[monthKey].expectedIncome += remaining
-    monthlyForecast[monthKey].incomeItems.push({
+    monthlyReceivables[monthKey].amount += remaining
+    monthlyReceivables[monthKey].items.push({
       id: invoice.id,
       number: invoice.invoice_number,
       date: invoice.due_date,
@@ -106,60 +98,39 @@ export default async function CashflowAnalytics() {
     })
   })
 
-  // 支払予定を月別に集計
-  ;(purchaseOrders || []).forEach((po) => {
-    const remaining = po.total_amount - (po.paid_amount || 0)
-    if (remaining <= 0) return
-
-    const dueDate = new Date(po.payment_due_date)
-    const monthKey = `${dueDate.getFullYear()}-${String(dueDate.getMonth() + 1).padStart(2, '0')}`
-
-    if (!monthlyForecast[monthKey]) {
-      monthlyForecast[monthKey] = {
-        month: monthKey,
-        expectedIncome: 0,
-        expectedExpense: 0,
-        netCashflow: 0,
-        incomeItems: [],
-        expenseItems: []
-      }
-    }
-
-    monthlyForecast[monthKey].expectedExpense += remaining
-    monthlyForecast[monthKey].expenseItems.push({
-      id: po.id,
-      number: po.po_number,
-      date: po.payment_due_date,
-      amount: remaining,
-      supplier: Array.isArray(po.supplier) ? (po.supplier[0] as any)?.name : (po.supplier as any)?.name
-    })
-  })
-
-  // キャッシュフローを計算
-  Object.keys(monthlyForecast).forEach((key) => {
-    monthlyForecast[key].netCashflow =
-      monthlyForecast[key].expectedIncome - monthlyForecast[key].expectedExpense
-  })
-
-  const forecastArray = Object.values(monthlyForecast).sort((a: any, b: any) =>
+  const receivablesArray = Object.values(monthlyReceivables).sort((a: any, b: any) =>
     a.month.localeCompare(b.month)
   )
+
+  // 未払い発注書の総額計算（期限別集計はできない）
+  const totalUnpaidPurchaseOrders = (purchaseOrders || []).reduce((sum, po) => {
+    const remaining = po.total_amount - (po.paid_amount || 0)
+    return sum + (remaining > 0 ? remaining : 0)
+  }, 0)
 
   // 実績キャッシュフローを計算（過去3ヶ月）
   const actualCashflow = (receivedPayments || []).reduce((sum, p) => sum + p.amount, 0) -
     (paidPayments || []).reduce((sum, p) => sum + p.amount, 0)
 
   // サマリー計算
-  const totalExpectedIncome = forecastArray.reduce((sum: number, m: any) => sum + m.expectedIncome, 0)
-  const totalExpectedExpense = forecastArray.reduce((sum: number, m: any) => sum + m.expectedExpense, 0)
-  const totalNetCashflow = totalExpectedIncome - totalExpectedExpense
+  const totalUnpaidInvoices = (invoices || []).reduce((sum, inv) => {
+    const remaining = inv.total_amount - (inv.paid_amount || 0)
+    return sum + (remaining > 0 ? remaining : 0)
+  }, 0)
+
+  const unpaidInvoiceCount = (invoices || []).filter(inv =>
+    (inv.total_amount - (inv.paid_amount || 0)) > 0
+  ).length
+
+  const unpaidPurchaseOrderCount = (purchaseOrders || []).filter(po =>
+    (po.total_amount - (po.paid_amount || 0)) > 0
+  ).length
 
   // 当月のデータ
   const thisMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
-  const thisMonthData = monthlyForecast[thisMonthKey] || {
-    expectedIncome: 0,
-    expectedExpense: 0,
-    netCashflow: 0
+  const thisMonthData = monthlyReceivables[thisMonthKey] || {
+    amount: 0,
+    items: []
   }
 
   return (
@@ -167,37 +138,36 @@ export default async function CashflowAnalytics() {
       {/* 全体サマリー */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-          <p className="text-xs sm:text-sm text-gray-600 mb-1">予想入金額（6ヶ月）</p>
+          <p className="text-xs sm:text-sm text-gray-600 mb-1">未収金額（請求書）</p>
           <p className="text-lg sm:text-2xl font-bold text-blue-600">
-            ¥{totalExpectedIncome.toLocaleString()}
+            ¥{totalUnpaidInvoices.toLocaleString()}
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            請求書 {(invoices || []).filter(i => i.total_amount - (i.paid_amount || 0) > 0).length}件
+            未入金請求書 {unpaidInvoiceCount}件
           </p>
         </div>
         <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-          <p className="text-xs sm:text-sm text-gray-600 mb-1">予想支払額（6ヶ月）</p>
+          <p className="text-xs sm:text-sm text-gray-600 mb-1">未払金額（発注書）</p>
           <p className="text-lg sm:text-2xl font-bold text-orange-600">
-            ¥{totalExpectedExpense.toLocaleString()}
+            ¥{totalUnpaidPurchaseOrders.toLocaleString()}
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            発注書 {(purchaseOrders || []).filter(po => po.total_amount - (po.paid_amount || 0) > 0).length}件
+            未払い発注書 {unpaidPurchaseOrderCount}件
           </p>
         </div>
         <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-          <p className="text-xs sm:text-sm text-gray-600 mb-1">予想キャッシュフロー</p>
-          <p className={`text-lg sm:text-2xl font-bold ${totalNetCashflow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            ¥{totalNetCashflow.toLocaleString()}
+          <p className="text-xs sm:text-sm text-gray-600 mb-1">差額（未収-未払）</p>
+          <p className={`text-lg sm:text-2xl font-bold ${(totalUnpaidInvoices - totalUnpaidPurchaseOrders) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            ¥{(totalUnpaidInvoices - totalUnpaidPurchaseOrders).toLocaleString()}
           </p>
         </div>
         <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-          <p className="text-xs sm:text-sm text-gray-600 mb-1">当月キャッシュフロー</p>
-          <p className={`text-lg sm:text-2xl font-bold ${thisMonthData.netCashflow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            ¥{thisMonthData.netCashflow.toLocaleString()}
+          <p className="text-xs sm:text-sm text-gray-600 mb-1">当月期限の未収金</p>
+          <p className="text-lg sm:text-2xl font-bold text-blue-600">
+            ¥{thisMonthData.amount.toLocaleString()}
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            入: ¥{thisMonthData.expectedIncome.toLocaleString()} /
-            出: ¥{thisMonthData.expectedExpense.toLocaleString()}
+            {thisMonthData.items?.length || 0}件
           </p>
         </div>
       </div>
@@ -227,137 +197,114 @@ export default async function CashflowAnalytics() {
         </div>
       </div>
 
-      {/* 月別資金繰り予測 */}
+      {/* 期限別未収金 */}
       <div className="bg-white rounded-lg shadow-sm p-3 sm:p-6 mb-6">
-        <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4">月別資金繰り予測</h2>
+        <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4">期限別未収金（請求書）</h2>
 
-        {/* スマホ: カードレイアウト */}
-        <div className="space-y-3 sm:hidden">
-          {forecastArray.map((month: any) => (
-            <div key={month.month} className="border rounded-lg p-3">
-              <div className="flex justify-between items-center mb-2 pb-2 border-b">
-                <span className="font-bold text-gray-900">{month.month}</span>
-                <div className="text-xs text-gray-500">
-                  入: {month.incomeItems.length}件 / 出: {month.expenseItems.length}件
+        {receivablesArray.length === 0 ? (
+          <p className="text-gray-500 text-center py-8">未収金はありません</p>
+        ) : (
+          <>
+            {/* スマホ: カードレイアウト */}
+            <div className="space-y-3 sm:hidden">
+              {receivablesArray.map((month: any) => (
+                <div key={month.month} className="border rounded-lg p-3">
+                  <div className="flex justify-between items-center mb-2 pb-2 border-b">
+                    <span className="font-bold text-gray-900">{month.month}</span>
+                    <div className="text-xs text-gray-500">{month.items.length}件</div>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">期限到来金額</span>
+                    <span className="font-bold text-blue-600">¥{month.amount.toLocaleString()}</span>
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-1.5 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">予想入金</span>
-                  <span className="font-medium text-blue-600">¥{month.expectedIncome.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">予想支払</span>
-                  <span className="font-medium text-orange-600">¥{month.expectedExpense.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between pt-1 border-t">
-                  <span className="text-gray-600 font-medium">キャッシュフロー</span>
-                  <span className={`font-bold ${
-                    month.netCashflow >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    ¥{month.netCashflow.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* PC: テーブルレイアウト */}
-        <div className="hidden sm:block overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">年月</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">予想入金</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">予想支払</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">キャッシュフロー</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">入金件数</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">支払件数</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {forecastArray.map((month: any) => (
-                <tr key={month.month} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap font-medium">{month.month}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-blue-600">
-                    ¥{month.expectedIncome.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-orange-600">
-                    ¥{month.expectedExpense.toLocaleString()}
-                  </td>
-                  <td className={`px-6 py-4 whitespace-nowrap text-right font-bold ${
-                    month.netCashflow >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    ¥{month.netCashflow.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center text-gray-600">
-                    {month.incomeItems.length}件
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center text-gray-600">
-                    {month.expenseItems.length}件
-                  </td>
-                </tr>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </div>
 
+            {/* PC: テーブルレイアウト */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">入金期限月</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">未収金額</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">請求書件数</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {receivablesArray.map((month: any) => (
+                    <tr key={month.month} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap font-medium">{month.month}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-blue-600 font-bold">
+                        ¥{month.amount.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-gray-600">
+                        {month.items.length}件
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* キャッシュフロー推移グラフ */}
-      <CashflowChart data={forecastArray as any} />
+      {/* 未払い発注書情報 */}
+      <div className="bg-white rounded-lg shadow-sm p-3 sm:p-6 mb-6">
+        <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4">未払い発注書</h2>
+        <div className="border rounded-lg p-4 bg-orange-50">
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">未払い総額</p>
+              <p className="text-2xl font-bold text-orange-600">¥{totalUnpaidPurchaseOrders.toLocaleString()}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-gray-600 mb-1">未払い件数</p>
+              <p className="text-xl font-bold text-gray-900">{unpaidPurchaseOrderCount}件</p>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500 mt-3">
+            ※ 発注書には支払期限が設定されていないため、月別の集計はできません。入出金管理ページから支払記録を登録してください。
+          </p>
+        </div>
+      </div>
 
-      {/* 入出金予定カレンダー */}
+      {/* 入金予定カレンダー */}
       <div className="bg-white rounded-lg shadow-sm p-3 sm:p-6">
-        <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4">入出金予定カレンダー</h2>
-        <div className="space-y-4 sm:space-y-6">
-          {forecastArray.slice(0, 3).map((month: any) => (
-            <div key={month.month} className="border rounded-lg p-3 sm:p-4">
-              <h3 className="font-bold mb-2 sm:mb-3 text-sm sm:text-base">{month.month}</h3>
+        <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4">入金予定（期限順）</h2>
+        {receivablesArray.length === 0 ? (
+          <p className="text-gray-500 text-center py-8">入金予定はありません</p>
+        ) : (
+          <div className="space-y-4 sm:space-y-6">
+            {receivablesArray.slice(0, 3).map((month: any) => (
+              <div key={month.month} className="border rounded-lg p-3 sm:p-4">
+                <h3 className="font-bold mb-2 sm:mb-3 text-sm sm:text-base">{month.month}</h3>
 
-              {/* 入金予定 */}
-              {month.incomeItems.length > 0 && (
-                <div className="mb-3 sm:mb-4">
-                  <p className="text-xs sm:text-sm font-medium text-blue-600 mb-2">入金予定</p>
+                {/* 入金予定 */}
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-blue-600 mb-2">未入金請求書</p>
                   <div className="space-y-1">
-                    {month.incomeItems.slice(0, 5).map((item: any) => (
+                    {month.items.slice(0, 5).map((item: any) => (
                       <div key={item.id} className="text-xs sm:text-sm flex flex-col sm:flex-row sm:justify-between sm:items-center py-1 border-b gap-1">
                         <span className="text-gray-600">
-                          {new Date(item.date).toLocaleDateString('ja-JP')} - {item.client}
+                          {new Date(item.date).toLocaleDateString('ja-JP')} - {item.client} ({item.number})
                         </span>
                         <span className="font-medium text-blue-600">¥{item.amount.toLocaleString()}</span>
                       </div>
                     ))}
-                    {month.incomeItems.length > 5 && (
-                      <p className="text-xs text-gray-500 pt-1">他 {month.incomeItems.length - 5}件</p>
+                    {month.items.length > 5 && (
+                      <p className="text-xs text-gray-500 pt-1">他 {month.items.length - 5}件</p>
                     )}
                   </div>
                 </div>
-              )}
-
-              {/* 支払予定 */}
-              {month.expenseItems.length > 0 && (
-                <div>
-                  <p className="text-xs sm:text-sm font-medium text-orange-600 mb-2">支払予定</p>
-                  <div className="space-y-1">
-                    {month.expenseItems.slice(0, 5).map((item: any) => (
-                      <div key={item.id} className="text-xs sm:text-sm flex flex-col sm:flex-row sm:justify-between sm:items-center py-1 border-b gap-1">
-                        <span className="text-gray-600">
-                          {new Date(item.date).toLocaleDateString('ja-JP')} - {item.supplier}
-                        </span>
-                        <span className="font-medium text-orange-600">¥{item.amount.toLocaleString()}</span>
-                      </div>
-                    ))}
-                    {month.expenseItems.length > 5 && (
-                      <p className="text-xs text-gray-500 pt-1">他 {month.expenseItems.length - 5}件</p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+              </div>
+            ))}
+            {receivablesArray.length > 3 && (
+              <p className="text-sm text-gray-500 text-center">他 {receivablesArray.length - 3}ヶ月分</p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
