@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const supabase = await createClient()
+    const { searchParams } = new URL(request.url)
+    const period = searchParams.get('period') || 'all'
+    const startDate = searchParams.get('start_date')
+    const endDate = searchParams.get('end_date')
 
     // ユーザー認証
     const {
@@ -30,12 +34,46 @@ export async function GET() {
       return NextResponse.json({ error: '管理者権限が必要です' }, { status: 403 })
     }
 
+    // 期間に基づく日付範囲の計算
+    let dateFilter = null
+    const now = new Date()
+
+    if (period === 'custom' && startDate && endDate) {
+      dateFilter = { start: startDate, end: endDate }
+    } else if (period !== 'all') {
+      const start = new Date()
+      switch (period) {
+        case '1month':
+          start.setMonth(now.getMonth() - 1)
+          break
+        case '3months':
+          start.setMonth(now.getMonth() - 3)
+          break
+        case '6months':
+          start.setMonth(now.getMonth() - 6)
+          break
+        case '1year':
+          start.setFullYear(now.getFullYear() - 1)
+          break
+      }
+      dateFilter = { start: start.toISOString().split('T')[0], end: now.toISOString().split('T')[0] }
+    }
+
     // 統計情報を取得
-    const { data: clients, error: clientsError } = await supabase
+    let query = supabase
       .from('clients')
       .select('*')
       .eq('organization_id', userData?.organization_id)
       .is('deleted_at', null)
+
+    // 期間フィルターを適用（作成日ベース）
+    if (dateFilter) {
+      query = query
+        .gte('created_at', dateFilter.start)
+        .lte('created_at', dateFilter.end)
+    }
+
+    const { data: clients, error: clientsError } = await query
 
     if (clientsError) {
       return NextResponse.json({ error: '取引先情報の取得に失敗しました' }, { status: 500 })
