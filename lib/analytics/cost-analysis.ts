@@ -72,6 +72,19 @@ export function analyzeCosts(
   for (const tool of tools) {
     const isConsumable = tool.is_consumable || false
 
+    // 購入価格計算
+    let purchasePrice = 0
+
+    if (isConsumable) {
+      // 消耗品の場合：発注コストの合計
+      const toolOrders = orders.filter((o: any) => o.tool_id === tool.id)
+      purchasePrice = toolOrders.reduce((sum: number, o: any) => sum + (o.total_price || 0), 0)
+    } else {
+      // 道具の場合：個別アイテムの購入価格の合計
+      const toolItemsForTool = toolItems.filter((ti: any) => ti.tool_id === tool.id)
+      purchasePrice = toolItemsForTool.reduce((sum: number, ti: any) => sum + (ti.purchase_price || 0), 0)
+    }
+
     // 発注コスト計算（消耗品の場合）
     let totalOrderCost = 0
     let totalOrderedQuantity = 0
@@ -100,8 +113,7 @@ export function analyzeCosts(
     }
 
     // 総コスト計算
-    const purchasePrice = tool.purchase_price || 0
-    const totalCost = purchasePrice + totalOrderCost + totalMaintenanceCost
+    const totalCost = purchasePrice + totalMaintenanceCost
 
     // 使用状況
     const toolItemsForTool = toolItems.filter((ti: any) => ti.tool_id === tool.id)
@@ -129,7 +141,7 @@ export function analyzeCosts(
       tool_name: tool.name,
       category_name: tool.category_name || null,
       is_consumable: isConsumable,
-      purchase_price: tool.purchase_price,
+      purchase_price: purchasePrice,
       purchase_date: tool.purchase_date,
       total_order_cost: totalOrderCost,
       total_ordered_quantity: totalOrderedQuantity,

@@ -306,45 +306,45 @@ export default function CostAnalyticsView({
       </div>
 
       {/* コスト分析テーブル - PC */}
-      <div className="hidden sm:block bg-white shadow overflow-hidden sm:rounded-lg">
+      <div className="hidden sm:block bg-white shadow overflow-hidden sm:rounded-lg overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                 種別
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                 名前
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                 カテゴリ
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                 購入価格
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                発注コスト
+              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                発注
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                点検・修理
+              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                点検
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                 総コスト
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                移動回数
+              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                移動
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                効率スコア
+              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                効率
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredAndSorted.map((analysis) => (
               <tr key={analysis.tool_id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                <td className="px-4 py-3 whitespace-nowrap text-sm">
                   <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                       analysis.is_consumable
                         ? 'bg-yellow-100 text-yellow-800'
                         : 'bg-blue-100 text-blue-800'
@@ -353,38 +353,38 @@ export default function CostAnalyticsView({
                     {analysis.is_consumable ? '消耗品' : '道具'}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                   {analysis.tool_name}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                   {analysis.category_name || '未分類'}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
                   {analysis.purchase_price ? `¥${analysis.purchase_price.toLocaleString()}` : '-'}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
                   ¥{analysis.total_order_cost.toLocaleString()}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
                   ¥{analysis.total_maintenance_cost.toLocaleString()}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
+                <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
                   ¥{analysis.total_cost.toLocaleString()}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">
                   {analysis.movement_count}回
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-right">
                   <div className="flex items-center justify-end space-x-2">
                     <div
-                      className={`w-16 h-2 rounded-full ${
+                      className={`w-12 h-2 rounded-full ${
                         analysis.cost_efficiency_score >= 70
                           ? 'bg-green-500'
                           : analysis.cost_efficiency_score >= 40
                             ? 'bg-yellow-500'
                             : 'bg-red-500'
                       }`}
-                      style={{ width: `${Math.max(16, analysis.cost_efficiency_score / 100 * 64)}px` }}
+                      style={{ width: `${Math.max(12, analysis.cost_efficiency_score / 100 * 48)}px` }}
                     />
                     <span className="text-xs font-medium">
                       {analysis.cost_efficiency_score.toFixed(0)}
