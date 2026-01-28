@@ -576,23 +576,29 @@ export default function ClientsStats() {
                 <ResponsiveContainer width="100%" height={250}>
                   <BarChart data={stats.topClients?.map((client, index) => ({
                     ...client,
-                    shortName: client.name.length > 8 ? `${client.name.substring(0, 8)}...` : client.name
-                  }))} layout="vertical">
+                    rank: `${index + 1}位`
+                  }))}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" tickFormatter={(value) => `${(value / 10000).toFixed(0)}万`} tick={{ fontSize: 10 }} />
-                    <YAxis dataKey="shortName" type="category" width={80} tick={{ fontSize: 10 }} />
+                    <XAxis dataKey="rank" tick={{ fontSize: 10 }} />
+                    <YAxis tickFormatter={(value) => `${(value / 10000).toFixed(0)}万`} tick={{ fontSize: 10 }} />
                     <Tooltip
                       formatter={(value: number | undefined) => `¥${(value || 0).toLocaleString()}`}
                       labelFormatter={(label) => {
-                        const client = stats.topClients?.find(c =>
-                          c.name.length > 8 ? c.name.startsWith(label.replace('...', '')) : c.name === label
-                        )
-                        return client?.name || label
+                        const index = parseInt(label) - 1
+                        return stats.topClients?.[index]?.name || label
                       }}
                     />
                     <Bar dataKey="amount" fill={COLORS.primary} />
                   </BarChart>
                 </ResponsiveContainer>
+                {/* 顧客名リスト */}
+                <div className="mt-3 space-y-1">
+                  {stats.topClients?.map((client, index) => (
+                    <div key={index} className="text-xs sm:text-sm text-gray-700">
+                      <span className="font-semibold">{index + 1}位:</span> {client.name}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
