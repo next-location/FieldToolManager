@@ -448,9 +448,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                    pathname === '/attendance/records' ||
                    pathname === '/attendance/leave' ||
                    pathname === '/attendance/qr/leader' ||
-                   pathname === '/attendance/alerts' ||
-                   pathname === '/attendance/settings' ||
-                   pathname === '/attendance/terminals')
+                   pathname === '/attendance/alerts')
                     ? 'bg-blue-50 text-blue-700 font-medium'
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
@@ -975,7 +973,19 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
             <button
               onClick={() => toggleMenu('settings')}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                isActive('/settings') || isActive('/admin') || pathname === '/work-reports/settings' || pathname === '/attendance/settings'
+                pathname === '/settings' ||
+                pathname === '/settings/organization-management' ||
+                pathname === '/organization' ||
+                pathname === '/staff' ||
+                pathname === '/settings/organization' ||
+                pathname === '/settings/locations' ||
+                pathname === '/settings/feature-settings' ||
+                pathname === '/attendance/settings' ||
+                pathname === '/work-reports/settings' ||
+                pathname === '/attendance/terminals' ||
+                pathname === '/settings/data-management' ||
+                pathname === '/settings/data-export' ||
+                pathname === '/admin/audit-logs'
                   ? 'bg-blue-50 text-blue-700 font-medium'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
@@ -1018,7 +1028,10 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                           href="/settings/organization-management"
                           onClick={onClose}
                           className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                            isActive('/settings/organization-management')
+                            pathname === '/settings/organization-management' ||
+                            pathname === '/organization' ||
+                            pathname === '/staff' ||
+                            pathname === '/settings/organization'
                               ? 'bg-blue-50 text-blue-700 font-medium'
                               : 'text-gray-600 hover:bg-gray-50'
                           }`}
@@ -1030,7 +1043,9 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                             href="/settings/feature-settings"
                             onClick={onClose}
                             className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                              isActive('/settings/feature-settings')
+                              pathname === '/settings/feature-settings' ||
+                              pathname === '/attendance/settings' ||
+                              pathname === '/work-reports/settings'
                                 ? 'bg-blue-50 text-blue-700 font-medium'
                                 : 'text-gray-600 hover:bg-gray-50'
                             }`}
@@ -1042,7 +1057,9 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                           href="/settings/data-management"
                           onClick={onClose}
                           className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                            isActive('/settings/data-management')
+                            pathname === '/settings/data-management' ||
+                            pathname === '/settings/data-export' ||
+                            pathname === '/admin/audit-logs'
                               ? 'bg-blue-50 text-blue-700 font-medium'
                               : 'text-gray-600 hover:bg-gray-50'
                           }`}
