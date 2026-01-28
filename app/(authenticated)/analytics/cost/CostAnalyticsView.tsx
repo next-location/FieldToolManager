@@ -52,23 +52,38 @@ export default function CostAnalyticsView({
   const filteredAndSorted = useMemo(() => {
     if (!report || !report.tool_analyses) return []
 
+    console.log('[Cost View] filterType:', filterType, 'sortBy:', sortBy)
+    console.log('[Cost View] report.tool_analyses count:', report.tool_analyses.length)
+
     let filtered = report.tool_analyses
 
     // タイプフィルタ
     if (filterType === 'tool') {
       filtered = filtered.filter((a) => !a.is_consumable)
+      console.log('[Cost View] Filtered to tools only:', filtered.length)
     } else if (filterType === 'consumable') {
       filtered = filtered.filter((a) => a.is_consumable)
+      console.log('[Cost View] Filtered to consumables only:', filtered.length)
     }
 
     // ソート
-    return filtered.sort((a, b) => {
+    const sorted = filtered.sort((a, b) => {
       if (sortBy === 'cost') {
         return b.total_cost - a.total_cost
       } else {
         return b.cost_efficiency_score - a.cost_efficiency_score
       }
     })
+
+    console.log('[Cost View] Sorted result (first 3):', sorted.slice(0, 3).map(a => ({
+      name: a.tool_name,
+      is_consumable: a.is_consumable,
+      total_cost: a.total_cost,
+      purchase_price: a.purchase_price,
+      efficiency: a.cost_efficiency_score
+    })))
+
+    return sorted
   }, [report, filterType, sortBy])
 
   // CSVエクスポート
