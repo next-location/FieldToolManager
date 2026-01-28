@@ -97,11 +97,12 @@ export default function CostAnalyticsView({
       '名前',
       'カテゴリ',
       '購入価格',
-      '発注コスト',
-      '総コスト',
-      '移動回数',
-      '移動あたりコスト',
-      '効率スコア',
+      '現場持ち出し回数',
+      '持ち出し単価',
+      '最終使用日',
+      '在庫数',
+      '在庫金額',
+      '月平均消費量',
     ]
 
     const rows = filteredAndSorted.map((analysis) => [
@@ -109,11 +110,12 @@ export default function CostAnalyticsView({
       analysis.tool_name,
       analysis.category_name || '未分類',
       analysis.purchase_price || 0,
-      analysis.total_order_cost,
-      analysis.total_cost,
-      analysis.movement_count,
-      analysis.cost_per_movement?.toFixed(2) || '-',
-      analysis.cost_efficiency_score.toFixed(1),
+      !analysis.is_consumable ? analysis.site_checkout_count : '-',
+      !analysis.is_consumable ? (analysis.site_checkout_unit_cost ? Math.round(analysis.site_checkout_unit_cost) : '-') : '-',
+      !analysis.is_consumable ? (analysis.last_used_date ? new Date(analysis.last_used_date).toLocaleDateString('ja-JP') : '-') : '-',
+      analysis.is_consumable ? analysis.current_inventory : '-',
+      analysis.is_consumable ? Math.round(analysis.inventory_value) : '-',
+      analysis.is_consumable ? Math.round(analysis.monthly_avg_consumption) : '-',
     ])
 
     const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n')
@@ -341,16 +343,22 @@ export default function CostAnalyticsView({
                 購入価格
               </th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                発注
+                現場持ち出し
               </th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                総コスト
+                持ち出し単価
               </th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                移動
+                最終使用日
               </th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                効率
+                在庫数
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                在庫金額
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
+                月平均消費
               </th>
             </tr>
           </thead>
@@ -377,32 +385,40 @@ export default function CostAnalyticsView({
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
                   {analysis.purchase_price ? `¥${analysis.purchase_price.toLocaleString()}` : '-'}
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
-                  ¥{analysis.total_order_cost.toLocaleString()}
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
-                  ¥{analysis.total_cost.toLocaleString()}
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">
-                  {analysis.movement_count}回
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm text-right">
-                  <div className="flex items-center justify-end space-x-2">
-                    <div
-                      className={`w-12 h-2 rounded-full ${
-                        analysis.cost_efficiency_score >= 70
-                          ? 'bg-green-500'
-                          : analysis.cost_efficiency_score >= 40
-                            ? 'bg-yellow-500'
-                            : 'bg-red-500'
-                      }`}
-                      style={{ width: `${Math.max(12, analysis.cost_efficiency_score / 100 * 48)}px` }}
-                    />
-                    <span className="text-xs font-medium">
-                      {analysis.cost_efficiency_score.toFixed(0)}
-                    </span>
-                  </div>
-                </td>
+                {/* 道具の場合 */}
+                {!analysis.is_consumable && (
+                  <>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
+                      {analysis.site_checkout_count}回
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
+                      {analysis.site_checkout_unit_cost ? `¥${Math.round(analysis.site_checkout_unit_cost).toLocaleString()}` : '-'}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">
+                      {analysis.last_used_date ? new Date(analysis.last_used_date).toLocaleDateString('ja-JP') : '-'}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">-</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">-</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">-</td>
+                  </>
+                )}
+                {/* 消耗品の場合 */}
+                {analysis.is_consumable && (
+                  <>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">-</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">-</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">-</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
+                      {analysis.current_inventory.toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
+                      ¥{Math.round(analysis.inventory_value).toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
+                      {Math.round(analysis.monthly_avg_consumption).toLocaleString()}
+                    </td>
+                  </>
+                )}
               </tr>
             ))}
           </tbody>

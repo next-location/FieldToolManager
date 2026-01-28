@@ -2,11 +2,17 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { trackContactPageView, trackContactFormSubmit } from '@/lib/analytics'
 
 export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
+
+  // ページ表示時にトラッキング
+  useEffect(() => {
+    trackContactPageView()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -36,6 +42,11 @@ export default function ContactPage() {
       if (response.ok) {
         setSubmitStatus('success')
         e.currentTarget.reset()
+
+        // GA4にコンバージョンイベント送信
+        trackContactFormSubmit({
+          inquiryType: data.inquiry_type as string,
+        })
       } else {
         setSubmitStatus('error')
       }

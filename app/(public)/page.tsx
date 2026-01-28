@@ -1,8 +1,44 @@
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
+import { useEffect, useRef } from 'react'
 import { Shield, Clock, Users, BarChart3, CheckCircle, QrCode, Package, Truck, FileText, ClipboardList, TrendingUp, UserCheck } from 'lucide-react'
+import { trackHomepageView, trackPricingPageView } from '@/lib/analytics'
 
 export default function LandingPage() {
+  const pricingSectionRef = useRef<HTMLElement>(null)
+  const hasPricingTracked = useRef(false)
+
+  // ページ表示時にトラッキング（FAX流入のUTMパラメータも自動検知）
+  useEffect(() => {
+    trackHomepageView()
+  }, [])
+
+  // 料金セクションがビューポートに入ったらトラッキング
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !hasPricingTracked.current) {
+            trackPricingPageView()
+            hasPricingTracked.current = true
+          }
+        })
+      },
+      { threshold: 0.3 } // 30%表示されたらトリガー
+    )
+
+    if (pricingSectionRef.current) {
+      observer.observe(pricingSectionRef.current)
+    }
+
+    return () => {
+      if (pricingSectionRef.current) {
+        observer.unobserve(pricingSectionRef.current)
+      }
+    }
+  }, [])
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* ヘッダー */}
@@ -333,7 +369,7 @@ export default function LandingPage() {
       </section>
 
       {/* 料金システム */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+      <section ref={pricingSectionRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
         <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-gray-900 mb-3 sm:mb-4">
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-400">料金システム</span>
         </h3>

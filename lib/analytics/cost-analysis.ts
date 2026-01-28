@@ -24,11 +24,17 @@ export interface ToolCostAnalysis {
   // 使用状況
   total_items: number // 個別アイテム数（道具の場合）
   current_inventory: number // 現在在庫数（消耗品の場合）
-  movement_count: number // 移動回数
+  movement_count: number // 移動回数（全ての移動）
 
-  // コスト効率
-  cost_per_movement: number | null // 移動あたりのコスト
-  cost_efficiency_score: number // 0-100のスコア
+  // 道具の指標
+  site_checkout_count: number // 現場持ち出し回数
+  site_checkout_unit_cost: number | null // 現場持ち出し単価
+  last_used_date: string | null // 最終使用日（最後に現場に持ち出した日）
+
+  // 消耗品の指標
+  inventory_value: number // 在庫金額
+  monthly_avg_consumption: number // 月平均消費量
+  inventory_days: number | null // 在庫日数
 }
 
 export interface CostAnalyticsReport {
@@ -157,14 +163,48 @@ export function analyzeCosts(
 
     const movementCount = filteredMovements.filter((m: any) => m.tool_id === tool.id).length
 
-    // コスト効率スコア計算
-    const costPerMovement = movementCount > 0 ? totalCost / movementCount : null
-    const costEfficiencyScore = calculateCostEfficiency(
-      totalCost,
-      movementCount,
-      isConsumable,
-      currentInventory
-    )
+    // 道具の指標計算
+    let siteCheckoutCount = 0
+    let siteCheckoutUnitCost: number | null = null
+    let lastUsedDate: string | null = null
+
+    if (!isConsumable) {
+      // 現場持ち出し回数（movement_type='checkout' かつ to_location.type='site'）
+      const siteCheckouts = filteredMovements.filter((m: any) =>
+        m.tool_id === tool.id &&
+        m.movement_type === 'checkout' &&
+        m.to_location?.type === 'site'
+      )
+      siteCheckoutCount = siteCheckouts.length
+      siteCheckoutUnitCost = siteCheckoutCount > 0 ? totalCost / siteCheckoutCount : null
+
+      // 最終使用日（最後に現場に持ち出した日）
+      if (siteCheckouts.length > 0) {
+        const sorted = siteCheckouts.sort((a, b) =>
+          new Date(b.moved_at).getTime() - new Date(a.moved_at).getTime()
+        )
+        lastUsedDate = sorted[0].moved_at
+      }
+    }
+
+    // 消耗品の指標計算
+    let inventoryValue = 0
+    let monthlyAvgConsumption = 0
+    let inventoryDays: number | null = null
+
+    if (isConsumable) {
+      // 在庫金額（加重平均単価 × 在庫数）
+      const weightedAvgPrice = averageUnitPrice || 0
+      inventoryValue = currentInventory * weightedAvgPrice
+
+      // 月平均消費量
+      const periodMonths = (periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24 * 30)
+      monthlyAvgConsumption = periodMonths > 0 ? totalOrderedQuantity / periodMonths : 0
+
+      // 在庫日数
+      const dailyConsumption = monthlyAvgConsumption / 30
+      inventoryDays = dailyConsumption > 0 ? currentInventory / dailyConsumption : null
+    }
 
     analyses.push({
       tool_id: tool.id,
@@ -181,8 +221,12 @@ export function analyzeCosts(
       total_items: totalItems,
       current_inventory: currentInventory,
       movement_count: movementCount,
-      cost_per_movement: costPerMovement,
-      cost_efficiency_score: costEfficiencyScore,
+      site_checkout_count: siteCheckoutCount,
+      site_checkout_unit_cost: siteCheckoutUnitCost,
+      last_used_date: lastUsedDate,
+      inventory_value: inventoryValue,
+      monthly_avg_consumption: monthlyAvgConsumption,
+      inventory_days: inventoryDays,
     })
   }
 
@@ -228,33 +272,3 @@ export function analyzeCosts(
   }
 }
 
-/**
- * コスト効率スコア計算（0-100）
- */
-function calculateCostEfficiency(
-  totalCost: number,
-  movementCount: number,
-  isConsumable: boolean,
-  currentInventory: number
-): number {
-  if (totalCost === 0) return 100
-
-  // 移動回数が多いほど効率が良い
-  let score = Math.min((movementCount / 100) * 100, 100)
-
-  // 消耗品の場合、在庫が適正範囲にあるかチェック
-  if (isConsumable) {
-    if (currentInventory === 0) {
-      score *= 0.5 // 在庫切れペナルティ
-    } else if (currentInventory > 1000) {
-      score *= 0.8 // 過剰在庫ペナルティ
-    }
-  }
-
-  // コストが高すぎる場合のペナルティ
-  if (totalCost > 1000000) {
-    score *= 0.7
-  }
-
-  return Math.max(0, Math.min(100, score))
-}

@@ -42,13 +42,17 @@ export default async function CostAnalyticsPage() {
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
 
-  // 移動履歴取得（過去1年）
+  // 移動履歴取得（過去1年、場所情報込み）
   const oneYearAgo = new Date()
   oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
 
   const { data: movements } = await supabase
     .from('tool_movements')
-    .select('*')
+    .select(`
+      *,
+      to_location:to_location_id(id, type, name),
+      from_location:from_location_id(id, type, name)
+    `)
     .eq('organization_id', organizationId)
     .gte('created_at', oneYearAgo.toISOString())
 
