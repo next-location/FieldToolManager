@@ -42,16 +42,8 @@ export default function SalesChart({ data }: SalesChartProps) {
             height={80}
           />
           <YAxis
-            yAxisId="left"
             tickFormatter={(value) => `${value}万円`}
             tick={{ fontSize: 12 }}
-          />
-          <YAxis
-            yAxisId="right"
-            orientation="right"
-            tickFormatter={(value) => `${value}%`}
-            tick={{ fontSize: 12 }}
-            domain={[0, 100]}
           />
           <Tooltip
             formatter={(value, name) => {
@@ -62,7 +54,6 @@ export default function SalesChart({ data }: SalesChartProps) {
           />
           <Legend />
           <Line
-            yAxisId="left"
             type="monotone"
             dataKey="売上額"
             stroke="#3B82F6"
@@ -71,7 +62,6 @@ export default function SalesChart({ data }: SalesChartProps) {
             activeDot={{ r: 6 }}
           />
           <Line
-            yAxisId="left"
             type="monotone"
             dataKey="入金額"
             stroke="#10B981"
@@ -80,13 +70,13 @@ export default function SalesChart({ data }: SalesChartProps) {
             activeDot={{ r: 6 }}
           />
           <Line
-            yAxisId="right"
             type="monotone"
             dataKey="回収率"
             stroke="#F59E0B"
             strokeWidth={2}
             dot={{ r: 4 }}
             activeDot={{ r: 6 }}
+            name="回収率 (%)"
           />
         </LineChart>
       </ResponsiveContainer>
