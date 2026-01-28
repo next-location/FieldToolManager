@@ -430,42 +430,27 @@ export default function ClientsStats() {
               </div>
 
               {/* 取引先構成グラフ */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">取引先構成</h3>
-                  <ResponsiveContainer width="100%" height={250}>
-                    <PieChart>
-                      <Pie
-                        data={typeData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {typeData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value: number | undefined) => `${value || 0}社`} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">評価分布</h3>
-                  <ResponsiveContainer width="100%" height={250}>
-                    <BarChart data={ratingData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="rating" />
-                      <YAxis />
-                      <Tooltip formatter={(value: number | undefined) => `${value || 0}社`} />
-                      <Bar dataKey="count" fill={COLORS.warning} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">取引先構成</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={typeData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {typeData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number | undefined) => `${value || 0}社`} />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
             </div>
           )}
@@ -513,7 +498,7 @@ export default function ClientsStats() {
 
               {/* 取引先ランキング */}
               <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">取引先TOP5</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">取引額TOP5（顧客）</h3>
                 <ResponsiveContainer width="100%" height={250}>
                   <BarChart data={stats.topClients} layout="horizontal">
                     <CartesianGrid strokeDasharray="3 3" />
@@ -762,32 +747,21 @@ export default function ClientsStats() {
               {/* コンプライアンスチェックリスト */}
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  コンプライアンスチェック項目
+                  インボイス対応確認状況
                 </h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                    <div className="flex items-center">
-                      <span className="text-green-600 mr-3">✓</span>
-                      <span className="text-sm text-gray-700">インボイス登録確認率</span>
+                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+                  <div className="flex items-center">
+                    <span className="text-blue-600 mr-3 text-2xl">📋</span>
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">インボイス登録確認率</div>
+                      <div className="text-xs text-gray-600 mt-1">
+                        登録事業者: {stats.invoiceRegistered}社 / 全体: {stats.total}社
+                      </div>
                     </div>
-                    <span className="text-sm font-bold text-green-600">
-                      {((stats.invoiceRegistered / stats.total) * 100).toFixed(1)}%
-                    </span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-                    <div className="flex items-center">
-                      <span className="text-yellow-600 mr-3">⚠</span>
-                      <span className="text-sm text-gray-700">与信限度額設定率</span>
-                    </div>
-                    <span className="text-sm font-bold text-yellow-600">45.0%</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                    <div className="flex items-center">
-                      <span className="text-red-600 mr-3">✗</span>
-                      <span className="text-sm text-gray-700">反社チェック完了率</span>
-                    </div>
-                    <span className="text-sm font-bold text-red-600">0.0%</span>
-                  </div>
+                  <span className="text-2xl font-bold text-blue-600">
+                    {stats.total > 0 ? ((stats.invoiceRegistered / stats.total) * 100).toFixed(1) : 0}%
+                  </span>
                 </div>
               </div>
             </div>

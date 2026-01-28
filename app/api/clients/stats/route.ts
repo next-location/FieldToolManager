@@ -156,6 +156,8 @@ export async function GET(request: Request) {
     }
 
     // 請求書データから月次売上を集計
+    // 注: billing_invoicesは「顧客への請求書」のため、売上のみ計算可能
+    // 仕入先への支払いデータは別テーブル（将来実装予定）
     invoices?.forEach((invoice) => {
       const date = new Date(invoice.invoice_date)
       const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
@@ -164,9 +166,8 @@ export async function GET(request: Request) {
         const client = clients.find((c) => c.id === invoice.client_id)
         if (client?.client_type === 'customer' || client?.client_type === 'both') {
           data.sales += Number(invoice.total_amount || 0)
-        } else if (client?.client_type === 'supplier') {
-          data.purchases += Number(invoice.total_amount || 0)
         }
+        // 仕入先への支払いは別テーブルから取得する必要があるため、現状は0
         data.profit = data.sales - data.purchases
       }
     })
