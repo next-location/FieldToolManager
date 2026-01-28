@@ -69,9 +69,33 @@ export function analyzeCosts(
 ): CostAnalyticsReport {
   const analyses: ToolCostAnalysis[] = []
 
+  // 期間内のデータのみにフィルタリング
+  const periodStartTime = periodStart.getTime()
+  const periodEndTime = periodEnd.getTime()
+
+  const filteredOrders = orders.filter((o: any) => {
+    if (!o.order_date) return true // 日付がない場合は含める
+    const orderTime = new Date(o.order_date).getTime()
+    return orderTime >= periodStartTime && orderTime <= periodEndTime
+  })
+
+  const filteredMovements = movements.filter((m: any) => {
+    if (!m.created_at) return true
+    const moveTime = new Date(m.created_at).getTime()
+    return moveTime >= periodStartTime && moveTime <= periodEndTime
+  })
+
+  const filteredMaintenanceRecords = maintenanceRecords.filter((m: any) => {
+    if (!m.created_at) return true
+    const recordTime = new Date(m.created_at).getTime()
+    return recordTime >= periodStartTime && recordTime <= periodEndTime
+  })
+
   // デバッグ：入力データ確認
+  console.log(`[Cost Analysis Debug] Period: ${periodStart.toISOString().split('T')[0]} - ${periodEnd.toISOString().split('T')[0]}`)
   console.log(`[Cost Analysis Debug] tools count: ${tools.length}`)
-  console.log(`[Cost Analysis Debug] orders count: ${orders.length}`)
+  console.log(`[Cost Analysis Debug] orders count: ${orders.length} -> filtered: ${filteredOrders.length}`)
+  console.log(`[Cost Analysis Debug] movements count: ${movements.length} -> filtered: ${filteredMovements.length}`)
   console.log(`[Cost Analysis Debug] toolItems count: ${toolItems.length}`)
 
   const consumableTools = tools.filter((t: any) => t.management_type === 'quantity')
@@ -79,8 +103,8 @@ export function analyzeCosts(
   if (consumableTools.length > 0) {
     console.log(`[Cost Analysis Debug] consumable tools:`, consumableTools.map((t: any) => ({ id: t.id, name: t.name, management_type: t.management_type })))
   }
-  if (orders.length > 0) {
-    console.log(`[Cost Analysis Debug] orders sample:`, orders.slice(0, 3).map((o: any) => ({ id: o.id, tool_id: o.tool_id, total_price: o.total_price })))
+  if (filteredOrders.length > 0) {
+    console.log(`[Cost Analysis Debug] orders sample:`, filteredOrders.slice(0, 3).map((o: any) => ({ id: o.id, tool_id: o.tool_id, total_price: o.total_price, order_date: o.order_date })))
   }
 
   for (const tool of tools) {
@@ -91,8 +115,8 @@ export function analyzeCosts(
     let purchasePrice = 0
 
     if (isConsumable) {
-      // 消耗品の場合：発注コストの合計
-      const toolOrders = orders.filter((o: any) => o.tool_id === tool.id)
+      // 消耗品の場合：発注コストの合計（期間フィルタ済み）
+      const toolOrders = filteredOrders.filter((o: any) => o.tool_id === tool.id)
       purchasePrice = toolOrders.reduce((sum: number, o: any) => sum + (o.total_price || 0), 0)
 
       // デバッグログ
@@ -114,16 +138,16 @@ export function analyzeCosts(
     let averageUnitPrice: number | null = null
 
     if (isConsumable) {
-      const toolOrders = orders.filter((o: any) => o.tool_id === tool.id)
+      const toolOrders = filteredOrders.filter((o: any) => o.tool_id === tool.id)
       totalOrderCost = toolOrders.reduce((sum: number, o: any) => sum + (o.total_price || 0), 0)
       totalOrderedQuantity = toolOrders.reduce((sum: number, o: any) => sum + o.quantity, 0)
       averageUnitPrice = totalOrderedQuantity > 0 ? totalOrderCost / totalOrderedQuantity : null
     }
 
-    // 点検・修理コスト計算（道具の場合）
+    // 点検・修理コスト計算（道具の場合、期間フィルタ済み）
     let totalMaintenanceCost = 0
     if (!isConsumable) {
-      const toolMaintenances = maintenanceRecords.filter((m: any) => {
+      const toolMaintenances = filteredMaintenanceRecords.filter((m: any) => {
         const toolItemIds = toolItems
           .filter((ti: any) => ti.tool_id === tool.id)
           .map((ti: any) => ti.id)
@@ -148,7 +172,7 @@ export function analyzeCosts(
           .reduce((sum: number, inv: any) => sum + inv.quantity, 0)
       : 0
 
-    const movementCount = movements.filter((m: any) => m.tool_id === tool.id).length
+    const movementCount = filteredMovements.filter((m: any) => m.tool_id === tool.id).length
 
     // コスト効率スコア計算
     const costPerMovement = movementCount > 0 ? totalCost / movementCount : null
