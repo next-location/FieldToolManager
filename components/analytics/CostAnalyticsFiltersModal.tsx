@@ -7,10 +7,10 @@ interface CostAnalyticsFiltersModalProps {
   onClose: () => void
   periodMonths: number
   filterType: 'all' | 'tool' | 'consumable'
-  sortBy: 'cost' | 'efficiency' | 'category'
+  sortBy: 'cost' | 'category'
   onPeriodChange: (value: number) => void
   onFilterTypeChange: (value: 'all' | 'tool' | 'consumable') => void
-  onSortByChange: (value: 'cost' | 'efficiency' | 'category') => void
+  onSortByChange: (value: 'cost' | 'category') => void
 }
 
 export default function CostAnalyticsFiltersModal({
@@ -109,7 +109,6 @@ export default function CostAnalyticsFiltersModal({
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="cost">コストが高い順</option>
-              <option value="efficiency">効率スコアが高い順</option>
               <option value="category">カテゴリ順</option>
             </select>
           </div>

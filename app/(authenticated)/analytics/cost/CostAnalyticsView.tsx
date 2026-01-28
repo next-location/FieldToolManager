@@ -24,7 +24,7 @@ export default function CostAnalyticsView({
   consumableInventory,
 }: Props) {
   const [periodMonths, setPeriodMonths] = useState(12)
-  const [sortBy, setSortBy] = useState<'cost' | 'efficiency' | 'category'>('cost')
+  const [sortBy, setSortBy] = useState<'cost' | 'category'>('cost')
   const [filterType, setFilterType] = useState<'all' | 'tool' | 'consumable'>('all')
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
 
@@ -69,8 +69,6 @@ export default function CostAnalyticsView({
     const sorted = filtered.sort((a, b) => {
       if (sortBy === 'cost') {
         return b.total_cost - a.total_cost
-      } else if (sortBy === 'efficiency') {
-        return b.cost_efficiency_score - a.cost_efficiency_score
       } else if (sortBy === 'category') {
         const categoryA = a.category_name || '未分類'
         const categoryB = b.category_name || '未分類'
@@ -84,7 +82,6 @@ export default function CostAnalyticsView({
       is_consumable: a.is_consumable,
       total_cost: a.total_cost,
       purchase_price: a.purchase_price,
-      efficiency: a.cost_efficiency_score
     })))
 
     return sorted
@@ -318,7 +315,6 @@ export default function CostAnalyticsView({
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
             >
               <option value="cost">コストが高い順</option>
-              <option value="efficiency">効率スコアが高い順</option>
               <option value="category">カテゴリ順</option>
             </select>
           </div>
@@ -461,22 +457,6 @@ export default function CostAnalyticsView({
                 <p className="font-medium text-gray-900">
                   {analysis.purchase_price ? `¥${analysis.purchase_price.toLocaleString()}` : '-'}
                 </p>
-              </div>
-              <div>
-                <span className="text-gray-500">効率スコア</span>
-                <div className="flex items-center gap-2 mt-1">
-                  <div
-                    className={`flex-1 h-2 rounded-full ${
-                      analysis.cost_efficiency_score >= 70
-                        ? 'bg-green-500'
-                        : analysis.cost_efficiency_score >= 40
-                          ? 'bg-yellow-500'
-                          : 'bg-red-500'
-                    }`}
-                    style={{ width: `${Math.max(20, analysis.cost_efficiency_score)}%` }}
-                  />
-                  <span className="text-xs font-medium">{analysis.cost_efficiency_score.toFixed(0)}</span>
-                </div>
               </div>
             </div>
           </div>
