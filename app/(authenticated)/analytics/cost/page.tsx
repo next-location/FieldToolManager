@@ -50,8 +50,8 @@ export default async function CostAnalyticsPage() {
     .from('tool_movements')
     .select(`
       *,
-      to_location:to_location_id(id, type, name),
-      from_location:from_location_id(id, type, name)
+      to_site:to_site_id(id, name),
+      from_site:from_site_id(id, name)
     `)
     .eq('organization_id', organizationId)
     .gte('created_at', oneYearAgo.toISOString())

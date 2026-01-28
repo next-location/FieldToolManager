@@ -169,21 +169,32 @@ export function analyzeCosts(
     let lastUsedDate: string | null = null
 
     if (!isConsumable) {
-      // 現場持ち出し回数（movement_type='checkout' かつ to_location.type='site'）
-      const siteCheckouts = filteredMovements.filter((m: any) =>
-        m.tool_id === tool.id &&
-        m.movement_type === 'checkout' &&
-        m.to_location?.type === 'site'
+      // 現場持ち出し回数（movement_type='check_out' かつ to_site_id が存在）
+      const toolMovements = filteredMovements.filter((m: any) => m.tool_id === tool.id)
+      console.log(`[Cost Analysis] Tool ${tool.name} movements:`, toolMovements.length)
+      if (toolMovements.length > 0) {
+        console.log('[Cost Analysis] Sample movement:', {
+          movement_type: toolMovements[0].movement_type,
+          to_site_id: toolMovements[0].to_site_id,
+          to_site: toolMovements[0].to_site,
+        })
+      }
+
+      const siteCheckouts = toolMovements.filter((m: any) =>
+        m.movement_type === 'check_out' &&
+        m.to_site_id != null
       )
+      console.log(`[Cost Analysis] Tool ${tool.name} site checkouts:`, siteCheckouts.length)
+
       siteCheckoutCount = siteCheckouts.length
       siteCheckoutUnitCost = siteCheckoutCount > 0 ? totalCost / siteCheckoutCount : null
 
       // 最終使用日（最後に現場に持ち出した日）
       if (siteCheckouts.length > 0) {
         const sorted = siteCheckouts.sort((a, b) =>
-          new Date(b.moved_at).getTime() - new Date(a.moved_at).getTime()
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         )
-        lastUsedDate = sorted[0].moved_at
+        lastUsedDate = sorted[0].created_at
       }
     }
 
