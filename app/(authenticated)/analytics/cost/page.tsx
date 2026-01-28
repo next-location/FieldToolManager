@@ -66,12 +66,6 @@ export default async function CostAnalyticsPage() {
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
 
-  // 点検記録取得（コスト情報付き）
-  const { data: maintenanceRecords } = await supabase
-    .from('tool_item_maintenance_records')
-    .select('*')
-    .eq('organization_id', organizationId)
-
   // 消耗品在庫取得
   const { data: consumableInventory } = await supabase
     .from('consumable_inventory')
@@ -91,7 +85,6 @@ export default async function CostAnalyticsPage() {
       movements={movements || []}
       consumableMovements={consumableMovements || []}
       orders={orders || []}
-      maintenanceRecords={maintenanceRecords || []}
       consumableInventory={consumableInventory || []}
     />
   )

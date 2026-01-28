@@ -62,7 +62,6 @@ export function analyzeCosts(
   toolItems: any[],
   movements: any[],
   orders: any[],
-  maintenanceRecords: any[],
   consumableInventory: any[],
   periodStart: Date,
   periodEnd: Date
@@ -83,12 +82,6 @@ export function analyzeCosts(
     if (!m.created_at) return true
     const moveTime = new Date(m.created_at).getTime()
     return moveTime >= periodStartTime && moveTime <= periodEndTime
-  })
-
-  const filteredMaintenanceRecords = maintenanceRecords.filter((m: any) => {
-    if (!m.created_at) return true
-    const recordTime = new Date(m.created_at).getTime()
-    return recordTime >= periodStartTime && recordTime <= periodEndTime
   })
 
   // デバッグ：入力データ確認
@@ -149,23 +142,8 @@ export function analyzeCosts(
       averageUnitPrice = totalOrderedQuantity > 0 ? totalOrderCost / totalOrderedQuantity : null
     }
 
-    // 点検・修理コスト計算（道具の場合、期間フィルタ済み）
-    let totalMaintenanceCost = 0
-    if (!isConsumable) {
-      const toolMaintenances = filteredMaintenanceRecords.filter((m: any) => {
-        const toolItemIds = toolItems
-          .filter((ti: any) => ti.tool_id === tool.id)
-          .map((ti: any) => ti.id)
-        return toolItemIds.includes(m.tool_item_id)
-      })
-      totalMaintenanceCost = toolMaintenances.reduce(
-        (sum: number, m: any) => sum + (m.cost || 0),
-        0
-      )
-    }
-
     // 総コスト計算
-    const totalCost = purchasePrice + totalMaintenanceCost
+    const totalCost = purchasePrice
 
     // 使用状況
     const toolItemsForTool = toolItems.filter((ti: any) => ti.tool_id === tool.id)
@@ -198,7 +176,7 @@ export function analyzeCosts(
       total_order_cost: totalOrderCost,
       total_ordered_quantity: totalOrderedQuantity,
       average_unit_price: averageUnitPrice,
-      total_maintenance_cost: totalMaintenanceCost,
+      total_maintenance_cost: 0,
       total_cost: totalCost,
       total_items: totalItems,
       current_inventory: currentInventory,

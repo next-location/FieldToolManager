@@ -12,7 +12,6 @@ interface Props {
   movements: any[]
   consumableMovements: any[]
   orders: any[]
-  maintenanceRecords: any[]
   consumableInventory: any[]
 }
 
@@ -22,7 +21,6 @@ export default function CostAnalyticsView({
   movements,
   consumableMovements,
   orders,
-  maintenanceRecords,
   consumableInventory,
 }: Props) {
   const [periodMonths, setPeriodMonths] = useState(12)
@@ -41,12 +39,11 @@ export default function CostAnalyticsView({
       toolItems,
       [...movements, ...consumableMovements],
       orders,
-      maintenanceRecords,
       consumableInventory,
       periodStart,
       today
     )
-  }, [tools, toolItems, movements, consumableMovements, orders, maintenanceRecords, consumableInventory, periodMonths])
+  }, [tools, toolItems, movements, consumableMovements, orders, consumableInventory, periodMonths])
 
   // フィルタリングとソート
   const filteredAndSorted = useMemo(() => {
@@ -101,7 +98,6 @@ export default function CostAnalyticsView({
       'カテゴリ',
       '購入価格',
       '発注コスト',
-      '点検・修理コスト',
       '総コスト',
       '移動回数',
       '移動あたりコスト',
@@ -114,7 +110,6 @@ export default function CostAnalyticsView({
       analysis.category_name || '未分類',
       analysis.purchase_price || 0,
       analysis.total_order_cost,
-      analysis.total_maintenance_cost,
       analysis.total_cost,
       analysis.movement_count,
       analysis.cost_per_movement?.toFixed(2) || '-',
@@ -349,9 +344,6 @@ export default function CostAnalyticsView({
                 発注
               </th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
-                点検
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
                 総コスト
               </th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider whitespace-nowrap">
@@ -387,9 +379,6 @@ export default function CostAnalyticsView({
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
                   ¥{analysis.total_order_cost.toLocaleString()}
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
-                  ¥{analysis.total_maintenance_cost.toLocaleString()}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
                   ¥{analysis.total_cost.toLocaleString()}
