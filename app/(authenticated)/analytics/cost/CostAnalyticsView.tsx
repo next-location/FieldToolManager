@@ -26,7 +26,7 @@ export default function CostAnalyticsView({
   consumableInventory,
 }: Props) {
   const [periodMonths, setPeriodMonths] = useState(12)
-  const [sortBy, setSortBy] = useState<'cost' | 'efficiency'>('cost')
+  const [sortBy, setSortBy] = useState<'cost' | 'efficiency' | 'category'>('cost')
   const [filterType, setFilterType] = useState<'all' | 'tool' | 'consumable'>('all')
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
 
@@ -72,9 +72,14 @@ export default function CostAnalyticsView({
     const sorted = filtered.sort((a, b) => {
       if (sortBy === 'cost') {
         return b.total_cost - a.total_cost
-      } else {
+      } else if (sortBy === 'efficiency') {
         return b.cost_efficiency_score - a.cost_efficiency_score
+      } else if (sortBy === 'category') {
+        const categoryA = a.category_name || '未分類'
+        const categoryB = b.category_name || '未分類'
+        return categoryA.localeCompare(categoryB, 'ja')
       }
+      return 0
     })
 
     console.log('[Cost View] Sorted result (first 3):', sorted.slice(0, 3).map(a => ({
@@ -317,6 +322,7 @@ export default function CostAnalyticsView({
             >
               <option value="cost">コストが高い順</option>
               <option value="efficiency">効率スコアが高い順</option>
+              <option value="category">カテゴリ順</option>
             </select>
           </div>
         </div>
