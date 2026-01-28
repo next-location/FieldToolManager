@@ -42,6 +42,7 @@ interface ClientStats {
     averageAmount: number
   }
   totalCreditLimit: number
+  creditUsed: number
   invoiceRegistered: number
   taxExempt: number
   monthlyData?: Array<{
@@ -819,12 +820,14 @@ export default function ClientsStats() {
                     <div className="flex justify-between items-center py-3 border-b border-gray-100">
                       <span className="text-sm text-gray-600">与信使用額</span>
                       <span className="text-lg font-bold text-orange-600">
-                        ¥{Math.round(stats.totalCreditLimit * 0.6).toLocaleString()}
+                        ¥{stats.creditUsed.toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between items-center py-3">
                       <span className="text-sm text-gray-600">使用率</span>
-                      <span className="text-lg font-bold text-green-600">60.0%</span>
+                      <span className={`text-lg font-bold ${stats.totalCreditLimit > 0 && (stats.creditUsed / stats.totalCreditLimit) > 0.8 ? 'text-red-600' : 'text-green-600'}`}>
+                        {stats.totalCreditLimit > 0 ? ((stats.creditUsed / stats.totalCreditLimit) * 100).toFixed(1) : 0}%
+                      </span>
                     </div>
                   </div>
                   <div className="mt-4 p-3 bg-blue-50 rounded-lg">

@@ -79,6 +79,19 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: '取引先情報の取得に失敗しました' }, { status: 500 })
     }
 
+    // 売掛金（未入金額）の計算用に全請求書を取得
+    const { data: allInvoices } = await supabase
+      .from('billing_invoices')
+      .select('total_amount, paid_amount')
+      .eq('organization_id', userData.organization_id)
+      .is('deleted_at', null)
+
+    // 売掛金（未入金額）の計算
+    const receivables = allInvoices?.reduce((sum, invoice) => {
+      const unpaidAmount = Number(invoice.total_amount || 0) - Number(invoice.paid_amount || 0)
+      return sum + (unpaidAmount > 0 ? unpaidAmount : 0)
+    }, 0) || 0
+
     // 統計計算
     const stats = {
       // 総取引先数
@@ -116,19 +129,20 @@ export async function GET(request: Request) {
         none: clients.filter((c) => c.rating === null).length,
       },
 
-      // 取引実績
+      // 取引実績（後でbilling_invoicesから集計して上書き）
       transactions: {
-        totalAmount: clients.reduce((sum, c) => sum + (c.total_transaction_amount || 0), 0),
-        totalCount: clients.reduce((sum, c) => sum + (c.transaction_count || 0), 0),
-        averageAmount: clients.length > 0
-          ? clients.reduce((sum, c) => sum + (c.total_transaction_amount || 0), 0) / clients.length
-          : 0,
+        totalAmount: 0,
+        totalCount: 0,
+        averageAmount: 0,
       },
 
       // 与信限度額の合計
       totalCreditLimit: clients
         .filter((c) => c.credit_limit !== null)
         .reduce((sum, c) => sum + (c.credit_limit || 0), 0),
+
+      // 与信使用額（売掛金）
+      creditUsed: receivables,
 
       // インボイス登録事業者数
       invoiceRegistered: clients.filter((c) => c.tax_registration_number !== null && c.tax_registration_number !== '').length,
@@ -140,7 +154,7 @@ export async function GET(request: Request) {
     // 月次取引データを取得（過去12ヶ月）
     const { data: invoices } = await supabase
       .from('billing_invoices')
-      .select('client_id, total_amount, invoice_date')
+      .select('client_id, total_amount, paid_amount, invoice_date')
       .eq('organization_id', userData.organization_id)
       .gte('invoice_date', new Date(now.getFullYear(), now.getMonth() - 11, 1).toISOString().split('T')[0])
       .order('invoice_date', { ascending: true })
@@ -226,6 +240,15 @@ export async function GET(request: Request) {
           type: client?.client_type || 'customer',
         }
       })
+
+    // 取引実績を実データで更新
+    stats.transactions = {
+      totalAmount: allInvoices?.reduce((sum, inv) => sum + Number(inv.total_amount || 0), 0) || 0,
+      totalCount: allInvoices?.length || 0,
+      averageAmount: allInvoices && allInvoices.length > 0
+        ? allInvoices.reduce((sum, inv) => sum + Number(inv.total_amount || 0), 0) / allInvoices.length
+        : 0,
+    }
 
     // 選択期間の集計データを計算
     const periodSummary = {
