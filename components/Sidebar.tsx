@@ -443,7 +443,14 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
               <button
                 onClick={() => toggleMenu('attendance')}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                  isActive('/attendance')
+                  (pathname === '/attendance/clock' ||
+                   pathname === '/attendance/my-records' ||
+                   pathname === '/attendance/records' ||
+                   pathname === '/attendance/leave' ||
+                   pathname === '/attendance/qr/leader' ||
+                   pathname === '/attendance/alerts' ||
+                   pathname === '/attendance/settings' ||
+                   pathname === '/attendance/terminals')
                     ? 'bg-blue-50 text-blue-700 font-medium'
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
