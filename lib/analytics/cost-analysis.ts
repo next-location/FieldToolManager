@@ -69,6 +69,20 @@ export function analyzeCosts(
 ): CostAnalyticsReport {
   const analyses: ToolCostAnalysis[] = []
 
+  // デバッグ：入力データ確認
+  console.log(`[Cost Analysis Debug] tools count: ${tools.length}`)
+  console.log(`[Cost Analysis Debug] orders count: ${orders.length}`)
+  console.log(`[Cost Analysis Debug] toolItems count: ${toolItems.length}`)
+
+  const consumableTools = tools.filter((t: any) => t.is_consumable)
+  console.log(`[Cost Analysis Debug] consumable tools count: ${consumableTools.length}`)
+  if (consumableTools.length > 0) {
+    console.log(`[Cost Analysis Debug] consumable tools:`, consumableTools.map((t: any) => ({ id: t.id, name: t.name, is_consumable: t.is_consumable })))
+  }
+  if (orders.length > 0) {
+    console.log(`[Cost Analysis Debug] orders sample:`, orders.slice(0, 3).map((o: any) => ({ id: o.id, tool_id: o.tool_id, total_price: o.total_price })))
+  }
+
   for (const tool of tools) {
     const isConsumable = tool.is_consumable || false
 
