@@ -226,66 +226,58 @@ export default function CostReportView({
         </div>
 
         {/* サマリーカード - PC */}
-        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           {/* 総重機数 */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
-                <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="bg-white rounded-lg shadow p-3 sm:p-4 lg:p-6 overflow-hidden">
+            <div className="flex items-center mb-2">
+              <div className="flex-shrink-0 bg-blue-100 rounded-md p-2">
+                <svg className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">総重機数</p>
-                <p className="text-2xl font-bold text-gray-900">{report.total_equipment_count}台</p>
-              </div>
             </div>
+            <p className="text-xs font-medium text-gray-500 mb-1 truncate">総重機数</p>
+            <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{report.total_equipment_count}台</p>
           </div>
 
           {/* 月額コスト */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-green-100 rounded-md p-3">
-                <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="bg-white rounded-lg shadow p-3 sm:p-4 lg:p-6 overflow-hidden">
+            <div className="flex items-center mb-2">
+              <div className="flex-shrink-0 bg-green-100 rounded-md p-2">
+                <svg className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">月額コスト</p>
-                <p className="text-2xl font-bold text-gray-900">{formatCurrency(report.total_monthly_cost)}</p>
-              </div>
             </div>
+            <p className="text-xs font-medium text-gray-500 mb-1 truncate">月額コスト</p>
+            <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 break-all">{formatCurrency(report.total_monthly_cost)}</p>
           </div>
 
           {/* 期間コスト */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
-                <svg className="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="bg-white rounded-lg shadow p-3 sm:p-4 lg:p-6 overflow-hidden">
+            <div className="flex items-center mb-2">
+              <div className="flex-shrink-0 bg-orange-100 rounded-md p-2">
+                <svg className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                 </svg>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">期間コスト</p>
-                <p className="text-2xl font-bold text-gray-900">{formatCurrency(report.total_annual_cost)}</p>
-              </div>
             </div>
+            <p className="text-xs font-medium text-gray-500 mb-1 truncate">期間コスト</p>
+            <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 break-all">{formatCurrency(report.total_annual_cost)}</p>
           </div>
 
           {/* 点検・修理費 */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-purple-100 rounded-md p-3">
-                <svg className="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="bg-white rounded-lg shadow p-3 sm:p-4 lg:p-6 overflow-hidden">
+            <div className="flex items-center mb-2">
+              <div className="flex-shrink-0 bg-purple-100 rounded-md p-2">
+                <svg className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
-              <div className="ml-4 min-w-0">
-                <p className="text-sm font-medium text-gray-500 whitespace-nowrap">期間メンテナンス費</p>
-                <p className="text-2xl font-bold text-gray-900">{formatCurrency(report.total_maintenance_cost)}</p>
-              </div>
             </div>
+            <p className="text-xs font-medium text-gray-500 mb-1 truncate">期間メンテナンス費</p>
+            <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 break-all">{formatCurrency(report.total_maintenance_cost)}</p>
           </div>
         </div>
 
