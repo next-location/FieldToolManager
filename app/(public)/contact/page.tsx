@@ -11,7 +11,12 @@ export default function ContactPage() {
 
   // ページ表示時にトラッキング
   useEffect(() => {
-    trackContactPageView()
+    // gtagが読み込まれるまで少し待つ
+    const timer = setTimeout(() => {
+      trackContactPageView()
+    }, 1000)
+
+    return () => clearTimeout(timer)
   }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
