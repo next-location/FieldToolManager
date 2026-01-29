@@ -89,7 +89,7 @@ export default async function AssetsAnalyticsPage() {
     .from('tools')
     .select(`*, categories:category_id(name)`)
     .eq('organization_id', organizationId)
-    .eq('is_consumable', true)
+    .eq('management_type', 'consumable')
     .is('deleted_at', null)
 
   console.log('[Assets Page] Consumables query result:', {
