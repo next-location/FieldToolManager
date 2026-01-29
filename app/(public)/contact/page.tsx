@@ -24,7 +24,8 @@ export default function ContactPage() {
     setIsSubmitting(true)
     setSubmitStatus('idle')
 
-    const formData = new FormData(e.currentTarget)
+    const form = e.currentTarget
+    const formData = new FormData(form)
     const data = {
       company: formData.get('company'),
       name: formData.get('name'),
@@ -46,7 +47,7 @@ export default function ContactPage() {
 
       if (response.ok) {
         setSubmitStatus('success')
-        e.currentTarget.reset()
+        form.reset()
 
         // GA4にコンバージョンイベント送信
         trackContactFormSubmit({
