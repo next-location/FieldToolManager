@@ -9,7 +9,7 @@ interface EquipmentAnalyticsPeriodModalProps {
   periodEnd: string
   onPeriodStartChange: (value: string) => void
   onPeriodEndChange: (value: string) => void
-  onReset: () => void
+  onSetPeriod: (months: number) => void
 }
 
 export default function EquipmentAnalyticsPeriodModal({
@@ -19,7 +19,7 @@ export default function EquipmentAnalyticsPeriodModal({
   periodEnd,
   onPeriodStartChange,
   onPeriodEndChange,
-  onReset,
+  onSetPeriod,
 }: EquipmentAnalyticsPeriodModalProps) {
   if (!isOpen) return null
 
@@ -82,12 +82,32 @@ export default function EquipmentAnalyticsPeriodModal({
 
             {/* プリセットボタン */}
             <div className="pt-2">
-              <button
-                onClick={onReset}
-                className="w-full px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 rounded-md hover:bg-blue-50"
-              >
-                過去3ヶ月（リセット）
-              </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => onSetPeriod(1)}
+                  className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 rounded-md hover:bg-blue-50"
+                >
+                  過去1ヶ月
+                </button>
+                <button
+                  onClick={() => onSetPeriod(3)}
+                  className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 rounded-md hover:bg-blue-50"
+                >
+                  過去3ヶ月
+                </button>
+                <button
+                  onClick={() => onSetPeriod(6)}
+                  className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 rounded-md hover:bg-blue-50"
+                >
+                  過去6ヶ月
+                </button>
+                <button
+                  onClick={() => onSetPeriod(12)}
+                  className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 rounded-md hover:bg-blue-50"
+                >
+                  過去1年
+                </button>
+              </div>
             </div>
           </div>
 
