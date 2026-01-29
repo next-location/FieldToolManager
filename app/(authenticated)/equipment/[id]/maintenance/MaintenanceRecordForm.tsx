@@ -166,7 +166,7 @@ export default function MaintenanceRecordForm({
 
       {/* 実施日 */}
       <div>
-        <label htmlFor="maintenance_date" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="maintenance_date" className="block text-sm font-medium text-gray-700 mb-2">
           実施日 <span className="text-red-500">*</span>
         </label>
         <input
@@ -176,13 +176,13 @@ export default function MaintenanceRecordForm({
           value={formData.maintenance_date}
           onChange={handleChange}
           required
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
         />
       </div>
 
       {/* 実施者 */}
       <div>
-        <label htmlFor="performed_by" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="performed_by" className="block text-sm font-medium text-gray-700 mb-2">
           実施者
         </label>
         <input
@@ -191,14 +191,14 @@ export default function MaintenanceRecordForm({
           name="performed_by"
           value={formData.performed_by}
           onChange={handleChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
           placeholder="例: 株式会社○○整備工場"
         />
       </div>
 
       {/* 費用 */}
       <div>
-        <label htmlFor="cost" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="cost" className="block text-sm font-medium text-gray-700 mb-2">
           費用（円）
         </label>
         <input
@@ -207,14 +207,14 @@ export default function MaintenanceRecordForm({
           name="cost"
           value={formData.cost}
           onChange={handleChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
           placeholder="例: 150000"
         />
       </div>
 
       {/* 次回予定日 */}
       <div>
-        <label htmlFor="next_date" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="next_date" className="block text-sm font-medium text-gray-700 mb-2">
           次回予定日
           {(formData.maintenance_type === 'vehicle_inspection' || formData.maintenance_type === 'insurance_renewal') && (
             <span className="ml-2 text-xs text-gray-500">
@@ -228,13 +228,13 @@ export default function MaintenanceRecordForm({
           name="next_date"
           value={formData.next_date}
           onChange={handleChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
         />
       </div>
 
       {/* 領収書URL */}
       <div>
-        <label htmlFor="receipt_url" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="receipt_url" className="block text-sm font-medium text-gray-700 mb-2">
           領収書URL
         </label>
         <input
@@ -243,7 +243,7 @@ export default function MaintenanceRecordForm({
           name="receipt_url"
           value={formData.receipt_url}
           onChange={handleChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
           placeholder="https://..."
         />
         <p className="mt-1 text-xs text-gray-500">
@@ -253,7 +253,7 @@ export default function MaintenanceRecordForm({
 
       {/* 報告書URL */}
       <div>
-        <label htmlFor="report_url" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="report_url" className="block text-sm font-medium text-gray-700 mb-2">
           報告書URL
         </label>
         <input
@@ -262,7 +262,7 @@ export default function MaintenanceRecordForm({
           name="report_url"
           value={formData.report_url}
           onChange={handleChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
           placeholder="https://..."
         />
         <p className="mt-1 text-xs text-gray-500">
@@ -272,7 +272,7 @@ export default function MaintenanceRecordForm({
 
       {/* 備考 */}
       <div>
-        <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
           備考
         </label>
         <textarea
@@ -281,7 +281,7 @@ export default function MaintenanceRecordForm({
           rows={4}
           value={formData.notes}
           onChange={handleChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
           placeholder="点検内容の詳細、交換部品、注意事項などを記入"
         />
       </div>
