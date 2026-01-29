@@ -125,8 +125,7 @@ export default function CostAnalyticsView({
   }
 
   return (
-    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 pb-6 sm:px-0 sm:py-6 space-y-6">
+    <div className="space-y-6">
       {/* ヘッダー */}
       <div className="mb-6">
         <div className="flex justify-between items-center">
@@ -517,7 +516,6 @@ export default function CostAnalyticsView({
         onFilterTypeChange={setFilterType}
         onSortByChange={setSortBy}
       />
-      </div>
     </div>
   )
 }
