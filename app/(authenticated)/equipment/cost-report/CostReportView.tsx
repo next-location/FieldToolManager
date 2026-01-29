@@ -108,8 +108,8 @@ export default function CostReportView({
 
         {/* ヘッダー */}
         <div className="mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <h1 className="text-lg sm:text-2xl font-bold text-gray-900">重機コストレポート</h1>
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-gray-600">重機のコスト状況と期間別集計</p>
             <div className="hidden sm:flex">
               <button
                 onClick={exportToCSV}
@@ -125,7 +125,6 @@ export default function CostReportView({
               <EquipmentCostReportMobileMenu onExport={exportToCSV} />
             </div>
           </div>
-          <p className="text-sm text-gray-600">重機のコスト状況と期間別集計</p>
         </div>
 
         {/* 期間選択 - Mobile */}

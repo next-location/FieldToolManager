@@ -129,8 +129,10 @@ export default function AnalyticsReportView({
 
         {/* ヘッダー */}
         <div className="mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <h1 className="text-lg sm:text-2xl font-bold text-gray-900">重機稼働率・分析レポート</h1>
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-gray-600">
+              重機の稼働状況と効率性の分析
+            </p>
             <div className="hidden sm:flex">
               <button
                 onClick={exportToCSV}
@@ -146,9 +148,6 @@ export default function AnalyticsReportView({
               <EquipmentAnalyticsMobileMenu onExport={exportToCSV} />
             </div>
           </div>
-          <p className="text-sm text-gray-600">
-            重機の稼働状況と効率性の分析
-          </p>
         </div>
 
         {/* 期間選択 - Mobile */}
