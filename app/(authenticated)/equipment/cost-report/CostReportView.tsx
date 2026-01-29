@@ -537,7 +537,7 @@ export default function CostReportView({
           periodEnd={periodEnd}
           onPeriodStartChange={setPeriodStart}
           onPeriodEndChange={setPeriodEnd}
-          onReset={handleResetPeriod}
+          onSetPeriod={handleSetPeriod}
         />
     </div>
   )
