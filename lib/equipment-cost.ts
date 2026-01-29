@@ -133,11 +133,14 @@ export function calculateLeaseCost(equipment: HeavyEquipment): {
  * 点検・修理コストの集計
  */
 export function calculateMaintenanceCost(
-  maintenanceRecords: HeavyEquipmentMaintenance[]
+  maintenanceRecords: HeavyEquipmentMaintenance[],
+  periodStart?: string,
+  periodEnd?: string
 ): {
   total: number;
   thisYear: number;
   thisMonth: number;
+  periodCost: number;
 } {
   const today = new Date();
   const thisYear = today.getFullYear();
@@ -146,17 +149,32 @@ export function calculateMaintenanceCost(
   let total = 0;
   let thisYearCost = 0;
   let thisMonthCost = 0;
+  let periodCost = 0;
+
+  // 期間フィルタ用の日付オブジェクト
+  const startDate = periodStart ? new Date(periodStart) : null;
+  const endDate = periodEnd ? new Date(periodEnd) : null;
 
   for (const record of maintenanceRecords) {
     const cost = record.cost || 0;
     total += cost;
 
     const recordDate = new Date(record.maintenance_date);
+
+    // 今年のコスト
     if (recordDate.getFullYear() === thisYear) {
       thisYearCost += cost;
 
+      // 今月のコスト
       if (recordDate.getMonth() === thisMonth) {
         thisMonthCost += cost;
+      }
+    }
+
+    // 期間内のコスト
+    if (startDate && endDate) {
+      if (recordDate >= startDate && recordDate <= endDate) {
+        periodCost += cost;
       }
     }
   }
@@ -165,6 +183,7 @@ export function calculateMaintenanceCost(
     total,
     thisYear: thisYearCost,
     thisMonth: thisMonthCost,
+    periodCost,
   };
 }
 
@@ -178,11 +197,27 @@ export function calculateMaintenanceCost(
 export function generateEquipmentCostSummary(
   equipment: HeavyEquipment,
   maintenanceRecords: HeavyEquipmentMaintenance[],
-  categoryCode?: string
+  categoryCode?: string,
+  periodStart?: string,
+  periodEnd?: string
 ): EquipmentCostSummary {
   const depreciation = calculateDepreciation(equipment, categoryCode);
   const leaseCost = calculateLeaseCost(equipment);
-  const maintenanceCost = calculateMaintenanceCost(maintenanceRecords);
+  const maintenanceCost = calculateMaintenanceCost(maintenanceRecords, periodStart, periodEnd);
+
+  // 期間内の月数を計算（リース・レンタルコスト用）
+  let periodMonths = 12; // デフォルトは年間
+  if (periodStart && periodEnd) {
+    const start = new Date(periodStart);
+    const end = new Date(periodEnd);
+    periodMonths = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30));
+  }
+
+  // 期間内のリース・レンタルコスト
+  let periodLeaseCost = 0;
+  if (equipment.ownership_type === 'leased' || equipment.ownership_type === 'rented') {
+    periodLeaseCost = (equipment.monthly_cost || 0) * periodMonths;
+  }
 
   // 今年の総コスト計算
   let totalCostThisYear = maintenanceCost.thisYear;
@@ -195,6 +230,11 @@ export function generateEquipmentCostSummary(
   if (equipment.ownership_type === 'leased' || equipment.ownership_type === 'rented') {
     totalCostThisMonth += equipment.monthly_cost || 0;
   }
+
+  // 期間内の総コスト（期間指定がある場合）
+  const totalCostForPeriod = periodStart && periodEnd
+    ? periodLeaseCost + maintenanceCost.periodCost
+    : totalCostThisYear;
 
   return {
     equipment_id: equipment.id,
@@ -216,11 +256,11 @@ export function generateEquipmentCostSummary(
 
     // 点検・修理コスト
     maintenance_cost_total: maintenanceCost.total,
-    maintenance_cost_this_year: maintenanceCost.thisYear,
+    maintenance_cost_this_year: maintenanceCost.periodCost || maintenanceCost.thisYear,
     maintenance_cost_this_month: maintenanceCost.thisMonth,
 
-    // 総コスト
-    total_cost_this_year: totalCostThisYear,
+    // 総コスト（期間指定がある場合は期間内のコスト、なければ今年のコスト）
+    total_cost_this_year: totalCostForPeriod,
     total_cost_this_month: totalCostThisMonth,
   };
 }
@@ -252,7 +292,7 @@ export function generateCostReport(
 
   for (const equipment of equipmentList) {
     const maintenanceRecords = maintenanceRecordsMap[equipment.id] || [];
-    const summary = generateEquipmentCostSummary(equipment, maintenanceRecords);
+    const summary = generateEquipmentCostSummary(equipment, maintenanceRecords, undefined, periodStart, periodEnd);
     equipmentDetails.push(summary);
 
     // 所有形態別集計
