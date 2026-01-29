@@ -4,9 +4,9 @@ interface MaintenanceFiltersModalProps {
   isOpen: boolean
   onClose: () => void
   selectedType: string
-  sortBy: string
+  sortBy: 'date' | 'cost'
   onTypeChange: (value: string) => void
-  onSortChange: (value: string) => void
+  onSortChange: (value: 'date' | 'cost') => void
   onReset: () => void
 }
 
@@ -83,7 +83,7 @@ export default function MaintenanceFiltersModal({
                 </label>
                 <select
                   value={sortBy}
-                  onChange={(e) => onSortChange(e.target.value)}
+                  onChange={(e) => onSortChange(e.target.value as 'date' | 'cost')}
                   className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
                 >
                   <option value="date">実施日順</option>
