@@ -93,11 +93,11 @@ export default function CostReportView({
     document.body.removeChild(link)
   }
 
-  const handleResetPeriod = () => {
+  const handleSetPeriod = (months: number) => {
     const today = new Date()
-    const threeMonthsAgo = new Date(today)
-    threeMonthsAgo.setMonth(today.getMonth() - 3)
-    setPeriodStart(threeMonthsAgo.toISOString().split('T')[0])
+    const startDate = new Date(today)
+    startDate.setMonth(today.getMonth() - months)
+    setPeriodStart(startDate.toISOString().split('T')[0])
     setPeriodEnd(today.toISOString().split('T')[0])
   }
 
@@ -144,35 +144,55 @@ export default function CostReportView({
         {/* 期間選択 - PC */}
         <div className="hidden sm:block bg-white shadow rounded-lg p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">期間設定</h2>
-          <div className="flex items-end space-x-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                開始日
-              </label>
-              <input
-                type="date"
-                value={periodStart}
-                onChange={(e) => setPeriodStart(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-              />
+          <div className="flex flex-col gap-4">
+            <div className="flex items-end space-x-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  開始日
+                </label>
+                <input
+                  type="date"
+                  value={periodStart}
+                  onChange={(e) => setPeriodStart(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  終了日
+                </label>
+                <input
+                  type="date"
+                  value={periodEnd}
+                  onChange={(e) => setPeriodEnd(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                終了日
-              </label>
-              <input
-                type="date"
-                value={periodEnd}
-                onChange={(e) => setPeriodEnd(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-              />
-            </div>
-            <div>
+            <div className="flex flex-wrap gap-2">
               <button
-                onClick={handleResetPeriod}
+                onClick={() => handleSetPeriod(1)}
+                className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 rounded-md hover:bg-blue-50"
+              >
+                過去1ヶ月
+              </button>
+              <button
+                onClick={() => handleSetPeriod(3)}
                 className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 rounded-md hover:bg-blue-50"
               >
                 過去3ヶ月
+              </button>
+              <button
+                onClick={() => handleSetPeriod(6)}
+                className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 rounded-md hover:bg-blue-50"
+              >
+                過去6ヶ月
+              </button>
+              <button
+                onClick={() => handleSetPeriod(12)}
+                className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 rounded-md hover:bg-blue-50"
+              >
+                過去1年
               </button>
             </div>
           </div>
@@ -261,8 +281,8 @@ export default function CostReportView({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">期間点検・修理費</p>
+              <div className="ml-4 min-w-0">
+                <p className="text-sm font-medium text-gray-500 whitespace-nowrap">期間メンテナンス費</p>
                 <p className="text-2xl font-bold text-gray-900">{formatCurrency(report.total_maintenance_cost)}</p>
               </div>
             </div>
