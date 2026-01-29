@@ -277,12 +277,23 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                     href="/equipment"
                     onClick={onClose}
                     className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                      pathname === '/equipment' || (pathname?.startsWith('/equipment/') && !pathname?.startsWith('/equipment/cost-report') && !pathname?.startsWith('/equipment/analytics') && !pathname?.startsWith('/equipment/movement'))
+                      pathname === '/equipment' || (pathname?.startsWith('/equipment/') && !pathname?.startsWith('/equipment/cost-report') && !pathname?.startsWith('/equipment/analytics') && !pathname?.startsWith('/equipment/movement') && !pathname?.startsWith('/equipment/maintenance-records'))
                         ? 'bg-blue-50 text-blue-700 font-medium'
                         : 'text-gray-600 hover:bg-gray-50'
                     }`}
                   >
                     重機一覧
+                  </Link>
+                  <Link
+                    href="/equipment/maintenance-records"
+                    onClick={onClose}
+                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                      pathname === '/equipment/maintenance-records' || pathname?.startsWith('/equipment/maintenance-records/')
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    点検記録一覧
                   </Link>
                 </div>
               )}

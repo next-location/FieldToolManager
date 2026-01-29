@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
-import { rateLimiters, getClientIp, rateLimitResponse } from '@/lib/security/rate-limiter'
+import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/security/rate-limiter-supabase'
 import { escapeHtml, nl2br, isValidEmail, isValidPhone, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
@@ -9,12 +9,14 @@ export async function POST(request: NextRequest) {
   try {
     // レート制限チェック（5分間に3回まで）
     const clientIp = getClientIp(request)
+    const rateLimitResult = await checkRateLimit(clientIp, 3, 300000, 600000)
 
-    if (!rateLimiters.contact.check(clientIp)) {
-      const resetTime = rateLimiters.contact.getResetTime(clientIp)
-      console.warn(`[Contact Form] Rate limit exceeded from IP: ${clientIp}`)
-      return rateLimitResponse(resetTime)
+    if (!rateLimitResult.allowed) {
+      console.warn(`[Contact Form] Rate limit exceeded from IP: ${clientIp}, remaining: ${rateLimitResult.remaining}`)
+      return rateLimitResponse(rateLimitResult.resetAt)
     }
+
+    console.log(`[Contact Form] Rate limit check passed: IP=${clientIp}, remaining=${rateLimitResult.remaining}`)
 
     const body = await request.json()
     const { company, name, email, phone, employees, inquiry_type, message } = body
