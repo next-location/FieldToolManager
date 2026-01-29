@@ -55,11 +55,10 @@ export default async function CostReportPage() {
     }
   }
 
-  // デフォルト期間: 過去3ヶ月
+  // デフォルト期間: 当月1日から今日まで
   const today = new Date()
-  const threeMonthsAgo = new Date(today)
-  threeMonthsAgo.setMonth(today.getMonth() - 3)
-  const defaultPeriodStart = threeMonthsAgo.toISOString().split('T')[0]
+  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+  const defaultPeriodStart = firstDayOfMonth.toISOString().split('T')[0]
   const defaultPeriodEnd = today.toISOString().split('T')[0]
 
   return (
