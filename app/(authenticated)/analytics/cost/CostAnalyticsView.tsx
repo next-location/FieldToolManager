@@ -129,8 +129,10 @@ export default function CostAnalyticsView({
       <div className="px-4 pb-6 sm:px-0 sm:py-6 space-y-6">
       {/* ヘッダー */}
       <div className="mb-6">
-        <div className="flex justify-between items-center mb-2">
-          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">コスト分析レポート</h1>
+        <div className="flex justify-between items-center">
+          <p className="text-sm text-gray-600">
+            道具・消耗品のコスト分析と効率評価
+          </p>
           <div className="hidden sm:flex">
             <button
               onClick={exportToCSV}
@@ -151,9 +153,6 @@ export default function CostAnalyticsView({
             <CostAnalyticsPageMobileMenu onExport={exportToCSV} />
           </div>
         </div>
-        <p className="text-sm text-gray-600">
-          道具・消耗品のコスト分析と効率評価
-        </p>
       </div>
 
       {/* 統計カード */}

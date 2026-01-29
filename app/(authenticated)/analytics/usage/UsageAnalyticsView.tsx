@@ -123,8 +123,10 @@ export default function UsageAnalyticsView({ tools, movements, sites, users }: P
       <div className="px-4 pb-6 sm:px-0 sm:py-6 space-y-6">
       {/* ヘッダー */}
       <div className="mb-6">
-        <div className="flex justify-between items-center mb-2">
-          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">使用頻度分析</h1>
+        <div className="flex justify-between items-center">
+          <p className="text-sm text-gray-600">
+            道具・消耗品の使用パターンと利用状況を分析
+          </p>
           <div className="hidden sm:flex">
             <button
               onClick={exportToCSV}
@@ -145,9 +147,6 @@ export default function UsageAnalyticsView({ tools, movements, sites, users }: P
             <UsageAnalyticsPageMobileMenu onExport={exportToCSV} />
           </div>
         </div>
-        <p className="text-sm text-gray-600">
-          道具・消耗品の使用パターンと利用状況を分析
-        </p>
       </div>
 
       {/* 統計カード */}
