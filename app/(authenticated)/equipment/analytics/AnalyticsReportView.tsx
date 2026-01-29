@@ -250,67 +250,59 @@ export default function AnalyticsReportView({
         </div>
 
         {/* サマリーカード - PC */}
-        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
           {/* 平均稼働率 */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
-                <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="bg-white rounded-lg shadow p-3 sm:p-4 lg:p-6 overflow-hidden">
+            <div className="flex items-center mb-2">
+              <div className="flex-shrink-0 bg-blue-100 rounded-md p-2">
+                <svg className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">平均稼働率</p>
-                <p className="text-2xl font-bold text-gray-900">{report.average_operation_rate}%</p>
-              </div>
             </div>
+            <p className="text-xs font-medium text-gray-500 mb-1 truncate">平均稼働率</p>
+            <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{report.average_operation_rate}%</p>
           </div>
 
           {/* 高稼働率 */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-green-100 rounded-md p-3">
-                <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="bg-white rounded-lg shadow p-3 sm:p-4 lg:p-6 overflow-hidden">
+            <div className="flex items-center mb-2">
+              <div className="flex-shrink-0 bg-green-100 rounded-md p-2">
+                <svg className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">高稼働率重機</p>
-                <p className="text-2xl font-bold text-gray-900">{report.high_performers_count}台</p>
-                <p className="text-xs text-gray-500">稼働率80%以上</p>
-              </div>
             </div>
+            <p className="text-xs font-medium text-gray-500 mb-1 truncate">高稼働率重機</p>
+            <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{report.high_performers_count}台</p>
+            <p className="text-xs text-gray-500 truncate">稼働率80%以上</p>
           </div>
 
           {/* 低稼働率 */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-red-100 rounded-md p-3">
-                <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="bg-white rounded-lg shadow p-3 sm:p-4 lg:p-6 overflow-hidden">
+            <div className="flex items-center mb-2">
+              <div className="flex-shrink-0 bg-red-100 rounded-md p-2">
+                <svg className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">低稼働率重機</p>
-                <p className="text-2xl font-bold text-gray-900">{report.low_performers_count}台</p>
-                <p className="text-xs text-gray-500">稼働率30%以下</p>
-              </div>
             </div>
+            <p className="text-xs font-medium text-gray-500 mb-1 truncate">低稼働率重機</p>
+            <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{report.low_performers_count}台</p>
+            <p className="text-xs text-gray-500 truncate">稼働率30%以下</p>
           </div>
 
           {/* 総重機数 */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-purple-100 rounded-md p-3">
-                <svg className="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="bg-white rounded-lg shadow p-3 sm:p-4 lg:p-6 overflow-hidden">
+            <div className="flex items-center mb-2">
+              <div className="flex-shrink-0 bg-purple-100 rounded-md p-2">
+                <svg className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">総重機数</p>
-                <p className="text-2xl font-bold text-gray-900">{report.total_equipment_count}台</p>
-              </div>
             </div>
+            <p className="text-xs font-medium text-gray-500 mb-1 truncate">総重機数</p>
+            <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{report.total_equipment_count}台</p>
           </div>
         </div>
 
@@ -323,7 +315,10 @@ export default function AnalyticsReportView({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* 自社所有 */}
               <div className="border border-gray-200 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-gray-700 mb-2">自社所有</h3>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-medium text-gray-700">自社所有</h3>
+                  <span className="text-sm font-medium text-blue-600">{report.owned_count}台</span>
+                </div>
                 <p className="text-3xl font-bold text-blue-600">
                   {report.owned_avg_operation_rate}%
                 </p>
@@ -332,7 +327,10 @@ export default function AnalyticsReportView({
 
               {/* リース */}
               <div className="border border-gray-200 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-gray-700 mb-2">リース</h3>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-medium text-gray-700">リース</h3>
+                  <span className="text-sm font-medium text-green-600">{report.leased_count}台</span>
+                </div>
                 <p className="text-3xl font-bold text-green-600">
                   {report.leased_avg_operation_rate}%
                 </p>
@@ -341,7 +339,10 @@ export default function AnalyticsReportView({
 
               {/* レンタル */}
               <div className="border border-gray-200 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-gray-700 mb-2">レンタル</h3>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-medium text-gray-700">レンタル</h3>
+                  <span className="text-sm font-medium text-orange-600">{report.rented_count}台</span>
+                </div>
                 <p className="text-3xl font-bold text-orange-600">
                   {report.rented_avg_operation_rate}%
                 </p>

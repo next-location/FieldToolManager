@@ -276,10 +276,13 @@ export function generateAnalyticsReport(
     high_performers_count: highPerformersCount,
     low_performers_count: lowPerformersCount,
 
+    owned_count: ownedCount,
     owned_avg_operation_rate:
       ownedCount > 0 ? Math.round((ownedTotalRate / ownedCount) * 10) / 10 : 0,
+    leased_count: leasedCount,
     leased_avg_operation_rate:
       leasedCount > 0 ? Math.round((leasedTotalRate / leasedCount) * 10) / 10 : 0,
+    rented_count: rentedCount,
     rented_avg_operation_rate:
       rentedCount > 0 ? Math.round((rentedTotalRate / rentedCount) * 10) / 10 : 0,
 

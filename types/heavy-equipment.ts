@@ -346,8 +346,11 @@ export interface AnalyticsReport {
   low_performers_count: number;  // 稼働率30%以下
 
   // 所有形態別分析
+  owned_count: number;
   owned_avg_operation_rate: number;
+  leased_count: number;
   leased_avg_operation_rate: number;
+  rented_count: number;
   rented_avg_operation_rate: number;
 
   // 詳細データ
