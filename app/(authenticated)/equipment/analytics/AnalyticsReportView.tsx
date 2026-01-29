@@ -397,28 +397,28 @@ export default function AnalyticsReportView({
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 whitespace-nowrap">
                     重機コード
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 whitespace-nowrap">
                     重機名
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 whitespace-nowrap">
                     所有形態
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 lg:px-6 py-3 text-right text-xs font-medium text-gray-500 whitespace-nowrap">
                     稼働日数
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 lg:px-6 py-3 text-right text-xs font-medium text-gray-500 whitespace-nowrap">
                     稼働率
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 lg:px-6 py-3 text-right text-xs font-medium text-gray-500 whitespace-nowrap">
                     使用回数
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 lg:px-6 py-3 text-right text-xs font-medium text-gray-500 whitespace-nowrap">
                     効率スコア
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 lg:px-6 py-3 text-right text-xs font-medium text-gray-500 whitespace-nowrap">
                     アクション
                   </th>
                 </tr>
@@ -426,13 +426,13 @@ export default function AnalyticsReportView({
               <tbody className="bg-white divide-y divide-gray-200">
                 {sortedAnalytics.map((analysis) => (
                   <tr key={analysis.equipment_id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {analysis.equipment_code}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {analysis.equipment_name}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <span
                         className={`px-2 py-1 text-xs font-semibold rounded ${
                           analysis.ownership_type === 'owned'
@@ -445,19 +445,19 @@ export default function AnalyticsReportView({
                         {getOwnershipTypeLabel(analysis.ownership_type)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                       {analysis.operation_days} / {analysis.total_days}日
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-bold text-right ${getOperationRateColor(analysis.operation_rate)}`}>
+                    <td className={`px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-bold text-right ${getOperationRateColor(analysis.operation_rate)}`}>
                       {analysis.operation_rate}%
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                       {analysis.total_usage_count}回
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
                       {analysis.cost_efficiency_score}点
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <Link
                         href={`/equipment/${analysis.equipment_id}`}
                         className="text-blue-600 hover:text-blue-900"
