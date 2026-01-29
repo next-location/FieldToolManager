@@ -835,7 +835,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                       }`}
                     >
                       <span className="flex items-center justify-between">
-                        <span>📈 経営ダッシュボード</span>
+                        <span>経営ダッシュボード</span>
                         <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                       </span>
                     </Link>
@@ -853,7 +853,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                       }`}
                     >
                       <span className="flex items-center justify-between">
-                        <span>🔧 資産管理分析</span>
+                        <span>資産管理分析</span>
                         <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                       </span>
                     </Link>
@@ -871,7 +871,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
                       }`}
                     >
                       <span className="flex items-center justify-between">
-                        <span>🚜 重機管理分析</span>
+                        <span>重機管理分析</span>
                         <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                       </span>
                     </Link>
