@@ -341,7 +341,7 @@ export default function EquipmentDetailTabs({
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             } flex-1 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
           >
-            点検記録 ({maintenanceRecords.length})
+            修理・点検記録 ({maintenanceRecords.length})
           </button>
           {isLeaderOrAdmin && (
             <button
@@ -562,7 +562,7 @@ export default function EquipmentDetailTabs({
         {activeTab === 'maintenance' && (
           <div className="px-4 py-5 sm:px-6">
             <div className="flex justify-between items-center mb-4">
-              <h4 className="text-sm font-medium text-gray-900">点検記録一覧</h4>
+              <h4 className="text-sm font-medium text-gray-900">修理・点検記録一覧</h4>
               <Link
                 href={`/equipment/${equipment.id}/maintenance`}
                 className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
@@ -570,7 +570,7 @@ export default function EquipmentDetailTabs({
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                点検記録追加
+                修理・点検記録追加
               </Link>
             </div>
             {maintenanceRecords.length > 0 ? (
@@ -599,7 +599,7 @@ export default function EquipmentDetailTabs({
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500 text-center py-8">点検記録はまだありません</p>
+              <p className="text-sm text-gray-500 text-center py-8">修理・点検記録はまだありません</p>
             )}
           </div>
         )}
@@ -746,7 +746,7 @@ export default function EquipmentDetailTabs({
 
                 {maintenanceRecords.length > 0 && (
                   <div className="mt-4">
-                    <h5 className="text-sm font-medium text-gray-700 mb-2">最近の点検記録（費用あり）</h5>
+                    <h5 className="text-sm font-medium text-gray-700 mb-2">最近の修理・点検記録（費用あり）</h5>
                     <div className="space-y-2">
                       {maintenanceRecords
                         .filter((r) => r.cost && r.cost > 0)
