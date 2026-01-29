@@ -22,6 +22,8 @@ interface InventoryOptimizationViewProps {
 }
 
 export default function InventoryOptimizationView({ report }: InventoryOptimizationViewProps) {
+  console.log('[Inventory Optimization View] Received report:', report)
+  console.log('[Inventory Optimization View] Optimizations count:', report.optimizations?.length || 0)
 
   const getStatusColor = (status: string) => {
     switch (status) {

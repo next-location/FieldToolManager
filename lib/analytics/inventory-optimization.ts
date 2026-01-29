@@ -53,6 +53,12 @@ export async function analyzeInventoryOptimization(
   periodStart: Date,
   periodEnd: Date
 ): Promise<InventoryOptimizationReport> {
+  console.log('[Inventory Optimization] Starting analysis...')
+  console.log('[Inventory Optimization] Consumable tools count:', consumableTools.length)
+  console.log('[Inventory Optimization] Inventory records count:', inventory.length)
+  console.log('[Inventory Optimization] Movements count:', movements.length)
+  console.log('[Inventory Optimization] Period:', periodStart, 'to', periodEnd)
+
   const optimizations: InventoryOptimization[] = []
 
   const monthsDiff = Math.ceil(
@@ -60,6 +66,7 @@ export async function analyzeInventoryOptimization(
   )
 
   for (const tool of consumableTools) {
+    console.log(`[Inventory Optimization] Processing tool: ${tool.name} (${tool.id})`)
     // 在庫情報取得
     const toolInventory = inventory.filter((inv: any) => inv.tool_id === tool.id)
     const warehouseInv = toolInventory
@@ -81,6 +88,7 @@ export async function analyzeInventoryOptimization(
         m.movement_type === '出庫' ||
         (m.from_location_type === 'warehouse' && m.to_location_type === 'site')
     )
+    console.log(`[Inventory Optimization] Tool movements: ${toolMovements.length}, Outbound: ${outboundMovements.length}`)
 
     // 月ごとの使用量を計算
     const monthlyUsage: number[] = []
@@ -141,7 +149,7 @@ export async function analyzeInventoryOptimization(
       actionNeeded = '過剰在庫 - 使用を促進してください'
     }
 
-    optimizations.push({
+    const optimization = {
       tool_id: tool.id,
       tool_name: tool.name,
       category_name: tool.category_name || null,
@@ -157,8 +165,17 @@ export async function analyzeInventoryOptimization(
       status,
       days_until_stockout: daysUntilStockout,
       action_needed: actionNeeded,
+    }
+    console.log(`[Inventory Optimization] Result for ${tool.name}:`, {
+      currentInventory,
+      averageUsagePerMonth,
+      status,
+      recommendedMinStock
     })
+    optimizations.push(optimization)
   }
+
+  console.log('[Inventory Optimization] Total optimizations generated:', optimizations.length)
 
   // 全体統計
   const totalConsumables = optimizations.length
@@ -167,7 +184,7 @@ export async function analyzeInventoryOptimization(
   const excessStockCount = optimizations.filter((o) => o.status === 'excess').length
   const outOfStockCount = optimizations.filter((o) => o.status === 'out_of_stock').length
 
-  return {
+  const report = {
     period_start: periodStart.toISOString(),
     period_end: periodEnd.toISOString(),
     total_consumables: totalConsumables,
@@ -177,4 +194,14 @@ export async function analyzeInventoryOptimization(
     out_of_stock_count: outOfStockCount,
     optimizations,
   }
+
+  console.log('[Inventory Optimization] Final report:', {
+    total_consumables: totalConsumables,
+    optimal_stock_count: optimalStockCount,
+    low_stock_count: lowStockCount,
+    excess_stock_count: excessStockCount,
+    out_of_stock_count: outOfStockCount,
+  })
+
+  return report
 }
