@@ -63,6 +63,7 @@ export default async function EquipmentMaintenancePage({
               equipmentId={id}
               equipmentName={equipment.name}
               currentUserName={userData?.name || ''}
+              organizationId={organizationId}
             />
           </div>
         </div>

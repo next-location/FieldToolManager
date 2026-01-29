@@ -16,11 +16,15 @@ export async function GET(request: Request) {
     .from('system_settings')
     .select('value')
     .eq('key', 'security_settings')
-    .single()
+    .maybeSingle()
 
-  if (error) {
-    console.error('[SECURITY SETTINGS API] Error:', error)
-    // デフォルト設定を返す
+  // データが存在しないか、エラーの場合はデフォルト設定を返す
+  if (error || !data) {
+    if (error) {
+      console.error('[SECURITY SETTINGS API] Error:', error)
+    } else {
+      console.log('[SECURITY SETTINGS API] No settings found, using defaults')
+    }
     return NextResponse.json({
       sessionTimeoutMinutes: 30,
       loginAttemptLimit: 5,

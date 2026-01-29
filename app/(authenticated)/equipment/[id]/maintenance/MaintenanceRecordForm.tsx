@@ -8,12 +8,14 @@ interface MaintenanceRecordFormProps {
   equipmentId: string
   equipmentName: string
   currentUserName: string
+  organizationId: string
 }
 
 export default function MaintenanceRecordForm({
   equipmentId,
   equipmentName,
   currentUserName,
+  organizationId,
 }: MaintenanceRecordFormProps) {
   const router = useRouter()
   const supabase = createClient()
@@ -51,6 +53,7 @@ export default function MaintenanceRecordForm({
 
       // 点検記録を作成
       const maintenanceData = {
+        organization_id: organizationId,
         equipment_id: equipmentId,
         maintenance_type: formData.maintenance_type,
         maintenance_date: formData.maintenance_date,
@@ -66,7 +69,13 @@ export default function MaintenanceRecordForm({
         .from('heavy_equipment_maintenance')
         .insert(maintenanceData)
 
-      if (insertError) throw insertError
+      if (insertError) {
+        // エラーメッセージを日本語化
+        if (insertError.code === '42501') {
+          throw new Error('点検記録の登録権限がありません。管理者またはリーダー権限が必要です。')
+        }
+        throw new Error(insertError.message || '点検記録の登録に失敗しました')
+      }
 
       // 車検または保険更新の場合、重機マスタの日付を更新
       if (formData.maintenance_type === 'vehicle_inspection' && formData.next_date) {
