@@ -57,11 +57,74 @@ COMMENT ON COLUMN rate_limits.blocked_until IS 'ブロック解除時刻（null�
 
 「Success. No rows returned」と表示されればOK
 
+### 1-4. SQLで作成を確認（推奨）
+
+同じSQL Editorで以下のSQLを実行してテーブルが正しく作成されたか確認：
+
+```sql
+-- rate_limits テーブルの存在確認
+SELECT
+  CASE
+    WHEN EXISTS (
+      SELECT FROM information_schema.tables
+      WHERE table_schema = 'public'
+      AND table_name = 'rate_limits'
+    )
+    THEN '✅ rate_limits テーブルは正常に作成されました'
+    ELSE '❌ テーブルが見つかりません。手順1-2のSQLを再実行してください'
+  END AS status;
+```
+
+**期待される結果**:
+```
+✅ rate_limits テーブルは正常に作成されました
+```
+
 ---
 
-## 手順2: テーブル作成を確認
+## 手順2: （オプション）詳細確認
 
-Supabase Dashboard → **Table Editor** → 「rate_limits」テーブルが表示されることを確認
+より詳細な情報を確認したい場合は、以下のSQLを実行：
+
+```sql
+-- 詳細情報の確認
+SELECT
+  'テーブル名' AS 項目, 'rate_limits' AS 値
+UNION ALL
+SELECT
+  'カラム数',
+  COUNT(*)::TEXT
+FROM information_schema.columns
+WHERE table_schema = 'public' AND table_name = 'rate_limits'
+UNION ALL
+SELECT
+  'インデックス数',
+  COUNT(*)::TEXT
+FROM pg_indexes
+WHERE schemaname = 'public' AND tablename = 'rate_limits'
+UNION ALL
+SELECT
+  'RLSポリシー数',
+  COUNT(*)::TEXT
+FROM pg_policies
+WHERE schemaname = 'public' AND tablename = 'rate_limits'
+UNION ALL
+SELECT
+  '現在のレコード数',
+  COUNT(*)::TEXT
+FROM rate_limits;
+```
+
+**期待される結果**:
+```
+項目              | 値
+-----------------+----------------
+テーブル名       | rate_limits
+カラム数         | 7
+インデックス数   | 4
+RLSポリシー数    | 1
+現在のレコード数 | 0
+```
 
 ---
 
