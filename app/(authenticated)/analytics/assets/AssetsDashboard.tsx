@@ -1,17 +1,20 @@
 'use client'
 
 import { useState } from 'react'
-import { LoadingSpinner } from '@/components/LoadingSpinner'
 import CostAnalyticsView from '../cost/CostAnalyticsView'
 import UsageAnalyticsView from '../usage/UsageAnalyticsView'
-import dynamic from 'next/dynamic'
-
-const InventoryOptimization = dynamic(() => import('../inventory/page'), {
-  ssr: false,
-  loading: () => <LoadingSpinner inline />,
-})
+import InventoryOptimizationView from '../inventory/InventoryOptimizationView'
 
 type TabType = 'cost' | 'usage' | 'inventory'
+
+interface InventoryReport {
+  total_consumables: number
+  optimal_stock_count: number
+  low_stock_count: number
+  excess_stock_count: number
+  out_of_stock_count: number
+  optimizations: any[]
+}
 
 interface AssetsDashboardProps {
   tools: any[]
@@ -22,6 +25,7 @@ interface AssetsDashboardProps {
   consumableInventory: any[]
   sites: any[]
   users: any[]
+  inventoryReport: InventoryReport
 }
 
 export default function AssetsDashboard({
@@ -33,6 +37,7 @@ export default function AssetsDashboard({
   consumableInventory,
   sites,
   users,
+  inventoryReport,
 }: AssetsDashboardProps) {
   const [activeTab, setActiveTab] = useState<TabType>('cost')
 
@@ -104,7 +109,7 @@ export default function AssetsDashboard({
             />
           )}
 
-          {activeTab === 'inventory' && <InventoryOptimization />}
+          {activeTab === 'inventory' && <InventoryOptimizationView report={inventoryReport} />}
         </div>
       </div>
     </div>

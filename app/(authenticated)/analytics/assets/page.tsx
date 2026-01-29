@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/page-auth'
 import { getOrganizationFeatures, hasPackage } from '@/lib/features/server'
 import { PackageRequired } from '@/components/PackageRequired'
+import { analyzeInventoryOptimization } from '@/lib/analytics/inventory-optimization'
 import AssetsDashboard from './AssetsDashboard'
 
 export default async function AssetsAnalyticsPage() {
@@ -83,6 +84,37 @@ export default async function AssetsAnalyticsPage() {
     .eq('organization_id', organizationId)
     .is('deleted_at', null)
 
+  // 在庫最適化分析用: 消耗品データ取得
+  const { data: consumables } = await supabase
+    .from('tools')
+    .select(`*, categories:category_id(name)`)
+    .eq('organization_id', organizationId)
+    .eq('is_consumable', true)
+    .is('deleted_at', null)
+
+  const sixMonthsAgo = new Date()
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+
+  const { data: consumableMovementsForOptimization } = await supabase
+    .from('consumable_movements')
+    .select('*')
+    .eq('organization_id', organizationId)
+    .gte('created_at', sixMonthsAgo.toISOString())
+
+  const consumablesWithCategory = (consumables || []).map((c: any) => ({
+    ...c,
+    category_name: c.categories?.name || null,
+  }))
+
+  // 在庫最適化レポート生成
+  const inventoryReport = await analyzeInventoryOptimization(
+    consumablesWithCategory,
+    consumableInventory || [],
+    consumableMovementsForOptimization || [],
+    sixMonthsAgo,
+    new Date()
+  )
+
   // ツールにカテゴリ名を追加
   const toolsWithCategory = (tools || []).map((tool: any) => ({
     ...tool,
@@ -99,6 +131,7 @@ export default async function AssetsAnalyticsPage() {
       consumableInventory={consumableInventory || []}
       sites={sites || []}
       users={users || []}
+      inventoryReport={inventoryReport}
     />
   )
 }
