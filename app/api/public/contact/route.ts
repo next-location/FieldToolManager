@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import { rateLimiters, getClientIp, rateLimitResponse } from '@/lib/security/rate-limiter'
+import { escapeHtml, nl2br, isValidEmail, isValidPhone, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
 export async function POST(request: NextRequest) {
   try {
+    // レート制限チェック（5分間に3回まで）
+    const clientIp = getClientIp(request)
+
+    if (!rateLimiters.contact.check(clientIp)) {
+      const resetTime = rateLimiters.contact.getResetTime(clientIp)
+      console.warn(`[Contact Form] Rate limit exceeded from IP: ${clientIp}`)
+      return rateLimitResponse(resetTime)
+    }
+
     const body = await request.json()
     const { company, name, email, phone, employees, inquiry_type, message } = body
 
@@ -15,6 +26,34 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // メールアドレスの形式検証
+    if (!isValidEmail(email)) {
+      return NextResponse.json(
+        { error: '有効なメールアドレスを入力してください' },
+        { status: 400 }
+      )
+    }
+
+    // 電話番号の形式検証（入力されている場合のみ）
+    if (phone && !isValidPhone(phone)) {
+      return NextResponse.json(
+        { error: '有効な電話番号を入力してください' },
+        { status: 400 }
+      )
+    }
+
+    // 不審なパターンの検出
+    if (hasSuspiciousPattern(company) || hasSuspiciousPattern(name) || hasSuspiciousPattern(message)) {
+      console.warn(`[Contact Form] Suspicious pattern detected from IP: ${clientIp}`)
+      return NextResponse.json(
+        { error: '不正な入力が検出されました' },
+        { status: 400 }
+      )
+    }
+
+    // 送信ログ
+    console.log(`[Contact Form] New submission from IP: ${clientIp}, company: ${company}, email: ${email}`)
 
     // 管理者への通知メール
     if (!resend) {
@@ -28,42 +67,42 @@ export async function POST(request: NextRequest) {
     await resend.emails.send({
       from: 'noreply@zairoku.com',
       to: 'info@zairoku.com',
-      subject: `【ザイロク】新規お問い合わせ - ${company}`,
+      subject: `【ザイロク】新規お問い合わせ - ${escapeHtml(company)}`,
       html: `
         <h2>新規お問い合わせが届きました</h2>
         <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
           <tr>
             <td style="border: 1px solid #ddd; padding: 12px; background-color: #f9f9f9; font-weight: bold; width: 150px;">会社名</td>
-            <td style="border: 1px solid #ddd; padding: 12px;">${company}</td>
+            <td style="border: 1px solid #ddd; padding: 12px;">${escapeHtml(company)}</td>
           </tr>
           <tr>
             <td style="border: 1px solid #ddd; padding: 12px; background-color: #f9f9f9; font-weight: bold;">お名前</td>
-            <td style="border: 1px solid #ddd; padding: 12px;">${name}</td>
+            <td style="border: 1px solid #ddd; padding: 12px;">${escapeHtml(name)}</td>
           </tr>
           <tr>
             <td style="border: 1px solid #ddd; padding: 12px; background-color: #f9f9f9; font-weight: bold;">メールアドレス</td>
-            <td style="border: 1px solid #ddd; padding: 12px;">${email}</td>
+            <td style="border: 1px solid #ddd; padding: 12px;">${escapeHtml(email)}</td>
           </tr>
           <tr>
             <td style="border: 1px solid #ddd; padding: 12px; background-color: #f9f9f9; font-weight: bold;">電話番号</td>
-            <td style="border: 1px solid #ddd; padding: 12px;">${phone || '未入力'}</td>
+            <td style="border: 1px solid #ddd; padding: 12px;">${escapeHtml(phone || '未入力')}</td>
           </tr>
           <tr>
             <td style="border: 1px solid #ddd; padding: 12px; background-color: #f9f9f9; font-weight: bold;">従業員数</td>
-            <td style="border: 1px solid #ddd; padding: 12px;">${employees || '未入力'}</td>
+            <td style="border: 1px solid #ddd; padding: 12px;">${escapeHtml(employees || '未入力')}</td>
           </tr>
           <tr>
             <td style="border: 1px solid #ddd; padding: 12px; background-color: #f9f9f9; font-weight: bold;">お問い合わせ種別</td>
-            <td style="border: 1px solid #ddd; padding: 12px;">${
+            <td style="border: 1px solid #ddd; padding: 12px;">${escapeHtml(
               inquiry_type === 'estimate' ? 'お見積り依頼' :
               inquiry_type === 'demo' ? 'デモ・説明希望' :
               inquiry_type === 'question' ? 'サービスに関する質問' :
               'その他'
-            }</td>
+            )}</td>
           </tr>
           <tr>
             <td style="border: 1px solid #ddd; padding: 12px; background-color: #f9f9f9; font-weight: bold; vertical-align: top;">お問い合わせ内容</td>
-            <td style="border: 1px solid #ddd; padding: 12px; white-space: pre-wrap;">${message}</td>
+            <td style="border: 1px solid #ddd; padding: 12px; white-space: pre-wrap;">${nl2br(message)}</td>
           </tr>
         </table>
       `,
@@ -78,43 +117,43 @@ export async function POST(request: NextRequest) {
         html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #3B82F6;">お問い合わせありがとうございます</h2>
-          <p>${name} 様</p>
+          <p>${escapeHtml(name)} 様</p>
           <p>この度は、ザイロクにお問い合わせいただき、誠にありがとうございます。</p>
           <p>以下の内容でお問い合わせを受け付けました。</p>
 
           <table style="border-collapse: collapse; width: 100%; margin: 20px 0;">
             <tr>
               <td style="border: 1px solid #ddd; padding: 12px; background-color: #f9f9f9; font-weight: bold; width: 150px;">会社名</td>
-              <td style="border: 1px solid #ddd; padding: 12px;">${company}</td>
+              <td style="border: 1px solid #ddd; padding: 12px;">${escapeHtml(company)}</td>
             </tr>
             <tr>
               <td style="border: 1px solid #ddd; padding: 12px; background-color: #f9f9f9; font-weight: bold;">お名前</td>
-              <td style="border: 1px solid #ddd; padding: 12px;">${name}</td>
+              <td style="border: 1px solid #ddd; padding: 12px;">${escapeHtml(name)}</td>
             </tr>
             <tr>
               <td style="border: 1px solid #ddd; padding: 12px; background-color: #f9f9f9; font-weight: bold;">メールアドレス</td>
-              <td style="border: 1px solid #ddd; padding: 12px;">${email}</td>
+              <td style="border: 1px solid #ddd; padding: 12px;">${escapeHtml(email)}</td>
             </tr>
             <tr>
               <td style="border: 1px solid #ddd; padding: 12px; background-color: #f9f9f9; font-weight: bold;">電話番号</td>
-              <td style="border: 1px solid #ddd; padding: 12px;">${phone || '未入力'}</td>
+              <td style="border: 1px solid #ddd; padding: 12px;">${escapeHtml(phone || '未入力')}</td>
             </tr>
             <tr>
               <td style="border: 1px solid #ddd; padding: 12px; background-color: #f9f9f9; font-weight: bold;">従業員数</td>
-              <td style="border: 1px solid #ddd; padding: 12px;">${employees || '未入力'}</td>
+              <td style="border: 1px solid #ddd; padding: 12px;">${escapeHtml(employees || '未入力')}</td>
             </tr>
             <tr>
               <td style="border: 1px solid #ddd; padding: 12px; background-color: #f9f9f9; font-weight: bold;">お問い合わせ種別</td>
-              <td style="border: 1px solid #ddd; padding: 12px;">${
+              <td style="border: 1px solid #ddd; padding: 12px;">${escapeHtml(
                 inquiry_type === 'estimate' ? 'お見積り依頼' :
                 inquiry_type === 'demo' ? 'デモ・説明希望' :
                 inquiry_type === 'question' ? 'サービスに関する質問' :
                 'その他'
-              }</td>
+              )}</td>
             </tr>
             <tr>
               <td style="border: 1px solid #ddd; padding: 12px; background-color: #f9f9f9; font-weight: bold; vertical-align: top;">お問い合わせ内容</td>
-              <td style="border: 1px solid #ddd; padding: 12px; white-space: pre-wrap;">${message}</td>
+              <td style="border: 1px solid #ddd; padding: 12px; white-space: pre-wrap;">${nl2br(message)}</td>
             </tr>
           </table>
 

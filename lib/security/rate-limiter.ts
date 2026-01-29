@@ -117,6 +117,9 @@ export const rateLimiters = {
 
   // なりすましログイン: 1分間に3回
   impersonate: new RateLimiter(3, 60000, 900000), // 15分ブロック
+
+  // お問い合わせフォーム: 5分間に3回
+  contact: new RateLimiter(3, 300000, 600000), // 10分ブロック
 };
 
 // 定期的なクリーンアップ（1時間ごと）
