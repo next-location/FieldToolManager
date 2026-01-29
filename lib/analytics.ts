@@ -8,17 +8,24 @@ const isGAEnabled = (): boolean => {
 }
 
 /**
- * gtag関数を安全に実行（準備ができるまで待つ）
+ * gtag関数を安全に実行
  */
 function safeGtag(command: string, ...args: any[]) {
   if (typeof window === 'undefined') return
 
-  // gtagがまだ準備できていない場合、dataLayerに直接push
-  if (typeof window.gtag === 'undefined') {
-    window.dataLayer = window.dataLayer || []
-    window.dataLayer.push(arguments)
-  } else {
+  // dataLayerが存在しない場合は初期化
+  window.dataLayer = window.dataLayer || []
+
+  // gtagが存在する場合は直接呼び出し
+  if (typeof window.gtag !== 'undefined') {
     window.gtag(command, ...args)
+  } else {
+    // gtagが未定義の場合、dataLayerに直接追加
+    // gtag の内部実装と同じ形式でpush
+    window.dataLayer.push({
+      event: command === 'event' ? args[0] : command,
+      ...(args[1] || {})
+    })
   }
 }
 
