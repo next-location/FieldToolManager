@@ -72,8 +72,14 @@ export async function analyzeInventoryOptimization(
 
     // 使用パターン分析（出庫・移動履歴）
     const toolMovements = movements.filter((m: any) => m.tool_id === tool.id)
+
+    // 実際の消費を表す移動のみを抽出
+    // 1. 出庫（倉庫から出た）
+    // 2. 倉庫から現場への移動
     const outboundMovements = toolMovements.filter(
-      (m: any) => m.movement_type === '出庫' || m.from_location_type === 'warehouse'
+      (m: any) =>
+        m.movement_type === '出庫' ||
+        (m.from_location_type === 'warehouse' && m.to_location_type === 'site')
     )
 
     // 月ごとの使用量を計算
