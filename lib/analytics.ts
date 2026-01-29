@@ -10,7 +10,7 @@ const isGAEnabled = (): boolean => {
 /**
  * gtag関数を安全に実行（準備ができるまで待つ）
  */
-const safeGtag = (command: string, ...args: any[]) => {
+function safeGtag(command: string, ...args: any[]) {
   if (typeof window === 'undefined') return
 
   // gtagがまだ準備できていない場合、dataLayerに直接push
