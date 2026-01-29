@@ -784,7 +784,7 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
               <button
                 onClick={() => toggleMenu('analytics')}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                  isActive('/analytics') || isActive('/equipment/cost-report') || isActive('/equipment/analytics') || isActive('/clients/stats') || isActive('/attendance/reports/monthly')
+                  isActive('/analytics')
                     ? 'bg-blue-50 text-blue-700 font-medium'
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
@@ -812,135 +812,58 @@ export function Sidebar({ userRole, isOpen, onClose, heavyEquipmentEnabled = fal
 
               {expandedMenu === 'analytics' && (
                 <div className="ml-6 mt-2 space-y-1.5">
-                  {/* 現場DX業務効率化パック必須の分析 */}
-                  {isManagerOrAdmin && hasDxPackage && (
+                  {/* 経営ダッシュボード */}
+                  {isManagerOrAdmin && (hasDxPackage || isAdmin) && (
                     <Link
-                      href="/attendance/reports/monthly"
+                      href="/analytics/business"
                       onClick={onClose}
                       className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive('/attendance/reports/monthly')
+                        isActive('/analytics/business')
                           ? 'bg-blue-50 text-blue-700 font-medium'
                           : 'text-gray-600 hover:bg-gray-50'
                       }`}
                     >
                       <span className="flex items-center justify-between">
-                        <span>月次勤怠レポート</span>
-                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                      </span>
-                    </Link>
-                  )}
-                  {isAdmin && hasDxPackage && (
-                    <Link
-                      href="/clients/stats"
-                      onClick={onClose}
-                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive('/clients/stats')
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className="flex items-center justify-between">
-                        <span>取引先統計・分析</span>
-                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                      </span>
-                    </Link>
-                  )}
-                  {/* 財務分析: Admin専用・パッケージ不要（ページ内で機能制御） */}
-                  {isAdmin && (
-                    <Link
-                      href="/analytics/financial"
-                      onClick={onClose}
-                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive('/analytics/financial')
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className="flex items-center justify-between">
-                        <span>財務分析</span>
+                        <span>📈 経営ダッシュボード</span>
                         <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                       </span>
                     </Link>
                   )}
 
-                  {/* 現場資産パック必須の分析 */}
+                  {/* 資産管理分析 */}
                   {hasAssetPackage && (
-                    <>
-                      <Link
-                        href="/analytics/cost"
-                        onClick={onClose}
-                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                          isActive('/analytics/cost')
-                            ? 'bg-blue-50 text-blue-700 font-medium'
-                            : 'text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span className="flex items-center justify-between">
-                          <span>コスト分析</span>
-                          <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                        </span>
-                      </Link>
-                      <Link
-                        href="/analytics/usage"
-                        onClick={onClose}
-                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                          isActive('/analytics/usage')
-                            ? 'bg-blue-50 text-blue-700 font-medium'
-                            : 'text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span className="flex items-center justify-between">
-                          <span>使用頻度分析</span>
-                          <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                        </span>
-                      </Link>
-                      <Link
-                        href="/analytics/inventory"
-                        onClick={onClose}
-                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                          isActive('/analytics/inventory')
-                            ? 'bg-blue-50 text-blue-700 font-medium'
-                            : 'text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span className="flex items-center justify-between">
-                          <span>在庫最適化</span>
-                          <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                        </span>
-                      </Link>
-                      {heavyEquipmentEnabled && (
-                        <div className="space-y-1.5">
-                          <Link
-                            href="/equipment/cost-report"
-                            onClick={onClose}
-                            className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                              isActive('/equipment/cost-report')
-                                ? 'bg-blue-50 text-blue-700 font-medium'
-                                : 'text-gray-600 hover:bg-gray-50'
-                            }`}
-                          >
-                            <span className="flex items-center justify-between">
-                              <span>重機コストレポート</span>
-                              <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                            </span>
-                          </Link>
-                          <Link
-                            href="/equipment/analytics"
-                            onClick={onClose}
-                            className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                              isActive('/equipment/analytics')
-                                ? 'bg-blue-50 text-blue-700 font-medium'
-                                : 'text-gray-600 hover:bg-gray-50'
-                            }`}
-                          >
-                            <span className="flex items-center justify-between">
-                              <span>重機稼働率分析</span>
-                              <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                            </span>
-                          </Link>
-                        </div>
-                      )}
-                    </>
+                    <Link
+                      href="/analytics/assets"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive('/analytics/assets')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="flex items-center justify-between">
+                        <span>🔧 資産管理分析</span>
+                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      </span>
+                    </Link>
+                  )}
+
+                  {/* 重機管理分析 */}
+                  {hasAssetPackage && heavyEquipmentEnabled && (
+                    <Link
+                      href="/analytics/equipment-management"
+                      onClick={onClose}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive('/analytics/equipment-management')
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="flex items-center justify-between">
+                        <span>🚜 重機管理分析</span>
+                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      </span>
+                    </Link>
                   )}
                 </div>
               )}
