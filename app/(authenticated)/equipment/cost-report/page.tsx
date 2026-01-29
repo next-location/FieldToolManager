@@ -61,6 +61,8 @@ export default async function CostReportPage() {
   const defaultPeriodStart = firstDayOfMonth.toISOString().split('T')[0]
   const defaultPeriodEnd = today.toISOString().split('T')[0]
 
+  console.log('[Cost Report] Default period:', { defaultPeriodStart, defaultPeriodEnd, today: today.toISOString() })
+
   return (
     <CostReportView
       equipment={equipment as HeavyEquipment[] || []}

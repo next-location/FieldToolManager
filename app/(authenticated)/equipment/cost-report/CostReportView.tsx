@@ -32,6 +32,9 @@ export default function CostReportView({
   const [sortBy, setSortBy] = useState<'code' | 'cost'>('cost')
   const [isPeriodModalOpen, setIsPeriodModalOpen] = useState(false)
 
+  console.log('[CostReportView] Received props:', { defaultPeriodStart, defaultPeriodEnd })
+  console.log('[CostReportView] Current state:', { periodStart, periodEnd })
+
   // コストレポート生成（期間に基づいて動的に計算）
   const report: CostReport = useMemo(() => {
     return generateCostReport(

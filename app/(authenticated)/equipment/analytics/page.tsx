@@ -79,6 +79,8 @@ export default async function AnalyticsPage() {
   const periodStart = firstDayOfMonth.toISOString().split('T')[0]
   const periodEnd = today.toISOString().split('T')[0]
 
+  console.log('[Analytics] Default period:', { periodStart, periodEnd, today: today.toISOString() })
+
   return (
     <AnalyticsReportView
       equipment={equipment as HeavyEquipment[] || []}
