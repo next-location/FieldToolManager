@@ -1,12 +1,23 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState } from 'react'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
-import SalesAnalytics from '../financial/SalesAnalytics'
-import CashflowAnalytics from '../financial/CashflowAnalytics'
-import FinancialTabs from '../financial/FinancialTabs'
-import ClientsStats from '@/app/(authenticated)/clients/ClientsStats'
-import MonthlyReport from '@/app/(authenticated)/attendance/reports/monthly/MonthlyReport'
+import dynamic from 'next/dynamic'
+
+const FinancialTabsPage = dynamic(() => import('../financial/page'), {
+  ssr: false,
+  loading: () => <LoadingSpinner inline />,
+})
+
+const ClientsStatsPage = dynamic(() => import('@/app/(authenticated)/clients/stats/page'), {
+  ssr: false,
+  loading: () => <LoadingSpinner inline />,
+})
+
+const MonthlyReportPage = dynamic(() => import('@/app/(authenticated)/attendance/reports/monthly/page'), {
+  ssr: false,
+  loading: () => <LoadingSpinner inline />,
+})
 
 type TabType = 'financial' | 'clients' | 'attendance'
 
@@ -67,32 +78,9 @@ export default function BusinessDashboard({ userRole }: BusinessDashboardProps) 
 
         {/* コンテンツ */}
         <div>
-          {activeTab === 'financial' && (
-            <Suspense fallback={<LoadingSpinner inline />}>
-              <FinancialTabs
-                salesContent={<SalesAnalytics />}
-                cashflowContent={<CashflowAnalytics />}
-              />
-            </Suspense>
-          )}
-
-          {activeTab === 'clients' && userRole === 'admin' && (
-            <div className="max-w-7xl mx-auto">
-              <div className="mb-6">
-                <h2 className="text-lg sm:text-xl font-bold text-gray-900">取引先統計・分析</h2>
-                <p className="mt-2 text-sm text-gray-600">
-                  取引先（顧客・仕入先・協力会社）に関する経営分析と意思決定を支援します
-                </p>
-              </div>
-              <ClientsStats />
-            </div>
-          )}
-
-          {activeTab === 'attendance' && (
-            <Suspense fallback={<LoadingSpinner inline />}>
-              <MonthlyReport />
-            </Suspense>
-          )}
+          {activeTab === 'financial' && <FinancialTabsPage />}
+          {activeTab === 'clients' && userRole === 'admin' && <ClientsStatsPage />}
+          {activeTab === 'attendance' && <MonthlyReportPage />}
         </div>
       </div>
     </div>

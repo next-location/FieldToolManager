@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/page-auth'
-import BusinessDashboard from './BusinessDashboard'
+import BusinessDashboardTabs from './BusinessDashboardTabs'
 
 export default async function BusinessAnalyticsPage() {
   const { userId, organizationId, userRole } = await requireAuth()
@@ -10,5 +10,5 @@ export default async function BusinessAnalyticsPage() {
     redirect('/')
   }
 
-  return <BusinessDashboard userRole={userRole} />
+  return <BusinessDashboardTabs userRole={userRole} />
 }
