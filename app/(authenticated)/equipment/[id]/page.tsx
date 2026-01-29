@@ -94,7 +94,7 @@ export default async function EquipmentDetailPage({
         </div>
 
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">重機詳細</h1>
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">重機詳細</h1>
         </div>
 
         <EquipmentDetailTabs

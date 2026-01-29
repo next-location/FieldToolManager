@@ -236,136 +236,138 @@ export default function EquipmentDetailTabs({
   return (
     <div className="bg-white shadow overflow-hidden sm:rounded-lg">
       {/* ヘッダー */}
-      <div className="px-4 py-5 sm:px-6 flex justify-between items-start">
-        <div className="flex-1">
-          <div className="flex items-center gap-3">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">{equipment.name}</h3>
-            {getStatusBadge(equipment.status)}
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
-              {equipment.equipment_code}
-            </span>
-          </div>
-          <p className="mt-1 max-w-2xl text-sm text-gray-500">
-            {equipment.heavy_equipment_categories?.name} | {getOwnershipLabel(equipment.ownership_type)}
-          </p>
-
-          {/* アラート表示 */}
-          {alerts.length > 0 && (
-            <div className="mt-3 space-y-2">
-              {alerts.map((alert, idx) => (
-                <div
-                  key={idx}
-                  className={`flex items-center text-sm font-medium ${
-                    alert.type === 'error'
-                      ? 'text-red-700'
-                      : alert.type === 'warning'
-                      ? 'text-yellow-700'
-                      : 'text-blue-700'
-                  }`}
-                >
-                  {alert.type === 'error' && '🔴'}
-                  {alert.type === 'warning' && '🟡'}
-                  {alert.type === 'info' && '🔵'}
-                  <span className="ml-1">{alert.message}</span>
-                </div>
-              ))}
+      <div className="px-4 py-5 sm:px-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+          <div className="flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-base sm:text-lg font-medium text-gray-900">{equipment.name}</h3>
+              {getStatusBadge(equipment.status)}
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                {equipment.equipment_code}
+              </span>
             </div>
-          )}
-        </div>
+            <p className="mt-1 text-sm text-gray-500">
+              {equipment.heavy_equipment_categories?.name} | {getOwnershipLabel(equipment.ownership_type)}
+            </p>
 
-        <div className="flex flex-wrap gap-3">
-          {/* 持出・返却ボタン */}
-          {equipment.status === 'available' && (
-            <Link
-              href="/equipment/movement"
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
-            >
-              <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-              持出
-            </Link>
-          )}
-          {equipment.status === 'in_use' && (
-            <button
-              onClick={handleReturn}
-              disabled={isReturning}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
-              </svg>
-              {isReturning ? '返却中...' : '返却'}
-            </button>
-          )}
+            {/* アラート表示 */}
+            {alerts.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {alerts.map((alert, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex items-center text-sm font-medium ${
+                      alert.type === 'error'
+                        ? 'text-red-700'
+                        : alert.type === 'warning'
+                        ? 'text-yellow-700'
+                        : 'text-blue-700'
+                    }`}
+                  >
+                    {alert.type === 'error' && '🔴'}
+                    {alert.type === 'warning' && '🟡'}
+                    {alert.type === 'info' && '🔵'}
+                    <span className="ml-1">{alert.message}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
-          {isLeaderOrAdmin && (
-            <Link
-              href={`/equipment/${equipment.id}/edit`}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-            >
-              編集
-            </Link>
-          )}
+          <div className="flex flex-wrap gap-2">
+            {/* 持出・返却ボタン */}
+            {equipment.status === 'available' && (
+              <Link
+                href="/equipment/movement"
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
+              >
+                <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+                持出
+              </Link>
+            )}
+            {equipment.status === 'in_use' && (
+              <button
+                onClick={handleReturn}
+                disabled={isReturning}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+                </svg>
+                {isReturning ? '返却中...' : '返却'}
+              </button>
+            )}
+
+            {isLeaderOrAdmin && (
+              <Link
+                href={`/equipment/${equipment.id}/edit`}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              >
+                編集
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 
       {/* タブナビゲーション */}
-      <div className="border-t border-gray-200">
-        <nav className="flex -mb-px" aria-label="Tabs">
+      <div className="px-4 py-4 sm:px-6 border-t border-gray-200">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setActiveTab('basic')}
-            className={`${
+            className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'basic'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            } flex-1 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
           >
             基本情報
           </button>
           <button
             onClick={() => setActiveTab('usage')}
-            className={`${
+            className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'usage'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            } flex-1 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
           >
-            使用履歴 ({usageRecords.length})
+            使用履歴
           </button>
           <button
             onClick={() => setActiveTab('maintenance')}
-            className={`${
+            className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'maintenance'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            } flex-1 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
           >
-            修理・点検記録 ({maintenanceRecords.length})
+            修理・点検
           </button>
           {isLeaderOrAdmin && (
             <button
               onClick={() => setActiveTab('cost')}
-              className={`${
+              className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === 'cost'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } flex-1 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+              }`}
             >
               コスト
             </button>
           )}
           <button
             onClick={() => setActiveTab('qr')}
-            className={`${
+            className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'qr'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            } flex-1 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
           >
             QRコード
           </button>
-        </nav>
+        </div>
       </div>
 
       {/* タブコンテンツ */}
