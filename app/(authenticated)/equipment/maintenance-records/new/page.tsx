@@ -59,7 +59,7 @@ export default async function NewMaintenanceRecordPage() {
         </div>
 
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">修理・点検記録の登録</h1>
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">修理・点検記録の登録</h1>
           <p className="mt-1 text-sm text-gray-500">
             重機の点検・車検・保険更新・修理記録を登録します
           </p>
