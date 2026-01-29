@@ -31,9 +31,8 @@ export const trackEvent = (
 ) => {
   if (!isGAEnabled()) return
 
-  safeGtag('event', eventName, {
-    ...params,
-  })
+  console.log('[GA4] Sending event:', eventName, params)
+  safeGtag('event', eventName, params || {})
 }
 
 /**
