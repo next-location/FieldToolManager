@@ -2,12 +2,13 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { trackContactPageView, trackContactFormSubmit } from '@/lib/analytics'
 
 export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const messageRef = useRef<HTMLDivElement>(null)
 
   // ページ表示時にトラッキング
   useEffect(() => {
@@ -53,12 +54,27 @@ export default function ContactPage() {
         trackContactFormSubmit({
           inquiryType: data.inquiry_type as string,
         })
+
+        // メッセージ表示位置までスクロール
+        setTimeout(() => {
+          messageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }, 100)
       } else {
         setSubmitStatus('error')
+
+        // メッセージ表示位置までスクロール
+        setTimeout(() => {
+          messageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }, 100)
       }
     } catch (error) {
       console.error('Contact form submission error:', error)
       setSubmitStatus('error')
+
+      // メッセージ表示位置までスクロール
+      setTimeout(() => {
+        messageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 100)
     } finally {
       setIsSubmitting(false)
     }
@@ -107,19 +123,21 @@ export default function ContactPage() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 md:p-12">
-          {submitStatus === 'success' && (
-            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-green-800 font-semibold">お問い合わせを受け付けました。</p>
-              <p className="text-green-700 text-sm mt-1">ご入力いただいたメールアドレスに確認メールをお送りしました。2営業日以内に担当者よりご連絡いたします。</p>
-            </div>
-          )}
+          <div ref={messageRef}>
+            {submitStatus === 'success' && (
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-green-800 font-semibold">お問い合わせを受け付けました。</p>
+                <p className="text-green-700 text-sm mt-1">ご入力いただいたメールアドレスに確認メールをお送りしました。2営業日以内に担当者よりご連絡いたします。</p>
+              </div>
+            )}
 
-          {submitStatus === 'error' && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-800 font-semibold">送信に失敗しました。</p>
-              <p className="text-red-700 text-sm mt-1">お手数ですが、時間をおいて再度お試しいただくか、直接 info@zairoku.com までメールにてご連絡ください。</p>
-            </div>
-          )}
+            {submitStatus === 'error' && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-800 font-semibold">送信に失敗しました。</p>
+                <p className="text-red-700 text-sm mt-1">お手数ですが、時間をおいて再度お試しいただくか、直接 info@zairoku.com までメールにてご連絡ください。</p>
+              </div>
+            )}
+          </div>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* 会社名 */}
