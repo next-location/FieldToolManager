@@ -12,7 +12,12 @@ export default function LandingPage() {
 
   // GA4トラッキング: ページ表示時にトラッキング（FAX流入のUTMパラメータも自動検知）
   useEffect(() => {
-    trackHomepageView()
+    // gtagが読み込まれるまで少し待つ
+    const timer = setTimeout(() => {
+      trackHomepageView()
+    }, 1000)
+
+    return () => clearTimeout(timer)
   }, [])
 
   // 料金セクションがビューポートに入ったらトラッキング
