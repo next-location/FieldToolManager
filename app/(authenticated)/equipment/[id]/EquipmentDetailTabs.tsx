@@ -567,7 +567,7 @@ export default function EquipmentDetailTabs({
               <h4 className="text-sm font-medium text-gray-900">修理・点検記録一覧</h4>
               <Link
                 href={`/equipment/${equipment.id}/maintenance`}
-                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
+                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
               >
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

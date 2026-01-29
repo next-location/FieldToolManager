@@ -152,10 +152,10 @@ export default function MaintenanceRecordForm({
               key={type}
               type="button"
               onClick={() => setFormData({ ...formData, maintenance_type: type })}
-              className={`px-4 py-3 text-sm font-medium rounded-md border ${
+              className={`px-4 py-3 text-sm font-medium rounded-md ${
                 formData.maintenance_type === type
-                  ? 'bg-purple-600 text-white border-purple-600'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                  ? 'bg-blue-600 text-white border-2 border-blue-600'
+                  : 'bg-white text-gray-700 border-2 border-dashed border-gray-300 hover:bg-gray-50'
               }`}
             >
               {getMaintenanceTypeLabel(type)}
@@ -298,7 +298,7 @@ export default function MaintenanceRecordForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? '登録中...' : '登録する'}
         </button>
