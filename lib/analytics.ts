@@ -129,11 +129,7 @@ export const trackHomepageView = () => {
 // グローバル型定義
 declare global {
   interface Window {
-    gtag: (
-      command: string,
-      targetId: string | Date,
-      config?: Record<string, any>
-    ) => void
+    gtag: (...args: any[]) => void
     dataLayer: any[]
   }
 }
