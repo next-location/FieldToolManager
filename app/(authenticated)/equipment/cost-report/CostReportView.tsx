@@ -527,6 +527,16 @@ export default function CostReportView({
               <p className="text-gray-500">コストデータがありません</p>
             </div>
           )}
+
+          {/* 説明 */}
+          {sortedDetails.length > 0 && (
+            <div className="px-4 sm:px-6 py-3 bg-gray-50 border-t border-gray-200">
+              <p className="text-xs text-gray-600">
+                <span className="font-medium">月額/簿価について:</span>
+                自社所有の場合は現在の資産価値（減価償却後の簿価）、リース・レンタルの場合は月額費用を表示しています。
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Period Modal */}
