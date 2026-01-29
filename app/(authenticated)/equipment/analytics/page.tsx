@@ -72,12 +72,11 @@ export default async function AnalyticsPage() {
     }
   }
 
-  // デフォルト期間: 過去3ヶ月
+  // デフォルト期間: 当月1日から今日まで
   const today = new Date()
-  const threeMonthsAgo = new Date(today)
-  threeMonthsAgo.setMonth(today.getMonth() - 3)
+  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
 
-  const periodStart = threeMonthsAgo.toISOString().split('T')[0]
+  const periodStart = firstDayOfMonth.toISOString().split('T')[0]
   const periodEnd = today.toISOString().split('T')[0]
 
   return (
