@@ -129,7 +129,6 @@ export const trackHomepageView = () => {
 // グローバル型定義
 declare global {
   interface Window {
-    gtag: (...args: any[]) => void
-    dataLayer: any[]
+    gtag?: (...args: any[]) => void
   }
 }
