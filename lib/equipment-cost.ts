@@ -309,13 +309,18 @@ export function generateCostReport(
     }
   }
 
+  // 期間の月数を計算
+  const start = new Date(periodStart);
+  const end = new Date(periodEnd);
+  const periodMonths = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30));
+
   const totalMonthlyCost = leasedMonthlyCost + rentedMonthlyCost;
-  const totalAnnualCost = totalMonthlyCost * 12;
+  const totalPeriodCost = totalMonthlyCost * periodMonths;
   const totalMaintenanceCost = equipmentDetails.reduce(
     (sum, e) => sum + e.maintenance_cost_this_year,
     0
   );
-  const grandTotalCost = totalAnnualCost + totalMaintenanceCost;
+  const grandTotalCost = totalPeriodCost + totalMaintenanceCost;
 
   return {
     period_start: periodStart,
@@ -327,15 +332,15 @@ export function generateCostReport(
 
     leased_equipment_count: leasedCount,
     leased_monthly_cost: leasedMonthlyCost,
-    leased_annual_cost: leasedMonthlyCost * 12,
+    leased_annual_cost: leasedMonthlyCost * periodMonths,
 
     rented_equipment_count: rentedCount,
     rented_monthly_cost: rentedMonthlyCost,
-    rented_annual_cost: rentedMonthlyCost * 12,
+    rented_annual_cost: rentedMonthlyCost * periodMonths,
 
     total_equipment_count: equipmentList.length,
     total_monthly_cost: totalMonthlyCost,
-    total_annual_cost: totalAnnualCost,
+    total_annual_cost: totalPeriodCost,
     total_maintenance_cost: totalMaintenanceCost,
     grand_total_cost: grandTotalCost,
 

@@ -192,15 +192,15 @@ export default function CostReportView({
             <div className="text-xl font-bold text-gray-900">{formatCurrency(report.total_monthly_cost)}</div>
           </div>
 
-          {/* 年間コスト */}
+          {/* 期間コスト */}
           <div className="bg-white rounded-lg shadow p-4">
-            <div className="text-sm font-medium text-gray-500 mb-1">年間コスト</div>
+            <div className="text-sm font-medium text-gray-500 mb-1">期間コスト</div>
             <div className="text-xl font-bold text-gray-900">{formatCurrency(report.total_annual_cost)}</div>
           </div>
 
           {/* 点検・修理費 */}
           <div className="bg-white rounded-lg shadow p-4">
-            <div className="text-sm font-medium text-gray-500 mb-1">年間点検・修理費</div>
+            <div className="text-sm font-medium text-gray-500 mb-1">期間点検・修理費</div>
             <div className="text-xl font-bold text-gray-900">{formatCurrency(report.total_maintenance_cost)}</div>
           </div>
         </div>
@@ -237,7 +237,7 @@ export default function CostReportView({
             </div>
           </div>
 
-          {/* 年間コスト */}
+          {/* 期間コスト */}
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
@@ -246,7 +246,7 @@ export default function CostReportView({
                 </svg>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">年間コスト</p>
+                <p className="text-sm font-medium text-gray-500">期間コスト</p>
                 <p className="text-2xl font-bold text-gray-900">{formatCurrency(report.total_annual_cost)}</p>
               </div>
             </div>
@@ -262,7 +262,7 @@ export default function CostReportView({
                 </svg>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">年間点検・修理費</p>
+                <p className="text-sm font-medium text-gray-500">期間点検・修理費</p>
                 <p className="text-2xl font-bold text-gray-900">{formatCurrency(report.total_maintenance_cost)}</p>
               </div>
             </div>
@@ -290,7 +290,7 @@ export default function CostReportView({
                     <dd className="font-medium text-gray-900">{formatCurrency(report.owned_equipment_value)}</dd>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <dt className="text-gray-500">年間点検費</dt>
+                    <dt className="text-gray-500">期間点検費</dt>
                     <dd className="font-medium text-gray-900">{formatCurrency(report.owned_maintenance_cost)}</dd>
                   </div>
                 </dl>
@@ -310,7 +310,7 @@ export default function CostReportView({
                     <dd className="font-medium text-gray-900">{formatCurrency(report.leased_monthly_cost)}</dd>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <dt className="text-gray-500">年間コスト</dt>
+                    <dt className="text-gray-500">期間コスト</dt>
                     <dd className="font-medium text-gray-900">{formatCurrency(report.leased_annual_cost)}</dd>
                   </div>
                 </dl>
@@ -330,7 +330,7 @@ export default function CostReportView({
                     <dd className="font-medium text-gray-900">{formatCurrency(report.rented_monthly_cost)}</dd>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <dt className="text-gray-500">年間コスト</dt>
+                    <dt className="text-gray-500">期間コスト</dt>
                     <dd className="font-medium text-gray-900">{formatCurrency(report.rented_annual_cost)}</dd>
                   </div>
                 </dl>
