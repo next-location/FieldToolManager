@@ -70,6 +70,19 @@ export default async function AssetsAnalyticsPage() {
     .select('*')
     .eq('organization_id', organizationId)
 
+  // 使用状況分析用: 現場・ユーザー一覧取得
+  const { data: sites } = await supabase
+    .from('sites')
+    .select('id, name')
+    .eq('organization_id', organizationId)
+    .is('deleted_at', null)
+
+  const { data: users } = await supabase
+    .from('users')
+    .select('id, name')
+    .eq('organization_id', organizationId)
+    .is('deleted_at', null)
+
   // ツールにカテゴリ名を追加
   const toolsWithCategory = (tools || []).map((tool: any) => ({
     ...tool,
@@ -84,6 +97,8 @@ export default async function AssetsAnalyticsPage() {
       consumableMovements={consumableMovements || []}
       orders={orders || []}
       consumableInventory={consumableInventory || []}
+      sites={sites || []}
+      users={users || []}
     />
   )
 }

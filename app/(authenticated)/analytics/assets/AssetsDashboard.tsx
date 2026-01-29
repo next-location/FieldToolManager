@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState } from 'react'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 import CostAnalyticsView from '../cost/CostAnalyticsView'
 import UsageAnalyticsView from '../usage/UsageAnalyticsView'
@@ -20,6 +20,8 @@ interface AssetsDashboardProps {
   consumableMovements: any[]
   orders: any[]
   consumableInventory: any[]
+  sites: any[]
+  users: any[]
 }
 
 export default function AssetsDashboard({
@@ -29,6 +31,8 @@ export default function AssetsDashboard({
   consumableMovements,
   orders,
   consumableInventory,
+  sites,
+  users,
 }: AssetsDashboardProps) {
   const [activeTab, setActiveTab] = useState<TabType>('cost')
 
@@ -92,16 +96,15 @@ export default function AssetsDashboard({
           )}
 
           {activeTab === 'usage' && (
-            <Suspense fallback={<LoadingSpinner inline />}>
-              <UsageAnalyticsView />
-            </Suspense>
+            <UsageAnalyticsView
+              tools={tools}
+              movements={[...movements, ...consumableMovements]}
+              sites={sites}
+              users={users}
+            />
           )}
 
-          {activeTab === 'inventory' && (
-            <Suspense fallback={<LoadingSpinner inline />}>
-              <InventoryOptimization />
-            </Suspense>
-          )}
+          {activeTab === 'inventory' && <InventoryOptimization />}
         </div>
       </div>
     </div>
