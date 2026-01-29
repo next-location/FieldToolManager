@@ -2,7 +2,9 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
+import { SlidersHorizontal } from 'lucide-react'
 import { formatCurrency } from '@/lib/equipment-cost'
+import MaintenanceFiltersModal from './MaintenanceFiltersModal'
 
 interface Equipment {
   id: string
@@ -33,14 +35,31 @@ interface MaintenanceRecordsListViewProps {
   userRole: string
 }
 
+// ひらがな→カタカナ変換
+const toKatakana = (str: string) => {
+  return str.replace(/[\u3041-\u3096]/g, (match) => {
+    const chr = match.charCodeAt(0) + 0x60
+    return String.fromCharCode(chr)
+  })
+}
+
+// カタカナ→ひらがな変換
+const toHiragana = (str: string) => {
+  return str.replace(/[\u30a1-\u30f6]/g, (match) => {
+    const chr = match.charCodeAt(0) - 0x60
+    return String.fromCharCode(chr)
+  })
+}
+
 export default function MaintenanceRecordsListView({
   equipment,
   maintenanceRecords,
   userRole,
 }: MaintenanceRecordsListViewProps) {
-  const [selectedEquipment, setSelectedEquipment] = useState<string>('all')
+  const [searchQuery, setSearchQuery] = useState('')
   const [selectedType, setSelectedType] = useState<string>('all')
   const [sortBy, setSortBy] = useState<'date' | 'cost'>('date')
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   // 点検タイプのラベル
   const getMaintenanceTypeLabel = (type: string) => {
@@ -78,9 +97,25 @@ export default function MaintenanceRecordsListView({
   const filteredAndSortedRecords = useMemo(() => {
     let filtered = maintenanceRecords
 
-    // 重機でフィルタ
-    if (selectedEquipment !== 'all') {
-      filtered = filtered.filter((r) => r.equipment_id === selectedEquipment)
+    // 重機検索（ひらがな・カタカナ両対応）
+    if (searchQuery) {
+      const queryKatakana = toKatakana(searchQuery.toLowerCase())
+      const queryHiragana = toHiragana(searchQuery.toLowerCase())
+
+      filtered = filtered.filter((r) => {
+        const nameKatakana = toKatakana(r.heavy_equipment.name.toLowerCase())
+        const nameHiragana = toHiragana(r.heavy_equipment.name.toLowerCase())
+        const code = r.heavy_equipment.equipment_code.toLowerCase()
+
+        return (
+          nameKatakana.includes(queryKatakana) ||
+          nameHiragana.includes(queryHiragana) ||
+          nameKatakana.includes(queryHiragana) ||
+          nameHiragana.includes(queryKatakana) ||
+          r.heavy_equipment.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          code.includes(searchQuery.toLowerCase())
+        )
+      })
     }
 
     // 点検タイプでフィルタ
@@ -98,19 +133,7 @@ export default function MaintenanceRecordsListView({
     })
 
     return sorted
-  }, [maintenanceRecords, selectedEquipment, selectedType, sortBy])
-
-  // 統計情報
-  const stats = useMemo(() => {
-    const totalCost = filteredAndSortedRecords.reduce((sum, r) => sum + (r.cost || 0), 0)
-    const avgCost = filteredAndSortedRecords.length > 0 ? totalCost / filteredAndSortedRecords.length : 0
-
-    return {
-      totalRecords: filteredAndSortedRecords.length,
-      totalCost,
-      avgCost,
-    }
-  }, [filteredAndSortedRecords])
+  }, [maintenanceRecords, searchQuery, selectedType, sortBy])
 
   // 次回期限が近い警告（30日以内）
   const getNextDateWarning = (nextDate: string | null) => {
@@ -128,105 +151,99 @@ export default function MaintenanceRecordsListView({
     return null
   }
 
+  const handleReset = () => {
+    setSearchQuery('')
+    setSelectedType('all')
+    setSortBy('date')
+  }
+
+  const hasActiveFilters = searchQuery || selectedType !== 'all' || sortBy !== 'date'
+  const filterCount = [selectedType !== 'all' ? 1 : 0, sortBy !== 'date' ? 1 : 0].reduce((a, b) => a + b, 0)
+
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 pb-6 sm:px-0 sm:py-6">
         {/* ヘッダー */}
-        <div className="mb-6">
-          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">点検記録一覧</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            重機の点検・車検・保険更新・修理の履歴を管理できます
-          </p>
+        <div className="mb-6 flex justify-between items-start">
+          <div>
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-900">修理・点検記録一覧</h1>
+            <p className="mt-2 text-sm text-gray-600">
+              重機の点検・車検・保険更新・修理の履歴を管理できます
+            </p>
+          </div>
+          <Link
+            href="/equipment/maintenance-records/new"
+            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm font-medium"
+          >
+            + 新規登録
+          </Link>
         </div>
 
-        {/* 統計サマリー - モバイル */}
-        <div className="grid grid-cols-3 gap-3 sm:hidden mb-6">
-          <div className="bg-white rounded-lg shadow p-3">
-            <div className="text-xs font-medium text-gray-500 mb-1">記録数</div>
-            <div className="text-lg font-bold text-gray-900">{stats.totalRecords}件</div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-3">
-            <div className="text-xs font-medium text-gray-500 mb-1">総費用</div>
-            <div className="text-sm font-bold text-gray-900">{formatCurrency(stats.totalCost)}</div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-3">
-            <div className="text-xs font-medium text-gray-500 mb-1">平均</div>
-            <div className="text-sm font-bold text-gray-900">{formatCurrency(Math.round(stats.avgCost))}</div>
-          </div>
-        </div>
-
-        {/* 統計サマリー - PC */}
-        <div className="hidden sm:grid sm:grid-cols-3 gap-6 mb-6">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
-                <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">総記録数</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalRecords}件</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-green-100 rounded-md p-3">
-                <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">総費用</p>
-                <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.totalCost)}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-purple-100 rounded-md p-3">
-                <svg className="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">平均費用</p>
-                <p className="text-2xl font-bold text-gray-900">{formatCurrency(Math.round(stats.avgCost))}</p>
-              </div>
-            </div>
+        {/* フィルタ - Mobile */}
+        <div className="sm:hidden mb-6">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="重機名、コード..."
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+            />
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="relative p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50"
+              aria-label="フィルター"
+            >
+              <SlidersHorizontal className="h-5 w-5 text-gray-600" />
+              {filterCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {filterCount}
+                </span>
+              )}
+            </button>
           </div>
         </div>
 
-        {/* フィルタとソート */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* 重機フィルタ */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">重機</label>
-              <select
-                value={selectedEquipment}
-                onChange={(e) => setSelectedEquipment(e.target.value)}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+        {/* フィルタ - PC */}
+        <div className="hidden sm:block bg-white shadow rounded-lg p-6 mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">検索・フィルター</h2>
+            {hasActiveFilters && (
+              <button
+                onClick={handleReset}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
               >
-                <option value="all">すべて</option>
-                {equipment.map((eq) => (
-                  <option key={eq.id} value={eq.id}>
-                    {eq.equipment_code} - {eq.name}
-                  </option>
-                ))}
-              </select>
+                クリア
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* 重機検索 */}
+            <div>
+              <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+                重機検索
+              </label>
+              <input
+                type="text"
+                id="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="重機名、コード..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+              />
             </div>
 
-            {/* 点検タイプフィルタ */}
+            {/* 点検タイプ */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">点検タイプ</label>
+              <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
+                点検タイプ
+              </label>
               <select
+                id="type"
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
               >
                 <option value="all">すべて</option>
                 <option value="vehicle_inspection">車検</option>
@@ -236,19 +253,62 @@ export default function MaintenanceRecordsListView({
               </select>
             </div>
 
-            {/* ソート */}
+            {/* 並び順 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">並び順</label>
+              <label htmlFor="sort" className="block text-sm font-medium text-gray-700 mb-1">
+                並び順
+              </label>
               <select
+                id="sort"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'date' | 'cost')}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
               >
                 <option value="date">実施日順</option>
                 <option value="cost">費用順</option>
               </select>
             </div>
           </div>
+
+          {/* アクティブなフィルターの表示 */}
+          {hasActiveFilters && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              <span className="text-sm text-gray-500">適用中:</span>
+              {searchQuery && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  検索: {searchQuery}
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-blue-200"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              {selectedType !== 'all' && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  タイプ: {getMaintenanceTypeLabel(selectedType)}
+                  <button
+                    onClick={() => setSelectedType('all')}
+                    className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-green-200"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              {sortBy !== 'date' && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                  並び: 費用順
+                  <button
+                    onClick={() => setSortBy('date')}
+                    className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-purple-200"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* テーブル - PC */}
@@ -400,6 +460,17 @@ export default function MaintenanceRecordsListView({
           )}
         </div>
       </div>
+
+      {/* Filter Modal */}
+      <MaintenanceFiltersModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        selectedType={selectedType}
+        sortBy={sortBy}
+        onTypeChange={setSelectedType}
+        onSortChange={setSortBy}
+        onReset={handleReset}
+      />
     </div>
   )
 }
