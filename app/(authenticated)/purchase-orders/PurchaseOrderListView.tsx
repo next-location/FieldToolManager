@@ -367,9 +367,9 @@ export function PurchaseOrderListView({
                   {getStatusBadge(order.status)}
                 </div>
 
-                {/* 仕入先 */}
+                {/* 発注先 */}
                 <div>
-                  <div className="text-xs text-gray-500">仕入先</div>
+                  <div className="text-xs text-gray-500">発注先</div>
                   <div className="font-semibold text-gray-900">{order.client?.name || '-'}</div>
                 </div>
 
@@ -441,10 +441,10 @@ export function PurchaseOrderListView({
                 </div>
 
                 <div className="flex items-center justify-between pt-6">
-                  {/* 左側：仕入先・工事名（横並び） */}
+                  {/* 左側：発注先・工事名（横並び） */}
                   <div className="flex-1 min-w-0 flex items-center gap-8">
                     <div className="min-w-0">
-                      <div className="text-xs text-gray-500 mb-0.5">仕入先</div>
+                      <div className="text-xs text-gray-500 mb-0.5">発注先</div>
                       <div className="font-bold text-gray-900 truncate">
                         {order.client?.name || '-'}
                       </div>
@@ -500,7 +500,7 @@ export function PurchaseOrderListView({
                 </Link>
               )}
 
-              {/* 承認済み: 仕入先送付ボタン */}
+              {/* 承認済み: 発注先送付ボタン */}
               {order.status === 'approved' && (
                 <div onClick={(e) => e.stopPropagation()}>
                   <SendSupplierOrderButton orderId={order.id} orderNumber={order.order_number} />
@@ -527,7 +527,7 @@ export function PurchaseOrderListView({
                 const canShowPdf = ['approved', 'ordered', 'received', 'paid'].includes(order.status)
                 if (!canShowPdf) return null
 
-                // リーダーは仕入先送付後（ordered以降）はPDF非表示
+                // リーダーは発注先送付後（ordered以降）はPDF非表示
                 if (currentUserRole === 'leader' && ['ordered', 'received', 'paid'].includes(order.status)) {
                   return null
                 }

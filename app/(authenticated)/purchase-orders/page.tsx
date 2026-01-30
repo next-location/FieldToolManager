@@ -5,7 +5,7 @@ import { PurchaseOrderListView } from './PurchaseOrderListView'
 export default async function PurchaseOrdersPage() {
   const { organizationId, userRole, supabase } = await requireAuth()
 
-  // 仕入先一覧取得
+  // 発注先一覧取得
   const { data: suppliers } = await supabase
     .from('clients')
     .select('id, name, client_code')

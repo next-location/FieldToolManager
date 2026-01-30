@@ -69,7 +69,7 @@ export default function NewPurchaseOrderPage() {
     const { data } = await supabase
       .from('clients')
       .select('id, name, client_code, payment_terms')
-      .in('client_type', ['supplier', 'both'])
+      .in('client_type', ['supplier', 'subcontractor', 'both'])
       .eq('is_active', true)
       .order('name')
 
@@ -216,7 +216,7 @@ export default function NewPurchaseOrderPage() {
   const handleSupplierChange = (clientId: string) => {
     setFormData({ ...formData, client_id: clientId }) // 変更: supplier_id → client_id
 
-    // 仕入先の支払条件を自動設定
+    // 発注先の支払条件を自動設定
     const supplier = suppliers.find(s => s.id === clientId)
     if (supplier?.payment_terms) {
       setFormData(prev => ({
@@ -369,7 +369,7 @@ export default function NewPurchaseOrderPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                仕入先 <span className="text-red-500">*</span>
+                発注先 <span className="text-red-500">*</span>
               </label>
               <select
                 value={formData.client_id}
@@ -385,7 +385,7 @@ export default function NewPurchaseOrderPage() {
                 ))}
               </select>
               <p className="mt-1 text-[10px] sm:text-xs text-gray-500">
-                ※ 仕入れ先は取引先マスタで登録してください
+                ※ 発注先は取引先マスタで登録してください
               </p>
             </div>
 
@@ -648,7 +648,7 @@ export default function NewPurchaseOrderPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                発注備考（仕入先向け）
+                発注備考（発注先向け）
               </label>
               <textarea
                 value={formData.notes}

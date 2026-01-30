@@ -172,7 +172,7 @@ export function PaymentScheduleClient({ paymentSchedule }: PaymentScheduleClient
                   <thead className="bg-gray-50 border-b">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">発注番号</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">仕入先</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">発注先</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">発注日</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払期日</th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">発注金額</th>

@@ -17,7 +17,7 @@ export function SendSupplierOrderButton({ orderId, orderNumber }: SendOrderButto
     e.preventDefault()
     e.stopPropagation()
 
-    if (!confirm(`発注書「${orderNumber}」を仕入先に送付しますか？`)) return
+    if (!confirm(`発注書「${orderNumber}」を発注先に送付しますか？`)) return
 
     setLoading(true)
     try {
@@ -33,7 +33,7 @@ export function SendSupplierOrderButton({ orderId, orderNumber }: SendOrderButto
         throw new Error(error.error || '送付に失敗しました')
       }
 
-      alert('仕入先に発注書を送付しました')
+      alert('発注先に発注書を送付しました')
       router.refresh()
     } catch (error) {
       console.error('Error sending order:', error)
@@ -49,7 +49,7 @@ export function SendSupplierOrderButton({ orderId, orderNumber }: SendOrderButto
       disabled={loading}
       className="px-3 py-1.5 bg-purple-600 text-white text-sm font-medium rounded hover:bg-purple-700 transition-colors disabled:opacity-50"
     >
-      {loading ? '送付中...' : '仕入先送付'}
+      {loading ? '送付中...' : '発注先送付'}
     </button>
   )
 }

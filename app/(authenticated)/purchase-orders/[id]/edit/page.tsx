@@ -90,7 +90,7 @@ export default function EditPurchaseOrderPage({
     const { data } = await supabase
       .from('clients')
       .select('id, name, client_code, payment_terms')
-      .in('client_type', ['supplier', 'both'])
+      .in('client_type', ['supplier', 'subcontractor', 'both'])
       .eq('is_active', true)
       .order('name')
 
@@ -114,7 +114,7 @@ export default function EditPurchaseOrderPage({
   const handleSupplierChange = (clientId: string) => {
     setFormData({ ...formData, client_id: clientId })
 
-    // 仕入先の支払条件を自動設定
+    // 発注先の支払条件を自動設定
     const supplier = suppliers.find(s => s.id === clientId)
     if (supplier?.payment_terms) {
       setFormData(prev => ({
@@ -291,7 +291,7 @@ export default function EditPurchaseOrderPage({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                仕入先 <span className="text-red-500">*</span>
+                発注先 <span className="text-red-500">*</span>
               </label>
               <select
                 value={formData.client_id}

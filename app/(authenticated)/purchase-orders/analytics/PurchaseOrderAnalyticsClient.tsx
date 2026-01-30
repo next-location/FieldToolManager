@@ -158,18 +158,18 @@ export function PurchaseOrderAnalyticsClient() {
         </div>
       </div>
 
-      {/* 仕入先別ランキング */}
+      {/* 発注先別ランキング */}
       <div className="bg-white shadow rounded-lg p-6">
         <div className="flex items-center mb-4">
           <UserGroupIcon className="h-6 w-6 text-gray-400 mr-2" />
-          <h2 className="text-lg font-semibold text-gray-900">仕入先別ランキング（TOP10）</h2>
+          <h2 className="text-lg font-semibold text-gray-900">発注先別ランキング（TOP10）</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">順位</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">仕入先</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">発注先</th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">件数</th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">金額</th>
               </tr>

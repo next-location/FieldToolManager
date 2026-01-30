@@ -192,7 +192,7 @@ export function PurchaseOrderDetailClient({
   }
 
   const handleSend = async () => {
-    if (!confirm('仕入先に発注書を送付しますか？')) return
+    if (!confirm('発注先に発注書を送付しますか？')) return
 
     setLoading(true)
     try {
@@ -205,7 +205,7 @@ export function PurchaseOrderDetailClient({
         throw new Error(error.error || '送付に失敗しました')
       }
 
-      alert('仕入先に発注書を送付しました')
+      alert('発注先に発注書を送付しました')
       router.refresh()
     } catch (error) {
       console.error('Error sending order:', error)
@@ -342,14 +342,14 @@ export function PurchaseOrderDetailClient({
             </>
           )}
 
-          {/* 承認済み: 仕入先送付ボタン */}
+          {/* 承認済み: 発注先送付ボタン */}
           {order.status === 'approved' && (
             <button
               onClick={handleSend}
               disabled={loading}
               className="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 disabled:opacity-50"
             >
-              仕入先送付
+              発注先送付
             </button>
           )}
 
@@ -436,7 +436,7 @@ export function PurchaseOrderDetailClient({
         <div className="border-t border-gray-200">
           <dl>
             <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">仕入先</dt>
+              <dt className="text-sm font-medium text-gray-500">発注先</dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                 {order.client?.name}
               </dd>
