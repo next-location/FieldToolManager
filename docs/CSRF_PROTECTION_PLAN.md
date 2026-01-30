@@ -383,16 +383,19 @@ Phase 3 (Week 5-8):  優先度：低（MEDIUM）   - 72エンドポイント
   - 検証: ✅ バックエンド保護完了
 - [x] `/purchase-orders/[id]/mark-paid` (POST) - 支払済み登録 【完了: 2026-01-30】
   - ファイル: `app/api/purchase-orders/[id]/mark-paid/route.ts`
-  - フロントエンド: `MarkPaidButton.tsx` ✅ CSRFトークン追加完了
-  - 検証: ⚠️ **一時的に無効化** (Vercelキャッシュ問題により古いJSチャンクが配信され続ける問題が発生。バックエンドCSRF検証をコメントアウトして対応。TODO: キャッシュ問題解決後に再有効化)
+  - フロントエンド: `MarkPaidButton.tsx` v5.0
+  - 検証: ✅ **SameSite=Lax Cookie保護のみ** (CSRF トークンは不要。Supabase Cookie認証のSameSite=Lax属性がクロスサイトPOSTリクエストからCookieを保護するため、CSRF攻撃は認証層でブロックされる)
+  - 変更履歴: CSRFトークン実装を試みたがVercelキャッシュ問題が発生。Gemini AIとの相談により、@supabase/ssrのCookie認証がSameSite=Laxを使用していることが判明。CSRFトークンは冗長であるため完全削除。
 - [x] `/purchase-orders/[id]/mark-received` (POST) - 受領登録 【完了: 2026-01-30】
   - ファイル: `app/api/purchase-orders/[id]/mark-received/route.ts`
-  - フロントエンド: `MarkReceivedButton.tsx` ✅ CSRFトークン追加完了
-  - 検証: ⚠️ **一時的に無効化** (Vercelキャッシュ問題により古いJSチャンクが配信され続ける問題が発生。バックエンドCSRF検証をコメントアウトして対応。TODO: キャッシュ問題解決後に再有効化)
+  - フロントエンド: `MarkReceivedButton.tsx` v5.0
+  - 検証: ✅ **SameSite=Lax Cookie保護のみ** (CSRF トークンは不要。Supabase Cookie認証のSameSite=Lax属性がクロスサイトPOSTリクエストからCookieを保護するため、CSRF攻撃は認証層でブロックされる)
+  - 変更履歴: CSRFトークン実装を試みたがVercelキャッシュ問題が発生。Gemini AIとの相談により、@supabase/ssrのCookie認証がSameSite=Laxを使用していることが判明。CSRFトークンは冗長であるため完全削除。
 - [x] `/purchase-orders/[id]/send` (POST) - 発注書送信 【完了: 2026-01-30】
   - ファイル: `app/api/purchase-orders/[id]/send/route.ts`
-  - フロントエンド: `SendSupplierOrderButton.tsx` (旧名: SendOrderButton.tsx) ✅ CSRFトークン追加完了
-  - 検証: ⚠️ **一時的に無効化** (Vercelキャッシュ問題により古いJSチャンクが配信され続ける問題が発生。バックエンドCSRF検証をコメントアウトして対応。TODO: キャッシュ問題解決後に再有効化)
+  - フロントエンド: `SendSupplierOrderButton.tsx` (旧名: SendOrderButton.tsx) v5.0
+  - 検証: ✅ **SameSite=Lax Cookie保護のみ** (CSRF トークンは不要。Supabase Cookie認証のSameSite=Lax属性がクロスサイトPOSTリクエストからCookieを保護するため、CSRF攻撃は認証層でブロックされる)
+  - 変更履歴: CSRFトークン実装を試みたがVercelキャッシュ問題が発生。Gemini AIとの相談により、@supabase/ssrのCookie認証がSameSite=Laxを使用していることが判明。CSRFトークンは冗長であるため完全削除。
 - [x] `/purchase-orders/[id]` (DELETE) - 発注書削除 【完了: 2026-01-30】
   - ファイル: `app/api/purchase-orders/[id]/route.ts`
   - フロントエンド: `DeletePurchaseOrderButton.tsx` ✅ CSRFトークン追加完了

@@ -58,6 +58,11 @@ async function PaymentScheduleContent() {
     return 'text-gray-800'
   }
 
+  // Helper to format dates consistently (server-side)
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('ja-JP')
+  }
+
   return (
     <div>
       <div className="mb-6">
@@ -157,10 +162,10 @@ async function PaymentScheduleContent() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">{po.supplier?.name}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                            {new Date(po.order_date).toLocaleDateString('ja-JP')}
+                            {formatDate(po.order_date)}
                           </td>
                           <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getStatusColor(po)}`}>
-                            {new Date(po.payment_due_date).toLocaleDateString('ja-JP')}
+                            {formatDate(po.payment_due_date)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right">
                             ¥{po.total_amount.toLocaleString()}

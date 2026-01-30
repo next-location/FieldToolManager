@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { PurchaseOrderWithRelations } from '@/types/purchase-orders'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -48,6 +48,18 @@ export function PurchaseOrderDetailClient({
   const [loading, setLoading] = useState(false)
   const [showApprovalModal, setShowApprovalModal] = useState(false)
   const [showRejectModal, setShowRejectModal] = useState(false)
+
+  // Fix React #418: Prevent hydration mismatch by formatting dates client-side only
+  const [isClient, setIsClient] = useState(false)
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  // Helper function to format date safely
+  const formatDate = (dateString: string) => {
+    if (!isClient) return dateString // Return ISO format during SSR
+    return new Date(dateString).toLocaleDateString('ja-JP')
+  }
   const [rejectReason, setRejectReason] = useState('')
 
   const isCreator = order.created_by === currentUserId
@@ -431,15 +443,13 @@ export function PurchaseOrderDetailClient({
             <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">発注日</dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {new Date(order.order_date).toLocaleDateString('ja-JP')}
+                {formatDate(order.order_date)}
               </dd>
             </div>
             <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">納期</dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {order.delivery_date
-                  ? new Date(order.delivery_date).toLocaleDateString('ja-JP')
-                  : '-'}
+                {order.delivery_date ? formatDate(order.delivery_date) : '-'}
               </dd>
             </div>
             <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -459,7 +469,7 @@ export function PurchaseOrderDetailClient({
                 <dt className="text-sm font-medium text-gray-500">承認者</dt>
                 <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                   {order.approved_by_user.name} (
-                  {order.approved_at && new Date(order.approved_at).toLocaleDateString('ja-JP')})
+                  {order.approved_at && formatDate(order.approved_at)})
                 </dd>
               </div>
             )}
@@ -609,7 +619,7 @@ export function PurchaseOrderDetailClient({
                 {payments.map((payment) => (
                   <tr key={payment.id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(payment.payment_date).toLocaleDateString('ja-JP')}
+                      {formatDate(payment.payment_date)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       ¥{Number(payment.amount).toLocaleString()}

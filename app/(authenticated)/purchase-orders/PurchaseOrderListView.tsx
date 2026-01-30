@@ -57,7 +57,19 @@ export function PurchaseOrderListView({
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 20
 
+  // Fix React #418: Prevent hydration mismatch by formatting dates client-side only
+  const [isClient, setIsClient] = useState(false)
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
   const isManagerOrAdmin = ['manager', 'admin'].includes(currentUserRole)
+
+  // Helper function to format date safely
+  const formatDate = (dateString: string, options?: Intl.DateTimeFormatOptions) => {
+    if (!isClient) return dateString // Return ISO format during SSR
+    return new Date(dateString).toLocaleDateString('ja-JP', options)
+  }
 
   // API呼び出し関数
   const fetchOrders = async () => {
@@ -365,12 +377,12 @@ export function PurchaseOrderListView({
                 <div className="flex gap-4 text-xs text-gray-600">
                   <div>
                     <span className="text-gray-500">発注日: </span>
-                    {new Date(order.order_date).toLocaleDateString('ja-JP')}
+                    {formatDate(order.order_date)}
                   </div>
                   {order.delivery_date && (
                     <div>
                       <span className="text-gray-500">納期: </span>
-                      {new Date(order.delivery_date).toLocaleDateString('ja-JP')}
+                      {formatDate(order.delivery_date)}
                     </div>
                   )}
                 </div>
@@ -413,11 +425,11 @@ export function PurchaseOrderListView({
                 {/* 発注日・納期（右上・横並び） */}
                 <div className="absolute top-2 right-2 flex items-center gap-4 text-xs text-gray-500">
                   <div className="whitespace-nowrap">
-                    発注日: {new Date(order.order_date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    発注日: {formatDate(order.order_date, { year: 'numeric', month: 'long', day: 'numeric' })}
                   </div>
                   {order.delivery_date && (
                     <div className="whitespace-nowrap">
-                      納期: {new Date(order.delivery_date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      納期: {formatDate(order.delivery_date, { year: 'numeric', month: 'long', day: 'numeric' })}
                     </div>
                   )}
                 </div>
