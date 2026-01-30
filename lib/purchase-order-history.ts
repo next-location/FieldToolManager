@@ -86,7 +86,7 @@ export async function getPurchaseOrderHistory(purchaseOrderId: string) {
     .from('purchase_order_history')
     .select('*')
     .eq('purchase_order_id', purchaseOrderId)
-    .order('created_at', { ascending: true })
+    .order('created_at', { ascending: false })
 
   if (error) {
     console.error('Failed to fetch purchase order history:', error)
