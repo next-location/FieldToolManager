@@ -3,6 +3,8 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
 import { insertSampleData } from '@/lib/demo/sample-data'
 import crypto from 'crypto'
+import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/security/rate-limiter-supabase'
+import { escapeHtml, nl2br, isValidEmail, isValidPhone, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 // パスワード生成関数
 function generateSecurePassword(length: number = 10): string {
@@ -23,6 +25,17 @@ function getExpiryDate(): Date {
 
 export async function POST(request: NextRequest) {
   try {
+    // レート制限チェック（5分間に3回まで）
+    const clientIp = getClientIp(request)
+    const rateLimitResult = await checkRateLimit(clientIp, 3, 300000, 600000)
+
+    if (!rateLimitResult.allowed) {
+      console.warn(`[Demo Request] Rate limit exceeded from IP: ${clientIp}, remaining: ${rateLimitResult.remaining}`)
+      return rateLimitResponse(rateLimitResult.resetAt)
+    }
+
+    console.log(`[Demo Request] Rate limit check passed: IP=${clientIp}, remaining=${rateLimitResult.remaining}`)
+
     const supabase = createAdminClient()
     const body = await request.json()
 
@@ -45,6 +58,39 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // メールアドレスの形式検証
+    if (!isValidEmail(email)) {
+      return NextResponse.json(
+        { error: '有効なメールアドレスを入力してください' },
+        { status: 400 }
+      )
+    }
+
+    // 電話番号の形式検証
+    if (!isValidPhone(phone)) {
+      return NextResponse.json(
+        { error: '有効な電話番号を入力してください' },
+        { status: 400 }
+      )
+    }
+
+    // 不審なパターンの検出
+    if (
+      hasSuspiciousPattern(companyName) ||
+      hasSuspiciousPattern(personName) ||
+      hasSuspiciousPattern(department || '') ||
+      hasSuspiciousPattern(message || '')
+    ) {
+      console.warn(`[Demo Request] Suspicious pattern detected from IP: ${clientIp}`)
+      return NextResponse.json(
+        { error: '不正な入力が検出されました' },
+        { status: 400 }
+      )
+    }
+
+    // 送信ログ
+    console.log(`[Demo Request] New submission from IP: ${clientIp}, company: ${companyName}, email: ${email}`)
 
     // IPアドレス取得
     const headersList = await headers()
@@ -328,7 +374,7 @@ export async function POST(request: NextRequest) {
   </div>
 
   <div class="content">
-    <p>${companyName} ${personName} 様</p>
+    <p>${escapeHtml(companyName)} ${escapeHtml(personName)} 様</p>
 
     <p>この度は資料請求いただきありがとうございます。</p>
 
@@ -432,15 +478,15 @@ export async function POST(request: NextRequest) {
 
   <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
     <h3>申請者情報</h3>
-    <p><strong>会社名:</strong> ${companyName}</p>
-    <p><strong>担当者名:</strong> ${personName}</p>
-    <p><strong>メールアドレス:</strong> ${email}</p>
-    <p><strong>電話番号:</strong> ${phone}</p>
-    <p><strong>部署:</strong> ${department || '未記入'}</p>
-    <p><strong>従業員数:</strong> ${employeeCount || '未記入'}</p>
-    <p><strong>管理する工具数:</strong> ${toolCount || '未記入'}</p>
-    <p><strong>導入時期:</strong> ${timeline || '未記入'}</p>
-    ${message ? `<p><strong>メッセージ:</strong><br>${message}</p>` : ''}
+    <p><strong>会社名:</strong> ${escapeHtml(companyName)}</p>
+    <p><strong>担当者名:</strong> ${escapeHtml(personName)}</p>
+    <p><strong>メールアドレス:</strong> ${escapeHtml(email)}</p>
+    <p><strong>電話番号:</strong> ${escapeHtml(phone)}</p>
+    <p><strong>部署:</strong> ${escapeHtml(department || '未記入')}</p>
+    <p><strong>従業員数:</strong> ${escapeHtml(employeeCount || '未記入')}</p>
+    <p><strong>管理する工具数:</strong> ${escapeHtml(toolCount || '未記入')}</p>
+    <p><strong>導入時期:</strong> ${escapeHtml(timeline || '未記入')}</p>
+    ${message ? `<p><strong>メッセージ:</strong><br>${nl2br(message)}</p>` : ''}
   </div>
 
   <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0;">
