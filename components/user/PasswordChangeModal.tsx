@@ -67,9 +67,6 @@ export default function PasswordChangeModal({
     setError('');
 
     try {
-      // CSRFトークンを取得
-      const csrfResponse = await fetch('/api/csrf');
-
       const response = await fetch('/api/users/password/request-change', {
         method: 'POST',
         headers: {
@@ -115,9 +112,6 @@ export default function PasswordChangeModal({
     }
 
     try {
-      // CSRFトークンを取得
-      const csrfResponse = await fetch('/api/csrf');
-
       const response = await fetch('/api/users/password/verify-and-change', {
         method: 'POST',
         headers: {

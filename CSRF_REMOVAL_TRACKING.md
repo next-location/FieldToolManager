@@ -63,6 +63,11 @@ headers: {
 - [x] APIルートからCSRF検証を削除
 - [x] CSRFライブラリファイルを削除
 - [x] hooksフォルダからuseCsrfToken.tsを削除
-- [ ] コンポーネントからCSRF使用を削除
-- [ ] ビルドエラーを解消
-- [ ] Vercelにデプロイ
+- [x] コンポーネントからCSRF使用を削除
+- [x] ビルドエラーを解消
+- [x] Vercelにデプロイ
+
+## 最終状態
+- **ビルド**: ✅ 成功
+- **デプロイ**: ✅ 完了
+- **CSRF保護**: SameSite=Lax Cookiesによる保護（@supabase/ssrのデフォルト設定）
