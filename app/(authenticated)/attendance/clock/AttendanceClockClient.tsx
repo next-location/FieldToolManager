@@ -381,10 +381,10 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
   }
 
   const duration = getWorkDuration()
-  const today = currentTime
+  const today = currentTime || new Date()
   const isWorking = todayRecord?.clock_in_time && !todayRecord?.clock_out_time
 
-  if (loading) {
+  if (loading || !currentTime) {
     return (
       <div className="bg-white rounded-lg shadow p-6">
         <div className="animate-pulse">
