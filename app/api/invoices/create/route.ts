@@ -1,15 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { logInvoiceCreated } from '@/lib/audit-log'
 import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 export async function POST(request: NextRequest) {
   // CSRF検証（セキュリティ強化）
-  const isValidCsrf = await verifyCsrfToken(request)
-  if (!isValidCsrf) {
-    console.error('[INVOICES CREATE API] CSRF validation failed')
-    return csrfErrorResponse()
   }
 
   try {

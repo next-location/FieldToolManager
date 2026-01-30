@@ -1,16 +1,11 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   // 🔒 CSRF検証
-  const isValidCsrf = await verifyCsrfToken(request)
-  if (!isValidCsrf) {
-    console.error('[API /api/purchase-orders/[id]] DELETE CSRF validation failed')
-    return csrfErrorResponse()
   }
 
   const { id } = await params

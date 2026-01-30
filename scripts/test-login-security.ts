@@ -35,7 +35,6 @@ async function testAdminLoginRateLimit() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': token,
         },
         body: JSON.stringify({
           email: 'test@example.com',
@@ -101,7 +100,6 @@ async function testUserLoginRateLimit() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': token,
         },
         body: JSON.stringify({
           email: 'user@example.com',
@@ -163,7 +161,6 @@ async function testHtmlInjectionProtection() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-Token': token,
       },
       body: JSON.stringify({
         email: xssPayload,
@@ -223,7 +220,6 @@ async function testEmailValidation() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': token,
         },
         body: JSON.stringify({
           email,

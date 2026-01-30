@@ -147,6 +147,14 @@ export async function updateTool(
     .eq('id', toolId)
     .single()
 
+  // 不審なパターン検出
+  if (formData.notes && hasSuspiciousPattern(formData.notes)) {
+    return { error: '備考に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）' }
+  }
+
+  // HTMLエスケープ処理
+  const sanitizedNotes = formData.notes ? escapeHtml(formData.notes) : null
+
   const { error: updateError } = await supabase
     .from('tools')
     .update({
@@ -160,7 +168,7 @@ export async function updateTool(
       quantity: parseInt(formData.quantity),
       minimum_stock: parseInt(formData.minimum_stock),
       warranty_expiration_date: formData.warranty_expiration_date || null,
-      notes: formData.notes || null,
+      notes: sanitizedNotes,
       updated_at: new Date().toISOString(),
     })
     .eq('id', toolId)
@@ -180,7 +188,7 @@ export async function updateTool(
     quantity: parseInt(formData.quantity),
     minimum_stock: parseInt(formData.minimum_stock),
     warranty_expiration_date: formData.warranty_expiration_date || null,
-    notes: formData.notes || null,
+    notes: sanitizedNotes,
   }
 
   // 監査ログを記録

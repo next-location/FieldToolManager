@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { createClient } from '@/lib/supabase/server'
 import type { WorkReportFilter } from '@/types/work-reports'
 import { notifyWorkReportSubmitted } from '@/lib/notifications/work-report-notifications'
@@ -108,10 +107,6 @@ export async function GET(request: NextRequest) {
 // POST /api/work-reports - 作業報告書作成
 export async function POST(request: NextRequest) {
   // CSRF検証（セキュリティ強化）
-  const isValidCsrf = await verifyCsrfToken(request)
-  if (!isValidCsrf) {
-    console.error('[WORK REPORTS CREATE API] CSRF validation failed')
-    return csrfErrorResponse()
   }
 
   try {

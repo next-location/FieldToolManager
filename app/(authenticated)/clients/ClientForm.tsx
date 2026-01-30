@@ -145,10 +145,6 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
         'Content-Type': 'application/json',
       }
 
-      if (csrfToken) {
-        headers['X-CSRF-Token'] = csrfToken
-      }
-
       const response = await fetch(url, {
         method,
         headers,

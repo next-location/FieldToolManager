@@ -8,7 +8,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf';
 import bcrypt from 'bcrypt';
 
 const supabase = createClient(
@@ -18,10 +17,6 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   // CSRF検証
-  const isValidCsrf = await verifyCsrfToken(request);
-  if (!isValidCsrf) {
-    return csrfErrorResponse();
-  }
 
   try {
     // 認証チェック

@@ -80,9 +80,15 @@ export async function POST(request: NextRequest) {
     const validFrom = now
 
     // 有効期限を計算（その日の23:59:59まで）
-    const validUntil = new Date(now)
-    validUntil.setDate(validUntil.getDate() + rotationDays - 1) // 日数を加算（今日を含むので-1）
-    validUntil.setHours(23, 59, 59, 999) // その日の23:59:59.999に設定
+    // 日本時間で今日の日付を取得
+    const jstOffset = 9 * 60 // 日本は UTC+9
+    const jstDate = new Date(now.getTime() + jstOffset * 60 * 1000)
+    const today = jstDate.toISOString().split('T')[0] // YYYY-MM-DD
+
+    // 有効期限を計算（rotationDays日後の23:59:59）
+    const validUntil = new Date(today + 'T00:00:00') // 今日の00:00:00から開始
+    validUntil.setDate(validUntil.getDate() + rotationDays - 1) // 今日を含むので-1
+    validUntil.setHours(32, 59, 59, 999) // 23:59:59.999に設定（JSTは+9なので32時間）
 
     // QRデータフォーマット: ATT|${organization_id}|${random_token}|${valid_until}
     const qrData = `ATT|${userData?.organization_id}|${randomToken}|${validUntil.toISOString()}`

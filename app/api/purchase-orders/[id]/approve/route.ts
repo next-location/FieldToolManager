@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { notifyPurchaseOrderApproved } from '@/lib/notification'
 import { createPurchaseOrderHistory } from '@/lib/purchase-order-history'
 import { logPurchaseOrderApproved } from '@/lib/audit-log'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 // POST /api/purchase-orders/:id/approve - 発注書承認
 export async function POST(
@@ -63,6 +63,17 @@ export async function POST(
       return NextResponse.json({ error: '自分が作成した発注書は承認できません' }, { status: 403 })
     }
 
+    // 不審なパターン検出
+    if (body.comment && hasSuspiciousPattern(body.comment)) {
+      return NextResponse.json(
+        { error: 'コメントに不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）' },
+        { status: 400 }
+      )
+    }
+
+    // HTMLエスケープ処理
+    const sanitizedComment = body.comment ? escapeHtml(body.comment) : '承認しました'
+
     // ステータスを承認済みに更新
     const { error: updateError } = await supabase
       .from('purchase_orders')
@@ -86,7 +97,7 @@ export async function POST(
       actionType: 'approved',
       performedBy: user.id,
       performedByName: userData.name,
-      notes: body.comment || '承認しました',
+      notes: sanitizedComment,
     })
 
     // 監査ログ記録

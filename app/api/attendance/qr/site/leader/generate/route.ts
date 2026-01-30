@@ -79,9 +79,9 @@ export async function POST(request: NextRequest) {
     const today = jstDate.toISOString().split('T')[0] // YYYY-MM-DD
 
     // 有効期限を計算（rotationDays日後の23:59:59）
-    const expiresDate = new Date(jstDate)
+    const expiresDate = new Date(today + 'T00:00:00') // 今日の00:00:00から開始
     expiresDate.setDate(expiresDate.getDate() + rotationDays - 1) // 今日を含むので-1
-    expiresDate.setHours(23, 59, 59, 999)
+    expiresDate.setHours(32, 59, 59, 999) // 23:59:59.999に設定（JSTは+9なので32時間）
     const expiresAt = new Date(expiresDate.getTime() - jstOffset * 60 * 1000) // UTC に戻す
 
     // QRコードデータ生成（JSON形式）

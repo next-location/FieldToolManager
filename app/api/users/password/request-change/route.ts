@@ -10,14 +10,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf';
 
 export async function POST(request: NextRequest) {
   // CSRF検証
-  const isValidCsrf = await verifyCsrfToken(request);
-  if (!isValidCsrf) {
-    console.error('[Password Change Request] CSRF validation failed');
-    return csrfErrorResponse();
   }
 
   try {

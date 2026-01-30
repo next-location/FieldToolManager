@@ -285,7 +285,6 @@ export default function NewInvoicePage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken,
         },
         body: JSON.stringify({
           invoiceData: {

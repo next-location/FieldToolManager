@@ -118,7 +118,6 @@ function isFrontendProtected(filePath: string): boolean {
 
   return (
     (content.includes('useCsrfToken') && content.includes("from '@/hooks/useCsrfToken'")) &&
-    (content.includes("'X-CSRF-Token'") || content.includes('"X-CSRF-Token"'))
   )
 }
 

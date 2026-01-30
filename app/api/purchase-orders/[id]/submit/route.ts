@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { createPurchaseOrderHistory } from '@/lib/purchase-order-history'
 import { logPurchaseOrderUpdated, logPurchaseOrderApproved } from '@/lib/audit-log'
 

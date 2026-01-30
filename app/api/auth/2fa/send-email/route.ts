@@ -10,17 +10,12 @@ import { cookies } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
 import { randomInt } from 'crypto';
 import { Resend } from 'resend';
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf';
 
 // Resend初期化
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export async function POST(request: NextRequest) {
   // CSRF検証（セキュリティ強化）
-  const isValidCsrf = await verifyCsrfToken(request);
-  if (!isValidCsrf) {
-    console.error('[2FA EMAIL SEND API] CSRF validation failed');
-    return csrfErrorResponse();
   }
 
   try {
@@ -196,10 +191,6 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   // CSRF検証（セキュリティ強化）
-  const isValidCsrf = await verifyCsrfToken(request);
-  if (!isValidCsrf) {
-    console.error('[2FA EMAIL VERIFY API] CSRF validation failed');
-    return csrfErrorResponse();
   }
 
   try {

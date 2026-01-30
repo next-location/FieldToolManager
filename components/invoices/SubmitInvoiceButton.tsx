@@ -33,7 +33,6 @@ export function SubmitInvoiceButton({ invoiceId }: { invoiceId: string }) {
       const response = await fetch(`/api/invoices/${invoiceId}/submit`, {
         method: 'POST',
         headers: {
-          'X-CSRF-Token': csrfToken
         }
       })
 

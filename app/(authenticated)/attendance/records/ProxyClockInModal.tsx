@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useCsrfToken } from '@/hooks/useCsrfToken'
 
 interface Staff {
   id: string
@@ -29,7 +28,6 @@ export function ProxyClockInModal({
   onClose,
   onSuccess,
 }: ProxyClockInModalProps) {
-  const { token: csrfToken } = useCsrfToken()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -92,7 +90,6 @@ export function ProxyClockInModal({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken || '',
         },
         body: JSON.stringify({
           user_id: formData.user_id,

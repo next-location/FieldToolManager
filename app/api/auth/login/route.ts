@@ -9,7 +9,6 @@ import {
   checkAndLockAccount,
   checkPasswordExpiration,
 } from '@/lib/security-middleware'
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { logLogin } from '@/lib/audit-log'
 import { checkRateLimit, rateLimitResponse } from '@/lib/security/rate-limiter-supabase'
 import { escapeHtml } from '@/lib/security/html-escape'
@@ -17,13 +16,6 @@ import { checkForeignIPAccess } from '@/lib/security/login-tracker'
 import { getCountryFromIP } from '@/lib/security/geoip'
 
 export async function POST(request: Request) {
-  // CSRF検証（セキュリティ強化）
-  const isValidCsrf = await verifyCsrfToken(request)
-  if (!isValidCsrf) {
-    console.error('[LOGIN API] CSRF validation failed')
-    return csrfErrorResponse()
-  }
-
   // IPアドレスとUser-Agentを取得
   const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
     request.headers.get('x-real-ip') || 'unknown'

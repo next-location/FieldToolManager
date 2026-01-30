@@ -67,14 +67,11 @@ export default function PasswordChangePage() {
 
     try {
       // CSRFトークンを取得
-      const csrfResponse = await fetch('/api/admin/csrf');
-      const { token: csrfToken } = await csrfResponse.json();
 
       const response = await fetch('/api/admin/password/request-change', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken,
         },
         credentials: 'include',
         body: JSON.stringify({ currentPassword }),
@@ -110,14 +107,11 @@ export default function PasswordChangePage() {
 
     try {
       // CSRFトークンを取得
-      const csrfResponse = await fetch('/api/admin/csrf');
-      const { token: csrfToken } = await csrfResponse.json();
 
       const response = await fetch('/api/admin/password/verify-and-change', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken,
         },
         credentials: 'include',
         body: JSON.stringify({

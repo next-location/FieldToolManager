@@ -202,8 +202,6 @@ export default function NewContractForm({ organizations, packages, superAdminId 
     setLoading(true);
     try {
       // CSRFトークンを取得
-      const csrfResponse = await fetch('/api/admin/csrf');
-      const { token: csrfToken } = await csrfResponse.json();
 
       // エンタープライズの場合はカスタム値を使用
       const finalUserLimit = formData.plan === 'enterprise'
@@ -214,7 +212,6 @@ export default function NewContractForm({ organizations, packages, superAdminId 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken,
         },
         credentials: 'include',
         body: JSON.stringify({

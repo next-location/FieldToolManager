@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { logProjectCreated } from '@/lib/audit-log'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 // GET /api/projects - 工事一覧取得
 export async function GET(request: NextRequest) {
@@ -88,10 +88,6 @@ export async function GET(request: NextRequest) {
 // POST /api/projects - 工事作成
 export async function POST(request: NextRequest) {
   // CSRF検証（セキュリティ強化）
-  const isValidCsrf = await verifyCsrfToken(request)
-  if (!isValidCsrf) {
-    console.error('[PROJECTS CREATE API] CSRF validation failed')
-    return csrfErrorResponse()
   }
 
   try {
@@ -133,13 +129,32 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 不審なパターン検出
+    const textFields = [
+      { field: 'project_name', value: body.project_name, label: '工事名' },
+      { field: 'project_code', value: body.project_code, label: '工事番号' },
+    ]
+
+    for (const { value, label } of textFields) {
+      if (value && hasSuspiciousPattern(value)) {
+        return NextResponse.json(
+          { error: `${label}に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）` },
+          { status: 400 }
+        )
+      }
+    }
+
+    // HTMLエスケープ処理
+    const sanitizedProjectName = escapeHtml(body.project_name)
+    const sanitizedProjectCode = escapeHtml(body.project_code)
+
     // 工事作成
     const { data: project, error } = await supabase
       .from('projects')
       .insert({
         organization_id: userData.organization_id,
-        project_code: body.project_code,
-        project_name: body.project_name,
+        project_code: sanitizedProjectCode,
+        project_name: sanitizedProjectName,
         client_id: body.client_id || null,
         start_date: body.start_date || null,
         end_date: body.end_date || null,

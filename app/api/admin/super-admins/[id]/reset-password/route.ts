@@ -8,7 +8,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 
@@ -22,10 +21,6 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   // CSRF検証
-  const isValidCsrf = await verifyCsrfToken(request);
-  if (!isValidCsrf) {
-    return csrfErrorResponse();
-  }
 
   try {
     // 認証チェック

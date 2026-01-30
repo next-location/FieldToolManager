@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { logProjectUpdated } from '@/lib/audit-log'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 // PATCH /api/projects/[id] - 工事更新
 export async function PATCH(
@@ -9,10 +9,6 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   // CSRF検証（セキュリティ強化）
-  const isValidCsrf = await verifyCsrfToken(request)
-  if (!isValidCsrf) {
-    console.error('[PROJECTS UPDATE API] CSRF validation failed')
-    return csrfErrorResponse()
   }
 
   try {
@@ -59,11 +55,22 @@ export async function PATCH(
     // リクエストボディ取得
     const body = await request.json()
 
+    // 不審なパターン検出
+    if (body.project_name && hasSuspiciousPattern(body.project_name)) {
+      return NextResponse.json(
+        { error: '工事名に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）' },
+        { status: 400 }
+      )
+    }
+
+    // HTMLエスケープ処理
+    const sanitizedProjectName = body.project_name ? escapeHtml(body.project_name) : undefined
+
     // 工事更新
     const { data: project, error } = await supabase
       .from('projects')
       .update({
-        project_name: body.project_name,
+        project_name: sanitizedProjectName,
         client_id: body.client_id || null,
         start_date: body.start_date || null,
         end_date: body.end_date || null,

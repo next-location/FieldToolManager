@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { logConsumableUpdated } from '@/lib/audit-log'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 export async function markAsOrdered(orderId: string) {
   const supabase = await createClient()
@@ -69,6 +70,14 @@ export async function markAsDelivered(formData: FormData) {
     throw new Error('ユーザー情報が見つかりません')
   }
 
+  // 不審なパターン検出
+  if (deliveryNotes && hasSuspiciousPattern(deliveryNotes)) {
+    throw new Error('納品メモに不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）')
+  }
+
+  // HTMLエスケープ処理
+  const sanitizedDeliveryNotes = deliveryNotes ? escapeHtml(deliveryNotes) : null
+
   // トランザクション的な処理を実行
   // 1. 発注ステータスを納品済みに更新
   const { error: updateError } = await supabase
@@ -77,8 +86,8 @@ export async function markAsDelivered(formData: FormData) {
       status: '納品済み',
       actual_delivery_date: actualDeliveryDate,
       received_by: userId,
-      notes: deliveryNotes
-        ? `${order.notes ? order.notes + '\n\n' : ''}【納品メモ】\n${deliveryNotes}`
+      notes: sanitizedDeliveryNotes
+        ? `${order.notes ? order.notes + '\n\n' : ''}【納品メモ】\n${sanitizedDeliveryNotes}`
         : order.notes,
     })
     .eq('id', orderId)

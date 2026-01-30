@@ -307,7 +307,6 @@ export default function NewPurchaseOrderPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken,
         },
         body: JSON.stringify({
           client_id: formData.client_id,
@@ -335,7 +334,6 @@ export default function NewPurchaseOrderPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-Token': csrfToken,
           },
         })
 

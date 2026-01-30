@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 interface AddToolItemButtonProps {
   toolId: string
@@ -111,6 +112,14 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
 
   // 単一アイテム作成
   const createSingleItem = async (supabase: any, organizationId: string, userId: string) => {
+    // 不審なパターン検出
+    if (notes && hasSuspiciousPattern(notes)) {
+      throw new Error('備考に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）')
+    }
+
+    // HTMLエスケープ処理
+    const sanitizedNotes = notes ? escapeHtml(notes) : null
+
     // 重複チェック
     const { data: existing } = await supabase
       .from('tool_items')
@@ -136,7 +145,7 @@ export function AddToolItemButton({ toolId, toolName }: AddToolItemButtonProps) 
         qr_code: qrCode,
         current_location: 'warehouse',
         status: 'available',
-        notes: notes || null,
+        notes: sanitizedNotes,
         purchase_date: purchaseDate || null,
         purchase_price: purchasePrice ? parseFloat(purchasePrice) : null,
       })

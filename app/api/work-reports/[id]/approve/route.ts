@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import {
   notifyWorkReportApproved,
   notifyWorkReportRejected,
 } from '@/lib/notifications/work-report-notifications'
 import { logWorkReportApproved } from '@/lib/audit-log'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 interface Params {
   params: Promise<{ id: string }>
@@ -83,6 +83,17 @@ export async function POST(request: NextRequest, { params }: Params) {
       )
     }
 
+    // 不審なパターン検出
+    if (comment && hasSuspiciousPattern(comment)) {
+      return NextResponse.json(
+        { error: 'コメントに不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）' },
+        { status: 400 }
+      )
+    }
+
+    // HTMLエスケープ処理
+    const sanitizedComment = comment ? escapeHtml(comment) : null
+
     // トランザクション処理
     // 1. 報告書のステータス更新（Service Roleキーを使用してRLSをバイパス）
     const newStatus = action === 'approved' ? 'approved' : 'rejected'
@@ -99,7 +110,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     } else {
       updateData.rejected_at = now
       updateData.rejected_by = user.id
-      updateData.rejection_reason = comment || null
+      updateData.rejection_reason = sanitizedComment
     }
 
     // Service Roleクライアントを使用してRLSをバイパス
@@ -132,7 +143,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       approver_id: user.id,
       approver_name: userData.name,
       action,
-      comment: comment || null,
+      comment: sanitizedComment,
     })
 
     if (approvalError) {

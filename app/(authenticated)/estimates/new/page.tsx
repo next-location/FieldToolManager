@@ -1,9 +1,7 @@
-import { requireAuth } from '@/lib/auth/page-auth'
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { fetchWithCsrf } from '@/lib/csrf-client'
 
 interface EstimateItem {
   id: string
@@ -323,7 +321,7 @@ export default function NewEstimatePage() {
 
       console.log('[見積書作成] リクエストデータ:', estimateData)
 
-      const response = await fetchWithCsrf('/api/estimates', {
+      const response = await fetch('/api/estimates', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

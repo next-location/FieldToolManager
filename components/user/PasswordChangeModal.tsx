@@ -69,13 +69,11 @@ export default function PasswordChangeModal({
     try {
       // CSRFトークンを取得
       const csrfResponse = await fetch('/api/csrf');
-      const { token: csrfToken } = await csrfResponse.json();
 
       const response = await fetch('/api/users/password/request-change', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken,
         },
         credentials: 'include',
         body: JSON.stringify({ currentPassword }),
@@ -119,13 +117,11 @@ export default function PasswordChangeModal({
     try {
       // CSRFトークンを取得
       const csrfResponse = await fetch('/api/csrf');
-      const { token: csrfToken } = await csrfResponse.json();
 
       const response = await fetch('/api/users/password/verify-and-change', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken,
         },
         credentials: 'include',
         body: JSON.stringify({

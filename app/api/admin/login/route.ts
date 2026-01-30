@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { verifySuperAdminPassword, setSuperAdminCookie } from '@/lib/auth/super-admin';
 import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/security/rate-limiter-supabase';
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf';
 import { sendLoginNotification } from '@/lib/notifications/login-notification';
 import { recordLoginAttempt, checkForeignIPAccess } from '@/lib/security/login-tracker';
 import { getCountryFromIP } from '@/lib/security/geoip';
@@ -14,13 +13,6 @@ const supabase = createClient(
 );
 
 export async function POST(request: NextRequest) {
-  // CSRF検証（セキュリティ強化）
-  const isValidCsrf = await verifyCsrfToken(request);
-  if (!isValidCsrf) {
-    console.error('[ADMIN LOGIN API] CSRF validation failed');
-    return csrfErrorResponse();
-  }
-
   try {
     // レート制限チェック（Supabase版：5分間に3回まで、ブロック時間10分）
     const clientIp = getClientIp(request);

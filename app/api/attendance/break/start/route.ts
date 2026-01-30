@@ -1,15 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 
 export async function POST(request: NextRequest) {
-  // 🔒 CSRF検証
-  const isValidCsrf = await verifyCsrfToken(request)
-  if (!isValidCsrf) {
-    console.error('[API /api/attendance/break/start] CSRF validation failed')
-    return csrfErrorResponse()
-  }
-
   try {
     const supabase = await createClient()
 

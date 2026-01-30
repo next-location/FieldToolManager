@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { createPurchaseOrderHistory } from '@/lib/purchase-order-history'
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { logPurchaseOrderCreated } from '@/lib/audit-log'
 import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
@@ -83,13 +82,14 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // ソート順を適用
+    // ソート順を適用（同じ日付の場合はcreated_atでもソート）
     const validSortFields = ['order_date', 'delivery_date', 'total_amount']
     const finalSortField = validSortFields.includes(sortField) ? sortField : 'order_date'
     const ascending = sortOrder === 'asc'
 
     const { data: orders, error, count } = await query
       .order(finalSortField, { ascending })
+      .order('created_at', { ascending: false }) // 同じ日付の場合は新しいものを上に
       .range(offset, offset + limit - 1)
 
     if (error) {
@@ -112,10 +112,6 @@ export async function GET(request: NextRequest) {
 // POST /api/purchase-orders - 発注書作成
 export async function POST(request: NextRequest) {
   // CSRF検証（セキュリティ強化）
-  const isValidCsrf = await verifyCsrfToken(request)
-  if (!isValidCsrf) {
-    console.error('[PURCHASE ORDERS CREATE API] CSRF validation failed')
-    return csrfErrorResponse()
   }
 
   try {

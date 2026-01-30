@@ -5,7 +5,6 @@ import { login } from './actions'
 import { Shield, Mail, ArrowRight, HelpCircle, Eye, EyeOff } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useCsrfToken } from '@/hooks/useCsrfToken'
 
 interface LoginFormProps {
   organizationName: string
@@ -19,7 +18,6 @@ export default function LoginForm({ organizationName }: LoginFormProps) {
   const [tempCredentials, setTempCredentials] = useState<{ email: string; password: string }>({ email: '', password: '' })
   const [twoFAMethod, setTwoFAMethod] = useState<'totp' | 'email'>('totp')
   const [showPassword, setShowPassword] = useState(false)
-  const { token: csrfToken } = useCsrfToken()
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -39,7 +37,6 @@ export default function LoginForm({ organizationName }: LoginFormProps) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
         },
         body: JSON.stringify({ email, password }),
       })
@@ -98,7 +95,6 @@ export default function LoginForm({ organizationName }: LoginFormProps) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
         },
         body: JSON.stringify({
           userId,
@@ -137,7 +133,6 @@ export default function LoginForm({ organizationName }: LoginFormProps) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
         },
         body: JSON.stringify({ userId }),
       })

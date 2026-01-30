@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf';
 import { setupContractBilling } from '@/lib/billing/setup-contract-billing';
 
 const supabase = createClient(

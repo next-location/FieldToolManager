@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 interface Consumable {
   id: string
@@ -197,6 +198,17 @@ export function ConsumableBulkMovementForm({
     setProgress({ current: 0, total: selectedConsumables.size })
 
     try {
+      // 不審なパターン検出
+      if (notes && hasSuspiciousPattern(notes)) {
+        setError('備考に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）')
+        setIsSubmitting(false)
+        setProgress(null)
+        return
+      }
+
+      // HTMLエスケープ処理
+      const sanitizedNotes = notes ? escapeHtml(notes) : null
+
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -370,7 +382,7 @@ export function ConsumableBulkMovementForm({
           to_warehouse_location_id: toWarehouseLocationId,
           quantity: quantity,
           performed_by: user.id,
-          notes: notes || null,
+          notes: sanitizedNotes,
         })
 
         if (movementError) {

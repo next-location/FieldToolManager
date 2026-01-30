@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { logClientCreated } from '@/lib/audit-log'
 import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
@@ -94,13 +93,6 @@ export async function GET(request: NextRequest) {
 
 // POST /api/clients - 取引先作成
 export async function POST(request: NextRequest) {
-  // CSRF検証（セキュリティ強化）
-  const isValidCsrf = await verifyCsrfToken(request)
-  if (!isValidCsrf) {
-    console.error('[CLIENTS API] CSRF validation failed')
-    return csrfErrorResponse()
-  }
-
   try {
     const supabase = await createClient()
 

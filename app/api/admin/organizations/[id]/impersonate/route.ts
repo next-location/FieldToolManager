@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
 import { generateImpersonationToken } from '@/lib/auth/impersonation';
-import { verifyCsrfToken } from '@/lib/security/csrf';
 import { getClientIp, rateLimiters, rateLimitResponse } from '@/lib/security/rate-limiter';
 import { createAdminClient } from '@/lib/supabase/server';
 

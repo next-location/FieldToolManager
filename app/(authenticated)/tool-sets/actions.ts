@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 export async function createToolSet(formData: FormData) {
   const supabase = await createClient()
@@ -35,13 +36,29 @@ export async function createToolSet(formData: FormData) {
     throw new Error('道具を1つ以上選択してください')
   }
 
+  // 不審なパターン検出
+  const textFields = [
+    { field: 'name', value: name, label: 'セット名' },
+    { field: 'description', value: description, label: '説明' },
+  ]
+
+  for (const { value, label } of textFields) {
+    if (value && hasSuspiciousPattern(value)) {
+      throw new Error(`${label}に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）`)
+    }
+  }
+
+  // HTMLエスケープ処理
+  const sanitizedName = escapeHtml(name)
+  const sanitizedDescription = description ? escapeHtml(description) : null
+
   // 道具セットを作成
   const { data: toolSet, error: setError } = await supabase
     .from('tool_sets')
     .insert({
       organization_id: userData?.organization_id,
-      name,
-      description: description || null,
+      name: sanitizedName,
+      description: sanitizedDescription,
       created_by: user.id,
     })
     .select()

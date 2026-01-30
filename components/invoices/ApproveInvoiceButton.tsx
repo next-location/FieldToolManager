@@ -46,7 +46,6 @@ export function ApproveInvoiceButton({ invoiceId, userRole }: ApproveInvoiceButt
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken
         },
         body: JSON.stringify({ notes }),
       })

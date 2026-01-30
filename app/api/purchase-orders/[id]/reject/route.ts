@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { notifyPurchaseOrderRejected } from '@/lib/notification'
 import { createPurchaseOrderHistory } from '@/lib/purchase-order-history'
 import { logPurchaseOrderRejected } from '@/lib/audit-log'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 // POST /api/purchase-orders/:id/reject - 発注書差戻し
 export async function POST(
@@ -63,6 +63,17 @@ export async function POST(
       return NextResponse.json({ error: '差戻し理由を入力してください' }, { status: 400 })
     }
 
+    // 不審なパターン検出
+    if (hasSuspiciousPattern(body.comment)) {
+      return NextResponse.json(
+        { error: '差戻し理由に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）' },
+        { status: 400 }
+      )
+    }
+
+    // HTMLエスケープ処理
+    const sanitizedComment = escapeHtml(body.comment)
+
     // ステータスを差戻しに更新
     const { error: updateError } = await supabase
       .from('purchase_orders')
@@ -86,7 +97,7 @@ export async function POST(
       actionType: 'rejected',
       performedBy: user.id,
       performedByName: userData.name,
-      notes: body.comment,
+      notes: sanitizedComment,
     })
 
     // 監査ログ記録

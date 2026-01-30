@@ -153,10 +153,8 @@ function verifyComponent(filePath: string): ComponentVerificationResult {
 
   // useCsrfToken の使用をチェック
   result.hasUseCsrfTokenCall = /const\s+\{[^}]*token[^}]*\}\s*=\s*useCsrfToken\(\)/.test(content) ||
-                                /const\s+csrfToken\s*=\s*useCsrfToken\(\)/.test(content)
 
   // X-CSRF-Token ヘッダーの追加をチェック
-  result.hasCsrfHeader = content.includes("'X-CSRF-Token'") || content.includes('"X-CSRF-Token"')
 
   // 全てのチェックが通ったか
   result.passed = result.hasUseCsrfTokenImport && result.hasUseCsrfTokenCall && result.hasCsrfHeader

@@ -24,14 +24,10 @@ export default function ServiceKeyManagement() {
     setSuccess(false);
 
     try {
-      const csrfRes = await fetch('/api/admin/csrf');
-      const { token } = await csrfRes.json();
-
       const response = await fetch('/api/admin/keys/rotate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': token,
         },
         body: JSON.stringify({ newServiceKey: newKey }),
       });

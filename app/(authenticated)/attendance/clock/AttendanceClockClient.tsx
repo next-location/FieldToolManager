@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
 import { X } from 'lucide-react'
-import { useCsrfToken } from '@/hooks/useCsrfToken'
 
 interface Site {
   id: string
@@ -34,7 +33,6 @@ interface TodayRecord {
 }
 
 export function AttendanceClockClient({ userId, orgSettings, sites }: AttendanceClockClientProps) {
-  const { token: csrfToken } = useCsrfToken()
   const [todayRecord, setTodayRecord] = useState<TodayRecord | null>(null)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
@@ -154,7 +152,6 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken || '',
         },
         body: JSON.stringify({
           location_type: location,
@@ -325,7 +322,6 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken || '',
         },
         body: JSON.stringify({
           method: 'qr',

@@ -247,7 +247,6 @@ export default function EditInvoicePage({
         const response = await fetch(`/api/invoices/${invoiceId}/submit`, {
           method: 'POST',
           headers: {
-            'X-CSRF-Token': csrfToken
           }
         })
 

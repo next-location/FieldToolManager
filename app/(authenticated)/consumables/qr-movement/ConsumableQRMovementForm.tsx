@@ -142,6 +142,16 @@ export function ConsumableQRMovementForm({
     setIsSubmitting(true)
 
     try {
+      // 不審なパターン検出
+      if (notes && hasSuspiciousPattern(notes)) {
+        setError('備考に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）')
+        setIsSubmitting(false)
+        return
+      }
+
+      // HTMLエスケープ処理
+      const sanitizedNotes = notes ? escapeHtml(notes) : null
+
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -288,7 +298,7 @@ export function ConsumableQRMovementForm({
         to_warehouse_location_id: toWarehouseLocationId,
         quantity: moveQuantity,
         performed_by: user.id,
-        notes: notes || null,
+        notes: sanitizedNotes,
       }
 
       console.log('[QR Movement] Inserting movement history:', movementData)

@@ -51,7 +51,6 @@ export function ReturnInvoiceButton({ invoiceId, userRole }: ReturnInvoiceButton
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken
         },
         body: JSON.stringify({ reason }),
       })

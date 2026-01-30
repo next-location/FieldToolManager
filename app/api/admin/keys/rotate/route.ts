@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSuperAdminSession } from '@/lib/auth/super-admin';
 import { rotateServiceKey, encryptServiceKey, logKeyAccess } from '@/lib/security/key-management';
 import { rateLimiters, getClientIp } from '@/lib/security/rate-limiter';
-import { verifyCsrfToken } from '@/lib/security/csrf';
 
 export async function POST(request: NextRequest) {
   try {

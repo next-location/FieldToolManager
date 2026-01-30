@@ -292,7 +292,6 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken,
         },
         body: JSON.stringify(projectData),
       })

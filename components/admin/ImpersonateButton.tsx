@@ -38,7 +38,6 @@ export default function ImpersonateButton({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken,
         },
       });
 

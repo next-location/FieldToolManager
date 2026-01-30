@@ -14,13 +14,13 @@
 ### 実装完了状況（2026-01-30更新）
 
 - **監査対象フォーム数**: 94件
-- **実装完了**: **40件**（CRITICAL・HIGH・MEDIUM完全対応 + LOW一部）
+- **実装完了**: **52件**（CRITICAL・HIGH・MEDIUM完全対応 + LOW一部）
 - **実装済み内訳**:
   - 🔴 CRITICAL: 3/3 (100%) ✅
   - 🟠 HIGH: 18/18 (100%) ✅
   - 🟡 MEDIUM: 17/20+ (85%) ✅
-  - 🟢 LOW: 2/50+ (4%)
-- **残り**: 簡易フォーム（notesフィールドのみ等）約54件（LOW優先度）
+  - 🟢 LOW: 14/50+ (28%)
+- **残り**: 簡易フォーム（notesフィールドのみ等）約42件（LOW優先度）
 
 ### セキュリティリスク
 
@@ -78,7 +78,7 @@
 | 🔴 CRITICAL | 3/3 | 100% ✅ | 一括インポート、クライアント側直接DB挿入 |
 | 🟠 HIGH | 18/18 | 100% ✅ | 個人情報・金融情報を扱うフォーム |
 | 🟡 MEDIUM | 17/20+ | 85% ✅ | 設定・管理フォーム |
-| 🟢 LOW | 2/50+ | 4% | 簡易フォーム（notesフィールドのみ等） |
+| 🟢 LOW | 14/50+ | 28% | 備考のみの簡易フォーム |
 
 ---
 
@@ -617,19 +617,40 @@ export function MyForm() {
 #### 39-50. 移動記録フォーム群
 
 - **フォーム**:
-  - `app/(authenticated)/movements/new/MovementForm.tsx`
-  - `app/(authenticated)/movements/bulk/BulkMovementForm.tsx`
-  - `app/(authenticated)/equipment/movement/EquipmentMovementForm.tsx`
-  - `app/(authenticated)/consumables/qr-movement/ConsumableQRMovementForm.tsx`
-  - `app/(authenticated)/consumables/bulk-movement/ConsumableBulkMovementForm.tsx`
+  - `app/(authenticated)/movements/new/MovementForm.tsx` ✅
+  - `app/(authenticated)/movements/bulk/BulkMovementForm.tsx` ⏭️ (システム生成のみ)
+  - `app/(authenticated)/equipment/movement/EquipmentMovementForm.tsx` ✅
+  - `app/(authenticated)/consumables/qr-movement/ConsumableQRMovementForm.tsx` ✅
+  - `app/(authenticated)/consumables/bulk-movement/ConsumableBulkMovementForm.tsx` ✅
 - **入力フィールド**: notes (単一フィールド)
 - **対応内容**:
-  - [ ] `hasSuspiciousPattern()` チェック
-  - [ ] `escapeHtml()` 適用
+  - [x] `hasSuspiciousPattern()` チェック (4件完了)
+  - [x] `escapeHtml()` 適用 (4件完了)
+
+#### 44. 道具セット作成 ✅
+
+- **フォーム**: `app/(authenticated)/tool-sets/new/ToolSetForm.tsx`
+- **Server Action**: `app/(authenticated)/tool-sets/actions.ts`
+- **入力フィールド**: name, description
+- **対応内容**:
+  - [x] `hasSuspiciousPattern()` チェック
+  - [x] `escapeHtml()` 適用
+
+#### 45. 工事作成・編集 ✅
+
+- **フォーム**: `components/projects/ProjectForm.tsx`
+- **API**: POST/PATCH `/api/projects`, PATCH `/api/projects/[id]`
+- **ファイル**:
+  - `app/api/projects/route.ts` (作成)
+  - `app/api/projects/[id]/route.ts` (更新)
+- **入力フィールド**: project_name, project_code
+- **対応内容**:
+  - [x] `hasSuspiciousPattern()` チェック
+  - [x] `escapeHtml()` 適用
 
 #### 51+. その他の簡易フォーム
 
-通知設定、QR表示、フィルター設定など、テキスト入力が少ないフォーム
+通知設定、QR表示、フィルター設定など、テキスト入力が少ないフォーム（約45件）
 
 ---
 
@@ -726,9 +747,16 @@ export function MyForm() {
 - [x] **39. MovementForm.tsx** → `movements/actions.ts` ✅ 完了 (2026-01-30)
 - [x] **40. BulkMovementForm.tsx** → スキップ（システム生成テキストのみ） ⏭️
 - [x] **41. EquipmentMovementForm.tsx** → `equipment/movement/actions.ts` ✅ 完了 (2026-01-30)
-- [ ] **42. ConsumableQRMovementForm.tsx** → 要確認
-- [ ] **43. ConsumableBulkMovementForm.tsx** → 要確認
-- [ ] **44-90. その他LOW** → 各種簡易フォーム
+- [x] **42. ConsumableQRMovementForm.tsx** → `consumables/qr-movement/ConsumableQRMovementForm.tsx` ✅ 完了 (2026-01-30)
+- [x] **43. ConsumableBulkMovementForm.tsx** → `consumables/bulk-movement/ConsumableBulkMovementForm.tsx` ✅ 完了 (2026-01-30)
+- [x] **44. ToolSetForm.tsx** → `tool-sets/actions.ts` ✅ 完了 (2026-01-30)
+- [x] **45. ProjectForm.tsx** → `/api/projects` + `/api/projects/[id]` ✅ 完了 (2026-01-30)
+- [x] **46. AddToolItemButton.tsx** → クライアント側DB挿入 (notes) ✅ 完了 (2026-01-30)
+- [x] **47. StatusChangeButton.tsx** → `tool-items/actions.ts` (notes) ✅ 完了 (2026-01-30)
+- [x] **48. OrderDetailActions.tsx** → `consumables/orders/[id]/actions.ts` (delivery_notes) ✅ 完了 (2026-01-30)
+- [x] **49. PurchaseOrder Approve** → `/api/purchase-orders/[id]/approve` (comment) ✅ 完了 (2026-01-30)
+- [x] **50. PurchaseOrder Reject** → `/api/purchase-orders/[id]/reject` (comment) ✅ 完了 (2026-01-30)
+- [ ] **51-90. その他LOW** → 各種簡易フォーム（約42件残り）
 
 ---
 
@@ -869,7 +897,7 @@ const sanitizedRows = validatedRows.map(row => ({
 このドキュメントを更新し、各フォームの実装完了時にチェックマークを付けてください。
 
 **最終更新日**: 2026-01-30
-**完了率**: 0/90+ (0%)
+**完了率**: 52/94 (55%)
 
 ---
 

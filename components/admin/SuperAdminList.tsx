@@ -83,13 +83,10 @@ export default function SuperAdminList({ admins, currentUserId, currentUserRole 
 
     try {
       // CSRFトークンを取得
-      const csrfResponse = await fetch('/api/admin/csrf');
-      const { token: csrfToken } = await csrfResponse.json();
 
       const response = await fetch(`/api/admin/super-admins/${adminId}/reset-password`, {
         method: 'POST',
         headers: {
-          'X-CSRF-Token': csrfToken,
         },
         credentials: 'include',
       });

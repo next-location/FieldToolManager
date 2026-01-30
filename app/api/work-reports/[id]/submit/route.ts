@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { createClient } from '@/lib/supabase/server'
 import { notifyWorkReportSubmitted } from '@/lib/notifications/work-report-notifications'
 import { logWorkReportSubmitted } from '@/lib/audit-log'
