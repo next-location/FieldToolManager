@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validatePassword, DEFAULT_PASSWORD_POLICY } from '@/lib/password-policy'
 import { sendWelcomeEmail } from '@/lib/email/welcome'
 import { logUserCreated } from '@/lib/audit-log'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 // Admin client for auth operations
 function createAdminClient() {
@@ -167,6 +168,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '必須項目が不足しています' }, { status: 400 })
     }
 
+    // 不審なパターン検出
+    if (hasSuspiciousPattern(name)) {
+      return NextResponse.json({ error: '名前に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）' }, { status: 400 })
+    }
+    if (department && hasSuspiciousPattern(department)) {
+      return NextResponse.json({ error: '部署名に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）' }, { status: 400 })
+    }
+    if (employee_id && hasSuspiciousPattern(employee_id)) {
+      return NextResponse.json({ error: '社員番号に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）' }, { status: 400 })
+    }
+    if (phone && hasSuspiciousPattern(phone)) {
+      return NextResponse.json({ error: '電話番号に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）' }, { status: 400 })
+    }
+
     // パスワードポリシーチェック（8文字以上、大文字・小文字・数字必須）
     console.log('[STAFF POST] Validating password...')
     const passwordValidation = validatePassword(password, DEFAULT_PASSWORD_POLICY)
@@ -279,24 +294,27 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // HTMLエスケープ処理
+    const sanitizedData = {
+      id: authUser.user.id,
+      organization_id: userData?.organization_id,
+      name: escapeHtml(name),
+      email,
+      role,
+      department: department ? escapeHtml(department) : null,
+      employee_id: employee_id ? escapeHtml(employee_id) : null,
+      phone: phone ? escapeHtml(phone) : null,
+      work_pattern_id: finalWorkPatternId,
+      is_shift_work: is_shift_work || false,
+      is_active: true,
+      invited_at: new Date().toISOString(),
+    }
+
     // usersテーブルに登録（auth.users.idを使用）
     // Admin clientを使用してRLSをバイパス
     const { data: newUser, error: createError } = await supabaseAdmin
       .from('users')
-      .insert({
-        id: authUser.user.id,
-        organization_id: userData?.organization_id,
-        name,
-        email,
-        role,
-        department,
-        employee_id,
-        phone,
-        work_pattern_id: finalWorkPatternId,
-        is_shift_work: is_shift_work || false,
-        is_active: true,
-        invited_at: new Date().toISOString(),
-      })
+      .insert(sanitizedData)
       .select()
       .single()
 
@@ -308,24 +326,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'スタッフの作成に失敗しました' }, { status: 500 })
     }
 
-    // 変更履歴記録
+    // 変更履歴記録（エスケープ済みデータを記録）
     await supabase.from('user_history').insert({
       organization_id: userData?.organization_id,
       user_id: newUser.id,
       changed_by: user.id,
       change_type: 'created',
       old_values: null,
-      new_values: { name, email, role, department, employee_id, phone },
+      new_values: {
+        name: sanitizedData.name,
+        email,
+        role,
+        department: sanitizedData.department,
+        employee_id: sanitizedData.employee_id,
+        phone: sanitizedData.phone
+      },
     })
 
-    // 監査ログ記録（パスワードは除外）
+    // 監査ログ記録（エスケープ済みデータを記録、パスワードは除外）
     await logUserCreated(newUser.id, {
-      name,
+      name: sanitizedData.name,
       email,
       role,
-      department,
-      employee_id,
-      phone,
+      department: sanitizedData.department,
+      employee_id: sanitizedData.employee_id,
+      phone: sanitizedData.phone,
       is_active: true,
     }, user.id, userData.organization_id)
 

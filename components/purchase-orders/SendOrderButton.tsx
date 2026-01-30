@@ -18,6 +18,10 @@ export function SendOrderButton({ orderId, orderNumber }: SendOrderButtonProps) 
     e.preventDefault()
     e.stopPropagation()
 
+    console.log('[SendOrderButton] csrfToken:', csrfToken)
+    console.log('[SendOrderButton] csrfToken type:', typeof csrfToken)
+    console.log('[SendOrderButton] csrfToken length:', csrfToken?.length)
+
     if (!csrfToken) {
       alert('セキュリティトークンが読み込まれていません。ページを再読み込みしてください。')
       return
@@ -27,6 +31,7 @@ export function SendOrderButton({ orderId, orderNumber }: SendOrderButtonProps) 
 
     setLoading(true)
     try {
+      console.log('[SendOrderButton] Sending request with CSRF token:', csrfToken.substring(0, 10) + '...')
       const response = await fetch(`/api/purchase-orders/${orderId}/send`, {
         method: 'POST',
         headers: {

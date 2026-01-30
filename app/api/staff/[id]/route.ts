@@ -1,6 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { logUserUpdated, logUserDeleted } from '@/lib/audit-log'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 // PATCH /api/staff/[id] - スタッフ編集
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -58,6 +59,20 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const body = await request.json()
     const { name, email, role, department, employee_id, phone, work_pattern_id, is_shift_work } = body
 
+    // 不審なパターン検出
+    if (name && hasSuspiciousPattern(name)) {
+      return NextResponse.json({ error: '名前に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）' }, { status: 400 })
+    }
+    if (department && hasSuspiciousPattern(department)) {
+      return NextResponse.json({ error: '部署名に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）' }, { status: 400 })
+    }
+    if (employee_id && hasSuspiciousPattern(employee_id)) {
+      return NextResponse.json({ error: '社員番号に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）' }, { status: 400 })
+    }
+    if (phone && hasSuspiciousPattern(phone)) {
+      return NextResponse.json({ error: '電話番号に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）' }, { status: 400 })
+    }
+
     // managerは roleを admin/manager に変更できない
     if (isManager && (role === 'admin' || role === 'manager')) {
       return NextResponse.json({ error: 'マネージャーは管理者またはマネージャー権限を付与できません' }, { status: 403 })
@@ -78,20 +93,23 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       }
     }
 
+    // HTMLエスケープ処理
+    const sanitizedData = {
+      name: name ? escapeHtml(name) : oldData.name,
+      email: email || oldData.email,
+      role: role || oldData.role,
+      department: department !== undefined ? (department ? escapeHtml(department) : null) : oldData.department,
+      employee_id: employee_id !== undefined ? (employee_id ? escapeHtml(employee_id) : null) : oldData.employee_id,
+      phone: phone !== undefined ? (phone ? escapeHtml(phone) : null) : oldData.phone,
+      work_pattern_id: work_pattern_id || null,
+      is_shift_work: is_shift_work !== undefined ? is_shift_work : false,
+      updated_at: new Date().toISOString(),
+    }
+
     // 更新
     const { data: newData, error: updateError } = await supabase
       .from('users')
-      .update({
-        name,
-        email,
-        role,
-        department,
-        employee_id,
-        phone,
-        work_pattern_id: work_pattern_id || null,
-        is_shift_work: is_shift_work !== undefined ? is_shift_work : false,
-        updated_at: new Date().toISOString(),
-      })
+      .update(sanitizedData)
       .eq('id', userId)
       .eq('organization_id', userData?.organization_id)
       .select()
@@ -102,26 +120,26 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: 'スタッフの更新に失敗しました' }, { status: 500 })
     }
 
-    // 変更履歴記録
+    // 変更履歴記録（エスケープ済みデータを使用）
     const changes = []
 
-    if (oldData.department !== department) {
+    if (oldData.department !== sanitizedData.department) {
       changes.push({
         change_type: 'department_changed',
         old_values: { department: oldData.department },
-        new_values: { department },
+        new_values: { department: sanitizedData.department },
       })
     }
 
-    if (oldData.role !== role) {
+    if (oldData.role !== sanitizedData.role) {
       changes.push({
         change_type: 'role_changed',
         old_values: { role: oldData.role },
-        new_values: { role },
+        new_values: { role: sanitizedData.role },
       })
     }
 
-    if (changes.length > 0 || oldData.name !== name || oldData.email !== email) {
+    if (changes.length > 0 || oldData.name !== sanitizedData.name || oldData.email !== sanitizedData.email) {
       for (const change of changes) {
         await supabase.from('user_history').insert({
           organization_id: userData?.organization_id,
@@ -131,8 +149,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         })
       }
 
-      // 基本情報の変更も記録
-      if (oldData.name !== name || oldData.email !== email || oldData.employee_id !== employee_id || oldData.phone !== phone) {
+      // 基本情報の変更も記録（エスケープ済みデータ）
+      if (oldData.name !== sanitizedData.name || oldData.email !== sanitizedData.email ||
+          oldData.employee_id !== sanitizedData.employee_id || oldData.phone !== sanitizedData.phone) {
         await supabase.from('user_history').insert({
           organization_id: userData?.organization_id,
           user_id: userId,
@@ -144,12 +163,17 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             employee_id: oldData.employee_id,
             phone: oldData.phone,
           },
-          new_values: { name, email, employee_id, phone },
+          new_values: {
+            name: sanitizedData.name,
+            email: sanitizedData.email,
+            employee_id: sanitizedData.employee_id,
+            phone: sanitizedData.phone
+          },
         })
       }
     }
 
-    // 監査ログ記録
+    // 監査ログ記録（エスケープ済みデータ）
     await logUserUpdated(
       userId,
       {
@@ -161,12 +185,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         phone: oldData.phone,
       },
       {
-        name,
-        email,
-        role,
-        department,
-        employee_id,
-        phone,
+        name: sanitizedData.name,
+        email: sanitizedData.email,
+        role: sanitizedData.role,
+        department: sanitizedData.department,
+        employee_id: sanitizedData.employee_id,
+        phone: sanitizedData.phone,
       },
       user.id,
       userData.organization_id

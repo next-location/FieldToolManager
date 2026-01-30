@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { logClientUpdated, logClientDeleted } from '@/lib/audit-log'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 // GET /api/clients/:id - 取引先詳細取得
 export async function GET(
@@ -114,50 +115,58 @@ export async function PATCH(
       return NextResponse.json({ error: '取引先が見つかりません' }, { status: 404 })
     }
 
-    // 更新データ準備
-    const updateData: any = {}
-
-    // 更新可能なフィールド
-    const allowedFields = [
-      'name',
-      'name_kana',
-      'short_name',
-      'client_type',
-      'industry',
-      'postal_code',
-      'address',
-      'phone',
-      'fax',
-      'email',
-      'website',
-      'contact_person',
-      'contact_department',
-      'contact_phone',
-      'contact_email',
-      'payment_terms',
-      'payment_method',
-      'payment_due_days',
-      'bank_name',
-      'bank_branch',
-      'bank_account_type',
-      'bank_account_number',
-      'bank_account_holder',
-      'credit_limit',
-      'current_balance',
-      'tax_id',
-      'tax_registration_number',
-      'is_tax_exempt',
-      'first_transaction_date',
-      'last_transaction_date',
-      'total_transaction_count',
-      'total_transaction_amount',
-      'rating',
-      'notes',
-      'internal_notes',
-      'is_active',
+    // 不審なパターン検出（主要なテキストフィールド）
+    const textFieldsToCheck = [
+      { field: 'name', value: body.name, label: '取引先名' },
+      { field: 'name_kana', value: body.name_kana, label: '取引先名（カナ）' },
+      { field: 'short_name', value: body.short_name, label: '略称' },
+      { field: 'address', value: body.address, label: '住所' },
+      { field: 'contact_person', value: body.contact_person, label: '担当者名' },
+      { field: 'contact_department', value: body.contact_department, label: '担当者部署' },
+      { field: 'payment_terms', value: body.payment_terms, label: '支払条件' },
+      { field: 'bank_name', value: body.bank_name, label: '銀行名' },
+      { field: 'bank_branch', value: body.bank_branch, label: '支店名' },
+      { field: 'bank_account_holder', value: body.bank_account_holder, label: '口座名義' },
+      { field: 'notes', value: body.notes, label: '備考' },
+      { field: 'internal_notes', value: body.internal_notes, label: '社内メモ' },
     ]
 
-    allowedFields.forEach((field) => {
+    for (const { value, label } of textFieldsToCheck) {
+      if (value !== undefined && value !== null && hasSuspiciousPattern(value)) {
+        return NextResponse.json(
+          { error: `${label}に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）` },
+          { status: 400 }
+        )
+      }
+    }
+
+    // 更新データ準備（HTMLエスケープ適用）
+    const updateData: any = {}
+
+    // テキストフィールドのエスケープ処理
+    const textFields = [
+      'name', 'name_kana', 'short_name', 'industry', 'address',
+      'contact_person', 'contact_department', 'payment_terms',
+      'bank_name', 'bank_branch', 'bank_account_holder', 'notes', 'internal_notes'
+    ]
+
+    textFields.forEach((field) => {
+      if (body[field] !== undefined) {
+        updateData[field] = body[field] ? escapeHtml(body[field]) : null
+      }
+    })
+
+    // その他のフィールド（エスケープ不要）
+    const otherFields = [
+      'client_type', 'postal_code', 'phone', 'fax', 'email', 'website',
+      'contact_phone', 'contact_email', 'payment_method', 'payment_due_days',
+      'bank_account_type', 'bank_account_number', 'credit_limit', 'current_balance',
+      'tax_id', 'tax_registration_number', 'is_tax_exempt',
+      'first_transaction_date', 'last_transaction_date',
+      'total_transaction_count', 'total_transaction_amount', 'rating', 'is_active'
+    ]
+
+    otherFields.forEach((field) => {
       if (body[field] !== undefined) {
         updateData[field] = body[field]
       }

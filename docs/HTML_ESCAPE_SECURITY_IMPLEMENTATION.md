@@ -634,9 +634,9 @@ export function MyForm() {
 
 ### HIGH Priority
 
-- [ ] **4. AddStaffModal.tsx** → `/api/staff`
-- [ ] **5. EditStaffModal.tsx** → `/api/staff/[id]`
-- [ ] **6. ClientForm.tsx** → `/api/clients`
+- [x] **4. AddStaffModal.tsx** → `/api/staff` ✅ 完了 (2026-01-30)
+- [x] **5. EditStaffModal.tsx** → `/api/staff/[id]` ✅ 完了 (2026-01-30)
+- [x] **6. ClientForm.tsx** → `/api/clients` + `/api/clients/[id]` ✅ 完了 (2026-01-30)
 - [ ] **7. SupplierFormModal.tsx** → `/api/suppliers`
 - [ ] **8. WorkReportForm.tsx** → `/api/work-reports`
 - [ ] **9. WorkReportEditForm.tsx** → `/api/work-reports/[id]`
