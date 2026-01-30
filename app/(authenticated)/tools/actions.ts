@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { logToolCreated, logToolUpdated, logToolDeleted } from '@/lib/audit-log'
 import { notifyToolCreated, notifyLowStock } from '@/lib/notification'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 export async function createTool(formData: {
   name: string
@@ -310,6 +311,13 @@ export async function createToolWithItems(formData: {
     return { error: '組織情報が見つかりません: ' + (userError?.message || 'データなし') }
   }
 
+  // 不審なパターン検出
+  if (formData.notes && hasSuspiciousPattern(formData.notes)) {
+    return {
+      error: '備考に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）',
+    }
+  }
+
   let toolId: string
   let toolData: any
 
@@ -449,6 +457,9 @@ export async function createToolWithItems(formData: {
 
     const toolItems = []
 
+    // HTMLエスケープ処理
+    const sanitizedNotes = formData.notes ? escapeHtml(formData.notes) : null
+
     for (let i = 0; i < quantity; i++) {
       toolItems.push({
         tool_id: toolId,
@@ -458,7 +469,7 @@ export async function createToolWithItems(formData: {
         status: 'available',
         purchase_date: formData.purchase_date || null,
         purchase_price: formData.purchase_price ? parseFloat(formData.purchase_price) : null,
-        notes: formData.notes || null,
+        notes: sanitizedNotes,
       })
     }
 

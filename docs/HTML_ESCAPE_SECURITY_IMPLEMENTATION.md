@@ -14,12 +14,12 @@
 ### 実装完了状況（2026-01-30更新）
 
 - **監査対象フォーム数**: 94件
-- **実装完了**: **32件**（最重要フォーム + MEDIUM半数以上）
+- **実装完了**: **34件**（最重要フォーム + MEDIUM半数以上）
 - **実装済み内訳**:
   - 🔴 CRITICAL: 3/3 (100%)
   - 🟠 HIGH: 18/18 (100%)
-  - 🟡 MEDIUM: 11/20+ (55%)
-- **残り**: 設定系・簡易フォーム（notes のみ）約62件
+  - 🟡 MEDIUM: 13/20+ (65%)
+- **残り**: 設定系・簡易フォーム（notes のみ）約60件
 
 ### セキュリティリスク
 
@@ -76,7 +76,7 @@
 |--------|--------------|--------|------|
 | 🔴 CRITICAL | 3/3 | 100% | 一括インポート、クライアント側直接DB挿入 |
 | 🟠 HIGH | 18/18 | 100% | 個人情報・金融情報を扱うフォーム |
-| 🟡 MEDIUM | 11/20+ | 55% | 設定・管理フォーム |
+| 🟡 MEDIUM | 13/20+ | 65% | 設定・管理フォーム |
 | 🟢 LOW | 0/50+ | 0% | 簡易フォーム（notesフィールドのみ等） |
 
 ---
@@ -712,8 +712,8 @@ export function MyForm() {
 - [x] **29. CategoryMasterForm.tsx** → `master/tools-consumables/actions.ts` ✅ 完了 (2026-01-30)
 - [x] **30. EquipmentCategoriesClient.tsx** → `master/equipment-categories/actions.ts` ✅ 完了 (2026-01-30)
 - [x] **31. DataExportClient.tsx** → スキップ（テキストフィールドなし） ⏭️
-- [ ] **32. ToolRegistrationForm.tsx** → `tools/actions.ts`
-- [ ] **33. AdjustmentForm.tsx** → `consumables/[id]/adjust/actions.ts`
+- [x] **32. ToolRegistrationForm.tsx** → `tools/actions.ts` (createToolWithItems) ✅ 完了 (2026-01-30)
+- [x] **33. AdjustmentForm.tsx** → `consumables/[id]/adjust/actions.ts` ✅ 完了 (2026-01-30)
 - [ ] **34. ConsumableOrderForm.tsx** → `consumables/orders/new/actions.ts`
 - [ ] **35. EditLocationForm.tsx** → `warehouse-locations/actions.ts`
 - [ ] **36. OrganizationSettingsForm.tsx** → `settings/organization/actions.ts`

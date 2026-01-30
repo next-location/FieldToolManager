@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useCsrfToken } from '@/hooks/useCsrfToken'
+import { fetchWithReload } from '@/lib/fetch-with-reload'
 
 interface MarkReceivedButtonProps {
   orderId: string
@@ -27,7 +28,7 @@ export function MarkReceivedButton({ orderId, orderNumber }: MarkReceivedButtonP
 
     setLoading(true)
     try {
-      const response = await fetch(`/api/purchase-orders/${orderId}/mark-received`, {
+      const response = await fetchWithReload(`/api/purchase-orders/${orderId}/mark-received`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,9 +1,10 @@
 'use client'
 
-// Version: 3.0 - Renamed to force new chunk generation
+// Version: 4.0 - Added auto-reload on CSRF error (Vercel cache fix)
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useCsrfToken } from '@/hooks/useCsrfToken'
+import { fetchWithReload } from '@/lib/fetch-with-reload'
 
 interface SendOrderButtonProps {
   orderId: string
@@ -20,9 +21,9 @@ export function SendSupplierOrderButton({ orderId, orderNumber }: SendOrderButto
     e.stopPropagation()
 
     // デバッグログ（本番環境）
-    console.log('[SendSupplierOrderButton v3.0] csrfToken:', csrfToken)
-    console.log('[SendSupplierOrderButton v3.0] csrfToken type:', typeof csrfToken)
-    console.log('[SendSupplierOrderButton v3.0] csrfToken length:', csrfToken?.length)
+    console.log('[SendSupplierOrderButton v4.0] csrfToken:', csrfToken)
+    console.log('[SendSupplierOrderButton v4.0] csrfToken type:', typeof csrfToken)
+    console.log('[SendSupplierOrderButton v4.0] csrfToken length:', csrfToken?.length)
 
     if (!csrfToken) {
       alert('セキュリティトークンが読み込まれていません。ページを再読み込みしてください。')
@@ -33,8 +34,8 @@ export function SendSupplierOrderButton({ orderId, orderNumber }: SendOrderButto
 
     setLoading(true)
     try {
-      console.log('[SendSupplierOrderButton v3.0] Sending request with CSRF token:', csrfToken.substring(0, 10) + '...')
-      const response = await fetch(`/api/purchase-orders/${orderId}/send`, {
+      console.log('[SendSupplierOrderButton v4.0] Sending request with CSRF token:', csrfToken.substring(0, 10) + '...')
+      const response = await fetchWithReload(`/api/purchase-orders/${orderId}/send`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { logConsumableAdjusted } from '@/lib/audit-log'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 export async function adjustConsumableInventory({
   consumableId,
@@ -37,6 +38,14 @@ export async function adjustConsumableInventory({
   if (!userData) {
     throw new Error('組織情報が見つかりません')
   }
+
+  // 不審なパターン検出
+  if (reason && hasSuspiciousPattern(reason)) {
+    throw new Error('理由に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）')
+  }
+
+  // HTMLエスケープ処理
+  const sanitizedReason = reason ? escapeHtml(reason) : ''
 
   // 倉庫在庫を取得
   const { data: inventory } = await supabase
@@ -121,7 +130,7 @@ export async function adjustConsumableInventory({
       unit_price: unitPrice,
       total_amount: totalAmount,
       performed_by: user.id,
-      notes: `[${adjustmentTypeText}] ${reason}`,
+      notes: `[${adjustmentTypeText}] ${sanitizedReason}`,
     })
 
   if (movementError) {
@@ -138,7 +147,7 @@ export async function adjustConsumableInventory({
       adjustment_quantity: quantity,
       unit_price: unitPrice,
       total_amount: totalAmount,
-      reason: reason
+      reason: sanitizedReason
     },
     user.id,
     userData.organization_id

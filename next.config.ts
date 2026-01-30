@@ -25,6 +25,22 @@ const nextConfig: NextConfig = {
   generateBuildId: async () => {
     return `build-${Date.now()}`
   },
+  // HTMLキャッシュ無効化（Vercelキャッシュ問題対策）
+  async headers() {
+    return [
+      {
+        // 全てのページルート（HTMLドキュメント）に対して
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            // HTMLは常にサーバーに確認（max-age=0）、JS/CSSは別途キャッシュOK
+            value: 'public, max-age=0, must-revalidate',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 const withMDX = createMDX({
