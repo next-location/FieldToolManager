@@ -16,15 +16,7 @@ function ClientForm({ client, mode = 'create' }: ClientFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [postalCodeLoading, setPostalCodeLoading] = useState(false)
-  const [csrfToken, setCsrfToken] = useState<string | null>(null)
 
-  // CSRFトークン取得
-  useEffect(() => {
-    fetch('/api/csrf')
-      .then((res) => res.json())
-      .then((data) => setCsrfToken(data.token))
-      .catch((err) => console.error('CSRF token fetch error:', err))
-  }, [])
 
   // フォームデータ
   const [formData, setFormData] = useState({

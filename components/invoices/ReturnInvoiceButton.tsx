@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface ReturnInvoiceButtonProps {
@@ -13,21 +13,6 @@ export function ReturnInvoiceButton({ invoiceId, userRole }: ReturnInvoiceButton
   const [loading, setLoading] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [reason, setReason] = useState('')
-  const [csrfToken, setCsrfToken] = useState('')
-
-  useEffect(() => {
-    // CSRFトークンを取得
-    const fetchCsrfToken = async () => {
-      try {
-        const response = await fetch('/api/csrf-token')
-        const data = await response.json()
-        setCsrfToken(data.token)
-      } catch (error) {
-        console.error('Failed to fetch CSRF token:', error)
-      }
-    }
-    fetchCsrfToken()
-  }, [])
 
   const isManagerOrAdmin = ['manager', 'admin', 'super_admin'].includes(userRole)
 

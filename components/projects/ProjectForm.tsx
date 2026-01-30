@@ -12,7 +12,6 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
   const router = useRouter()
 
   const [loading, setLoading] = useState(false)
-  const [csrfToken, setCsrfToken] = useState<string>('')
   const [clients, setClients] = useState<any[]>([])
   const [users, setUsers] = useState<any[]>([])
   const [sites, setSites] = useState<any[]>([])
@@ -43,7 +42,6 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
     fetchClients()
     fetchUsers()
     fetchSites()
-    fetchCsrfToken()
     if (mode === 'create') {
       generateProjectCode()
     }
@@ -67,16 +65,6 @@ export function ProjectForm({ project, mode = 'create' }: ProjectFormProps) {
       setFormData(prev => ({ ...prev, site_id: '' }))
     }
   }, [formData.client_id, sites])
-
-  const fetchCsrfToken = async () => {
-    try {
-      const response = await fetch('/api/csrf-token')
-      const data = await response.json()
-      setCsrfToken(data.token)
-    } catch (error) {
-      console.error('Failed to fetch CSRF token:', error)
-    }
-  }
 
   // ドロップダウン外側クリックで閉じる
   useEffect(() => {

@@ -26,7 +26,6 @@ export default function NewPurchaseOrderPage() {
   const [loading, setLoading] = useState(false)
   const [suppliers, setSuppliers] = useState<any[]>([])
   const [projects, setProjects] = useState<any[]>([])
-  const [csrfToken, setCsrfToken] = useState<string>('')
   const [items, setItems] = useState<OrderItem[]>([
     {
       id: '1',
@@ -57,7 +56,6 @@ export default function NewPurchaseOrderPage() {
     fetchSuppliers()
     fetchProjects()
     generateOrderNumber()
-    fetchCsrfToken()
 
     // 消耗品発注からの遷移の場合、データを自動入力
     const params = new URLSearchParams(window.location.search)
@@ -66,16 +64,6 @@ export default function NewPurchaseOrderPage() {
       fetchConsumableOrderData(consumableOrderId)
     }
   }, [])
-
-  const fetchCsrfToken = async () => {
-    try {
-      const response = await fetch('/api/csrf-token')
-      const data = await response.json()
-      setCsrfToken(data.token)
-    } catch (error) {
-      console.error('Failed to fetch CSRF token:', error)
-    }
-  }
 
   const fetchSuppliers = async () => {
     const { data } = await supabase

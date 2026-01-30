@@ -18,11 +18,6 @@ export function DeletePurchaseOrderButton({
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDelete = async () => {
-    if (!csrfToken || csrfToken === '') {
-      alert('セキュリティトークンが読み込まれていません。ページを再読み込みしてください。')
-      return
-    }
-
     if (!confirm(`発注書「${orderNumber}」を削除してもよろしいですか？\n\nこの操作は取り消せません。`)) {
       return
     }

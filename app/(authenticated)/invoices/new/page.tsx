@@ -29,7 +29,6 @@ export default function NewInvoicePage() {
   const estimateId = searchParams.get('estimate_id')
   const [loading, setLoading] = useState(false)
   const [userRole, setUserRole] = useState<string>('')
-  const [csrfToken, setCsrfToken] = useState<string>('')
   const [clients, setClients] = useState<any[]>([])
   const [projects, setProjects] = useState<any[]>([])
   const [items, setItems] = useState<InvoiceItem[]>([
@@ -65,23 +64,12 @@ export default function NewInvoicePage() {
     generateInvoiceNumber()
     fetchOrganizationInfo()
     fetchUserRole()
-    fetchCsrfToken()
 
     // 見積書から変換の場合
     if (estimateId) {
       loadEstimateData(estimateId)
     }
   }, [estimateId])
-
-  const fetchCsrfToken = async () => {
-    try {
-      const response = await fetch('/api/csrf-token')
-      const data = await response.json()
-      setCsrfToken(data.token)
-    } catch (error) {
-      console.error('Failed to fetch CSRF token:', error)
-    }
-  }
 
   const fetchUserRole = async () => {
     const { data: { user } } = await supabase.auth.getUser()
