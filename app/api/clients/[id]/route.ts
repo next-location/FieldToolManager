@@ -62,9 +62,6 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // CSRF検証（セキュリティ強化）
-  }
-
   try {
     const { id } = await params
     const supabase = await createClient()
@@ -220,9 +217,6 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // CSRF検証（セキュリティ強化）
-  }
-
   try {
     const { id } = await params
     const supabase = await createClient()

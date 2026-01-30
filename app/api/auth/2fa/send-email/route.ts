@@ -15,9 +15,6 @@ import { Resend } from 'resend';
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export async function POST(request: NextRequest) {
-  // CSRF検証（セキュリティ強化）
-  }
-
   try {
     // リクエストボディを取得
     const body = await request.json();
