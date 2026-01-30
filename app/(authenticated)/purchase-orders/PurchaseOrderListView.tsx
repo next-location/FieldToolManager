@@ -57,7 +57,7 @@ export function PurchaseOrderListView({
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 20
 
-  // Fix React #418: Prevent hydration mismatch by formatting dates client-side only
+  // Fix React #418: Prevent hydration mismatch by formatting dates/numbers client-side only
   const [isClient, setIsClient] = useState(false)
   useEffect(() => {
     setIsClient(true)
@@ -69,6 +69,12 @@ export function PurchaseOrderListView({
   const formatDate = (dateString: string, options?: Intl.DateTimeFormatOptions) => {
     if (!isClient) return dateString // Return ISO format during SSR
     return new Date(dateString).toLocaleDateString('ja-JP', options)
+  }
+
+  // Helper function to format currency safely (prevent hydration mismatch)
+  const formatCurrency = (amount: number) => {
+    if (!isClient) return amount.toString() // Return plain number during SSR
+    return Math.floor(amount).toLocaleString()
   }
 
   // API呼び出し関数
@@ -409,7 +415,7 @@ export function PurchaseOrderListView({
                 <div className="pt-2 border-t border-gray-200">
                   <div className="text-xs text-gray-500 mb-1">金額（税込）</div>
                   <div className="text-xl font-bold text-gray-900">
-                    ¥{Math.floor(order.total_amount).toLocaleString()}
+                    ¥{formatCurrency(order.total_amount)}
                   </div>
                 </div>
               </div>
@@ -475,7 +481,7 @@ export function PurchaseOrderListView({
                   <div className="text-right ml-8">
                     <div className="text-xs text-gray-500 mb-0.5">金額（税込）</div>
                     <div className="text-2xl font-bold text-gray-900 whitespace-nowrap">
-                      ¥{Math.floor(order.total_amount).toLocaleString()}
+                      ¥{formatCurrency(order.total_amount)}
                     </div>
                   </div>
                 </div>

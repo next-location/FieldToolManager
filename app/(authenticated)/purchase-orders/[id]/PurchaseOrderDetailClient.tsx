@@ -49,7 +49,7 @@ export function PurchaseOrderDetailClient({
   const [showApprovalModal, setShowApprovalModal] = useState(false)
   const [showRejectModal, setShowRejectModal] = useState(false)
 
-  // Fix React #418: Prevent hydration mismatch by formatting dates client-side only
+  // Fix React #418: Prevent hydration mismatch by formatting dates/numbers client-side only
   const [isClient, setIsClient] = useState(false)
   useEffect(() => {
     setIsClient(true)
@@ -60,6 +60,13 @@ export function PurchaseOrderDetailClient({
     if (!isClient) return dateString // Return ISO format during SSR
     return new Date(dateString).toLocaleDateString('ja-JP')
   }
+
+  // Helper function to format numbers safely (prevent hydration mismatch)
+  const formatNumber = (value: number | string) => {
+    if (!isClient) return value.toString()
+    return Number(value).toLocaleString()
+  }
+
   const [rejectReason, setRejectReason] = useState('')
 
   const isCreator = order.created_by === currentUserId
@@ -455,7 +462,7 @@ export function PurchaseOrderDetailClient({
             <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">金額</dt>
               <dd className="mt-1 text-sm font-medium text-gray-900 sm:mt-0 sm:col-span-2">
-                ¥{Number(order.total_amount).toLocaleString()}（税込）
+                ¥{formatNumber(order.total_amount)}（税込）
               </dd>
             </div>
             <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -497,20 +504,20 @@ export function PurchaseOrderDetailClient({
                     <div>
                       <span className="text-gray-500">数量:</span>
                       <span className="ml-2 text-gray-900">
-                        {Number(item.quantity).toLocaleString()} {item.unit}
+                        {formatNumber(item.quantity)} {item.unit}
                       </span>
                     </div>
                     <div>
                       <span className="text-gray-500">単価:</span>
                       <span className="ml-2 text-gray-900">
-                        ¥{Number(item.unit_price).toLocaleString()}
+                        ¥{formatNumber(item.unit_price)}
                       </span>
                     </div>
                   </div>
                   <div className="mt-2 pt-2 border-t border-gray-100">
                     <span className="text-gray-500">金額:</span>
                     <span className="ml-2 font-medium text-gray-900">
-                      ¥{Number(item.amount).toLocaleString()}
+                      ¥{formatNumber(item.amount)}
                     </span>
                   </div>
                 </div>
@@ -546,13 +553,13 @@ export function PurchaseOrderDetailClient({
                     <td className="px-6 py-4 text-sm text-gray-900">{item.item_name}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">{item.description || '-'}</td>
                     <td className="px-6 py-4 text-sm text-gray-900 text-right">
-                      {Number(item.quantity).toLocaleString()} {item.unit}
+                      {formatNumber(item.quantity)} {item.unit}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900 text-right">
-                      ¥{Number(item.unit_price).toLocaleString()}
+                      ¥{formatNumber(item.unit_price)}
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900 text-right">
-                      ¥{Number(item.amount).toLocaleString()}
+                      ¥{formatNumber(item.amount)}
                     </td>
                   </tr>
                 ))}
@@ -563,7 +570,7 @@ export function PurchaseOrderDetailClient({
                   小計
                 </td>
                 <td className="px-6 py-4 text-sm font-medium text-gray-900 text-right">
-                  ¥{Number(order.subtotal).toLocaleString()}
+                  ¥{formatNumber(order.subtotal)}
                 </td>
               </tr>
               <tr>
@@ -571,7 +578,7 @@ export function PurchaseOrderDetailClient({
                   消費税
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-900 text-right">
-                  ¥{Number(order.tax_amount).toLocaleString()}
+                  ¥{formatNumber(order.tax_amount)}
                 </td>
               </tr>
               <tr className="border-t-2 border-gray-300">
@@ -579,7 +586,7 @@ export function PurchaseOrderDetailClient({
                   合計
                 </td>
                 <td className="px-6 py-4 text-base font-bold text-gray-900 text-right">
-                  ¥{Number(order.total_amount).toLocaleString()}
+                  ¥{formatNumber(order.total_amount)}
                 </td>
               </tr>
             </tfoot>
@@ -593,8 +600,8 @@ export function PurchaseOrderDetailClient({
           <div className="px-4 py-5 sm:px-6">
             <h3 className="text-lg leading-6 font-medium text-gray-900">支払記録</h3>
             <p className="mt-1 text-sm text-gray-500">
-              支払済み: ¥{totalPaid.toLocaleString()} / 残額: ¥
-              {(Number(order.total_amount) - totalPaid).toLocaleString()}
+              支払済み: ¥{formatNumber(totalPaid)} / 残額: ¥
+              {formatNumber(Number(order.total_amount) - totalPaid)}
             </p>
           </div>
           <div className="border-t border-gray-200">
@@ -622,7 +629,7 @@ export function PurchaseOrderDetailClient({
                       {formatDate(payment.payment_date)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      ¥{Number(payment.amount).toLocaleString()}
+                      ¥{formatNumber(payment.amount)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {payment.payment_method}

@@ -35,6 +35,12 @@ export function PaymentScheduleClient({ paymentSchedule }: PaymentScheduleClient
     return new Date(dateString).toLocaleDateString('ja-JP')
   }
 
+  // Helper to format numbers safely (prevent hydration mismatch)
+  const formatNumber = (value: number) => {
+    if (!isClient) return value.toString()
+    return value.toLocaleString()
+  }
+
   // Helper to get supplier name (handle both object and array)
   const getSupplierName = (supplier?: { name: string } | { name: string }[]) => {
     if (!supplier) return '-'
@@ -120,25 +126,25 @@ export function PaymentScheduleClient({ paymentSchedule }: PaymentScheduleClient
         <div className="bg-white rounded-lg shadow-sm p-6">
           <p className="text-sm text-gray-600 mb-1">全体未払額</p>
           <p className="text-2xl font-bold text-gray-900">
-            ¥{totalUnpaid.toLocaleString()}
+            ¥{formatNumber(totalUnpaid)}
           </p>
         </div>
         <div className="bg-white rounded-lg shadow-sm p-6">
           <p className="text-sm text-gray-600 mb-1">期限超過</p>
           <p className="text-2xl font-bold text-red-600">
-            ¥{overdueTotal.toLocaleString()}
+            ¥{formatNumber(overdueTotal)}
           </p>
         </div>
         <div className="bg-white rounded-lg shadow-sm p-6">
           <p className="text-sm text-gray-600 mb-1">今月支払予定</p>
           <p className="text-2xl font-bold text-orange-600">
-            ¥{thisMonthTotal.toLocaleString()}
+            ¥{formatNumber(thisMonthTotal)}
           </p>
         </div>
         <div className="bg-white rounded-lg shadow-sm p-6">
           <p className="text-sm text-gray-600 mb-1">来月以降</p>
           <p className="text-2xl font-bold text-blue-600">
-            ¥{futureTotal.toLocaleString()}
+            ¥{formatNumber(futureTotal)}
           </p>
         </div>
       </div>
@@ -158,7 +164,7 @@ export function PaymentScheduleClient({ paymentSchedule }: PaymentScheduleClient
               <div className="border-b px-6 py-4 bg-gray-50">
                 <h2 className="text-lg font-bold">
                   {year}年{month}月の支払予定
-                  <span className="ml-4 text-blue-600">合計: ¥{monthTotal.toLocaleString()}</span>
+                  <span className="ml-4 text-blue-600">合計: ¥{formatNumber(monthTotal)}</span>
                 </h2>
               </div>
               <div className="overflow-x-auto">
@@ -193,13 +199,13 @@ export function PaymentScheduleClient({ paymentSchedule }: PaymentScheduleClient
                             {formatDate(po.payment_due_date)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right">
-                            ¥{po.total_amount.toLocaleString()}
+                            ¥{formatNumber(po.total_amount)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-gray-600">
-                            ¥{(po.paid_amount || 0).toLocaleString()}
+                            ¥{formatNumber(po.paid_amount || 0)}
                           </td>
                           <td className={`px-6 py-4 whitespace-nowrap text-right font-medium ${getStatusColor(po)}`}>
-                            ¥{remaining.toLocaleString()}
+                            ¥{formatNumber(remaining)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-center">
                             {remaining > 0 && (
