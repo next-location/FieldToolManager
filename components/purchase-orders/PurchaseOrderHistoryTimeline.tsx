@@ -1,3 +1,7 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+
 export type PurchaseOrderActionType =
   | 'created'
   | 'draft_saved'
@@ -42,6 +46,24 @@ function getActionTypeLabel(actionType: PurchaseOrderActionType): string {
 }
 
 export function PurchaseOrderHistoryTimeline({ history }: PurchaseOrderHistoryTimelineProps) {
+  // Fix React #418: Prevent hydration mismatch
+  const [isClient, setIsClient] = useState(false)
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  // Helper to format date/time safely
+  const formatDateTime = (dateString: string) => {
+    if (!isClient) return dateString // Return ISO format during SSR
+    return new Date(dateString).toLocaleString('ja-JP', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
   const getIcon = (actionType: PurchaseOrderActionType) => {
     switch (actionType) {
       case 'created':
@@ -120,13 +142,7 @@ export function PurchaseOrderHistoryTimeline({ history }: PurchaseOrderHistoryTi
                 </span>
               </div>
               <div className="text-sm text-gray-600 mb-1">
-                {new Date(item.created_at).toLocaleString('ja-JP', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
+                {formatDateTime(item.created_at)}
               </div>
               {item.notes && (
                 <div className="text-sm text-gray-700 mt-2">
