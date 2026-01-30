@@ -10,7 +10,7 @@ interface PaymentScheduleItem {
   payment_due_date: string
   total_amount: number
   paid_amount: number | null
-  supplier?: { name: string }
+  supplier?: { name: string } | { name: string }[] // Supabase can return array or object
 }
 
 interface PaymentScheduleClientProps {
@@ -33,6 +33,15 @@ export function PaymentScheduleClient({ paymentSchedule }: PaymentScheduleClient
   const formatDate = (dateString: string) => {
     if (!isClient) return dateString
     return new Date(dateString).toLocaleDateString('ja-JP')
+  }
+
+  // Helper to get supplier name (handle both object and array)
+  const getSupplierName = (supplier?: { name: string } | { name: string }[]) => {
+    if (!supplier) return '-'
+    if (Array.isArray(supplier)) {
+      return supplier[0]?.name || '-'
+    }
+    return supplier.name || '-'
   }
 
   const getStatusColor = (po: PaymentScheduleItem) => {
@@ -176,7 +185,7 @@ export function PaymentScheduleClient({ paymentSchedule }: PaymentScheduleClient
                               {po.po_number}
                             </Link>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">{po.supplier?.name}</td>
+                          <td className="px-6 py-4 whitespace-nowrap">{getSupplierName(po.supplier)}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                             {formatDate(po.order_date)}
                           </td>
