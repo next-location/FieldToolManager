@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 // GET /api/organization - 組織情報取得
 export async function GET() {
@@ -81,14 +82,32 @@ export async function PATCH(request: NextRequest) {
     // リクエストボディ取得
     const body = await request.json()
 
-    // 更新可能なフィールドのみ抽出
+    // 不審なパターン検出（主要テキストフィールド）
+    const textFields = [
+      { field: 'postal_code', value: body.postal_code, label: '郵便番号' },
+      { field: 'address', value: body.address, label: '住所' },
+      { field: 'phone', value: body.phone, label: '電話番号' },
+      { field: 'fax', value: body.fax, label: 'FAX番号' },
+      { field: 'invoice_registration_number', value: body.invoice_registration_number, label: 'インボイス登録番号' },
+    ]
+
+    for (const { value, label } of textFields) {
+      if (value && hasSuspiciousPattern(value)) {
+        return NextResponse.json(
+          { error: `${label}に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）` },
+          { status: 400 }
+        )
+      }
+    }
+
+    // 更新可能なフィールドのみ抽出（HTMLエスケープ処理）
     const updateData: any = {}
-    if (body.postal_code !== undefined) updateData.postal_code = body.postal_code
-    if (body.address !== undefined) updateData.address = body.address
-    if (body.phone !== undefined) updateData.phone = body.phone
-    if (body.fax !== undefined) updateData.fax = body.fax
+    if (body.postal_code !== undefined) updateData.postal_code = body.postal_code ? escapeHtml(body.postal_code) : null
+    if (body.address !== undefined) updateData.address = body.address ? escapeHtml(body.address) : null
+    if (body.phone !== undefined) updateData.phone = body.phone ? escapeHtml(body.phone) : null
+    if (body.fax !== undefined) updateData.fax = body.fax ? escapeHtml(body.fax) : null
     if (body.company_seal_url !== undefined) updateData.company_seal_url = body.company_seal_url
-    if (body.invoice_registration_number !== undefined) updateData.invoice_registration_number = body.invoice_registration_number
+    if (body.invoice_registration_number !== undefined) updateData.invoice_registration_number = body.invoice_registration_number ? escapeHtml(body.invoice_registration_number) : null
 
     // 組織情報更新
     const { data: organization, error } = await supabase

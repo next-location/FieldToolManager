@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { logConsumableCreated, logConsumableUpdated, logConsumableDeleted } from '@/lib/audit-log'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 // プリセットから道具マスタを作成
 export async function copyPresetToOrganization(presetId: string) {
@@ -345,13 +346,32 @@ export async function createOrUpdateCategory(data: {
     return { error: '権限がありません（Manager/Admin のみ）' }
   }
 
+  // 不審なパターン検出
+  const textFields = [
+    { field: 'name', value: data.name, label: 'カテゴリ名' },
+    { field: 'description', value: data.description, label: '説明' },
+  ]
+
+  for (const { value, label } of textFields) {
+    if (value && hasSuspiciousPattern(value)) {
+      return {
+        error: `${label}に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）`,
+      }
+    }
+  }
+
+  // HTMLエスケープ処理
+  const sanitizedData = {
+    name: escapeHtml(data.name),
+    description: data.description ? escapeHtml(data.description) : null,
+  }
+
   if (data.id) {
     // 更新
     const { error } = await supabase
       .from('tool_categories')
       .update({
-        name: data.name,
-        description: data.description || null,
+        ...sanitizedData,
         updated_at: new Date().toISOString(),
       })
       .eq('id', data.id)
@@ -363,8 +383,7 @@ export async function createOrUpdateCategory(data: {
     // 新規作成
     const { error } = await supabase.from('tool_categories').insert({
       organization_id: data.organization_id,
-      name: data.name,
-      description: data.description || null,
+      ...sanitizedData,
     })
 
     if (error) {

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { PlusIcon } from '@heroicons/react/24/outline'
 import { SlidersHorizontal, Search } from 'lucide-react'
 import { DeletePurchaseOrderButton } from '@/components/purchase-orders/DeletePurchaseOrderButton'
-import { SendOrderButton } from '@/components/purchase-orders/SendOrderButton'
+import { SendSupplierOrderButton } from '@/components/purchase-orders/SendSupplierOrderButton'
 import { MarkReceivedButton } from '@/components/purchase-orders/MarkReceivedButton'
 import { MarkPaidButton } from '@/components/purchase-orders/MarkPaidButton'
 import PurchaseOrderPageFAB from '@/components/purchase-orders/PurchaseOrderPageFAB'
@@ -485,7 +485,7 @@ export function PurchaseOrderListClient({
               {/* 承認済み: 仕入先送付ボタン */}
               {order.status === 'approved' && (
                 <div onClick={(e) => e.stopPropagation()}>
-                  <SendOrderButton orderId={order.id} orderNumber={order.order_number} />
+                  <SendSupplierOrderButton orderId={order.id} orderNumber={order.order_number} />
                 </div>
               )}
 

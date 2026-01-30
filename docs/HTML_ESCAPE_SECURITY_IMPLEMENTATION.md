@@ -527,66 +527,64 @@ export function MyForm() {
   - [x] `hasSuspiciousPattern()` チェック
   - [x] `escapeHtml()` 適用
 
-#### 26. 勤務パターン管理
+#### 26. 勤務パターン管理 ✅
 
 - **フォーム**: `app/(authenticated)/attendance/work-patterns/WorkPatternModal.tsx`
 - **API**: POST/PATCH `/api/attendance/work-patterns`
 - **ファイル**: `app/api/attendance/work-patterns/route.ts`
-- **入力フィールド**: name, description
+- **入力フィールド**: name
 - **対応内容**:
-  - [ ] `hasSuspiciousPattern()` チェック
-  - [ ] `escapeHtml()` 適用
+  - [x] `hasSuspiciousPattern()` チェック
+  - [x] `escapeHtml()` 適用
 
-#### 27. 組織設定
+#### 27. 組織設定 ✅
 
-- **フォーム**: `app/(authenticated)/settings/SettingsForm.tsx`
+- **フォーム**: `app/(authenticated)/settings/SettingsForm.tsx` → Server Action化
 - **API**: PATCH `/api/organization`
-- **ファイル**: `app/api/organization/route.ts`
-- **入力フィールド**: Various organization settings
+- **ファイル**:
+  - `app/api/organization/route.ts` (API)
+  - `app/(authenticated)/settings/actions.ts` (Server Action - 新規作成)
+- **入力フィールド**: postal_code, address, phone, fax, invoice_registration_number, name, department
 - **対応内容**:
-  - [ ] テキストフィールドのみ処理
-  - [ ] `hasSuspiciousPattern()` チェック
-  - [ ] `escapeHtml()` 適用
+  - [x] Server Action `updateUserSettings()` 作成
+  - [x] API `/api/organization` に `hasSuspiciousPattern()` と `escapeHtml()` 追加
+  - [x] 5つのテキストフィールドにセキュリティ対策適用
 
-#### 28. 勤怠設定
+#### 28. 勤怠設定 ⏭️ SKIPPED
 
 - **フォーム**: `app/(authenticated)/attendance/settings/AttendanceSettingsForm.tsx`
-- **API**: PATCH `/api/attendance/settings`
+- **API**: PUT `/api/attendance/settings`
 - **ファイル**: `app/api/attendance/settings/route.ts`
-- **入力フィールド**: Various settings
-- **対応内容**:
-  - [ ] テキストフィールドのみ処理
-  - [ ] `hasSuspiciousPattern()` チェック
-  - [ ] `escapeHtml()` 適用
+- **入力フィールド**: boolean, number, time型のみ（テキストフィールドなし）
+- **対応内容**: スキップ（XSS対策不要）
 
-#### 29. カテゴリマスタ管理
+#### 29-30. カテゴリマスター管理 ✅
 
-- **フォーム**: `app/(authenticated)/master/tools-consumables/CategoryMasterForm.tsx`
-- **Server Action**: `createCategory`, `updateCategory`
+**道具・消耗品カテゴリ (Task 29):**
+- **Server Action**: `createOrUpdateCategory`
 - **ファイル**: `app/(authenticated)/master/tools-consumables/actions.ts`
 - **入力フィールド**: name, description
 - **対応内容**:
-  - [ ] `hasSuspiciousPattern()` チェック
-  - [ ] `escapeHtml()` 適用
+  - [x] `hasSuspiciousPattern()` チェック
+  - [x] `escapeHtml()` 適用
 
-#### 30. 重機カテゴリ管理
-
-- **フォーム**: `app/(authenticated)/master/equipment-categories/EquipmentCategoriesClient.tsx`
-- **API**: POST/PATCH `/api/equipment-categories` (要確認)
-- **入力フィールド**: name, code_prefix, icon
+**重機カテゴリ (Task 30):**
+- **フォーム**: `app/(authenticated)/master/equipment-categories/EquipmentCategoriesClient.tsx` → Server Action化
+- **Server Action**: 新規作成 3関数（create, update, delete）
+- **ファイル**: `app/(authenticated)/master/equipment-categories/actions.ts` (新規作成)
+- **入力フィールド**: name, code_prefix
 - **対応内容**:
-  - [ ] APIエンドポイント確認
-  - [ ] `hasSuspiciousPattern()` チェック
-  - [ ] `escapeHtml()` 適用
+  - [x] Server Action `createEquipmentCategory()`, `updateEquipmentCategory()`, `deleteEquipmentCategory()` 作成
+  - [x] `hasSuspiciousPattern()` チェック
+  - [x] `escapeHtml()` 適用
+  - [x] システムカテゴリ（organization_id = null）の編集・削除を防止
 
-#### 31. データエクスポート
+#### 31. データエクスポート ⏭️ SKIPPED
 
 - **フォーム**: `app/(authenticated)/settings/data-export/DataExportClient.tsx`
-- **API**: POST `/api/organization/export` (要確認)
-- **入力フィールド**: export_options
-- **対応内容**:
-  - [ ] APIエンドポイント確認
-  - [ ] テキストフィールドがあれば処理
+- **API**: `/api/{type}/export` (各種エクスポートAPI)
+- **入力フィールド**: なし（CSVダウンロードボタンのみ）
+- **対応内容**: スキップ（テキスト入力フィールドなし）
 
 #### 32-38. その他中優先度フォーム
 

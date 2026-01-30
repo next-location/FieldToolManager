@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 // GET /api/attendance/work-patterns - 勤務パターン一覧取得
 export async function GET(request: NextRequest) {
@@ -104,6 +105,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '必須項目が不足しています' }, { status: 400 })
     }
 
+    // 不審なパターン検出
+    if (hasSuspiciousPattern(name)) {
+      return NextResponse.json(
+        { error: 'パターン名に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）' },
+        { status: 400 }
+      )
+    }
+
     // デフォルトパターンの場合、既存のデフォルトを解除
     if (is_default) {
       await supabase
@@ -113,12 +122,12 @@ export async function POST(request: NextRequest) {
         .eq('is_default', true)
     }
 
-    // 新規作成
+    // 新規作成（HTMLエスケープ適用）
     const { data: newPattern, error: insertError } = await supabase
       .from('work_patterns')
       .insert({
         organization_id: userData.organization_id,
-        name,
+        name: escapeHtml(name),
         expected_checkin_time,
         expected_checkout_time: expected_checkout_time || null,
         is_night_shift: is_night_shift || false,

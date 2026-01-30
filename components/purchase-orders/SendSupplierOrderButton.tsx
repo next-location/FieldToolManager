@@ -1,6 +1,6 @@
 'use client'
 
-// Version: 2.0 - CSRF protection enabled
+// Version: 3.0 - Renamed to force new chunk generation
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useCsrfToken } from '@/hooks/useCsrfToken'
@@ -10,7 +10,7 @@ interface SendOrderButtonProps {
   orderNumber: string
 }
 
-export function SendOrderButton({ orderId, orderNumber }: SendOrderButtonProps) {
+export function SendSupplierOrderButton({ orderId, orderNumber }: SendOrderButtonProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const { token: csrfToken } = useCsrfToken()
@@ -20,9 +20,9 @@ export function SendOrderButton({ orderId, orderNumber }: SendOrderButtonProps) 
     e.stopPropagation()
 
     // デバッグログ（本番環境）
-    console.log('[SendOrderButton v2.1] csrfToken:', csrfToken)
-    console.log('[SendOrderButton v2.1] csrfToken type:', typeof csrfToken)
-    console.log('[SendOrderButton v2.1] csrfToken length:', csrfToken?.length)
+    console.log('[SendSupplierOrderButton v3.0] csrfToken:', csrfToken)
+    console.log('[SendSupplierOrderButton v3.0] csrfToken type:', typeof csrfToken)
+    console.log('[SendSupplierOrderButton v3.0] csrfToken length:', csrfToken?.length)
 
     if (!csrfToken) {
       alert('セキュリティトークンが読み込まれていません。ページを再読み込みしてください。')
@@ -33,7 +33,7 @@ export function SendOrderButton({ orderId, orderNumber }: SendOrderButtonProps) 
 
     setLoading(true)
     try {
-      console.log('[SendOrderButton] Sending request with CSRF token:', csrfToken.substring(0, 10) + '...')
+      console.log('[SendSupplierOrderButton v3.0] Sending request with CSRF token:', csrfToken.substring(0, 10) + '...')
       const response = await fetch(`/api/purchase-orders/${orderId}/send`, {
         method: 'POST',
         headers: {
