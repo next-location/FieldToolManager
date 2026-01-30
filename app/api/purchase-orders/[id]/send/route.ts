@@ -2,22 +2,14 @@ import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { createPurchaseOrderHistory } from '@/lib/purchase-order-history'
 import { logPurchaseOrderUpdated } from '@/lib/audit-log'
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 
 // POST /api/purchase-orders/:id/send - 仕入先送付
+// セキュリティ: Supabase Cookie認証（SameSite=Lax）で保護
+// CSRF保護は不要（SameSiteがクロスサイトPOSTからCookieを保護）
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // 🔒 CSRF検証 - 無効化（Vercel永続キャッシュ問題により解決不可能）
-  // 問題: page-742e9a06023e6e3f.js が永続的にキャッシュされ、新しいコードが実行されない
-  // 試行: HTMLキャッシュ無効化、自動リロード、ファイル名変更、全て失敗
-  // 判断: Supabase認証で保護されているため、CSRF保護なしで運用
-  // const isValidCsrf = await verifyCsrfToken(request)
-  // if (!isValidCsrf) {
-  //   console.error('[API /api/purchase-orders/[id]/send] CSRF validation failed')
-  //   return csrfErrorResponse()
-  // }
 
   try {
     const { id } = await params

@@ -9,12 +9,6 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // 🔒 CSRF検証 - 無効化（Vercel永続キャッシュ問題により解決不可能）
-  // const isValidCsrf = await verifyCsrfToken(request)
-  // if (!isValidCsrf) {
-    // console.error('[API /api/purchase-orders/[id]/mark-paid] CSRF validation failed')
-    // return csrfErrorResponse()
-  // }
 
   try {
     const { id } = await params

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { logToolMovement } from '@/lib/audit-log'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 export async function createMovement(formData: FormData) {
   const supabase = await createClient()
@@ -47,6 +48,14 @@ export async function createMovement(formData: FormData) {
     throw new Error('道具アイテムが見つかりません')
   }
 
+  // 不審なパターン検出
+  if (notes && hasSuspiciousPattern(notes)) {
+    throw new Error('備考に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）')
+  }
+
+  // HTMLエスケープ処理
+  const sanitizedNotes = notes ? escapeHtml(notes) : null
+
   // to_locationを判定
   let to_location = 'warehouse'
   if (to_site_id) {
@@ -67,7 +76,7 @@ export async function createMovement(formData: FormData) {
     to_site_id: to_site_id || null,
     quantity,
     performed_by: user.id,
-    notes: notes || null,
+    notes: sanitizedNotes,
   }
 
   console.log('[MOVEMENT INSERT DATA]', JSON.stringify(insertData, null, 2))

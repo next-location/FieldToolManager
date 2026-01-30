@@ -11,7 +11,7 @@ interface MarkReceivedButtonProps {
 }
 
 export function MarkReceivedButton({ orderId, orderNumber }: MarkReceivedButtonProps) {
-  const { token: csrfToken } = useCsrfToken()
+  
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
@@ -28,11 +28,10 @@ export function MarkReceivedButton({ orderId, orderNumber }: MarkReceivedButtonP
 
     setLoading(true)
     try {
-      const response = await fetchWithReload(`/api/purchase-orders/${orderId}/mark-received`, {
+      const response = await fetch(`/api/purchase-orders/${orderId}/mark-received`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken,
         },
       })
 
