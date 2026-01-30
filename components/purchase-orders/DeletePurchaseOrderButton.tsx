@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { useCsrfToken } from '@/hooks/useCsrfToken'
 
 interface DeletePurchaseOrderButtonProps {
   orderId: string
@@ -14,6 +15,7 @@ export function DeletePurchaseOrderButton({
   orderNumber,
   redirectToList = false,
 }: DeletePurchaseOrderButtonProps) {
+  const { token: csrfToken } = useCsrfToken()
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -27,6 +29,9 @@ export function DeletePurchaseOrderButton({
     try {
       const response = await fetch(`/api/purchase-orders/${orderId}`, {
         method: 'DELETE',
+        headers: {
+          'X-CSRF-Token': csrfToken || '',
+        },
       })
 
       if (!response.ok) {

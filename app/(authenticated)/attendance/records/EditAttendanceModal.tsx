@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useCsrfToken } from '@/hooks/useCsrfToken'
 
 interface Site {
   id: string
@@ -22,6 +23,7 @@ export function EditAttendanceModal({
   onClose,
   onSuccess,
 }: EditAttendanceModalProps) {
+  const { token: csrfToken } = useCsrfToken()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -91,7 +93,10 @@ export function EditAttendanceModal({
 
       const response = await fetch(`/api/attendance/records/${record.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken || '',
+        },
         body: JSON.stringify({
           clock_in_time: clockInDateTime,
           clock_in_location_type: formData.clock_in_location_type,
@@ -135,6 +140,9 @@ export function EditAttendanceModal({
     try {
       const response = await fetch(`/api/attendance/records/${record.id}`, {
         method: 'DELETE',
+        headers: {
+          'X-CSRF-Token': csrfToken || '',
+        },
       })
 
       const data = await response.json()

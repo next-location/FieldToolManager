@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { useCsrfToken } from '@/hooks/useCsrfToken'
 
 interface MarkReceivedButtonProps {
   orderId: string
@@ -9,6 +10,7 @@ interface MarkReceivedButtonProps {
 }
 
 export function MarkReceivedButton({ orderId, orderNumber }: MarkReceivedButtonProps) {
+  const { token: csrfToken } = useCsrfToken()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
@@ -22,6 +24,10 @@ export function MarkReceivedButton({ orderId, orderNumber }: MarkReceivedButtonP
     try {
       const response = await fetch(`/api/purchase-orders/${orderId}/mark-received`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken || '',
+        },
       })
 
       if (!response.ok) {
