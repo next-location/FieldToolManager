@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createEstimateHistory } from '@/lib/estimate-history'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { logEstimateCreated } from '@/lib/audit-log'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 export async function GET(request: NextRequest) {
   try {
@@ -145,7 +146,54 @@ export async function POST(request: NextRequest) {
     console.log('[見積書作成API] リクエストボディ:', JSON.stringify(body, null, 2))
     console.log('[見積書作成API] 明細データ:', JSON.stringify(body.items, null, 2))
 
-    // 見積書本体を作成
+    // 不審なパターン検出（見積書本体）
+    const textFields = [
+      { field: 'title', value: body.title, label: '件名' },
+      { field: 'notes', value: body.notes, label: '備考' },
+      { field: 'internal_notes', value: body.internal_notes, label: '社内メモ' },
+    ]
+
+    for (const { value, label } of textFields) {
+      if (value && hasSuspiciousPattern(value)) {
+        return NextResponse.json(
+          { error: `${label}に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）` },
+          { status: 400 }
+        )
+      }
+    }
+
+    // 明細の不審パターン検出
+    if (body.items && body.items.length > 0) {
+      for (let i = 0; i < body.items.length; i++) {
+        const item = body.items[i]
+        if (item.item_name && hasSuspiciousPattern(item.item_name)) {
+          return NextResponse.json(
+            { error: `明細行${i + 1}の品名に不正な文字列が含まれています` },
+            { status: 400 }
+          )
+        }
+        if (item.description && hasSuspiciousPattern(item.description)) {
+          return NextResponse.json(
+            { error: `明細行${i + 1}の説明に不正な文字列が含まれています` },
+            { status: 400 }
+          )
+        }
+        if (item.custom_type && hasSuspiciousPattern(item.custom_type)) {
+          return NextResponse.json(
+            { error: `明細行${i + 1}のカスタム項目種別に不正な文字列が含まれています` },
+            { status: 400 }
+          )
+        }
+        if (item.custom_unit && hasSuspiciousPattern(item.custom_unit)) {
+          return NextResponse.json(
+            { error: `明細行${i + 1}のカスタム単位に不正な文字列が含まれています` },
+            { status: 400 }
+          )
+        }
+      }
+    }
+
+    // 見積書本体を作成（HTMLエスケープ適用）
     const { data: estimate, error: estimateError } = await supabase
       .from('estimates')
       .insert({
@@ -155,13 +203,13 @@ export async function POST(request: NextRequest) {
         project_id: body.project_id || null,
         estimate_date: body.estimate_date,
         valid_until: body.valid_until || null,
-        title: body.title,
+        title: escapeHtml(body.title),
         subtotal: body.subtotal,
         tax_amount: body.tax_amount,
         total_amount: body.total_amount,
         status: body.status || 'draft',
-        notes: body.notes || null,
-        internal_notes: body.internal_notes || null,
+        notes: body.notes ? escapeHtml(body.notes) : null,
+        internal_notes: body.internal_notes ? escapeHtml(body.internal_notes) : null,
         created_by: user.id,
       })
       .select()
@@ -175,7 +223,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 見積明細を作成
+    // 見積明細を作成（HTMLエスケープ適用）
     if (body.items && body.items.length > 0) {
       const validItemTypes = ['construction', 'material', 'expense', 'labor', 'subcontract', 'other']
 
@@ -189,12 +237,12 @@ export async function POST(request: NextRequest) {
           estimate_id: estimate.id,
           display_order: item.display_order,
           item_type: itemType,
-          custom_type: customType,
-          item_name: item.item_name,
-          description: item.description || null,
+          custom_type: customType ? escapeHtml(customType) : null,
+          item_name: escapeHtml(item.item_name),
+          description: item.description ? escapeHtml(item.description) : null,
           quantity: item.quantity,
           unit: item.unit,
-          custom_unit: item.custom_unit || null,
+          custom_unit: item.custom_unit ? escapeHtml(item.custom_unit) : null,
           unit_price: item.unit_price,
           amount: item.amount,
           tax_rate: item.tax_rate,

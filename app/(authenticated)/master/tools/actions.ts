@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 /**
  * 道具マスタを作成
@@ -43,20 +44,35 @@ export async function createToolMaster(formData: {
     return { error: '権限がありません' }
   }
 
-  // 道具マスタ作成
+  // 不審なパターン検出
+  const textFields = [
+    { field: 'name', value: formData.name, label: '道具名' },
+    { field: 'model_number', value: formData.model_number, label: '型番' },
+    { field: 'manufacturer', value: formData.manufacturer, label: 'メーカー' },
+    { field: 'unit', value: formData.unit, label: '単位' },
+    { field: 'notes', value: formData.notes, label: '備考' },
+  ]
+
+  for (const { value, label } of textFields) {
+    if (value && hasSuspiciousPattern(value)) {
+      return { error: `${label}に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）` }
+    }
+  }
+
+  // 道具マスタ作成（HTMLエスケープ適用）
   const { data, error } = await supabase
     .from('tools')
     .insert({
       organization_id: userData?.organization_id,
-      name: formData.name,
-      model_number: formData.model_number || null,
-      manufacturer: formData.manufacturer || null,
+      name: escapeHtml(formData.name),
+      model_number: formData.model_number ? escapeHtml(formData.model_number) : null,
+      manufacturer: formData.manufacturer ? escapeHtml(formData.manufacturer) : null,
       category_id: formData.category_id || null,
       management_type: 'individual',
-      unit: formData.unit,
+      unit: escapeHtml(formData.unit),
       minimum_stock: formData.minimum_stock,
       image_url: formData.image_url || null,
-      notes: formData.notes || null,
+      notes: formData.notes ? escapeHtml(formData.notes) : null,
       is_from_preset: false,
     })
     .select()
@@ -114,18 +130,33 @@ export async function updateToolMaster(
     return { error: '権限がありません' }
   }
 
-  // 道具マスタ更新
+  // 不審なパターン検出
+  const textFields = [
+    { field: 'name', value: formData.name, label: '道具名' },
+    { field: 'model_number', value: formData.model_number, label: '型番' },
+    { field: 'manufacturer', value: formData.manufacturer, label: 'メーカー' },
+    { field: 'unit', value: formData.unit, label: '単位' },
+    { field: 'notes', value: formData.notes, label: '備考' },
+  ]
+
+  for (const { value, label } of textFields) {
+    if (value && hasSuspiciousPattern(value)) {
+      return { error: `${label}に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）` }
+    }
+  }
+
+  // 道具マスタ更新（HTMLエスケープ適用）
   const { data, error } = await supabase
     .from('tools')
     .update({
-      name: formData.name,
-      model_number: formData.model_number || null,
-      manufacturer: formData.manufacturer || null,
+      name: escapeHtml(formData.name),
+      model_number: formData.model_number ? escapeHtml(formData.model_number) : null,
+      manufacturer: formData.manufacturer ? escapeHtml(formData.manufacturer) : null,
       category_id: formData.category_id || null,
-      unit: formData.unit,
+      unit: escapeHtml(formData.unit),
       minimum_stock: formData.minimum_stock,
       image_url: formData.image_url || null,
-      notes: formData.notes || null,
+      notes: formData.notes ? escapeHtml(formData.notes) : null,
     })
     .eq('id', id)
     .eq('organization_id', userData?.organization_id)

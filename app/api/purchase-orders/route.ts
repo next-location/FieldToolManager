@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createPurchaseOrderHistory } from '@/lib/purchase-order-history'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { logPurchaseOrderCreated } from '@/lib/audit-log'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 // GET /api/purchase-orders - 発注書一覧取得
 export async function GET(request: NextRequest) {
@@ -170,6 +171,40 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 不審なパターン検出（発注書本体）
+    const textFields = [
+      { field: 'delivery_location', value: body.delivery_location, label: '納品場所' },
+      { field: 'payment_terms', value: body.payment_terms, label: '支払条件' },
+      { field: 'notes', value: body.notes, label: '備考' },
+      { field: 'internal_memo', value: body.internal_memo, label: '社内メモ' },
+    ]
+
+    for (const { value, label } of textFields) {
+      if (value && hasSuspiciousPattern(value)) {
+        return NextResponse.json(
+          { error: `${label}に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）` },
+          { status: 400 }
+        )
+      }
+    }
+
+    // 明細の不審パターン検出
+    for (let i = 0; i < body.items.length; i++) {
+      const item = body.items[i]
+      if (item.item_name && hasSuspiciousPattern(item.item_name)) {
+        return NextResponse.json(
+          { error: `明細行${i + 1}の品名に不正な文字列が含まれています` },
+          { status: 400 }
+        )
+      }
+      if (item.description && hasSuspiciousPattern(item.description)) {
+        return NextResponse.json(
+          { error: `明細行${i + 1}の説明に不正な文字列が含まれています` },
+          { status: 400 }
+        )
+      }
+    }
+
     // 役割に応じたステータスを決定
     let purchaseOrderStatus = status
     if (status === 'submitted') {
@@ -194,7 +229,7 @@ export async function POST(request: NextRequest) {
       newOrderNumber = `PO-${today}-${String(lastNumber + 1).padStart(3, '0')}`
     }
 
-    // 金額計算
+    // 金額計算とHTMLエスケープ（明細）
     let subtotal = 0
     let taxAmount = 0
     const items = body.items.map((item: any, index: number) => {
@@ -204,6 +239,8 @@ export async function POST(request: NextRequest) {
       taxAmount += itemTax
       return {
         ...item,
+        item_name: escapeHtml(item.item_name),
+        description: item.description ? escapeHtml(item.description) : null,
         display_order: index + 1,
         amount,
       }
@@ -211,7 +248,7 @@ export async function POST(request: NextRequest) {
 
     const totalAmount = subtotal + taxAmount
 
-    // 発注書作成
+    // 発注書作成（HTMLエスケープ適用）
     const { data: order, error: orderError } = await supabase
       .from('purchase_orders')
       .insert({
@@ -221,14 +258,14 @@ export async function POST(request: NextRequest) {
         project_id: body.project_id || null,
         order_date: body.order_date,
         delivery_date: body.delivery_date || null,
-        delivery_location: body.delivery_location || null,
-        payment_terms: body.payment_terms || null,
+        delivery_location: body.delivery_location ? escapeHtml(body.delivery_location) : null,
+        payment_terms: body.payment_terms ? escapeHtml(body.payment_terms) : null,
         subtotal,
         tax_amount: taxAmount,
         total_amount: totalAmount,
         status: purchaseOrderStatus,
-        notes: body.notes || null,
-        internal_memo: body.internal_memo || null,
+        notes: body.notes ? escapeHtml(body.notes) : null,
+        internal_memo: body.internal_memo ? escapeHtml(body.internal_memo) : null,
         created_by: user.id,
         // マネージャー以上の場合は承認情報も設定
         ...(purchaseOrderStatus === 'approved' && {

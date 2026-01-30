@@ -19,9 +19,10 @@ export function SendOrderButton({ orderId, orderNumber }: SendOrderButtonProps) 
     e.preventDefault()
     e.stopPropagation()
 
-    console.log('[SendOrderButton] csrfToken:', csrfToken)
-    console.log('[SendOrderButton] csrfToken type:', typeof csrfToken)
-    console.log('[SendOrderButton] csrfToken length:', csrfToken?.length)
+    // デバッグログ（本番環境）
+    console.log('[SendOrderButton v2.1] csrfToken:', csrfToken)
+    console.log('[SendOrderButton v2.1] csrfToken type:', typeof csrfToken)
+    console.log('[SendOrderButton v2.1] csrfToken length:', csrfToken?.length)
 
     if (!csrfToken) {
       alert('セキュリティトークンが読み込まれていません。ページを再読み込みしてください。')

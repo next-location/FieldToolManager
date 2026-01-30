@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { logEquipmentCreated, logEquipmentUpdated, logEquipmentDeleted } from '@/lib/audit-log'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 /**
  * 重機を作成
@@ -29,12 +30,59 @@ export async function createEquipment(equipmentData: any) {
     return { success: false, error: 'User data not found' }
   }
 
+  // 不審なパターン検出
+  const textFields = [
+    { field: 'equipment_code', value: equipmentData.equipment_code, label: '重機コード' },
+    { field: 'name', value: equipmentData.name, label: '重機名' },
+    { field: 'manufacturer', value: equipmentData.manufacturer, label: 'メーカー' },
+    { field: 'model_number', value: equipmentData.model_number, label: '型式' },
+    { field: 'serial_number', value: equipmentData.serial_number, label: 'シリアル番号' },
+    { field: 'registration_number', value: equipmentData.registration_number, label: '登録番号' },
+    { field: 'supplier_company', value: equipmentData.supplier_company, label: '仕入先' },
+    { field: 'contract_number', value: equipmentData.contract_number, label: '契約番号' },
+    { field: 'insurance_company', value: equipmentData.insurance_company, label: '保険会社' },
+    { field: 'insurance_policy_number', value: equipmentData.insurance_policy_number, label: '保険証券番号' },
+    { field: 'notes', value: equipmentData.notes, label: '備考' },
+  ]
+
+  for (const { value, label } of textFields) {
+    if (value && hasSuspiciousPattern(value)) {
+      return { success: false, error: `${label}に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）` }
+    }
+  }
+
+  // HTMLエスケープ処理
+  const sanitizedData = {
+    equipment_code: equipmentData.equipment_code ? escapeHtml(equipmentData.equipment_code) : null,
+    name: equipmentData.name ? escapeHtml(equipmentData.name) : null,
+    manufacturer: equipmentData.manufacturer ? escapeHtml(equipmentData.manufacturer) : null,
+    model_number: equipmentData.model_number ? escapeHtml(equipmentData.model_number) : null,
+    serial_number: equipmentData.serial_number ? escapeHtml(equipmentData.serial_number) : null,
+    registration_number: equipmentData.registration_number ? escapeHtml(equipmentData.registration_number) : null,
+    supplier_company: equipmentData.supplier_company ? escapeHtml(equipmentData.supplier_company) : null,
+    contract_number: equipmentData.contract_number ? escapeHtml(equipmentData.contract_number) : null,
+    insurance_company: equipmentData.insurance_company ? escapeHtml(equipmentData.insurance_company) : null,
+    insurance_policy_number: equipmentData.insurance_policy_number ? escapeHtml(equipmentData.insurance_policy_number) : null,
+    notes: equipmentData.notes ? escapeHtml(equipmentData.notes) : null,
+    // 非テキストフィールドはそのまま
+    category_id: equipmentData.category_id,
+    ownership_type: equipmentData.ownership_type,
+    status: equipmentData.status,
+    purchase_date: equipmentData.purchase_date,
+    purchase_price: equipmentData.purchase_price,
+    current_location_id: equipmentData.current_location_id,
+    requires_vehicle_inspection: equipmentData.requires_vehicle_inspection,
+    vehicle_inspection_date: equipmentData.vehicle_inspection_date,
+    insurance_start_date: equipmentData.insurance_start_date,
+    insurance_end_date: equipmentData.insurance_end_date,
+  }
+
   try {
     // 重機を挿入
     const { data, error } = await supabase
       .from('heavy_equipment')
       .insert({
-        ...equipmentData,
+        ...sanitizedData,
         organization_id: userData.organization_id,
       })
       .select()
@@ -90,6 +138,82 @@ export async function updateEquipment(equipmentId: string, equipmentData: any) {
     return { success: false, error: 'User data not found' }
   }
 
+  // 不審なパターン検出
+  const textFields = [
+    { field: 'equipment_code', value: equipmentData.equipment_code, label: '重機コード' },
+    { field: 'name', value: equipmentData.name, label: '重機名' },
+    { field: 'manufacturer', value: equipmentData.manufacturer, label: 'メーカー' },
+    { field: 'model_number', value: equipmentData.model_number, label: '型式' },
+    { field: 'serial_number', value: equipmentData.serial_number, label: 'シリアル番号' },
+    { field: 'registration_number', value: equipmentData.registration_number, label: '登録番号' },
+    { field: 'supplier_company', value: equipmentData.supplier_company, label: '仕入先' },
+    { field: 'contract_number', value: equipmentData.contract_number, label: '契約番号' },
+    { field: 'insurance_company', value: equipmentData.insurance_company, label: '保険会社' },
+    { field: 'insurance_policy_number', value: equipmentData.insurance_policy_number, label: '保険証券番号' },
+    { field: 'notes', value: equipmentData.notes, label: '備考' },
+  ]
+
+  for (const { value, label } of textFields) {
+    if (value && hasSuspiciousPattern(value)) {
+      return { success: false, error: `${label}に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）` }
+    }
+  }
+
+  // HTMLエスケープ処理
+  const sanitizedData = {
+    equipment_code: equipmentData.equipment_code !== undefined
+      ? (equipmentData.equipment_code ? escapeHtml(equipmentData.equipment_code) : null)
+      : undefined,
+    name: equipmentData.name !== undefined
+      ? (equipmentData.name ? escapeHtml(equipmentData.name) : null)
+      : undefined,
+    manufacturer: equipmentData.manufacturer !== undefined
+      ? (equipmentData.manufacturer ? escapeHtml(equipmentData.manufacturer) : null)
+      : undefined,
+    model_number: equipmentData.model_number !== undefined
+      ? (equipmentData.model_number ? escapeHtml(equipmentData.model_number) : null)
+      : undefined,
+    serial_number: equipmentData.serial_number !== undefined
+      ? (equipmentData.serial_number ? escapeHtml(equipmentData.serial_number) : null)
+      : undefined,
+    registration_number: equipmentData.registration_number !== undefined
+      ? (equipmentData.registration_number ? escapeHtml(equipmentData.registration_number) : null)
+      : undefined,
+    supplier_company: equipmentData.supplier_company !== undefined
+      ? (equipmentData.supplier_company ? escapeHtml(equipmentData.supplier_company) : null)
+      : undefined,
+    contract_number: equipmentData.contract_number !== undefined
+      ? (equipmentData.contract_number ? escapeHtml(equipmentData.contract_number) : null)
+      : undefined,
+    insurance_company: equipmentData.insurance_company !== undefined
+      ? (equipmentData.insurance_company ? escapeHtml(equipmentData.insurance_company) : null)
+      : undefined,
+    insurance_policy_number: equipmentData.insurance_policy_number !== undefined
+      ? (equipmentData.insurance_policy_number ? escapeHtml(equipmentData.insurance_policy_number) : null)
+      : undefined,
+    notes: equipmentData.notes !== undefined
+      ? (equipmentData.notes ? escapeHtml(equipmentData.notes) : null)
+      : undefined,
+    // 非テキストフィールドはそのまま
+    category_id: equipmentData.category_id,
+    ownership_type: equipmentData.ownership_type,
+    status: equipmentData.status,
+    purchase_date: equipmentData.purchase_date,
+    purchase_price: equipmentData.purchase_price,
+    current_location_id: equipmentData.current_location_id,
+    requires_vehicle_inspection: equipmentData.requires_vehicle_inspection,
+    vehicle_inspection_date: equipmentData.vehicle_inspection_date,
+    insurance_start_date: equipmentData.insurance_start_date,
+    insurance_end_date: equipmentData.insurance_end_date,
+  }
+
+  // undefinedのキーを削除（部分更新対応）
+  Object.keys(sanitizedData).forEach((key) => {
+    if (sanitizedData[key as keyof typeof sanitizedData] === undefined) {
+      delete sanitizedData[key as keyof typeof sanitizedData]
+    }
+  })
+
   try {
     // 更新前のデータを取得（監査ログ用）
     const { data: oldData } = await supabase
@@ -106,7 +230,7 @@ export async function updateEquipment(equipmentId: string, equipmentData: any) {
     const { data, error } = await supabase
       .from('heavy_equipment')
       .update({
-        ...equipmentData,
+        ...sanitizedData,
         updated_at: new Date().toISOString(),
       })
       .eq('id', equipmentId)

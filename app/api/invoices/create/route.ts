@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { logInvoiceCreated } from '@/lib/audit-log'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 export async function POST(request: NextRequest) {
   // CSRF検証（セキュリティ強化）
@@ -36,6 +37,49 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { invoiceData, items, status = 'draft' } = body
 
+    // 不審なパターン検出（請求書本体）
+    const textFields = [
+      { field: 'title', value: invoiceData.title, label: '件名' },
+      { field: 'notes', value: invoiceData.notes, label: '備考' },
+      { field: 'internal_notes', value: invoiceData.internal_notes, label: '社内メモ' },
+    ]
+
+    for (const { value, label } of textFields) {
+      if (value && hasSuspiciousPattern(value)) {
+        return NextResponse.json(
+          { error: `${label}に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）` },
+          { status: 400 }
+        )
+      }
+    }
+
+    // 明細の不審パターン検出
+    if (items && items.length > 0) {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i]
+        if (item.item_name && hasSuspiciousPattern(item.item_name)) {
+          return NextResponse.json(
+            { error: `明細行${i + 1}の品名に不正な文字列が含まれています` },
+            { status: 400 }
+          )
+        }
+        if (item.description && hasSuspiciousPattern(item.description)) {
+          return NextResponse.json(
+            { error: `明細行${i + 1}の説明に不正な文字列が含まれています` },
+            { status: 400 }
+          )
+        }
+      }
+    }
+
+    // HTMLエスケープ処理
+    const sanitizedInvoiceData = {
+      ...invoiceData,
+      title: invoiceData.title ? escapeHtml(invoiceData.title) : null,
+      notes: invoiceData.notes ? escapeHtml(invoiceData.notes) : null,
+      internal_notes: invoiceData.internal_notes ? escapeHtml(invoiceData.internal_notes) : null,
+    }
+
     // リーダーの場合は承認申請、マネージャー以上の場合は承認済みで作成
     let invoiceStatus = status
     if (status === 'submitted') {
@@ -44,11 +88,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 請求書を作成（サーバーサイドなのでRLSを回避）
+    // 請求書を作成（サーバーサイドなのでRLSを回避、HTMLエスケープ済みデータ使用）
     const { data: invoice, error: invoiceError } = await supabase
       .from('billing_invoices')
       .insert({
-        ...invoiceData,
+        ...sanitizedInvoiceData,
         organization_id: userData?.organization_id,
         status: invoiceStatus,
         created_by: user.id,
@@ -66,14 +110,14 @@ export async function POST(request: NextRequest) {
       throw invoiceError
     }
 
-    // 明細を作成
+    // 明細を作成（HTMLエスケープ適用）
     if (items && items.length > 0) {
       const itemsToInsert = items.map((item: any, index: number) => ({
         invoice_id: invoice.id,
         display_order: index + 1,
         item_type: item.item_type,
-        item_name: item.item_name,
-        description: item.description,
+        item_name: escapeHtml(item.item_name),
+        description: item.description ? escapeHtml(item.description) : null,
         quantity: item.quantity,
         unit: item.unit,
         unit_price: item.unit_price,

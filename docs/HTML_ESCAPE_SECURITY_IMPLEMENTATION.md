@@ -638,17 +638,17 @@ export function MyForm() {
 - [x] **5. EditStaffModal.tsx** → `/api/staff/[id]` ✅ 完了 (2026-01-30)
 - [x] **6. ClientForm.tsx** → `/api/clients` + `/api/clients/[id]` ✅ 完了 (2026-01-30)
 - [x] **7. SupplierFormModal.tsx** → `/api/suppliers` ✅ 完了 (2026-01-30)
-- [ ] **8. WorkReportForm.tsx** → `/api/work-reports`
-- [ ] **9. WorkReportEditForm.tsx** → `/api/work-reports/[id]`
-- [ ] **10. EquipmentRegistrationForm.tsx** → `equipment/actions.ts`
-- [ ] **11. EquipmentEditForm.tsx** → `equipment/actions.ts`
-- [ ] **12. EstimateForm** → `/api/estimates`
-- [ ] **13. InvoiceForm** → `/api/invoices/create`
-- [ ] **14. PurchaseOrderForm** → `/api/purchase-orders`
-- [ ] **15. NewPaymentClient.tsx** → `/api/payments`
-- [ ] **16. ToolMasterForm.tsx** → `master/tools/actions.ts`
-- [ ] **17. ConsumableMasterForm.tsx** → `master/tools-consumables/actions.ts`
-- [ ] **18. SiteForm** → `sites/actions.ts`
+- [x] **8. WorkReportForm.tsx** → `/api/work-reports` ✅ 完了 (2026-01-30)
+- [x] **9. WorkReportEditForm.tsx** → `/api/work-reports/[id]` ✅ 完了 (2026-01-30)
+- [x] **10. EquipmentRegistrationForm.tsx** → `equipment/actions.ts` ✅ 完了 (2026-01-30)
+- [x] **11. EquipmentEditForm.tsx** → `equipment/actions.ts` ✅ 完了 (2026-01-30)
+- [x] **12. EstimateForm** → `/api/estimates` ✅ 完了 (2026-01-30)
+- [x] **13. InvoiceForm** → `/api/invoices/create` ✅ 完了 (2026-01-30)
+- [x] **14. PurchaseOrderForm** → `/api/purchase-orders` ✅ 完了 (2026-01-30)
+- [x] **15. NewPaymentClient.tsx** → `payments/actions.ts` ✅ 完了 (2026-01-30)
+- [x] **16. ToolMasterForm.tsx** → `master/tools/actions.ts` ✅ 完了 (2026-01-30)
+- [x] **17. ConsumableMasterForm.tsx** → `consumables/new/actions.ts` ✅ 完了 (Task 3で対応済み)
+- [x] **18. SiteForm** → `sites/actions.ts` ✅ 完了 (2026-01-30)
 
 ### MEDIUM Priority
 

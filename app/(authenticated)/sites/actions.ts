@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { logSiteCreated, logSiteUpdated, logSiteDeleted } from '@/lib/audit-log'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 export async function createSite(formData: FormData) {
   try {
@@ -37,11 +38,19 @@ export async function createSite(formData: FormData) {
 
     console.log('[CREATE SITE] User data:', userData)
 
-    // 現場を作成
+    // 不審なパターン検出
+    if (name && hasSuspiciousPattern(name)) {
+      throw new Error('現場名に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）')
+    }
+    if (address && hasSuspiciousPattern(address)) {
+      throw new Error('住所に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）')
+    }
+
+    // 現場を作成（HTMLエスケープ適用）
     const insertData = {
       organization_id: userData?.organization_id,
-      name,
-      address: address || null,
+      name: escapeHtml(name),
+      address: address ? escapeHtml(address) : null,
       manager_id: manager_id || null,
       client_id: client_id || null,
       is_active: true,
@@ -113,9 +122,17 @@ export async function updateSite(id: string, formData: FormData) {
   const client_id = formData.get('client_id') as string | null
   const is_active = formData.get('is_active') === 'true'
 
+  // 不審なパターン検出
+  if (name && hasSuspiciousPattern(name)) {
+    throw new Error('現場名に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）')
+  }
+  if (address && hasSuspiciousPattern(address)) {
+    throw new Error('住所に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）')
+  }
+
   const newData = {
-    name,
-    address: address || null,
+    name: escapeHtml(name),
+    address: address ? escapeHtml(address) : null,
     manager_id: manager_id || null,
     client_id: client_id || null,
     is_active,
