@@ -309,7 +309,7 @@ export function MyForm() {
 - **対応内容**:
   - [x] 作業報告書作成と同様の処理
 
-#### 10. 重機登録
+#### 10. 重機登録 ✅
 
 - **フォーム**: `app/(authenticated)/equipment/new/EquipmentRegistrationForm.tsx`
 - **Server Action**: `createEquipment`
@@ -320,19 +320,19 @@ export function MyForm() {
   - insurance_company, insurance_policy_number
   - notes
 - **対応内容**:
-  - [ ] `hasSuspiciousPattern()` チェック（すべてのテキストフィールド）
-  - [ ] `escapeHtml()` 適用（すべてのテキストフィールド）
+  - [x] `hasSuspiciousPattern()` チェック（すべてのテキストフィールド）
+  - [x] `escapeHtml()` 適用（すべてのテキストフィールド）
 
-#### 11. 重機編集
+#### 11. 重機編集 ✅
 
 - **フォーム**: `app/(authenticated)/equipment/[id]/edit/EquipmentEditForm.tsx`
 - **Server Action**: `updateEquipment`
 - **ファイル**: `app/(authenticated)/equipment/actions.ts`
 - **入力フィールド**: 重機登録と同様
 - **対応内容**:
-  - [ ] 重機登録と同様の処理
+  - [x] 重機登録と同様の処理
 
-#### 12. 見積書作成
+#### 12. 見積書作成 ✅
 
 - **フォーム**: `app/(authenticated)/estimates/new/page.tsx`
 - **API**: POST `/api/estimates`
@@ -343,11 +343,11 @@ export function MyForm() {
   - notes
   - line items (item_name, description for each)
 - **対応内容**:
-  - [ ] `hasSuspiciousPattern()` チェック（すべてのテキストフィールド）
-  - [ ] `escapeHtml()` 適用（すべてのテキストフィールド）
-  - [ ] 明細行の動的フィールドも処理
+  - [x] `hasSuspiciousPattern()` チェック（すべてのテキストフィールド）
+  - [x] `escapeHtml()` 適用（すべてのテキストフィールド）
+  - [x] 明細行の動的フィールドも処理
 
-#### 13. 請求書作成
+#### 13. 請求書作成 ✅
 
 - **フォーム**: `app/(authenticated)/invoices/new/page.tsx`
 - **API**: POST `/api/invoices/create`
@@ -358,9 +358,9 @@ export function MyForm() {
   - notes
   - line items (item_name, description for each)
 - **対応内容**:
-  - [ ] 見積書作成と同様の処理
+  - [x] 見積書作成と同様の処理
 
-#### 14. 発注書作成
+#### 14. 発注書作成 ✅
 
 - **フォーム**: `app/(authenticated)/purchase-orders/new/page.tsx`
 - **API**: POST `/api/purchase-orders`
@@ -371,62 +371,64 @@ export function MyForm() {
   - notes
   - line items (item_name, description for each)
 - **対応内容**:
-  - [ ] 見積書作成と同様の処理
+  - [x] 見積書作成と同様の処理
 
-#### 15. 支払い登録
+#### 15. 支払い登録 ✅
 
 - **フォーム**: `app/(authenticated)/payments/new/NewPaymentClient.tsx`
-- **API**: POST `/api/payments` (要確認)
-- **ファイル**: `app/api/payments/route.ts` (要確認)
-- **入力フィールド**: payment details, notes
+- **Server Action**: `createPayment` (新規作成)
+- **ファイル**: `app/(authenticated)/payments/actions.ts`
+- **入力フィールド**: reference_number, notes
 - **対応内容**:
-  - [ ] APIエンドポイント確認
-  - [ ] `hasSuspiciousPattern()` チェック
-  - [ ] `escapeHtml()` 適用
+  - [x] Server Action新規作成（クライアント側DB直接挿入を排除）
+  - [x] `hasSuspiciousPattern()` チェック
+  - [x] `escapeHtml()` 適用
 
-#### 16. 道具マスタ登録・編集
+#### 16. 道具マスタ登録・編集 ✅
 
 - **フォーム**: `app/(authenticated)/master/tools/ToolMasterForm.tsx`
 - **Server Action**: `createToolMaster`, `updateToolMaster`
 - **ファイル**: `app/(authenticated)/master/tools/actions.ts`
+- **入力フィールド**: name, model_number, manufacturer, unit, notes
+- **対応内容**:
+  - [x] `hasSuspiciousPattern()` チェック
+  - [x] `escapeHtml()` 適用
+
+#### 17. 消耗品マスタ登録・編集 ✅
+
+- **フォーム**: `app/(authenticated)/consumables/new/ConsumableRegistrationForm.tsx`
+- **Server Action**: `createConsumableMaster` (Task 3で作成)
+- **ファイル**: `app/(authenticated)/consumables/new/actions.ts`
 - **入力フィールド**: name, model_number, manufacturer, description
 - **対応内容**:
-  - [ ] `hasSuspiciousPattern()` チェック
-  - [ ] `escapeHtml()` 適用
+  - [x] Server Action化済み（Task 3）
+  - [x] `hasSuspiciousPattern()` チェック
+  - [x] `escapeHtml()` 適用
 
-#### 17. 消耗品マスタ登録・編集
-
-- **フォーム**: `app/(authenticated)/master/tools-consumables/ConsumableMasterForm.tsx`
-- **Server Action**: `createConsumableMaster`, `updateConsumableMaster`
-- **ファイル**: `app/(authenticated)/master/tools-consumables/actions.ts`
-- **入力フィールド**: name, model_number, manufacturer, description
-- **対応内容**:
-  - [ ] `hasSuspiciousPattern()` チェック
-  - [ ] `escapeHtml()` 適用
-
-#### 18. 現場登録・編集
+#### 18. 現場登録・編集 ✅
 
 - **フォーム**: `app/(authenticated)/sites/new/page.tsx`, `app/(authenticated)/sites/[id]/edit/page.tsx`
 - **Server Action**: `createSite`, `updateSite`
 - **ファイル**: `app/(authenticated)/sites/actions.ts`
-- **入力フィールド**: name, site_code, address, description, notes
+- **入力フィールド**: name, address
 - **対応内容**:
-  - [ ] `hasSuspiciousPattern()` チェック
-  - [ ] `escapeHtml()` 適用
+  - [x] `hasSuspiciousPattern()` チェック
+  - [x] `escapeHtml()` 適用
 
 ---
 
 ### 🟡 MEDIUM Priority（20件以上）
 
-#### 19. 重機メンテナンス記録
+#### 19. 重機メンテナンス記録 ✅
 
 - **フォーム**: `app/(authenticated)/equipment/[id]/maintenance/MaintenanceRecordForm.tsx`
-- **API**: POST `/api/equipment/[id]/maintenance` (要確認)
-- **入力フィールド**: maintenance_type, description, performed_by, vendor_name, cost, notes
+- **Server Action**: `createMaintenanceRecord` (新規作成)
+- **ファイル**: `app/(authenticated)/equipment/maintenance/actions.ts`
+- **入力フィールド**: performed_by, notes
 - **対応内容**:
-  - [ ] APIエンドポイント確認
-  - [ ] `hasSuspiciousPattern()` チェック
-  - [ ] `escapeHtml()` 適用
+  - [x] Server Action新規作成（クライアント側DB直接挿入を排除）
+  - [x] `hasSuspiciousPattern()` チェック
+  - [x] `escapeHtml()` 適用
 
 #### 20. 作業報告書設定
 
@@ -458,25 +460,25 @@ export function MyForm() {
   - [ ] `hasSuspiciousPattern()` チェック
   - [ ] `escapeHtml()` 適用
 
-#### 23. 代理打刻
+#### 23. 代理打刻 ✅
 
 - **フォーム**: `app/(authenticated)/attendance/records/ProxyClockInModal.tsx`
 - **API**: POST `/api/attendance/records/proxy`
 - **ファイル**: `app/api/attendance/records/proxy/route.ts`
-- **入力フィールド**: reason
+- **入力フィールド**: proxy_reason
 - **対応内容**:
-  - [ ] `hasSuspiciousPattern()` チェック
-  - [ ] `escapeHtml()` 適用
+  - [x] `hasSuspiciousPattern()` チェック
+  - [x] `escapeHtml()` 適用
 
-#### 24. 勤怠記録編集
+#### 24. 勤怠記録編集 ✅
 
 - **フォーム**: `app/(authenticated)/attendance/records/EditAttendanceModal.tsx`
 - **API**: PATCH `/api/attendance/records/[id]`
 - **ファイル**: `app/api/attendance/records/[id]/route.ts`
-- **入力フィールド**: notes, overtime_reason
+- **入力フィールド**: edited_reason
 - **対応内容**:
-  - [ ] `hasSuspiciousPattern()` チェック
-  - [ ] `escapeHtml()` 適用
+  - [x] `hasSuspiciousPattern()` チェック
+  - [x] `escapeHtml()` 適用
 
 #### 25. 休暇申請
 
@@ -652,12 +654,12 @@ export function MyForm() {
 
 ### MEDIUM Priority
 
-- [ ] **19. MaintenanceRecordForm.tsx** → `/api/equipment/[id]/maintenance`
+- [x] **19. MaintenanceRecordForm.tsx** → `equipment/maintenance/actions.ts` ✅ 完了 (2026-01-30)
 - [ ] **20. WorkReportSettingsForm.tsx** → `/api/work-reports/settings`
 - [ ] **21. CustomFieldsManager.tsx** → `/api/work-reports/custom-fields`
 - [ ] **22. PurchaseOrderSettingsClient.tsx** → `/api/purchase-orders/settings`
-- [ ] **23. ProxyClockInModal.tsx** → `/api/attendance/records/proxy`
-- [ ] **24. EditAttendanceModal.tsx** → `/api/attendance/records/[id]`
+- [x] **23. ProxyClockInModal.tsx** → `/api/attendance/records/proxy` ✅ 完了 (2026-01-30)
+- [x] **24. EditAttendanceModal.tsx** → `/api/attendance/records/[id]` ✅ 完了 (2026-01-30)
 - [ ] **25. LeaveModal.tsx** → `/api/leave`
 - [ ] **26. WorkPatternModal.tsx** → `/api/attendance/work-patterns`
 - [ ] **27. SettingsForm.tsx** → `/api/organization`

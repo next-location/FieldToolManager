@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { logAttendanceRecordUpdated, logAttendanceRecordDeleted } from '@/lib/audit-log'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 // PATCH /api/attendance/records/[id] - 勤怠記録の手動修正（管理者のみ）
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -78,6 +79,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: '編集理由は必須です' }, { status: 400 })
     }
 
+    // 不審なパターン検出
+    if (hasSuspiciousPattern(edited_reason)) {
+      return NextResponse.json(
+        { error: '編集理由に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）' },
+        { status: 400 }
+      )
+    }
+
     // 時刻の妥当性チェック
     const clockInDate = new Date(clock_in_time)
     if (isNaN(clockInDate.getTime())) {
@@ -141,7 +150,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       autoBreakMinutes = attendanceSettings.auto_break_minutes || 0
     }
 
-    // 更新データ準備
+    // 更新データ準備（HTMLエスケープ適用）
     const now = new Date()
     const updateData: any = {
       clock_in_time: clockInDate.toISOString(),
@@ -150,7 +159,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       is_manually_edited: true,
       edited_by: user.id,
       edited_at: now.toISOString(),
-      edited_reason,
+      edited_reason: escapeHtml(edited_reason),
       is_holiday_work: is_holiday_work !== undefined ? is_holiday_work : existingRecord.is_holiday_work,
       auto_break_deducted_minutes: autoBreakMinutes,
       manual_overtime_minutes: manual_overtime_minutes !== undefined ? manual_overtime_minutes : existingRecord.manual_overtime_minutes,

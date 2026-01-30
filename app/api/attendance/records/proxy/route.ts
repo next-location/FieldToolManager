@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { logAttendanceRecordCreated } from '@/lib/audit-log'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 // POST /api/attendance/records/proxy - 代理打刻（管理者・マネージャーのみ）
 export async function POST(request: NextRequest) {
@@ -67,6 +68,14 @@ export async function POST(request: NextRequest) {
 
     if (!proxy_reason || proxy_reason.trim() === '') {
       return NextResponse.json({ error: '代理打刻理由は必須です' }, { status: 400 })
+    }
+
+    // 不審なパターン検出
+    if (hasSuspiciousPattern(proxy_reason)) {
+      return NextResponse.json(
+        { error: '代理打刻理由に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）' },
+        { status: 400 }
+      )
     }
 
     // 対象スタッフが同じ組織に所属しているか確認
@@ -179,7 +188,7 @@ export async function POST(request: NextRequest) {
       is_manually_edited: true,
       edited_by: user.id,
       edited_at: now.toISOString(),
-      edited_reason: `【代理打刻】${proxy_reason}`,
+      edited_reason: `【代理打刻】${escapeHtml(proxy_reason)}`,
       is_holiday_work: is_holiday_work || false,
       auto_break_deducted_minutes: autoBreakMinutes,
       created_at: now.toISOString(),
