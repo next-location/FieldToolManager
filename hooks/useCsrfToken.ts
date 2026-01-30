@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 
 /**
  * CSRFトークンを取得するカスタムフック
+ * SSR対応: token初期値を空文字列にすることでHydration Errorを防ぐ
  */
 export function useCsrfToken() {
-  const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false); // SSR対応: 初期値をfalseに変更
+  const [token, setToken] = useState<string>('');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {

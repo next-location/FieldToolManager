@@ -10,7 +10,7 @@ interface SendOrderButtonProps {
 }
 
 export function SendOrderButton({ orderId, orderNumber }: SendOrderButtonProps) {
-  const { token: csrfToken, loading: tokenLoading } = useCsrfToken()
+  const { token: csrfToken } = useCsrfToken()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
@@ -18,7 +18,7 @@ export function SendOrderButton({ orderId, orderNumber }: SendOrderButtonProps) 
     e.preventDefault()
     e.stopPropagation()
 
-    if (!csrfToken) {
+    if (!csrfToken || csrfToken === '') {
       alert('セキュリティトークンが読み込まれていません。ページを再読み込みしてください。')
       return
     }

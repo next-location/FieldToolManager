@@ -15,12 +15,12 @@ export function DeletePurchaseOrderButton({
   orderNumber,
   redirectToList = false,
 }: DeletePurchaseOrderButtonProps) {
-  const { token: csrfToken, loading: tokenLoading } = useCsrfToken()
+  const { token: csrfToken } = useCsrfToken()
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDelete = async () => {
-    if (!csrfToken) {
+    if (!csrfToken || csrfToken === '') {
       alert('セキュリティトークンが読み込まれていません。ページを再読み込みしてください。')
       return
     }
