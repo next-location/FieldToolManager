@@ -53,7 +53,7 @@ export function MarkReceivedButton({ orderId, orderNumber }: MarkReceivedButtonP
   return (
     <button
       onClick={handleMarkReceived}
-      disabled={loading || tokenLoading || !csrfToken}
+      disabled={loading}
       className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
     >
       {loading ? '登録中...' : '受領登録'}

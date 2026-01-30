@@ -54,7 +54,7 @@ export function MarkPaidButton({ orderId, orderNumber }: MarkPaidButtonProps) {
   return (
     <button
       onClick={handleMarkPaid}
-      disabled={loading || tokenLoading || !csrfToken}
+      disabled={loading}
       className="px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded hover:bg-indigo-700 transition-colors disabled:opacity-50"
     >
       {loading ? '登録中...' : '支払登録'}

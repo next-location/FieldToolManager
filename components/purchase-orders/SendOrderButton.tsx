@@ -53,7 +53,7 @@ export function SendOrderButton({ orderId, orderNumber }: SendOrderButtonProps) 
   return (
     <button
       onClick={handleSend}
-      disabled={loading || tokenLoading || !csrfToken}
+      disabled={loading}
       className="px-3 py-1.5 bg-purple-600 text-white text-sm font-medium rounded hover:bg-purple-700 transition-colors disabled:opacity-50"
     >
       {loading ? '送付中...' : '仕入先送付'}

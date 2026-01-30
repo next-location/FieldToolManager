@@ -59,7 +59,7 @@ export function DeletePurchaseOrderButton({
   return (
     <button
       onClick={handleDelete}
-      disabled={isDeleting || tokenLoading || !csrfToken}
+      disabled={isDeleting}
       className="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors disabled:opacity-50"
     >
       {isDeleting ? '削除中...' : '削除'}

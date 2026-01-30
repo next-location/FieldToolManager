@@ -5,13 +5,17 @@ import { useEffect, useState } from 'react';
  */
 export function useCsrfToken() {
   const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // SSR対応: 初期値をfalseに変更
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
 
     async function fetchToken() {
+      if (mounted) {
+        setLoading(true);
+      }
+
       try {
         const response = await fetch('/api/csrf-token');
 
