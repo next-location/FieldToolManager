@@ -61,24 +61,12 @@ export default async function CostReportPage() {
 
   // デフォルト期間: 当月1日から今日まで（日本時間基準）
   const now = new Date()
-  console.error('[DEBUG SERVER] Step 1 - Server time:', now.toISOString())
-
   const japanDate = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }))
-  console.error('[DEBUG SERVER] Step 2 - Japan date:', japanDate.toISOString())
-
   const firstDayOfMonth = new Date(japanDate.getFullYear(), japanDate.getMonth(), 1)
-  console.error('[DEBUG SERVER] Step 3 - First day of month:', {
-    year: japanDate.getFullYear(),
-    month: japanDate.getMonth(),
-    firstDay: firstDayOfMonth.toISOString()
-  })
 
   // YYYY-MM-DD形式に変換
   const defaultPeriodStart = `${firstDayOfMonth.getFullYear()}-${String(firstDayOfMonth.getMonth() + 1).padStart(2, '0')}-01`
   const defaultPeriodEnd = `${japanDate.getFullYear()}-${String(japanDate.getMonth() + 1).padStart(2, '0')}-${String(japanDate.getDate()).padStart(2, '0')}`
-
-  console.error('[DEBUG SERVER] Step 4 - Final period:', { defaultPeriodStart, defaultPeriodEnd })
-  console.error('[DEBUG SERVER] THIS FILE VERSION: 2026-01-30-v2')
 
   return (
     <CostReportView

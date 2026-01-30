@@ -85,8 +85,6 @@ export default async function AnalyticsPage() {
   const periodStart = `${firstDayOfMonth.getFullYear()}-${String(firstDayOfMonth.getMonth() + 1).padStart(2, '0')}-01`
   const periodEnd = `${japanDate.getFullYear()}-${String(japanDate.getMonth() + 1).padStart(2, '0')}-${String(japanDate.getDate()).padStart(2, '0')}`
 
-  console.log('[Analytics] Default period:', { periodStart, periodEnd, japanDate: japanDate.toISOString(), serverTime: now.toISOString() })
-
   return (
     <AnalyticsReportView
       equipment={equipment as HeavyEquipment[] || []}

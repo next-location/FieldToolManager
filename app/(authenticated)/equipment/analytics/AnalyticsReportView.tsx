@@ -40,9 +40,6 @@ export default function AnalyticsReportView({
   const [sortBy, setSortBy] = useState<'rate' | 'efficiency' | 'code'>('rate')
   const [isPeriodModalOpen, setIsPeriodModalOpen] = useState(false)
 
-  console.log('[AnalyticsReportView] Received props:', { defaultPeriodStart, defaultPeriodEnd })
-  console.log('[AnalyticsReportView] Current state:', { periodStart, periodEnd })
-
   // コストサマリーマップ生成
   const costSummariesMap = useMemo(() => {
     const map: Record<string, any> = {}
