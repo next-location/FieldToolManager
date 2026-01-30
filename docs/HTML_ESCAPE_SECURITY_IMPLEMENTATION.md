@@ -11,12 +11,15 @@
 
 ## 🚨 エグゼクティブサマリー
 
-### 現状分析
+### 実装完了状況（2026-01-30更新）
 
 - **監査対象フォーム数**: 94件
-- **現在セキュリティ実装済み**: 4件（公開フォームのみ）
-- **実装が必要**: **90件以上**
-- **推定工数**: 約3-4週間
+- **実装完了**: **25件**（最重要フォーム）
+- **実装済み内訳**:
+  - 🔴 CRITICAL: 3/3 (100%)
+  - 🟠 HIGH: 18/18 (100%)
+  - 🟡 MEDIUM: 4/20+ (20%)
+- **残り**: 設定系・簡易フォーム（notes のみ）約69件
 
 ### セキュリティリスク
 
@@ -24,14 +27,48 @@
 2. **HTMLインジェクション**: メール・PDF生成時に不正なHTMLが挿入される可能性
 3. **データ整合性**: 不正な文字列が業務データとして保存される可能性
 
+### 実装完了内容（2026-01-30）
+
+#### ✅ セキュリティ強化実施項目:
+
+1. **HTMLエスケープ**: 全テキストフィールドに`escapeHtml()`関数を適用し、`<`, `>`, `&`, `"`, `'`, `/`を安全な文字に変換
+2. **不審パターン検出**: `hasSuspiciousPattern()`で`<script>`, `javascript:`, イベントハンドラ等を検出
+3. **Server Action化**: クライアント側の危険なDB直接挿入を3件リファクタリング
+   - 消耗品登録（ConsumableRegistrationForm）
+   - 入金登録（NewPaymentClient）
+   - メンテナンス記録（MaintenanceRecordForm）
+
+#### ✅ 実装完了フォーム（25件）:
+
+**CRITICAL（3件）:**
+- スタッフ一括CSVインポート（大量個人情報）
+- 道具マスタCSVインポート（マスタデータ）
+- 消耗品登録（Server Action化）
+
+**HIGH（18件）:**
+- スタッフ追加・編集
+- 取引先登録・編集（26フィールド）
+- 仕入先登録・編集（15フィールド）
+- 作業報告書作成・編集（動的カスタムフィールド対応）
+- 重機登録・編集（11フィールド）
+- 見積書・請求書・発注書作成（明細対応）
+- 入金登録（Server Action化）
+- 道具マスタ・消耗品マスタ・現場マスタ
+
+**MEDIUM（4件）:**
+- メンテナンス記録（Server Action化）
+- 代理打刻
+- 勤怠記録編集
+- 休暇申請
+
 ### 優先度別件数
 
-| 優先度 | 件数 | 説明 |
-|--------|------|------|
-| 🔴 CRITICAL | 3件 | 一括インポート、クライアント側直接DB挿入 |
-| 🟠 HIGH | 15件 | 個人情報・金融情報を扱うフォーム |
-| 🟡 MEDIUM | 20件以上 | 設定・管理フォーム |
-| 🟢 LOW | 残り | 簡易フォーム（notesフィールドのみ等） |
+| 優先度 | 実装済み/総数 | 完了率 | 説明 |
+|--------|--------------|--------|------|
+| 🔴 CRITICAL | 3/3 | 100% | 一括インポート、クライアント側直接DB挿入 |
+| 🟠 HIGH | 18/18 | 100% | 個人情報・金融情報を扱うフォーム |
+| 🟡 MEDIUM | 4/20+ | 20% | 設定・管理フォーム |
+| 🟢 LOW | 0/50+ | 0% | 簡易フォーム（notesフィールドのみ等） |
 
 ---
 
@@ -480,15 +517,15 @@ export function MyForm() {
   - [x] `hasSuspiciousPattern()` チェック
   - [x] `escapeHtml()` 適用
 
-#### 25. 休暇申請
+#### 25. 休暇申請 ✅
 
 - **フォーム**: `app/(authenticated)/attendance/leave/LeaveModal.tsx`
-- **API**: POST/PATCH `/api/leave`
+- **API**: POST `/api/leave`
 - **ファイル**: `app/api/leave/route.ts`
-- **入力フィールド**: reason
+- **入力フィールド**: reason, notes
 - **対応内容**:
-  - [ ] `hasSuspiciousPattern()` チェック
-  - [ ] `escapeHtml()` 適用
+  - [x] `hasSuspiciousPattern()` チェック
+  - [x] `escapeHtml()` 適用
 
 #### 26. 勤務パターン管理
 
@@ -660,7 +697,7 @@ export function MyForm() {
 - [ ] **22. PurchaseOrderSettingsClient.tsx** → `/api/purchase-orders/settings`
 - [x] **23. ProxyClockInModal.tsx** → `/api/attendance/records/proxy` ✅ 完了 (2026-01-30)
 - [x] **24. EditAttendanceModal.tsx** → `/api/attendance/records/[id]` ✅ 完了 (2026-01-30)
-- [ ] **25. LeaveModal.tsx** → `/api/leave`
+- [x] **25. LeaveModal.tsx** → `/api/leave` ✅ 完了 (2026-01-30)
 - [ ] **26. WorkPatternModal.tsx** → `/api/attendance/work-patterns`
 - [ ] **27. SettingsForm.tsx** → `/api/organization`
 - [ ] **28. AttendanceSettingsForm.tsx** → `/api/attendance/settings`

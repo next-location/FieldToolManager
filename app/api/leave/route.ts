@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 // GET /api/leave - 休暇一覧取得
 export async function GET(request: NextRequest) {
@@ -134,6 +135,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '無効な休暇種別です' }, { status: 400 })
     }
 
+    // 不審なパターン検出
+    if (reason && hasSuspiciousPattern(reason)) {
+      return NextResponse.json(
+        { error: '理由に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）' },
+        { status: 400 }
+      )
+    }
+    if (notes && hasSuspiciousPattern(notes)) {
+      return NextResponse.json(
+        { error: '備考に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）' },
+        { status: 400 }
+      )
+    }
+
     // 対象ユーザーの決定（管理者は他人の休暇も作成可能）
     const isAdminOrManager = ['admin', 'manager'].includes(userData.role)
     const targetUserId = isAdminOrManager && user_id ? user_id : user.id
@@ -150,7 +165,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'この日付には既に休暇が登録されています' }, { status: 400 })
     }
 
-    // 休暇作成（常にstatus='approved'）
+    // 休暇作成（常にstatus='approved'、HTMLエスケープ適用）
     const { data: newLeave, error: insertError } = await supabase
       .from('user_leave_records')
       .insert({
@@ -158,8 +173,8 @@ export async function POST(request: NextRequest) {
         organization_id: userData.organization_id,
         leave_date,
         leave_type,
-        reason: reason || null,
-        notes: notes || null,
+        reason: reason ? escapeHtml(reason) : null,
+        notes: notes ? escapeHtml(notes) : null,
         status: 'approved', // 常に承認済みで登録
         created_by: user.id,
       })
