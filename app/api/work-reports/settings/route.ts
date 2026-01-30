@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { createClient } from '@/lib/supabase/server'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 // 組織の作業報告書設定を取得
 export async function GET(request: NextRequest) {
@@ -107,6 +108,53 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json()
 
+    // カスタムフィールドの不審なパターン検出
+    if (body.custom_fields && Array.isArray(body.custom_fields)) {
+      for (let i = 0; i < body.custom_fields.length; i++) {
+        const field = body.custom_fields[i]
+
+        // フィールド名のチェック
+        if (field.name && hasSuspiciousPattern(field.name)) {
+          return NextResponse.json(
+            { error: `カスタムフィールド[${i + 1}]の名前に不正な文字列が含まれています` },
+            { status: 400 }
+          )
+        }
+
+        // 単位のチェック
+        if (field.unit && hasSuspiciousPattern(field.unit)) {
+          return NextResponse.json(
+            { error: `カスタムフィールド[${i + 1}]の単位に不正な文字列が含まれています` },
+            { status: 400 }
+          )
+        }
+
+        // 選択肢のチェック
+        if (field.options && Array.isArray(field.options)) {
+          for (let j = 0; j < field.options.length; j++) {
+            if (hasSuspiciousPattern(field.options[j])) {
+              return NextResponse.json(
+                { error: `カスタムフィールド[${i + 1}]の選択肢[${j + 1}]に不正な文字列が含まれています` },
+                { status: 400 }
+              )
+            }
+          }
+        }
+      }
+    }
+
+    // カスタムフィールドのHTMLエスケープ処理
+    const sanitizedCustomFields = body.custom_fields
+      ? body.custom_fields.map((field: any) => ({
+          ...field,
+          name: field.name ? escapeHtml(field.name) : field.name,
+          unit: field.unit ? escapeHtml(field.unit) : field.unit,
+          options: field.options
+            ? field.options.map((opt: string) => escapeHtml(opt))
+            : field.options,
+        }))
+      : []
+
     // 設定を更新（upsert）
     const { data: settings, error } = await supabase
       .from('organization_report_settings')
@@ -116,7 +164,7 @@ export async function PUT(request: NextRequest) {
         enable_progress_rate: body.enable_progress_rate ?? true,
         enable_materials: body.enable_materials ?? true,
         enable_tools: body.enable_tools ?? true,
-        custom_fields: body.custom_fields ?? [],
+        custom_fields: sanitizedCustomFields,
         require_approval: body.require_approval ?? false,
       })
       .select()

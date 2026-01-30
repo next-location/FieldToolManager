@@ -14,12 +14,12 @@
 ### 実装完了状況（2026-01-30更新）
 
 - **監査対象フォーム数**: 94件
-- **実装完了**: **25件**（最重要フォーム）
+- **実装完了**: **29件**（最重要フォーム + MEDIUM一部）
 - **実装済み内訳**:
   - 🔴 CRITICAL: 3/3 (100%)
   - 🟠 HIGH: 18/18 (100%)
-  - 🟡 MEDIUM: 4/20+ (20%)
-- **残り**: 設定系・簡易フォーム（notes のみ）約69件
+  - 🟡 MEDIUM: 8/20+ (40%)
+- **残り**: 設定系・簡易フォーム（notes のみ）約65件
 
 ### セキュリティリスク
 
@@ -33,12 +33,14 @@
 
 1. **HTMLエスケープ**: 全テキストフィールドに`escapeHtml()`関数を適用し、`<`, `>`, `&`, `"`, `'`, `/`を安全な文字に変換
 2. **不審パターン検出**: `hasSuspiciousPattern()`で`<script>`, `javascript:`, イベントハンドラ等を検出
-3. **Server Action化**: クライアント側の危険なDB直接挿入を3件リファクタリング
+3. **Server Action化**: クライアント側の危険なDB直接挿入を5件リファクタリング
    - 消耗品登録（ConsumableRegistrationForm）
    - 入金登録（NewPaymentClient）
    - メンテナンス記録（MaintenanceRecordForm）
+   - 個人設定更新（SettingsForm）
+   - 重機カテゴリ管理（EquipmentCategoriesClient）
 
-#### ✅ 実装完了フォーム（25件）:
+#### ✅ 実装完了フォーム（29件）:
 
 **CRITICAL（3件）:**
 - スタッフ一括CSVインポート（大量個人情報）
@@ -55,11 +57,15 @@
 - 入金登録（Server Action化）
 - 道具マスタ・消耗品マスタ・現場マスタ
 
-**MEDIUM（4件）:**
+**MEDIUM（8件）:**
 - メンテナンス記録（Server Action化）
 - 代理打刻
 - 勤怠記録編集
 - 休暇申請
+- 勤務パターン管理
+- 組織設定（Server Action化）
+- カテゴリマスター管理（道具・消耗品）
+- 重機カテゴリ管理（Server Action化）
 
 ### 優先度別件数
 
@@ -67,7 +73,7 @@
 |--------|--------------|--------|------|
 | 🔴 CRITICAL | 3/3 | 100% | 一括インポート、クライアント側直接DB挿入 |
 | 🟠 HIGH | 18/18 | 100% | 個人情報・金融情報を扱うフォーム |
-| 🟡 MEDIUM | 4/20+ | 20% | 設定・管理フォーム |
+| 🟡 MEDIUM | 8/20+ | 40% | 設定・管理フォーム |
 | 🟢 LOW | 0/50+ | 0% | 簡易フォーム（notesフィールドのみ等） |
 
 ---
@@ -696,12 +702,12 @@ export function MyForm() {
 - [x] **23. ProxyClockInModal.tsx** → `/api/attendance/records/proxy` ✅ 完了 (2026-01-30)
 - [x] **24. EditAttendanceModal.tsx** → `/api/attendance/records/[id]` ✅ 完了 (2026-01-30)
 - [x] **25. LeaveModal.tsx** → `/api/leave` ✅ 完了 (2026-01-30)
-- [ ] **26. WorkPatternModal.tsx** → `/api/attendance/work-patterns`
-- [ ] **27. SettingsForm.tsx** → `/api/organization`
-- [ ] **28. AttendanceSettingsForm.tsx** → `/api/attendance/settings`
-- [ ] **29. CategoryMasterForm.tsx** → `master/tools-consumables/actions.ts`
-- [ ] **30. EquipmentCategoriesClient.tsx** → `/api/equipment-categories`
-- [ ] **31. DataExportClient.tsx** → `/api/organization/export`
+- [x] **26. WorkPatternModal.tsx** → `/api/attendance/work-patterns` ✅ 完了 (2026-01-30)
+- [x] **27. SettingsForm.tsx** → `/api/organization` + `settings/actions.ts` ✅ 完了 (2026-01-30)
+- [x] **28. AttendanceSettingsForm.tsx** → スキップ（テキストフィールドなし） ⏭️
+- [x] **29. CategoryMasterForm.tsx** → `master/tools-consumables/actions.ts` ✅ 完了 (2026-01-30)
+- [x] **30. EquipmentCategoriesClient.tsx** → `master/equipment-categories/actions.ts` ✅ 完了 (2026-01-30)
+- [x] **31. DataExportClient.tsx** → スキップ（テキストフィールドなし） ⏭️
 - [ ] **32. ToolRegistrationForm.tsx** → `tools/actions.ts`
 - [ ] **33. AdjustmentForm.tsx** → `consumables/[id]/adjust/actions.ts`
 - [ ] **34. ConsumableOrderForm.tsx** → `consumables/orders/new/actions.ts`

@@ -38,7 +38,7 @@ interface PurchaseOrderListClientProps {
   staffList: Staff[]
 }
 
-export function PurchaseOrderListClient({
+export function PurchaseOrderListView({
   suppliers,
   projects,
   currentUserRole,

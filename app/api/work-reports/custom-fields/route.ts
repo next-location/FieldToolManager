@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 /**
  * GET /api/work-reports/custom-fields?site_id=xxx
@@ -113,21 +114,55 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 不審なパターン検出
+    const textFields = [
+      { field: 'field_key', value: field_key, label: 'フィールドキー' },
+      { field: 'field_label', value: field_label, label: 'フィールドラベル' },
+      { field: 'placeholder', value: placeholder, label: 'プレースホルダー' },
+      { field: 'help_text', value: help_text, label: 'ヘルプテキスト' },
+    ]
+
+    for (const { value, label } of textFields) {
+      if (value && hasSuspiciousPattern(value)) {
+        return NextResponse.json(
+          { error: `${label}に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）` },
+          { status: 400 }
+        )
+      }
+    }
+
+    // field_options配列のチェック
+    if (field_options && Array.isArray(field_options)) {
+      for (let i = 0; i < field_options.length; i++) {
+        if (hasSuspiciousPattern(field_options[i])) {
+          return NextResponse.json(
+            { error: `選択肢[${i + 1}]に不正な文字列が含まれています` },
+            { status: 400 }
+          )
+        }
+      }
+    }
+
+    // HTMLエスケープ処理
+    const sanitizedData = {
+      organization_id: userData?.organization_id,
+      site_id: site_id || null,
+      field_key: escapeHtml(field_key),
+      field_label: escapeHtml(field_label),
+      field_type,
+      field_options: field_options
+        ? field_options.map((opt: string) => escapeHtml(opt))
+        : null,
+      display_order: display_order ?? 0,
+      is_required: is_required ?? false,
+      placeholder: placeholder ? escapeHtml(placeholder) : null,
+      help_text: help_text ? escapeHtml(help_text) : null,
+    }
+
     // 挿入
     const { data, error } = await supabase
       .from('work_report_custom_fields')
-      .insert({
-        organization_id: userData?.organization_id,
-        site_id: site_id || null,
-        field_key,
-        field_label,
-        field_type,
-        field_options: field_options || null,
-        display_order: display_order ?? 0,
-        is_required: is_required ?? false,
-        placeholder: placeholder || null,
-        help_text: help_text || null,
-      })
+      .insert(sanitizedData)
       .select()
       .single()
 

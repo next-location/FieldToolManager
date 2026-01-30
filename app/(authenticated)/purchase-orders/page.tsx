@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/page-auth'
-import { PurchaseOrderListClient } from './PurchaseOrderListClient'
+import { PurchaseOrderListView } from './PurchaseOrderListView'
 
 export default async function PurchaseOrdersPage() {
   const { organizationId, userRole, supabase } = await requireAuth()
@@ -32,7 +32,7 @@ export default async function PurchaseOrdersPage() {
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="px-4 pb-6 sm:px-0 sm:py-6">
-        <PurchaseOrderListClient
+        <PurchaseOrderListView
           suppliers={suppliers || []}
           projects={projects || []}
           currentUserRole={userRole}
