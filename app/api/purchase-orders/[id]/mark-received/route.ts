@@ -62,14 +62,14 @@ export async function POST(
       .update({
         status: 'received',
         delivered_at: new Date().toISOString()
-      // })
+      })
       .eq('id', id)
       .eq('organization_id', userData.organization_id)
 
     if (updateError) {
-      // console.error('[MARK RECEIVED API] 更新エラー:', updateError)
+      console.error('[MARK RECEIVED API] 更新エラー:', updateError)
       return NextResponse.json({ error: '受領登録に失敗しました' }, { status: 500 })
-    // }
+    }
 
     // 履歴記録
     await createPurchaseOrderHistory({

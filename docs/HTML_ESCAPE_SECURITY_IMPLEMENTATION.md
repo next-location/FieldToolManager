@@ -14,12 +14,13 @@
 ### 実装完了状況（2026-01-30更新）
 
 - **監査対象フォーム数**: 94件
-- **実装完了**: **38件**（CRITICAL・HIGH・MEDIUM完全対応完了）
+- **実装完了**: **40件**（CRITICAL・HIGH・MEDIUM完全対応 + LOW一部）
 - **実装済み内訳**:
   - 🔴 CRITICAL: 3/3 (100%) ✅
   - 🟠 HIGH: 18/18 (100%) ✅
   - 🟡 MEDIUM: 17/20+ (85%) ✅
-- **残り**: 簡易フォーム（notesフィールドのみ等）約56件（LOW優先度）
+  - 🟢 LOW: 2/50+ (4%)
+- **残り**: 簡易フォーム（notesフィールドのみ等）約54件（LOW優先度）
 
 ### セキュリティリスク
 
@@ -77,7 +78,7 @@
 | 🔴 CRITICAL | 3/3 | 100% ✅ | 一括インポート、クライアント側直接DB挿入 |
 | 🟠 HIGH | 18/18 | 100% ✅ | 個人情報・金融情報を扱うフォーム |
 | 🟡 MEDIUM | 17/20+ | 85% ✅ | 設定・管理フォーム |
-| 🟢 LOW | 0/50+ | 0% | 簡易フォーム（notesフィールドのみ等） |
+| 🟢 LOW | 2/50+ | 4% | 簡易フォーム（notesフィールドのみ等） |
 
 ---
 
@@ -722,9 +723,9 @@ export function MyForm() {
 
 ### LOW Priority
 
-- [ ] **39. MovementForm.tsx** → `movements/actions.ts`
-- [ ] **40. BulkMovementForm.tsx** → `movements/actions.ts`
-- [ ] **41. EquipmentMovementForm.tsx** → `equipment/movement/actions.ts`
+- [x] **39. MovementForm.tsx** → `movements/actions.ts` ✅ 完了 (2026-01-30)
+- [x] **40. BulkMovementForm.tsx** → スキップ（システム生成テキストのみ） ⏭️
+- [x] **41. EquipmentMovementForm.tsx** → `equipment/movement/actions.ts` ✅ 完了 (2026-01-30)
 - [ ] **42. ConsumableQRMovementForm.tsx** → 要確認
 - [ ] **43. ConsumableBulkMovementForm.tsx** → 要確認
 - [ ] **44-90. その他LOW** → 各種簡易フォーム

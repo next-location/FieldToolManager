@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 interface CreateEquipmentMovementParams {
   equipment_id: string
@@ -37,6 +38,27 @@ export async function createEquipmentMovement(params: CreateEquipmentMovementPar
     return { success: false, error: 'User data not found' }
   }
 
+  // 不審なパターン検出
+  const textFields = [
+    { field: 'notes', value: params.notes, label: '備考' },
+    { field: 'from_other_location', value: params.from_other_location, label: '移動元（その他）' },
+    { field: 'to_other_location', value: params.to_other_location, label: '移動先（その他）' },
+  ]
+
+  for (const { value, label } of textFields) {
+    if (value && hasSuspiciousPattern(value)) {
+      return {
+        success: false,
+        error: `${label}に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）`,
+      }
+    }
+  }
+
+  // HTMLエスケープ処理
+  const sanitizedNotes = params.notes ? escapeHtml(params.notes) : null
+  const sanitizedFromOther = params.from_other_location ? escapeHtml(params.from_other_location) : null
+  const sanitizedToOther = params.to_other_location ? escapeHtml(params.to_other_location) : null
+
   try {
     // 重機データを取得（default_location_id を追加）
     const { data: equipmentData } = await supabase
@@ -59,12 +81,12 @@ export async function createEquipmentMovement(params: CreateEquipmentMovementPar
       to_location_id: params.to_location_id === 'other' ? null : params.to_location_id,
       other_location_name:
         params.from_location_id === 'other'
-          ? params.from_other_location
+          ? sanitizedFromOther
           : params.to_location_id === 'other'
-            ? params.to_other_location
+            ? sanitizedToOther
             : null,
       hour_meter_reading: params.hour_meter_reading,
-      notes: params.notes,
+      notes: sanitizedNotes,
       action_at: new Date().toISOString(),
     }
 

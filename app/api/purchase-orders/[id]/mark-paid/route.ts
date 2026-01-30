@@ -62,14 +62,14 @@ export async function POST(
       .update({
         status: 'paid',
         paid_at: new Date().toISOString()
-      // })
+      })
       .eq('id', id)
       .eq('organization_id', userData.organization_id)
 
     if (updateError) {
-      // console.error('[MARK PAID API] 更新エラー:', updateError)
+      console.error('[MARK PAID API] 更新エラー:', updateError)
       return NextResponse.json({ error: '支払登録に失敗しました' }, { status: 500 })
-    // }
+    }
 
     // 入出金管理に支払記録を自動登録
     const paymentDate = new Date().toISOString().split('T')[0] // YYYY-MM-DD
