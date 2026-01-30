@@ -15,11 +15,16 @@ export function DeletePurchaseOrderButton({
   orderNumber,
   redirectToList = false,
 }: DeletePurchaseOrderButtonProps) {
-  const { token: csrfToken } = useCsrfToken()
+  const { token: csrfToken, loading: tokenLoading } = useCsrfToken()
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDelete = async () => {
+    if (!csrfToken) {
+      alert('セキュリティトークンが読み込まれていません。ページを再読み込みしてください。')
+      return
+    }
+
     if (!confirm(`発注書「${orderNumber}」を削除してもよろしいですか？\n\nこの操作は取り消せません。`)) {
       return
     }
@@ -30,7 +35,7 @@ export function DeletePurchaseOrderButton({
       const response = await fetch(`/api/purchase-orders/${orderId}`, {
         method: 'DELETE',
         headers: {
-          'X-CSRF-Token': csrfToken || '',
+          'X-CSRF-Token': csrfToken,
         },
       })
 
@@ -54,7 +59,7 @@ export function DeletePurchaseOrderButton({
   return (
     <button
       onClick={handleDelete}
-      disabled={isDeleting}
+      disabled={isDeleting || tokenLoading || !csrfToken}
       className="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors disabled:opacity-50"
     >
       {isDeleting ? '削除中...' : '削除'}

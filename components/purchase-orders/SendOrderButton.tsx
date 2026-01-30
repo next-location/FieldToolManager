@@ -10,13 +10,18 @@ interface SendOrderButtonProps {
 }
 
 export function SendOrderButton({ orderId, orderNumber }: SendOrderButtonProps) {
-  const { token: csrfToken } = useCsrfToken()
+  const { token: csrfToken, loading: tokenLoading } = useCsrfToken()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
   const handleSend = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
+
+    if (!csrfToken) {
+      alert('セキュリティトークンが読み込まれていません。ページを再読み込みしてください。')
+      return
+    }
 
     if (!confirm(`発注書「${orderNumber}」を仕入先に送付しますか？`)) return
 
@@ -26,7 +31,7 @@ export function SendOrderButton({ orderId, orderNumber }: SendOrderButtonProps) 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken || '',
+          'X-CSRF-Token': csrfToken,
         },
       })
 
@@ -48,7 +53,7 @@ export function SendOrderButton({ orderId, orderNumber }: SendOrderButtonProps) 
   return (
     <button
       onClick={handleSend}
-      disabled={loading}
+      disabled={loading || tokenLoading || !csrfToken}
       className="px-3 py-1.5 bg-purple-600 text-white text-sm font-medium rounded hover:bg-purple-700 transition-colors disabled:opacity-50"
     >
       {loading ? '送付中...' : '仕入先送付'}

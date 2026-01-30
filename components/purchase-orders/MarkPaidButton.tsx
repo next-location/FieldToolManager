@@ -10,13 +10,18 @@ interface MarkPaidButtonProps {
 }
 
 export function MarkPaidButton({ orderId, orderNumber }: MarkPaidButtonProps) {
-  const { token: csrfToken } = useCsrfToken()
+  const { token: csrfToken, loading: tokenLoading } = useCsrfToken()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
   const handleMarkPaid = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
+
+    if (!csrfToken) {
+      alert('セキュリティトークンが読み込まれていません。ページを再読み込みしてください。')
+      return
+    }
 
     if (!confirm(`発注書「${orderNumber}」の支払を完了しましたか？`)) return
 
@@ -26,7 +31,7 @@ export function MarkPaidButton({ orderId, orderNumber }: MarkPaidButtonProps) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken || '',
+          'X-CSRF-Token': csrfToken,
         },
       })
 
@@ -49,7 +54,7 @@ export function MarkPaidButton({ orderId, orderNumber }: MarkPaidButtonProps) {
   return (
     <button
       onClick={handleMarkPaid}
-      disabled={loading}
+      disabled={loading || tokenLoading || !csrfToken}
       className="px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded hover:bg-indigo-700 transition-colors disabled:opacity-50"
     >
       {loading ? '登録中...' : '支払登録'}
