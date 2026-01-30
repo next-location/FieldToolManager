@@ -106,11 +106,10 @@ export async function checkRateLimit(
     // カウントをインクリメント
     const newCount = existingRecord.count + 1
 
-    // 制限を超えた場合
+    // 制限を超えた場合（4回目以降は即座にブロック）
     if (newCount > limit) {
-      // 閾値の2倍を超えたらブロック
-      const shouldBlock = newCount > limit * 2
-      const newBlockedUntil = shouldBlock ? new Date(now + blockDurationMs).toISOString() : null
+      // limit を超えた時点で即座にブロック
+      const newBlockedUntil = new Date(now + blockDurationMs).toISOString()
 
       await supabase
         .from('rate_limits')
@@ -124,8 +123,8 @@ export async function checkRateLimit(
       return {
         allowed: false,
         remaining: 0,
-        resetAt: shouldBlock ? now + blockDurationMs : resetAt,
-        isBlocked: shouldBlock,
+        resetAt: now + blockDurationMs,
+        isBlocked: true,
       }
     }
 
