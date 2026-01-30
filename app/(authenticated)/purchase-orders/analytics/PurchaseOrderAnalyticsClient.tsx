@@ -23,15 +23,23 @@ interface AnalyticsData {
 export function PurchaseOrderAnalyticsClient() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [startDate, setStartDate] = useState(() => {
-    const date = new Date()
-    date.setMonth(date.getMonth() - 12)
-    return date.toISOString().slice(0, 10)
-  })
-  const [endDate, setEndDate] = useState(() => new Date().toISOString().slice(0, 10))
+  // Fix React #418: Initialize dates in useEffect to avoid SSR/client mismatch
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+
+  // Initialize dates on client-side only
+  useEffect(() => {
+    const now = new Date()
+    const start = new Date()
+    start.setMonth(start.getMonth() - 12)
+    setStartDate(start.toISOString().slice(0, 10))
+    setEndDate(now.toISOString().slice(0, 10))
+  }, [])
 
   useEffect(() => {
-    fetchAnalytics()
+    if (startDate && endDate) {
+      fetchAnalytics()
+    }
   }, [startDate, endDate])
 
   const fetchAnalytics = async () => {
