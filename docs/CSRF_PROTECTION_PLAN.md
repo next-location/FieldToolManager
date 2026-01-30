@@ -1,8 +1,8 @@
 # CSRF保護対応計画
 
 **作成日**: 2026年1月30日
-**最終更新**: 2026年1月30日 18:30 (12/142完了 - 8.5%)
-**ステータス**: 🔄 Phase 1実施中 (1.1勤怠 + 1.2発注書 完了) ⚠️ 修正: qr/verify除外
+**最終更新**: 2026年1月30日 21:15 (12/142完了 - 8.5%)
+**ステータス**: 🔄 Phase 1実施中 (1.1勤怠 + 1.2発注書 完了) ✅ フロントエンド修正完了
 
 ---
 
@@ -310,24 +310,27 @@ Phase 3 (Week 5-8):  優先度：低（MEDIUM）   - 72エンドポイント
   - 検証: ✅ バックエンド保護完了
 - [x] `/attendance/break/start` (POST) - 休憩開始 【完了: 2026-01-30】
   - ファイル: `app/api/attendance/break/start/route.ts`
+  - フロントエンド: 未実装（将来の詳細モード用）
   - 検証: ✅ バックエンド保護完了
 - [x] `/attendance/break/end` (POST) - 休憩終了 【完了: 2026-01-30】
   - ファイル: `app/api/attendance/break/end/route.ts`
+  - フロントエンド: 未実装（将来の詳細モード用）
   - 検証: ✅ バックエンド保護完了
 - [x] `/attendance/records/proxy` (POST) - 代理打刻 【完了: 2026-01-30】
   - ファイル: `app/api/attendance/records/proxy/route.ts`
-  - フロントエンド: `ProxyClockInModal.tsx`(要確認)
-  - 検証: ✅ バックエンド保護完了
+  - フロントエンド: `ProxyClockInModal.tsx` ✅ CSRFトークン追加完了
+  - 検証: ✅ バックエンド・フロントエンド両方完全保護
 - [x] `/attendance/qr/verify` (POST) - QR打刻検証 【除外: 内部API】
   - ファイル: `app/api/attendance/qr/verify/route.ts`
   - 注記: ⚠️ 他APIから内部的に呼ばれるためCSRF保護不要
 - [x] `/attendance/records/[id]` (PATCH) - 勤怠記録修正 【完了: 2026-01-30】
   - ファイル: `app/api/attendance/records/[id]/route.ts`
-  - フロントエンド: `EditAttendanceModal.tsx`(要確認)
-  - 検証: ✅ バックエンド保護完了
+  - フロントエンド: `EditAttendanceModal.tsx` ✅ CSRFトークン追加完了
+  - 検証: ✅ バックエンド・フロントエンド両方完全保護
 - [x] `/attendance/records/[id]` (DELETE) - 勤怠記録削除 【完了: 2026-01-30】
   - ファイル: `app/api/attendance/records/[id]/route.ts`
-  - 検証: ✅ バックエンド保護完了
+  - フロントエンド: `EditAttendanceModal.tsx` ✅ CSRFトークン追加完了
+  - 検証: ✅ バックエンド・フロントエンド両方完全保護
 
 ---
 
@@ -339,19 +342,24 @@ Phase 3 (Week 5-8):  優先度：低（MEDIUM）   - 72エンドポイント
 #### バックエンド
 - [x] `/purchase-orders/bulk-approve` (POST) - 一括承認 【完了: 2026-01-30】
   - ファイル: `app/api/purchase-orders/bulk-approve/route.ts`
+  - フロントエンド: 未実装（将来対応予定）
   - 検証: ✅ バックエンド保護完了
 - [x] `/purchase-orders/[id]/mark-paid` (POST) - 支払済み登録 【完了: 2026-01-30】
   - ファイル: `app/api/purchase-orders/[id]/mark-paid/route.ts`
-  - 検証: ✅ バックエンド保護完了
+  - フロントエンド: `MarkPaidButton.tsx` ✅ CSRFトークン追加完了
+  - 検証: ✅ バックエンド・フロントエンド両方完全保護
 - [x] `/purchase-orders/[id]/mark-received` (POST) - 受領登録 【完了: 2026-01-30】
   - ファイル: `app/api/purchase-orders/[id]/mark-received/route.ts`
-  - 検証: ✅ バックエンド保護完了
+  - フロントエンド: `MarkReceivedButton.tsx` ✅ CSRFトークン追加完了
+  - 検証: ✅ バックエンド・フロントエンド両方完全保護
 - [x] `/purchase-orders/[id]/send` (POST) - 発注書送信 【完了: 2026-01-30】
   - ファイル: `app/api/purchase-orders/[id]/send/route.ts`
-  - 検証: ✅ バックエンド保護完了
+  - フロントエンド: `SendOrderButton.tsx` ✅ CSRFトークン追加完了
+  - 検証: ✅ バックエンド・フロントエンド両方完全保護
 - [x] `/purchase-orders/[id]` (DELETE) - 発注書削除 【完了: 2026-01-30】
   - ファイル: `app/api/purchase-orders/[id]/route.ts`
-  - 検証: ✅ バックエンド保護完了
+  - フロントエンド: `DeletePurchaseOrderButton.tsx` ✅ CSRFトークン追加完了
+  - 検証: ✅ バックエンド・フロントエンド両方完全保護
 
 ---
 

@@ -6,7 +6,7 @@ import { createBrowserClient } from '@supabase/ssr'
 
 interface OrderItem {
   id: string
-  item_type: 'material' | 'labor' | 'subcontract' | 'equipment' | 'other'
+  item_type: 'material' | 'labor' | 'subcontract' | 'expense' | 'other'
   item_name: string
   description: string
   quantity: number
@@ -505,7 +505,7 @@ export default function NewPurchaseOrderPage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
                     >
                       <option value="material">材料</option>
-                      <option value="equipment">機材</option>
+                      <option value="expense">経費</option>
                       <option value="subcontract">外注</option>
                       <option value="labor">労務</option>
                       <option value="other">その他</option>
