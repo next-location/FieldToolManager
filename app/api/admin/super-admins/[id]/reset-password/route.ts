@@ -20,8 +20,6 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // CSRF検証
-
   try {
     // 認証チェック
     const session = await getSuperAdminSession();

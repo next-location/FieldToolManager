@@ -44,11 +44,6 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // CSRF検証（重要な操作のため）
-    if (!await verifyCsrfToken(request)) {
-      return csrfErrorResponse();
-    }
-
     // スーパーアドミン認証チェック
     const session = await getSuperAdminSession();
     console.log('[API /api/admin/contracts] Session:', session);

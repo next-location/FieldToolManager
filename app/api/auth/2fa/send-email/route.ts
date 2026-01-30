@@ -187,9 +187,6 @@ export async function POST(request: NextRequest) {
  * POST /api/auth/2fa/verify-email
  */
 export async function PUT(request: NextRequest) {
-  // CSRF検証（セキュリティ強化）
-  }
-
   try {
     const body = await request.json();
     const { email, code, purpose } = body;

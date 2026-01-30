@@ -5,17 +5,13 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // 🔒 CSRF検証
-  }
-
-  const { id } = await params
-  const supabase = await createClient()
-  const adminClient = createAdminClient()
-
-  console.log('[DELETE PURCHASE ORDER API] ===== 削除開始 =====')
-  console.log('[DELETE PURCHASE ORDER API] orderId:', id)
-
   try {
+    const { id } = await params
+    const supabase = await createClient()
+    const adminClient = createAdminClient()
+
+    console.log('[DELETE PURCHASE ORDER API] ===== 削除開始 =====')
+    console.log('[DELETE PURCHASE ORDER API] orderId:', id)
     // ユーザー認証確認
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {

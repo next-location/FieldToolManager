@@ -9,11 +9,6 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // CSRF検証
-    if (!(await verifyCsrfToken(request))) {
-      return new Response('CSRF token invalid', { status: 403 });
-    }
-
     // レート制限（IPベース: 3回/分、15分ブロック）
     const clientIp = getClientIp(request);
     if (!rateLimiters.impersonate.check(clientIp)) {

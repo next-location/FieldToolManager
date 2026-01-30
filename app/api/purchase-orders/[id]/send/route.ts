@@ -5,12 +5,10 @@ import { logPurchaseOrderUpdated } from '@/lib/audit-log'
 
 // POST /api/purchase-orders/:id/send - 仕入先送付
 // セキュリティ: Supabase Cookie認証（SameSite=Lax）で保護
-// CSRF保護は不要（SameSiteがクロスサイトPOSTからCookieを保護）
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-
   try {
     const { id } = await params
     const supabase = await createClient()

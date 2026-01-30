@@ -6,9 +6,6 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // CSRF検証（セキュリティ強化）
-  }
-
   try {
     const { id } = await params
     const body = await request.json()

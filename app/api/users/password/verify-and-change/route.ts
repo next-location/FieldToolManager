@@ -17,9 +17,6 @@ import { validatePassword, DEFAULT_PASSWORD_POLICY } from '@/lib/password-policy
 import { logPasswordChanged } from '@/lib/audit-log';
 
 export async function POST(request: NextRequest) {
-  // CSRF検証
-  }
-
   try {
     const supabase = await createClient();
 

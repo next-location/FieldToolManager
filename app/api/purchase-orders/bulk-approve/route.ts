@@ -4,9 +4,6 @@ import { logPurchaseOrderApproved } from '@/lib/audit-log'
 
 // POST /api/purchase-orders/bulk-approve - 発注書一括承認
 export async function POST(request: NextRequest) {
-  // 🔒 CSRF検証
-  }
-
   try {
     const supabase = await createClient()
 

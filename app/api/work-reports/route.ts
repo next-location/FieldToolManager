@@ -106,9 +106,6 @@ export async function GET(request: NextRequest) {
 
 // POST /api/work-reports - 作業報告書作成
 export async function POST(request: NextRequest) {
-  // CSRF検証（セキュリティ強化）
-  }
-
   try {
     const supabase = await createClient()
 

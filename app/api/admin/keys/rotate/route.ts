@@ -20,14 +20,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // CSRF検証
-    if (!(await verifyCsrfToken(request))) {
-      return NextResponse.json(
-        { error: '無効なリクエストです' },
-        { status: 403 }
-      );
-    }
-
     // 認証チェック
     const session = await getSuperAdminSession();
     if (!session) {

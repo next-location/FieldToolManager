@@ -16,8 +16,6 @@ const supabase = createClient(
 );
 
 export async function POST(request: NextRequest) {
-  // CSRF検証
-
   try {
     // 認証チェック
     const session = await getSuperAdminSession();

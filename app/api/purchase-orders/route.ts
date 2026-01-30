@@ -111,9 +111,6 @@ export async function GET(request: NextRequest) {
 
 // POST /api/purchase-orders - 発注書作成
 export async function POST(request: NextRequest) {
-  // CSRF検証（セキュリティ強化）
-  }
-
   try {
     const supabase = await createClient()
 
