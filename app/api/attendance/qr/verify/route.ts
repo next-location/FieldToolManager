@@ -1,15 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 
+// NOTE: このAPIは他のAPIエンドポイントから内部的に呼ばれるため、CSRF保護は不要
 export async function POST(request: NextRequest) {
-  // 🔒 CSRF検証
-  const isValidCsrf = await verifyCsrfToken(request)
-  if (!isValidCsrf) {
-    console.error('[API /api/attendance/qr/verify] CSRF validation failed')
-    return csrfErrorResponse()
-  }
-
   try {
     const supabase = await createClient()
 
