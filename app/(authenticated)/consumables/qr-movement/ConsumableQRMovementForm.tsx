@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 interface Consumable {
   id: string

@@ -2,9 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { createPurchaseOrderHistory } from '@/lib/purchase-order-history'
 import { logPurchaseOrderUpdated } from '@/lib/audit-log'
-import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 
 // POST /api/purchase-orders/:id/mark-paid - 支払登録
+// セキュリティ: Supabase Cookie認証（SameSite=Lax）で保護
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -22,7 +22,7 @@ export async function POST(
 
     if (!user) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
-    // }
+    }
 
     // ユーザー情報取得
     const { data: userData } = await supabase
@@ -33,7 +33,7 @@ export async function POST(
 
     if (!userData || !['manager', 'admin', 'super_admin'].includes(userData.role)) {
       return NextResponse.json({ error: '支払登録権限がありません' }, { status: 403 })
-    // }
+    }
 
     // 発注書取得（支払記録作成に必要な情報を含む）
     const { data: order, error: fetchError } = await supabase
@@ -46,7 +46,7 @@ export async function POST(
 
     if (fetchError || !order) {
       return NextResponse.json({ error: '発注書が見つかりません' }, { status: 404 })
-    // }
+    }
 
     // ステータスチェック（受領済みのみ支払可能）
     if (order.status !== 'received') {
@@ -54,7 +54,7 @@ export async function POST(
         { error: '受領済みの発注書のみ支払登録できます' },
         { status: 400 }
       )
-    // }
+    }
 
     // ステータスを支払済みに更新
     const { error: updateError } = await supabase
@@ -84,15 +84,15 @@ export async function POST(
         payment_method: 'bank_transfer', // デフォルトは銀行振込
         recorded_by: user.id,
         notes: `発注書「${order.order_number}」の支払`
-      // })
+      })
 
     if (paymentError) {
-      // console.error('[MARK PAID API] 入出金記録エラー:', paymentError)
+      console.error('[MARK PAID API] 入出金記録エラー:', paymentError)
       // 入出金記録失敗してもステータス更新は成功しているため、警告のみ
       console.warn('[MARK PAID API] 入出金記録に失敗しましたが、発注書のステータスは更新されました')
-    // } else {
+    } else {
       console.log('[MARK PAID API] 入出金記録作成成功')
-    // }
+    }
 
     // 履歴記録
     await createPurchaseOrderHistory({
@@ -102,24 +102,24 @@ export async function POST(
       performedBy: user.id,
       performedByName: userData.name,
       notes: '支払を完了しました',
-    // })
+    })
 
     // 監査ログ記録
     await logPurchaseOrderUpdated(id, {
       status: 'received'
-    // }, {
+    }, {
       status: 'paid',
       paid_at: new Date().toISOString(),
       paid_by: user.id,
       paid_by_name: userData.name,
       order_number: order.order_number,
       total_amount: order.total_amount
-    // }, user.id, userData.organization_id)
+    }, user.id, userData.organization_id)
 
     console.log('[MARK PAID API] ===== 支払登録完了 =====')
     return NextResponse.json({ message: '支払登録しました' })
-  // } catch (error: any) {
-    // console.error('[MARK PAID API] エラー:', error)
+  } catch (error: any) {
+    console.error('[MARK PAID API] エラー:', error)
     return NextResponse.json({ error: '予期しないエラーが発生しました' }, { status: 500 })
-  // }
+  }
 }
