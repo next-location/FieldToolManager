@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifySessionToken } from '@/lib/auth/impersonation'
 import { cookies } from 'next/headers'
 import { logUserCreated } from '@/lib/audit-log'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 interface StaffImportRow {
   name: string
@@ -135,6 +136,20 @@ export async function POST(request: NextRequest) {
       if (!['admin', 'leader', 'staff'].includes(s.role)) {
         errors.push(`行${index + 1}: 権限はadmin、leader、staffのいずれかを指定してください`)
       }
+
+      // 不審なパターン検出
+      if (hasSuspiciousPattern(s.name)) {
+        errors.push(`行${index + 1}: 名前に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）`)
+      }
+      if (s.department && hasSuspiciousPattern(s.department)) {
+        errors.push(`行${index + 1}: 部署名に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）`)
+      }
+      if (s.employee_id && hasSuspiciousPattern(s.employee_id)) {
+        errors.push(`行${index + 1}: 社員番号に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）`)
+      }
+      if (s.phone && hasSuspiciousPattern(s.phone)) {
+        errors.push(`行${index + 1}: 電話番号に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）`)
+      }
     })
 
     if (errors.length > 0) {
@@ -174,20 +189,23 @@ export async function POST(request: NextRequest) {
           continue
         }
 
-        // usersテーブルにレコード追加（デフォルトパターンを自動割り当て）
-        const { error: insertError } = await supabase.from('users').insert({
+        // HTMLエスケープ処理
+        const sanitizedData = {
           id: authData.user.id,
           organization_id: userData?.organization_id,
-          name: s.name,
+          name: escapeHtml(s.name),
           email: s.email.toLowerCase(),
           role: s.role,
-          department: s.department || null,
-          employee_id: s.employee_id || null,
-          phone: s.phone || null,
+          department: s.department ? escapeHtml(s.department) : null,
+          employee_id: s.employee_id ? escapeHtml(s.employee_id) : null,
+          phone: s.phone ? escapeHtml(s.phone) : null,
           work_pattern_id: defaultWorkPatternId,
           is_active: true,
           invited_at: new Date().toISOString(),
-        })
+        }
+
+        // usersテーブルにレコード追加（デフォルトパターンを自動割り当て）
+        const { error: insertError } = await supabase.from('users').insert(sanitizedData)
 
         if (insertError) {
           // Auth作成は成功したがusersテーブル挿入失敗
@@ -197,7 +215,7 @@ export async function POST(request: NextRequest) {
           continue
         }
 
-        // 履歴記録
+        // 履歴記録（エスケープ済みデータを記録）
         await supabase.from('user_history').insert({
           organization_id: userData?.organization_id,
           user_id: authData.user.id,
@@ -205,24 +223,24 @@ export async function POST(request: NextRequest) {
           change_type: 'created',
           old_values: {},
           new_values: {
-            name: s.name,
-            email: s.email,
-            role: s.role,
-            department: s.department,
-            employee_id: s.employee_id,
-            phone: s.phone,
+            name: sanitizedData.name,
+            email: sanitizedData.email,
+            role: sanitizedData.role,
+            department: sanitizedData.department,
+            employee_id: sanitizedData.employee_id,
+            phone: sanitizedData.phone,
           },
           notes: 'CSV一括登録',
         })
 
-        // 監査ログ記録（パスワードは除外）
+        // 監査ログ記録（エスケープ済みデータを記録、パスワードは除外）
         await logUserCreated(authData.user.id, {
-          name: s.name,
-          email: s.email,
-          role: s.role,
-          department: s.department,
-          employee_id: s.employee_id,
-          phone: s.phone,
+          name: sanitizedData.name,
+          email: sanitizedData.email,
+          role: sanitizedData.role,
+          department: sanitizedData.department,
+          employee_id: sanitizedData.employee_id,
+          phone: sanitizedData.phone,
           is_active: true,
           bulk_import: true,
         }, user.id, userData.organization_id)

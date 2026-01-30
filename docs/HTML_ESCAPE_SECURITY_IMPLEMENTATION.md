@@ -628,9 +628,9 @@ export function MyForm() {
 
 ### CRITICAL Priority
 
-- [ ] **1. BulkImportModal.tsx** → `/api/staff/bulk-import`
-- [ ] **2. CSVImportClient.tsx** → `master/tools/import/actions.ts`
-- [ ] **3. ConsumableRegistrationForm.tsx** → リファクタリング + セキュリティ実装
+- [x] **1. BulkImportModal.tsx** → `/api/staff/bulk-import` ✅ 完了 (2026-01-30)
+- [x] **2. CSVImportClient.tsx** → `master/tools/import/actions.ts` ✅ 完了 (2026-01-30)
+- [x] **3. ConsumableRegistrationForm.tsx** → リファクタリング + セキュリティ実装 ✅ 完了 (2026-01-30)
 
 ### HIGH Priority
 

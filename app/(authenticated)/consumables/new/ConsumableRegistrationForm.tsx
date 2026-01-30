@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { createConsumableMaster } from './actions'
 
 interface ConsumableRegistrationFormProps {
   organizationId: string
@@ -14,7 +14,6 @@ export function ConsumableRegistrationForm({
   consumableCategoryId,
 }: ConsumableRegistrationFormProps) {
   const router = useRouter()
-  const supabase = createClient()
 
   // フォーム状態
   const [name, setName] = useState('')
@@ -53,77 +52,25 @@ export function ConsumableRegistrationForm({
     setIsSubmitting(true)
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      // Server Actionを呼び出し（セキュリティチェック付き）
+      const result = await createConsumableMaster({
+        name: name,
+        model_number: modelNumber || undefined,
+        manufacturer: manufacturer || undefined,
+        unit: unit,
+        minimum_stock: minimumStock,
+        initial_quantity: initialQty,
+        description: description || undefined,
+      })
 
-      if (!user) {
-        throw new Error('ユーザーが見つかりません')
+      if (result.error) {
+        setError(result.error)
+        setIsSubmitting(false)
+        return
       }
 
-      // 消耗品マスターを作成（カテゴリは自動的に「消耗品」）
-      const { data: newConsumable, error: insertError } = await supabase
-        .from('tools')
-        .insert({
-          organization_id: organizationId,
-          name: name.trim(),
-          model_number: modelNumber.trim() || null,
-          manufacturer: manufacturer.trim() || null,
-          category_id: consumableCategoryId,
-          management_type: 'consumable',
-          unit: unit,
-          minimum_stock: minimumStock,
-          notes: description.trim() || null,
-        })
-        .select()
-        .single()
-
-      if (insertError) {
-        throw new Error(
-          `消耗品の登録に失敗しました: ${insertError.message}`
-        )
-      }
-
-      // 初期在庫がある場合は在庫レコードを作成
-      if (initialQty > 0) {
-        const { error: inventoryError } = await supabase
-          .from('consumable_inventory')
-          .insert({
-            organization_id: organizationId,
-            tool_id: newConsumable.id,
-            location_type: 'warehouse',
-            site_id: null,
-            warehouse_location_id: null,
-            quantity: initialQty,
-          })
-
-        if (inventoryError) {
-          console.error('初期在庫の登録エラー:', inventoryError)
-          // 在庫登録に失敗しても消耗品マスターは作成されているので、エラーは警告にとどめる
-          alert(
-            '消耗品は登録されましたが、初期在庫の登録に失敗しました。後ほど在庫調整で追加してください。'
-          )
-        } else {
-          // 在庫調整履歴を記録
-          const { error: movementError } = await supabase
-            .from('consumable_movements')
-            .insert({
-              organization_id: organizationId,
-              tool_id: newConsumable.id,
-              movement_type: '調整',
-              from_location_type: 'warehouse',
-              from_site_id: null,
-              to_location_type: 'warehouse',
-              to_site_id: null,
-              quantity: initialQty,
-              performed_by: user.id,
-              notes: `[初期在庫] 新規登録時の初期在庫`,
-            })
-
-          if (movementError) {
-            console.error('在庫調整履歴の記録エラー:', movementError)
-          }
-        }
+      if (result.warning) {
+        alert(result.warning)
       }
 
       // 成功したら消耗品一覧にリダイレクト
