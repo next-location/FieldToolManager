@@ -14,12 +14,12 @@
 ### 実装完了状況（2026-01-30更新）
 
 - **監査対象フォーム数**: 94件
-- **実装完了**: **29件**（最重要フォーム + MEDIUM一部）
+- **実装完了**: **32件**（最重要フォーム + MEDIUM半数以上）
 - **実装済み内訳**:
   - 🔴 CRITICAL: 3/3 (100%)
   - 🟠 HIGH: 18/18 (100%)
-  - 🟡 MEDIUM: 8/20+ (40%)
-- **残り**: 設定系・簡易フォーム（notes のみ）約65件
+  - 🟡 MEDIUM: 11/20+ (55%)
+- **残り**: 設定系・簡易フォーム（notes のみ）約62件
 
 ### セキュリティリスク
 
@@ -57,8 +57,11 @@
 - 入金登録（Server Action化）
 - 道具マスタ・消耗品マスタ・現場マスタ
 
-**MEDIUM（8件）:**
+**MEDIUM（11件）:**
 - メンテナンス記録（Server Action化）
+- 作業報告書設定（カスタムフィールド配列対応）
+- カスタムフィールド管理
+- 発注書設定
 - 代理打刻
 - 勤怠記録編集
 - 休暇申請
@@ -73,7 +76,7 @@
 |--------|--------------|--------|------|
 | 🔴 CRITICAL | 3/3 | 100% | 一括インポート、クライアント側直接DB挿入 |
 | 🟠 HIGH | 18/18 | 100% | 個人情報・金融情報を扱うフォーム |
-| 🟡 MEDIUM | 8/20+ | 40% | 設定・管理フォーム |
+| 🟡 MEDIUM | 11/20+ | 55% | 設定・管理フォーム |
 | 🟢 LOW | 0/50+ | 0% | 簡易フォーム（notesフィールドのみ等） |
 
 ---
@@ -473,35 +476,36 @@ export function MyForm() {
   - [x] `hasSuspiciousPattern()` チェック
   - [x] `escapeHtml()` 適用
 
-#### 20. 作業報告書設定
+#### 20. 作業報告書設定 ✅
 
 - **フォーム**: `app/(authenticated)/work-reports/settings/WorkReportSettingsForm.tsx`
-- **API**: PATCH `/api/work-reports/settings`
+- **API**: PUT `/api/work-reports/settings`
 - **ファイル**: `app/api/work-reports/settings/route.ts`
-- **入力フィールド**: template text fields
+- **入力フィールド**: custom_fields (name, unit, options配列)
 - **対応内容**:
-  - [ ] `hasSuspiciousPattern()` チェック
-  - [ ] `escapeHtml()` 適用
+  - [x] カスタムフィールド配列の各要素に `hasSuspiciousPattern()` チェック
+  - [x] name, unit, options配列に `escapeHtml()` 適用
 
-#### 21. カスタムフィールド管理
+#### 21. カスタムフィールド管理 ✅
 
 - **フォーム**: `app/(authenticated)/work-reports/settings/CustomFieldsManager.tsx`
-- **API**: POST/PATCH `/api/work-reports/custom-fields`
+- **API**: POST `/api/work-reports/custom-fields`
 - **ファイル**: `app/api/work-reports/custom-fields/route.ts`
-- **入力フィールド**: field_label, field_key, placeholder, help_text, field_options
+- **入力フィールド**: field_key, field_label, placeholder, help_text, field_options配列
 - **対応内容**:
-  - [ ] `hasSuspiciousPattern()` チェック
-  - [ ] `escapeHtml()` 適用
+  - [x] 5つのテキストフィールドに `hasSuspiciousPattern()` チェック
+  - [x] field_options配列の各要素もチェック
+  - [x] すべてのテキストフィールドに `escapeHtml()` 適用
 
-#### 22. 発注書設定
+#### 22. 発注書設定 ✅
 
 - **フォーム**: `app/(authenticated)/purchase-orders/settings/PurchaseOrderSettingsClient.tsx`
-- **API**: PATCH `/api/purchase-orders/settings`
+- **API**: PUT `/api/purchase-orders/settings`
 - **ファイル**: `app/api/purchase-orders/settings/route.ts`
-- **入力フィールド**: template text fields
+- **入力フィールド**: auto_numbering_prefix
 - **対応内容**:
-  - [ ] `hasSuspiciousPattern()` チェック
-  - [ ] `escapeHtml()` 適用
+  - [x] `hasSuspiciousPattern()` チェック
+  - [x] `escapeHtml()` 適用
 
 #### 23. 代理打刻 ✅
 
@@ -696,9 +700,9 @@ export function MyForm() {
 ### MEDIUM Priority
 
 - [x] **19. MaintenanceRecordForm.tsx** → `equipment/maintenance/actions.ts` ✅ 完了 (2026-01-30)
-- [ ] **20. WorkReportSettingsForm.tsx** → `/api/work-reports/settings`
-- [ ] **21. CustomFieldsManager.tsx** → `/api/work-reports/custom-fields`
-- [ ] **22. PurchaseOrderSettingsClient.tsx** → `/api/purchase-orders/settings`
+- [x] **20. WorkReportSettingsForm.tsx** → `/api/work-reports/settings` ✅ 完了 (2026-01-30)
+- [x] **21. CustomFieldsManager.tsx** → `/api/work-reports/custom-fields` ✅ 完了 (2026-01-30)
+- [x] **22. PurchaseOrderSettingsClient.tsx** → `/api/purchase-orders/settings` ✅ 完了 (2026-01-30)
 - [x] **23. ProxyClockInModal.tsx** → `/api/attendance/records/proxy` ✅ 完了 (2026-01-30)
 - [x] **24. EditAttendanceModal.tsx** → `/api/attendance/records/[id]` ✅ 完了 (2026-01-30)
 - [x] **25. LeaveModal.tsx** → `/api/leave` ✅ 完了 (2026-01-30)

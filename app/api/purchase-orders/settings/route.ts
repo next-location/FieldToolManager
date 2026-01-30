@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 // GET /api/purchase-orders/settings - 発注書設定取得
 export async function GET() {
@@ -102,6 +103,17 @@ export async function PUT(request: NextRequest) {
       )
     }
 
+    // 不審なパターン検出
+    if (auto_numbering_prefix && hasSuspiciousPattern(auto_numbering_prefix)) {
+      return NextResponse.json(
+        { error: '自動採番接頭辞に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）' },
+        { status: 400 }
+      )
+    }
+
+    // HTMLエスケープ処理
+    const sanitizedPrefix = auto_numbering_prefix ? escapeHtml(auto_numbering_prefix) : 'PO'
+
     // 既存設定確認
     const { data: existingSettings } = await supabase
       .from('purchase_order_settings')
@@ -120,7 +132,7 @@ export async function PUT(request: NextRequest) {
           approval_threshold_level1,
           approval_threshold_level2,
           require_project,
-          auto_numbering_prefix,
+          auto_numbering_prefix: sanitizedPrefix,
           updated_at: now,
         })
         .eq('organization_id', userData.organization_id)
@@ -135,7 +147,7 @@ export async function PUT(request: NextRequest) {
           approval_threshold_level1,
           approval_threshold_level2,
           require_project,
-          auto_numbering_prefix,
+          auto_numbering_prefix: sanitizedPrefix,
           created_at: now,
           updated_at: now,
         })
