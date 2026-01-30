@@ -56,7 +56,8 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
   const [breakMinutes, setBreakMinutes] = useState<string>('')
 
   // 勤務時間表示用の状態（1分ごとに更新）
-  const [currentTime, setCurrentTime] = useState(new Date())
+  // SSR対応: 初期値をnullにしてuseEffectで設定
+  const [currentTime, setCurrentTime] = useState<Date | null>(null)
 
   const canUseManual = orgSettings?.allow_manual || false
   const canUseQR = orgSettings?.allow_qr || false
@@ -66,6 +67,11 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
   // 当日の出退勤記録を取得
   useEffect(() => {
     fetchTodayRecord()
+  }, [])
+
+  // currentTimeの初期化（クライアントサイドのみ）
+  useEffect(() => {
+    setCurrentTime(new Date())
   }, [])
 
   // 勤務時間を1分ごとに更新（出勤中のみ）

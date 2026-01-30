@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { useCsrfToken } from '@/hooks/useCsrfToken'
 
 interface SendOrderButtonProps {
   orderId: string
@@ -11,10 +12,16 @@ interface SendOrderButtonProps {
 export function SendOrderButton({ orderId, orderNumber }: SendOrderButtonProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const { token: csrfToken } = useCsrfToken()
 
   const handleSend = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
+
+    if (!csrfToken) {
+      alert('セキュリティトークンが読み込まれていません。ページを再読み込みしてください。')
+      return
+    }
 
     if (!confirm(`発注書「${orderNumber}」を仕入先に送付しますか？`)) return
 
@@ -24,6 +31,7 @@ export function SendOrderButton({ orderId, orderNumber }: SendOrderButtonProps) 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
         },
       })
 
