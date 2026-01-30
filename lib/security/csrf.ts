@@ -16,6 +16,9 @@ interface CsrfToken {
 
 /**
  * CSRFトークンを生成
+ * Double Submit Cookie パターン：同じトークンを2つのCookieに保存
+ * 1. HttpOnly Cookie（サーバー側で検証用）
+ * 2. 通常のCookie（JavaScript読み取り可能、クライアント側で送信用）
  */
 export async function generateCsrfToken(): Promise<string> {
   const token = crypto.randomBytes(TOKEN_LENGTH).toString('hex');
@@ -23,9 +26,18 @@ export async function generateCsrfToken(): Promise<string> {
 
   const cookieStore = await cookies();
 
-  // トークンをCookieに保存（HttpOnly、SameSite=Strict）
+  // 1. HttpOnly Cookie（検証用）
   cookieStore.set(CSRF_TOKEN_NAME, JSON.stringify({ token, expiresAt }), {
     httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: TOKEN_EXPIRY / 1000,
+    path: '/',
+  });
+
+  // 2. 通常のCookie（JavaScript読み取り可能、送信用）
+  cookieStore.set(`${CSRF_TOKEN_NAME}_client`, token, {
+    httpOnly: false, // JavaScriptから読み取り可能
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
     maxAge: TOKEN_EXPIRY / 1000,
