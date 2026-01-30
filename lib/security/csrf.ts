@@ -44,10 +44,24 @@ export async function verifyCsrfToken(request: Request): Promise<boolean> {
     return true;
   }
 
+  console.log('[CSRF VERIFY] === Starting CSRF verification ===');
+  console.log('[CSRF VERIFY] Request method:', request.method);
+  console.log('[CSRF VERIFY] Request URL:', request.url);
+
+  // 全ヘッダーを確認
+  const headers: Record<string, string> = {};
+  request.headers.forEach((value, key) => {
+    headers[key] = value;
+  });
+  console.log('[CSRF VERIFY] All request headers:', JSON.stringify(headers, null, 2));
+
   // ヘッダーからトークンを取得
   const headerToken = request.headers.get(CSRF_HEADER_NAME);
+  console.log('[CSRF VERIFY] CSRF_HEADER_NAME:', CSRF_HEADER_NAME);
+  console.log('[CSRF VERIFY] Header token:', headerToken);
+
   if (!headerToken) {
-    console.error('CSRF token not found in headers');
+    console.error('[CSRF VERIFY] ❌ CSRF token not found in headers');
     return false;
   }
 
@@ -55,8 +69,11 @@ export async function verifyCsrfToken(request: Request): Promise<boolean> {
   const cookieStore = await cookies();
   const cookieValue = cookieStore.get(CSRF_TOKEN_NAME)?.value;
 
+  console.log('[CSRF VERIFY] Cookie name:', CSRF_TOKEN_NAME);
+  console.log('[CSRF VERIFY] Cookie value:', cookieValue);
+
   if (!cookieValue) {
-    console.error('CSRF token not found in cookies');
+    console.error('[CSRF VERIFY] ❌ CSRF token not found in cookies');
     return false;
   }
 

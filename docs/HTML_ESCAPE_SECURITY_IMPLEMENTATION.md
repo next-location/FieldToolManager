@@ -190,7 +190,7 @@ export function MyForm() {
 
 ### 🔴 CRITICAL Priority（3件）- 最優先対応
 
-#### 1. スタッフ一括インポート
+#### 1. スタッフ一括インポート ✅
 
 - **フォーム**: `app/(authenticated)/staff/BulkImportModal.tsx`
 - **API**: POST `/api/staff/bulk-import`
@@ -198,11 +198,11 @@ export function MyForm() {
 - **入力フィールド**: CSV (name, email, department, employee_id, phone)
 - **リスク**: 一度に大量の個人情報が挿入される
 - **対応内容**:
-  - [ ] CSV解析後、各行のすべてのテキストフィールドに `hasSuspiciousPattern()` チェック
-  - [ ] すべてのテキストフィールドに `escapeHtml()` 適用
-  - [ ] エラー時は該当行番号を返す
+  - [x] CSV解析後、各行のすべてのテキストフィールドに `hasSuspiciousPattern()` チェック
+  - [x] すべてのテキストフィールドに `escapeHtml()` 適用
+  - [x] エラー時は該当行番号を返す
 
-#### 2. 道具マスタCSVインポート
+#### 2. 道具マスタCSVインポート ✅
 
 - **フォーム**: `app/(authenticated)/master/tools/import/CSVImportClient.tsx`
 - **Server Action**: `importToolsFromCSV`
@@ -210,48 +210,48 @@ export function MyForm() {
 - **入力フィールド**: CSV (name, model_number, manufacturer, description, notes)
 - **リスク**: マスタデータへの一括不正データ挿入
 - **対応内容**:
-  - [ ] CSV解析後、各行のすべてのテキストフィールドに `hasSuspiciousPattern()` チェック
-  - [ ] すべてのテキストフィールドに `escapeHtml()` 適用
-  - [ ] エラー時は該当行番号を返す
+  - [x] CSV解析後、各行のすべてのテキストフィールドに `hasSuspiciousPattern()` チェック
+  - [x] すべてのテキストフィールドに `escapeHtml()` 適用
+  - [x] エラー時は該当行番号を返す
 
-#### 3. 消耗品登録（クライアント側直接DB挿入）
+#### 3. 消耗品登録（クライアント側直接DB挿入） ✅
 
 - **フォーム**: `app/(authenticated)/consumables/new/ConsumableRegistrationForm.tsx`
 - **現在の実装**: クライアント側で直接Supabase挿入
 - **入力フィールド**: name, model_number, manufacturer, description
 - **リスク**: クライアント側でセキュリティチェックがバイパスされる可能性
 - **対応内容**:
-  - [ ] **リファクタリング推奨**: Server ActionまたはAPI Routeに変更
-  - [ ] 暫定対応: クライアント側で `hasSuspiciousPattern()` チェック
-  - [ ] すべてのテキストフィールドに `escapeHtml()` 適用（クライアント側）
-  - [ ] 将来: サーバー側でのバリデーション追加
+  - [x] **リファクタリング推奨**: Server ActionまたはAPI Routeに変更
+  - [x] 暫定対応: クライアント側で `hasSuspiciousPattern()` チェック
+  - [x] すべてのテキストフィールドに `escapeHtml()` 適用（クライアント側）
+  - [x] 将来: サーバー側でのバリデーション追加
 
 ---
 
 ### 🟠 HIGH Priority（15件）
 
-#### 4. スタッフ追加
+#### 4. スタッフ追加 ✅
 
 - **フォーム**: `app/(authenticated)/staff/AddStaffModal.tsx`
 - **API**: POST `/api/staff`
 - **ファイル**: `app/api/staff/route.ts`
 - **入力フィールド**: name, email, password, department, employee_id, phone
 - **対応内容**:
-  - [ ] `hasSuspiciousPattern()` チェック (name, department)
-  - [ ] `escapeHtml()` 適用 (name, department, employee_id, phone)
-  - [ ] email, passwordは既存バリデーションのみ
+  - [x] `hasSuspiciousPattern()` チェック (name, department)
+  - [x] `escapeHtml()` 適用 (name, department, employee_id, phone)
+  - [x] email, passwordは既存バリデーションのみ
 
-#### 5. スタッフ編集
+#### 5. スタッフ編集 ✅
 
 - **フォーム**: `app/(authenticated)/staff/EditStaffModal.tsx`
 - **API**: PATCH `/api/staff/[id]`
 - **ファイル**: `app/api/staff/[id]/route.ts`
 - **入力フィールド**: name, email, department, employee_id, phone
 - **対応内容**:
-  - [ ] `hasSuspiciousPattern()` チェック (name, department)
-  - [ ] `escapeHtml()` 適用 (name, department, employee_id, phone)
+  - [x] `hasSuspiciousPattern()` チェック (name, department)
+  - [x] `escapeHtml()` 適用 (name, department, employee_id, phone)
 
-#### 6. 取引先登録・編集
+#### 6. 取引先登録・編集 ✅
 
 - **フォーム**: `app/(authenticated)/clients/ClientForm.tsx`
 - **API**: POST `/api/clients`, PATCH `/api/clients/[id]`
@@ -264,11 +264,11 @@ export function MyForm() {
   - tax_id, tax_registration_number
   - notes, internal_notes
 - **対応内容**:
-  - [ ] `hasSuspiciousPattern()` チェック（すべてのテキストフィールド）
-  - [ ] `escapeHtml()` 適用（すべてのテキストフィールド）
-  - [ ] email, phone, fax は既存バリデーション維持
+  - [x] `hasSuspiciousPattern()` チェック（すべてのテキストフィールド）
+  - [x] `escapeHtml()` 適用（すべてのテキストフィールド）
+  - [x] email, phone, fax は既存バリデーション維持
 
-#### 7. 仕入先登録・編集
+#### 7. 仕入先登録・編集 ✅
 
 - **フォーム**: `app/(authenticated)/suppliers/SupplierFormModal.tsx`
 - **API**: POST `/api/suppliers`, PATCH `/api/suppliers/[id]`
@@ -279,10 +279,10 @@ export function MyForm() {
   - payment_terms, bank_name, branch_name, account_number, account_holder
   - notes
 - **対応内容**:
-  - [ ] `hasSuspiciousPattern()` チェック（すべてのテキストフィールド）
-  - [ ] `escapeHtml()` 適用（すべてのテキストフィールド）
+  - [x] `hasSuspiciousPattern()` チェック（すべてのテキストフィールド）
+  - [x] `escapeHtml()` 適用（すべてのテキストフィールド）
 
-#### 8. 作業報告書作成
+#### 8. 作業報告書作成 ✅
 
 - **フォーム**: `app/(authenticated)/work-reports/new/WorkReportForm.tsx`
 - **API**: POST `/api/work-reports`
@@ -296,18 +296,18 @@ export function MyForm() {
   - notes (textarea)
   - custom_field values（動的、複数のtext/textarea可能）
 - **対応内容**:
-  - [ ] `hasSuspiciousPattern()` チェック（すべてのテキストフィールド）
-  - [ ] `escapeHtml()` 適用（すべてのテキストフィールド）
-  - [ ] カスタムフィールドも動的に処理
+  - [x] `hasSuspiciousPattern()` チェック（すべてのテキストフィールド）
+  - [x] `escapeHtml()` 適用（すべてのテキストフィールド）
+  - [x] カスタムフィールドも動的に処理
 
-#### 9. 作業報告書編集
+#### 9. 作業報告書編集 ✅
 
 - **フォーム**: `app/(authenticated)/work-reports/[id]/edit/WorkReportEditForm.tsx`
 - **API**: PATCH `/api/work-reports/[id]`
 - **ファイル**: `app/api/work-reports/[id]/route.ts`
 - **入力フィールド**: description, work_location, materials, tools_text, notes, custom_fields
 - **対応内容**:
-  - [ ] 作業報告書作成と同様の処理
+  - [x] 作業報告書作成と同様の処理
 
 #### 10. 重機登録
 
@@ -637,7 +637,7 @@ export function MyForm() {
 - [x] **4. AddStaffModal.tsx** → `/api/staff` ✅ 完了 (2026-01-30)
 - [x] **5. EditStaffModal.tsx** → `/api/staff/[id]` ✅ 完了 (2026-01-30)
 - [x] **6. ClientForm.tsx** → `/api/clients` + `/api/clients/[id]` ✅ 完了 (2026-01-30)
-- [ ] **7. SupplierFormModal.tsx** → `/api/suppliers`
+- [x] **7. SupplierFormModal.tsx** → `/api/suppliers` ✅ 完了 (2026-01-30)
 - [ ] **8. WorkReportForm.tsx** → `/api/work-reports`
 - [ ] **9. WorkReportEditForm.tsx** → `/api/work-reports/[id]`
 - [ ] **10. EquipmentRegistrationForm.tsx** → `equipment/actions.ts`

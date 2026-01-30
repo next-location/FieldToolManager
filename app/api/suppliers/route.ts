@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 // GET /api/suppliers - 仕入先一覧取得
 export async function GET(request: NextRequest) {
@@ -114,6 +115,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 不審なパターン検出（主要なテキストフィールド）
+    const textFields = [
+      { field: 'name', value: body.name, label: '仕入先名' },
+      { field: 'name_kana', value: body.name_kana, label: '仕入先名（カナ）' },
+      { field: 'address', value: body.address, label: '住所' },
+      { field: 'contact_person', value: body.contact_person, label: '担当者名' },
+      { field: 'payment_terms', value: body.payment_terms, label: '支払条件' },
+      { field: 'bank_name', value: body.bank_name, label: '銀行名' },
+      { field: 'branch_name', value: body.branch_name, label: '支店名' },
+      { field: 'account_holder', value: body.account_holder, label: '口座名義' },
+      { field: 'notes', value: body.notes, label: '備考' },
+    ]
+
+    for (const { value, label } of textFields) {
+      if (value && hasSuspiciousPattern(value)) {
+        return NextResponse.json(
+          { error: `${label}に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）` },
+          { status: 400 }
+        )
+      }
+    }
+
     // 仕入先コード生成（SUP-001形式）
     const { data: existingSuppliers } = await supabase
       .from('suppliers')
@@ -129,30 +152,33 @@ export async function POST(request: NextRequest) {
       newCode = `SUP-${String(lastNumber + 1).padStart(3, '0')}`
     }
 
+    // HTMLエスケープ処理
+    const sanitizedData = {
+      organization_id: userData?.organization_id,
+      supplier_code: body.supplier_code || newCode,
+      name: escapeHtml(body.name),
+      name_kana: body.name_kana ? escapeHtml(body.name_kana) : null,
+      postal_code: body.postal_code || null,
+      address: body.address ? escapeHtml(body.address) : null,
+      phone: body.phone || null,
+      fax: body.fax || null,
+      email: body.email || null,
+      website: body.website || null,
+      contact_person: body.contact_person ? escapeHtml(body.contact_person) : null,
+      payment_terms: body.payment_terms ? escapeHtml(body.payment_terms) : null,
+      bank_name: body.bank_name ? escapeHtml(body.bank_name) : null,
+      branch_name: body.branch_name ? escapeHtml(body.branch_name) : null,
+      account_type: body.account_type || null,
+      account_number: body.account_number || null,
+      account_holder: body.account_holder ? escapeHtml(body.account_holder) : null,
+      notes: body.notes ? escapeHtml(body.notes) : null,
+      is_active: body.is_active !== undefined ? body.is_active : true,
+    }
+
     // 仕入先作成
     const { data: supplier, error } = await supabase
       .from('suppliers')
-      .insert({
-        organization_id: userData?.organization_id,
-        supplier_code: body.supplier_code || newCode,
-        name: body.name,
-        name_kana: body.name_kana || null,
-        postal_code: body.postal_code || null,
-        address: body.address || null,
-        phone: body.phone || null,
-        fax: body.fax || null,
-        email: body.email || null,
-        website: body.website || null,
-        contact_person: body.contact_person || null,
-        payment_terms: body.payment_terms || null,
-        bank_name: body.bank_name || null,
-        branch_name: body.branch_name || null,
-        account_type: body.account_type || null,
-        account_number: body.account_number || null,
-        account_holder: body.account_holder || null,
-        notes: body.notes || null,
-        is_active: body.is_active !== undefined ? body.is_active : true,
-      })
+      .insert(sanitizedData)
       .select()
       .single()
 
