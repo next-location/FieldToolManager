@@ -7,6 +7,10 @@ import type {
   HeavyEquipmentMaintenance,
 } from '@/types/heavy-equipment'
 
+// Force dynamic rendering - disable all caching
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function AnalyticsPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 

@@ -3,6 +3,10 @@ import { requireAuth, getOrganizationPackages } from '@/lib/auth/page-auth'
 import CostReportView from './CostReportView'
 import type { HeavyEquipment, HeavyEquipmentMaintenance } from '@/types/heavy-equipment'
 
+// Force dynamic rendering - disable all caching
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function CostReportPage() {
   const { userId, organizationId, userRole, supabase } = await requireAuth()
 
