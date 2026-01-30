@@ -4698,7 +4698,7 @@ CREATE TABLE purchase_order_items (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   CONSTRAINT purchase_order_items_item_type_check
-    CHECK (item_type IN ('material', 'labor', 'subcontract', 'expense', 'other'))
+    CHECK (item_type IN ('material', 'labor', 'subcontract', 'equipment', 'expense', 'other'))
 );
 ```
 
@@ -4706,6 +4706,7 @@ CREATE TABLE purchase_order_items (
 - `material`: 材料
 - `labor`: 労務
 - `subcontract`: 外注
+- `equipment`: 機材
 - `expense`: 経費
 - `other`: その他
 

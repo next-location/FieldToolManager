@@ -113,6 +113,63 @@ npm run health-check
 
 ## 3. マイグレーション履歴
 
+### 📦 発注明細の品目タイプに'equipment'を追加（2026-01-30）
+
+#### 20260130_update_purchase_order_items_check.sql
+
+**適用日**: 2026-01-30
+**適用環境**: 本番環境
+**影響範囲**: `purchase_order_items`テーブル
+
+**目的**:
+発注書の品目タイプに「機材 (equipment)」を追加し、実際の業務で必要な品目を登録可能にする。
+
+**背景**:
+- フロントエンドでは`equipment`(機材)を選択肢として表示
+- データベースのチェック制約では`equipment`が許可されていなかった
+- 発注書作成時にエラー: `purchase_order_items_item_type_check violation`
+
+**変更内容**:
+```sql
+-- 既存の制約を削除
+ALTER TABLE purchase_order_items
+DROP CONSTRAINT IF EXISTS purchase_order_items_item_type_check;
+
+-- 新しい制約を追加（equipmentを含む）
+ALTER TABLE purchase_order_items
+ADD CONSTRAINT purchase_order_items_item_type_check
+CHECK (item_type IN ('material', 'labor', 'subcontract', 'equipment', 'expense', 'other'));
+```
+
+**許可される品目タイプ**:
+- `material`: 材料
+- `labor`: 労務
+- `subcontract`: 外注
+- `equipment`: 機材 ← NEW
+- `expense`: 経費
+- `other`: その他
+
+**適用方法**:
+```bash
+# Supabase Dashboard > SQL Editor で実行
+# または
+cat supabase/migrations/20260130_update_purchase_order_items_check.sql | psql <DATABASE_URL>
+```
+
+**後方互換性**: 既存データに影響なし（制約の追加のみ）
+
+**ロールバック**:
+```sql
+ALTER TABLE purchase_order_items
+DROP CONSTRAINT IF EXISTS purchase_order_items_item_type_check;
+
+ALTER TABLE purchase_order_items
+ADD CONSTRAINT purchase_order_items_item_type_check
+CHECK (item_type IN ('material', 'labor', 'subcontract', 'expense', 'other'));
+```
+
+---
+
 ### 🏢 Phase 5: 消耗品テーブルを sites ベースに改修（2026-01-19）
 
 #### 20260119_add_location_id_to_consumables.sql
