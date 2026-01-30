@@ -96,6 +96,17 @@ export const trackContactFormSubmit = (formData?: {
 }
 
 /**
+ * デモ申込フォーム送信
+ */
+export const trackDemoRequestSubmit = () => {
+  console.log('[GA4] trackDemoRequestSubmit called')
+  trackEvent('demo_request_submit', {
+    event_category: 'conversion',
+    event_label: 'demo_request_submitted',
+  })
+}
+
+/**
  * FAX流入チェック（UTMパラメータ付きアクセス）
  */
 export const trackUTMSource = () => {

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { trackDemoRequestSubmit } from '@/lib/analytics'
 
 export default function RequestDemoForm() {
   const router = useRouter()
@@ -53,6 +54,9 @@ export default function RequestDemoForm() {
       if (!response.ok) {
         throw new Error(data.error || '申込に失敗しました')
       }
+
+      // GA4にコンバージョンイベント送信
+      trackDemoRequestSubmit()
 
       // 成功時は完了ページへリダイレクト
       router.push('/request-demo/success')
