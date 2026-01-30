@@ -52,22 +52,19 @@ export function PurchaseOrderDetailClient({
   // Fix React #418: Prevent hydration mismatch by formatting dates/numbers client-side only
   const [isClient, setIsClient] = useState(false)
   useEffect(() => {
-    console.log('[PurchaseOrderDetailClient] Setting isClient=true')
     setIsClient(true)
   }, [])
 
   // Helper function to format date safely
   const formatDate = (dateString: string) => {
-    const result = !isClient ? dateString : new Date(dateString).toLocaleDateString('ja-JP')
-    console.log(`[formatDate] isClient=${isClient}, input=${dateString}, output=${result}`)
-    return result
+    if (!isClient) return dateString // Return ISO format during SSR
+    return new Date(dateString).toLocaleDateString('ja-JP')
   }
 
   // Helper function to format numbers safely (prevent hydration mismatch)
   const formatNumber = (value: number | string) => {
-    const result = !isClient ? value.toString() : Number(value).toLocaleString()
-    console.log(`[formatNumber] isClient=${isClient}, input=${value}, output=${result}`)
-    return result
+    if (!isClient) return value.toString()
+    return Number(value).toLocaleString()
   }
 
   const [rejectReason, setRejectReason] = useState('')
