@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 export async function createWarehouseLocation(formData: FormData) {
   const supabase = await createClient()
@@ -37,6 +38,24 @@ export async function createWarehouseLocation(formData: FormData) {
     throw new Error('権限がありません')
   }
 
+  // 不審なパターン検出
+  const textFields = [
+    { field: 'display_name', value: displayName, label: '表示名' },
+    { field: 'description', value: description, label: '説明' },
+  ]
+
+  for (const { value, label } of textFields) {
+    if (value && hasSuspiciousPattern(value)) {
+      throw new Error(`${label}に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）`)
+    }
+  }
+
+  // HTMLエスケープ処理
+  const sanitizedData = {
+    display_name: displayName ? escapeHtml(displayName) : displayName,
+    description: description ? escapeHtml(description) : null,
+  }
+
   // 階層レベルを計算（コードの'-'の数から）
   const level = code.split('-').length
 
@@ -48,8 +67,8 @@ export async function createWarehouseLocation(formData: FormData) {
     organization_id: userData?.organization_id,
     site_id: siteId || null,
     code,
-    display_name: displayName,
-    description: description || null,
+    display_name: sanitizedData.display_name,
+    description: sanitizedData.description,
     level,
     qr_code: qrCode,
   })

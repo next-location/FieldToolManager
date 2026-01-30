@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 export async function updateOrganizationSettings(
   organizationId: string,
@@ -121,19 +122,27 @@ export async function saveWarehouseHierarchyTemplates(
     throw new Error('他の組織の設定は変更できません')
   }
 
+  // 不審なパターン検出
+  for (let i = 0; i < templates.length; i++) {
+    const template = templates[i]
+    if (template.label && hasSuspiciousPattern(template.label)) {
+      throw new Error(`テンプレート[${i + 1}]のラベルに不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）`)
+    }
+  }
+
   // 既存のテンプレートを削除
   await supabase
     .from('warehouse_location_templates')
     .delete()
     .eq('organization_id', organizationId)
 
-  // アクティブなテンプレートのみ保存
+  // アクティブなテンプレートのみ保存（HTMLエスケープ処理）
   const activeTemplates = templates
     .filter((t) => t.is_active && t.label.trim())
     .map((t, index) => ({
       organization_id: organizationId,
       level: t.level,
-      label: t.label.trim(),
+      label: escapeHtml(t.label.trim()),
       is_active: true,
       display_order: index,
     }))

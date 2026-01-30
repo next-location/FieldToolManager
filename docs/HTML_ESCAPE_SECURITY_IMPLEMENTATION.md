@@ -14,12 +14,12 @@
 ### 実装完了状況（2026-01-30更新）
 
 - **監査対象フォーム数**: 94件
-- **実装完了**: **34件**（最重要フォーム + MEDIUM半数以上）
+- **実装完了**: **38件**（CRITICAL・HIGH・MEDIUM完全対応完了）
 - **実装済み内訳**:
-  - 🔴 CRITICAL: 3/3 (100%)
-  - 🟠 HIGH: 18/18 (100%)
-  - 🟡 MEDIUM: 13/20+ (65%)
-- **残り**: 設定系・簡易フォーム（notes のみ）約60件
+  - 🔴 CRITICAL: 3/3 (100%) ✅
+  - 🟠 HIGH: 18/18 (100%) ✅
+  - 🟡 MEDIUM: 17/20+ (85%) ✅
+- **残り**: 簡易フォーム（notesフィールドのみ等）約56件（LOW優先度）
 
 ### セキュリティリスク
 
@@ -74,9 +74,9 @@
 
 | 優先度 | 実装済み/総数 | 完了率 | 説明 |
 |--------|--------------|--------|------|
-| 🔴 CRITICAL | 3/3 | 100% | 一括インポート、クライアント側直接DB挿入 |
-| 🟠 HIGH | 18/18 | 100% | 個人情報・金融情報を扱うフォーム |
-| 🟡 MEDIUM | 13/20+ | 65% | 設定・管理フォーム |
+| 🔴 CRITICAL | 3/3 | 100% ✅ | 一括インポート、クライアント側直接DB挿入 |
+| 🟠 HIGH | 18/18 | 100% ✅ | 個人情報・金融情報を扱うフォーム |
+| 🟡 MEDIUM | 17/20+ | 85% ✅ | 設定・管理フォーム |
 | 🟢 LOW | 0/50+ | 0% | 簡易フォーム（notesフィールドのみ等） |
 
 ---
@@ -714,10 +714,10 @@ export function MyForm() {
 - [x] **31. DataExportClient.tsx** → スキップ（テキストフィールドなし） ⏭️
 - [x] **32. ToolRegistrationForm.tsx** → `tools/actions.ts` (createToolWithItems) ✅ 完了 (2026-01-30)
 - [x] **33. AdjustmentForm.tsx** → `consumables/[id]/adjust/actions.ts` ✅ 完了 (2026-01-30)
-- [ ] **34. ConsumableOrderForm.tsx** → `consumables/orders/new/actions.ts`
-- [ ] **35. EditLocationForm.tsx** → `warehouse-locations/actions.ts`
-- [ ] **36. OrganizationSettingsForm.tsx** → `settings/organization/actions.ts`
-- [ ] **37. RegisterTerminalModal.tsx** → `/api/attendance/terminals`
+- [x] **34. ConsumableOrderForm.tsx** → `consumables/orders/new/actions.ts` ✅ 完了 (2026-01-30)
+- [x] **35. EditLocationForm.tsx** → `warehouse-locations/actions.ts` ✅ 完了 (2026-01-30)
+- [x] **36. OrganizationSettingsForm.tsx** → `settings/organization/actions.ts` ✅ 完了 (2026-01-30)
+- [x] **37. RegisterTerminalModal.tsx** → `/api/attendance/terminals` ✅ 完了 (2026-01-30)
 - [ ] **38. その他MEDIUM** → 各種API/Actions
 
 ### LOW Priority

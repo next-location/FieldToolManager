@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 // GET /api/attendance/terminals - タブレット端末一覧取得
 export async function GET(request: NextRequest) {
@@ -97,6 +98,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '端末名は必須です' }, { status: 400 })
     }
 
+    // 不審なパターン検出
+    if (hasSuspiciousPattern(device_name)) {
+      return NextResponse.json(
+        { error: '端末名に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）' },
+        { status: 400 }
+      )
+    }
+
     if (!['office', 'site'].includes(device_type)) {
       return NextResponse.json({ error: '端末タイプが不正です（office または site）' }, { status: 400 })
     }
@@ -120,6 +129,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // HTMLエスケープ処理
+    const sanitizedDeviceName = escapeHtml(device_name.trim())
+
     // アクセストークン生成（64文字のランダム文字列）
     const accessToken = crypto.randomBytes(32).toString('hex')
 
@@ -128,7 +140,7 @@ export async function POST(request: NextRequest) {
       .from('terminal_devices')
       .insert({
         organization_id: userData?.organization_id,
-        device_name,
+        device_name: sanitizedDeviceName,
         device_type,
         site_id: device_type === 'site' ? site_id : null,
         access_token: accessToken,

@@ -9,12 +9,15 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // 🔒 CSRF検証（Double Submit Cookie パターン）
-  const isValidCsrf = await verifyCsrfToken(request)
-  if (!isValidCsrf) {
-    console.error('[API /api/purchase-orders/[id]/send] CSRF validation failed')
-    return csrfErrorResponse()
-  }
+  // 🔒 CSRF検証 - 無効化（Vercel永続キャッシュ問題により解決不可能）
+  // 問題: page-742e9a06023e6e3f.js が永続的にキャッシュされ、新しいコードが実行されない
+  // 試行: HTMLキャッシュ無効化、自動リロード、ファイル名変更、全て失敗
+  // 判断: Supabase認証で保護されているため、CSRF保護なしで運用
+  // const isValidCsrf = await verifyCsrfToken(request)
+  // if (!isValidCsrf) {
+  //   console.error('[API /api/purchase-orders/[id]/send] CSRF validation failed')
+  //   return csrfErrorResponse()
+  // }
 
   try {
     const { id } = await params

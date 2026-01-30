@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { logConsumableCreated } from '@/lib/audit-log'
+import { escapeHtml, hasSuspiciousPattern } from '@/lib/security/html-escape'
 
 export async function createConsumableOrder(formData: FormData) {
   const supabase = await createClient()
@@ -39,6 +40,17 @@ export async function createConsumableOrder(formData: FormData) {
   const clientId = formData.get('client_id') as string
   const notes = formData.get('notes') as string
 
+  // 不審なパターン検出
+  const textFields = [
+    { field: 'notes', value: notes, label: '備考' },
+  ]
+
+  for (const { value, label } of textFields) {
+    if (value && hasSuspiciousPattern(value)) {
+      throw new Error(`${label}に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）`)
+    }
+  }
+
   // 新規消耗品の場合は先に消耗品を登録
   const newConsumableName = formData.get('new_consumable_name') as string
   if (newConsumableName) {
@@ -46,19 +58,35 @@ export async function createConsumableOrder(formData: FormData) {
     const newConsumableModel = formData.get('new_consumable_model') as string
     const newConsumableManufacturer = formData.get('new_consumable_manufacturer') as string
 
+    // 新規消耗品フィールドの不審なパターン検出
+    const newConsumableFields = [
+      { field: 'new_consumable_name', value: newConsumableName, label: '消耗品名' },
+      { field: 'new_consumable_model', value: newConsumableModel, label: '型番' },
+      { field: 'new_consumable_manufacturer', value: newConsumableManufacturer, label: 'メーカー' },
+    ]
+
+    for (const { value, label } of newConsumableFields) {
+      if (value && hasSuspiciousPattern(value)) {
+        throw new Error(`${label}に不正な文字列が含まれています（HTMLタグやスクリプトは使用できません）`)
+      }
+    }
+
+    // HTMLエスケープ処理
+    const sanitizedConsumableData = {
+      organization_id: userData.organization_id,
+      name: escapeHtml(newConsumableName),
+      model_number: newConsumableModel ? escapeHtml(newConsumableModel) : null,
+      manufacturer: newConsumableManufacturer ? escapeHtml(newConsumableManufacturer) : null,
+      unit: newConsumableUnit,
+      management_type: 'consumable' as const,
+      minimum_stock: 0,
+      // qr_codeはUUID型でデフォルト値が設定されているので省略
+    }
+
     // QRコード生成（UUID型なのでデフォルト値を使用）
     const { data: newConsumable, error: consumableError } = await supabase
       .from('tools')
-      .insert({
-        organization_id: userData.organization_id,
-        name: newConsumableName,
-        model_number: newConsumableModel || null,
-        manufacturer: newConsumableManufacturer || null,
-        unit: newConsumableUnit,
-        management_type: 'consumable',
-        minimum_stock: 0,
-        // qr_codeはUUID型でデフォルト値が設定されているので省略
-      })
+      .insert(sanitizedConsumableData)
       .select('id, qr_code')
       .single()
 
@@ -98,6 +126,9 @@ export async function createConsumableOrder(formData: FormData) {
     throw new Error('この発注番号は既に使用されています')
   }
 
+  // HTMLエスケープ処理（発注データ）
+  const sanitizedNotes = notes ? escapeHtml(notes) : null
+
   // 発注データ作成
   const { error } = await supabase.from('consumable_orders').insert({
     organization_id: userData?.organization_id,
@@ -109,7 +140,7 @@ export async function createConsumableOrder(formData: FormData) {
     unit_price: unitPrice ? parseFloat(unitPrice) : null,
     total_price: totalPrice ? parseFloat(totalPrice) : null,
     client_id: clientId || null,
-    notes: notes || null,
+    notes: sanitizedNotes,
     status: '下書き中',
     ordered_by: user.id,
   })
