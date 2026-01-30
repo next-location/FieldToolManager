@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Scanner } from '@yudiel/react-qr-scanner'
+import { useCsrfToken } from '@/hooks/useCsrfToken'
 
 interface Site {
   id: string
@@ -30,6 +31,7 @@ interface TodayRecord {
 
 export function AttendanceWidget({ attendanceSettings, sites }: AttendanceWidgetProps) {
   const router = useRouter()
+  const { token: csrfToken } = useCsrfToken()
   const [todayRecord, setTodayRecord] = useState<TodayRecord | null>(null)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
@@ -90,7 +92,10 @@ export function AttendanceWidget({ attendanceSettings, sites }: AttendanceWidget
     try {
       const response = await fetch('/api/attendance/clock-in', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken || '',
+        },
         body: JSON.stringify({
           location_type: location,
           site_id: location === 'site' ? selectedSiteId : null,
@@ -135,7 +140,10 @@ export function AttendanceWidget({ attendanceSettings, sites }: AttendanceWidget
     try {
       const response = await fetch('/api/attendance/clock-out', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken || '',
+        },
         body: JSON.stringify({
           location_type: location,
           site_id: location === 'site' ? selectedSiteId : null,
@@ -185,7 +193,10 @@ export function AttendanceWidget({ attendanceSettings, sites }: AttendanceWidget
 
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken || '',
+        },
         body: JSON.stringify({
           location_type: qrData.location_type,
           site_id: qrData.site_id || null,

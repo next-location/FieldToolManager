@@ -2,12 +2,20 @@ import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { createPurchaseOrderHistory } from '@/lib/purchase-order-history'
 import { logPurchaseOrderUpdated } from '@/lib/audit-log'
+import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 
 // POST /api/purchase-orders/:id/mark-received - 受領登録
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // 🔒 CSRF検証
+  const isValidCsrf = await verifyCsrfToken(request)
+  if (!isValidCsrf) {
+    console.error('[API /api/purchase-orders/[id]/mark-received] CSRF validation failed')
+    return csrfErrorResponse()
+  }
+
   try {
     const { id } = await params
     const supabase = await createClient()

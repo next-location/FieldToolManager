@@ -1,9 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import type { ClockOutRequest, ClockOutResponse } from '@/types/attendance'
+import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 
 // POST /api/attendance/clock-out - 退勤打刻
 export async function POST(request: NextRequest) {
+  // 🔒 CSRF検証
+  const isValidCsrf = await verifyCsrfToken(request)
+  if (!isValidCsrf) {
+    console.error('[API /api/attendance/clock-out] CSRF validation failed')
+    return csrfErrorResponse()
+  }
+
   try {
     const supabase = await createClient()
 

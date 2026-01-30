@@ -1,9 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { logPurchaseOrderApproved } from '@/lib/audit-log'
+import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 
 // POST /api/purchase-orders/bulk-approve - 発注書一括承認
 export async function POST(request: NextRequest) {
+  // 🔒 CSRF検証
+  const isValidCsrf = await verifyCsrfToken(request)
+  if (!isValidCsrf) {
+    console.error('[API /api/purchase-orders/bulk-approve] CSRF validation failed')
+    return csrfErrorResponse()
+  }
+
   try {
     const supabase = await createClient()
 

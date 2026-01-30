@@ -1,9 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { logAttendanceRecordUpdated, logAttendanceRecordDeleted } from '@/lib/audit-log'
+import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 
 // PATCH /api/attendance/records/[id] - 勤怠記録の手動修正（管理者のみ）
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  // 🔒 CSRF検証
+  const isValidCsrf = await verifyCsrfToken(request)
+  if (!isValidCsrf) {
+    console.error('[API /api/attendance/records/[id]] PATCH CSRF validation failed')
+    return csrfErrorResponse()
+  }
+
   try {
     const supabase = await createClient()
     const { id: recordId } = await params
@@ -187,6 +195,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
 // DELETE /api/attendance/records/[id] - 勤怠記録の削除（管理者のみ）
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  // 🔒 CSRF検証
+  const isValidCsrf = await verifyCsrfToken(request)
+  if (!isValidCsrf) {
+    console.error('[API /api/attendance/records/[id]] DELETE CSRF validation failed')
+    return csrfErrorResponse()
+  }
+
   try {
     const supabase = await createClient()
     const { id: recordId } = await params
