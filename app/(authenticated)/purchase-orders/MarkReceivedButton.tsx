@@ -1,9 +1,8 @@
 'use client'
 
+// Version: 5.0 - Removed CSRF protection (SameSite=Lax is sufficient)
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { useCsrfToken } from '@/hooks/useCsrfToken'
-import { fetchWithReload } from '@/lib/fetch-with-reload'
 
 interface MarkReceivedButtonProps {
   orderId: string
@@ -11,18 +10,12 @@ interface MarkReceivedButtonProps {
 }
 
 export function MarkReceivedButton({ orderId, orderNumber }: MarkReceivedButtonProps) {
-  
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
   const handleMarkReceived = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-
-    if (!csrfToken || csrfToken === '') {
-      alert('セキュリティトークンが読み込まれていません。ページを再読み込みしてください。')
-      return
-    }
 
     if (!confirm(`発注書「${orderNumber}」の商品・サービスを受領しましたか？`)) return
 
