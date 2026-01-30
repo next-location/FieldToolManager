@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { verifySuperAdminPassword, setSuperAdminCookie } from '@/lib/auth/super-admin';
-import { rateLimiters, getClientIp, rateLimitResponse } from '@/lib/security/rate-limiter';
+import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/security/rate-limiter-supabase';
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf';
 import { sendLoginNotification } from '@/lib/notifications/login-notification';
 import { recordLoginAttempt, checkForeignIPAccess } from '@/lib/security/login-tracker';
 import { getCountryFromIP } from '@/lib/security/geoip';
+import { escapeHtml } from '@/lib/security/html-escape';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,11 +22,13 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // レート制限チェック
+    // レート制限チェック（Supabase版：5分間に3回まで、ブロック時間10分）
     const clientIp = getClientIp(request);
-    if (!rateLimiters.login.check(clientIp)) {
-      const resetTime = rateLimiters.login.getResetTime(clientIp);
-      return rateLimitResponse(resetTime);
+    const rateLimitResult = await checkRateLimit(clientIp, 3, 300000, 600000);
+
+    if (!rateLimitResult.allowed) {
+      console.log('[ADMIN LOGIN] Rate limit exceeded for IP:', clientIp);
+      return rateLimitResponse(rateLimitResult.resetAt);
     }
 
     const { email, password } = await request.json();
@@ -34,7 +37,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'メールアドレスとパスワードを入力してください' }, { status: 400 });
     }
 
+    // 入力値のサニタイズ（HTMLエスケープ）
+    const safeEmail = escapeHtml(email);
+    const safePassword = escapeHtml(password);
+
     // スーパーアドミン取得（2FA関連フィールドも取得）
+    // 注意: DB検索には元の入力値を使用（エスケープ前の値）
     const { data: superAdmin, error } = await supabase
       .from('super_admins')
       .select('*')
@@ -79,7 +87,7 @@ export async function POST(request: NextRequest) {
         const userAgent = request.headers.get('user-agent') || 'unknown';
 
         await recordLoginAttempt({
-          email,
+          email: safeEmail, // エスケープ済みの値を使用
           ipAddress,
           userAgent,
           attemptType: 'password_failure',

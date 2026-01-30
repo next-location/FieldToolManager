@@ -348,6 +348,7 @@ export default function LoginForm({ organizationName }: LoginFormProps) {
                   autoComplete="email"
                   required
                   maxLength={100}
+                  pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                   placeholder="example@company.com"
                 />
@@ -363,6 +364,7 @@ export default function LoginForm({ organizationName }: LoginFormProps) {
                     type={showPassword ? 'text' : 'password'}
                     autoComplete="current-password"
                     required
+                    minLength={8}
                     maxLength={100}
                     className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                     placeholder="••••••••"

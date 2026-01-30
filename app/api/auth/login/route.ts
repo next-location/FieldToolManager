@@ -11,6 +11,10 @@ import {
 } from '@/lib/security-middleware'
 import { verifyCsrfToken, csrfErrorResponse } from '@/lib/security/csrf'
 import { logLogin } from '@/lib/audit-log'
+import { checkRateLimit, rateLimitResponse } from '@/lib/security/rate-limiter-supabase'
+import { escapeHtml } from '@/lib/security/html-escape'
+import { checkForeignIPAccess } from '@/lib/security/login-tracker'
+import { getCountryFromIP } from '@/lib/security/geoip'
 
 export async function POST(request: Request) {
   // CSRF検証（セキュリティ強化）
@@ -19,15 +23,27 @@ export async function POST(request: Request) {
     console.error('[LOGIN API] CSRF validation failed')
     return csrfErrorResponse()
   }
-  const { email, password } = await request.json()
-
-  console.log('[LOGIN API] Starting login for:', email)
-  console.log('[LOGIN API] Password received:', password ? `${password.substring(0, 3)}...` : 'null')
 
   // IPアドレスとUser-Agentを取得
   const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
     request.headers.get('x-real-ip') || 'unknown'
   const userAgent = request.headers.get('user-agent') || 'unknown'
+
+  // レート制限チェック（Supabase版：5分間に3回まで、ブロック時間10分）
+  const rateLimitResult = await checkRateLimit(ipAddress, 3, 300000, 600000)
+  if (!rateLimitResult.allowed) {
+    console.log('[USER LOGIN] Rate limit exceeded for IP:', ipAddress)
+    return rateLimitResponse(rateLimitResult.resetAt)
+  }
+
+  const { email, password } = await request.json()
+
+  console.log('[LOGIN API] Starting login for:', email)
+  console.log('[LOGIN API] Password received:', password ? `${password.substring(0, 3)}...` : 'null')
+
+  // 入力値のサニタイズ（HTMLエスケープ）
+  const safeEmail = escapeHtml(email)
+  const safePassword = escapeHtml(password)
 
   const cookieStore = await cookies()
 
@@ -248,20 +264,20 @@ export async function POST(request: Request) {
 
   console.log('[LOGIN API] Login successful, 2FA required:', require2FA)
 
-  // ログイン成功を記録
-  await recordLoginAttempt(email, ipAddress, userAgent, true)
+  // ログイン成功を記録（エスケープ済みの値を使用）
+  await recordLoginAttempt(safeEmail, ipAddress, userAgent, true)
 
   // 監査ログを記録
   console.log('[LOGIN API] About to log login audit:', {
     userId: data.user.id,
     organizationId: userData.organization_id,
-    email,
+    email: safeEmail,
     role: userData.role,
   })
   await logLogin(
     data.user.id,
     {
-      email,
+      email: safeEmail,
       role: userData.role,
       two_factor_enabled: userData.two_factor_enabled,
     },
@@ -269,6 +285,15 @@ export async function POST(request: Request) {
     userData.organization_id
   )
   console.log('[LOGIN API] Login audit log completed')
+
+  // 海外IP警告チェック（日本国外からのアクセスを検出）
+  try {
+    const countryCode = await getCountryFromIP(ipAddress)
+    await checkForeignIPAccess(safeEmail, ipAddress, userAgent, countryCode)
+  } catch (geoError) {
+    console.error('[LOGIN] Failed to check foreign IP:', geoError)
+    // エラーを無視してログイン処理を続行
+  }
 
   // 2FAが必要な場合（デモユーザーはスキップ）
   if (!isDemo && userData.two_factor_enabled) {
