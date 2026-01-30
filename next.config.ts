@@ -21,6 +21,10 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // キャッシュバスティングのため、ビルドIDを変更
+  generateBuildId: async () => {
+    return `build-${Date.now()}`
+  },
 };
 
 const withMDX = createMDX({

@@ -1,5 +1,6 @@
 'use client'
 
+// Version: 2.0 - CSRF protection enabled
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useCsrfToken } from '@/hooks/useCsrfToken'
