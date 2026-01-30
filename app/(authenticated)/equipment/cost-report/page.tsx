@@ -55,13 +55,16 @@ export default async function CostReportPage() {
     }
   }
 
-  // デフォルト期間: 当月1日から今日まで
-  const today = new Date()
-  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-  const defaultPeriodStart = firstDayOfMonth.toISOString().split('T')[0]
-  const defaultPeriodEnd = today.toISOString().split('T')[0]
+  // デフォルト期間: 当月1日から今日まで（日本時間基準）
+  const now = new Date()
+  const japanDate = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }))
+  const firstDayOfMonth = new Date(japanDate.getFullYear(), japanDate.getMonth(), 1)
 
-  console.log('[Cost Report] Default period:', { defaultPeriodStart, defaultPeriodEnd, today: today.toISOString() })
+  // YYYY-MM-DD形式に変換
+  const defaultPeriodStart = `${firstDayOfMonth.getFullYear()}-${String(firstDayOfMonth.getMonth() + 1).padStart(2, '0')}-01`
+  const defaultPeriodEnd = `${japanDate.getFullYear()}-${String(japanDate.getMonth() + 1).padStart(2, '0')}-${String(japanDate.getDate()).padStart(2, '0')}`
+
+  console.log('[Cost Report] Default period:', { defaultPeriodStart, defaultPeriodEnd, japanDate: japanDate.toISOString(), serverTime: now.toISOString() })
 
   return (
     <CostReportView

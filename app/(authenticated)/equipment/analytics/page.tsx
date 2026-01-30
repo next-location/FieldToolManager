@@ -72,14 +72,16 @@ export default async function AnalyticsPage() {
     }
   }
 
-  // デフォルト期間: 当月1日から今日まで
-  const today = new Date()
-  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+  // デフォルト期間: 当月1日から今日まで（日本時間基準）
+  const now = new Date()
+  const japanDate = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }))
+  const firstDayOfMonth = new Date(japanDate.getFullYear(), japanDate.getMonth(), 1)
 
-  const periodStart = firstDayOfMonth.toISOString().split('T')[0]
-  const periodEnd = today.toISOString().split('T')[0]
+  // YYYY-MM-DD形式に変換
+  const periodStart = `${firstDayOfMonth.getFullYear()}-${String(firstDayOfMonth.getMonth() + 1).padStart(2, '0')}-01`
+  const periodEnd = `${japanDate.getFullYear()}-${String(japanDate.getMonth() + 1).padStart(2, '0')}-${String(japanDate.getDate()).padStart(2, '0')}`
 
-  console.log('[Analytics] Default period:', { periodStart, periodEnd, today: today.toISOString() })
+  console.log('[Analytics] Default period:', { periodStart, periodEnd, japanDate: japanDate.toISOString(), serverTime: now.toISOString() })
 
   return (
     <AnalyticsReportView
