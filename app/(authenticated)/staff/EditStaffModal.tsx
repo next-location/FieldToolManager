@@ -196,14 +196,22 @@ export function EditStaffModal({ isOpen, onClose, onSuccess, staff, departments 
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as 'staff' | 'leader' | 'manager' | 'admin')}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              disabled={staff.role === 'admin'}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
               <option value="staff">一般スタッフ</option>
               <option value="leader">リーダー</option>
               <option value="manager">マネージャー</option>
-              <option value="admin">管理者</option>
             </select>
-            {role !== staff.role && (
+            <p className="mt-1 text-xs text-gray-500">
+              管理者権限は組織に1人のみ設定可能です
+            </p>
+            {staff.role === 'admin' && (
+              <p className="mt-1 text-xs text-red-600">
+                ⚠️ このユーザーは現在管理者です。権限を変更する前に別の管理者を設定してください
+              </p>
+            )}
+            {role !== staff.role && staff.role !== 'admin' && (
               <p className="mt-1 text-xs text-yellow-600">⚠️ 権限変更は履歴に記録されます</p>
             )}
             {staff.role === 'admin' && role !== 'admin' && (

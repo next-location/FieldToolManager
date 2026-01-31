@@ -13,7 +13,7 @@ export function AddStaffModal({ isOpen, onClose, onSuccess, departments }: AddSt
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [role, setRole] = useState<'staff' | 'leader' | 'manager' | 'admin'>('staff')
+  const [role, setRole] = useState<'staff' | 'leader' | 'manager'>('staff')
   const [department, setDepartment] = useState('')
   const [employeeId, setEmployeeId] = useState('')
   const [phone, setPhone] = useState('')
@@ -234,14 +234,16 @@ export function AddStaffModal({ isOpen, onClose, onSuccess, departments }: AddSt
             </label>
             <select
               value={role}
-              onChange={(e) => setRole(e.target.value as 'staff' | 'leader' | 'manager' | 'admin')}
+              onChange={(e) => setRole(e.target.value as 'staff' | 'leader' | 'manager')}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="staff">一般スタッフ</option>
               <option value="leader">リーダー</option>
               <option value="manager">マネージャー</option>
-              <option value="admin">管理者</option>
             </select>
+            <p className="mt-1 text-xs text-gray-500">
+              管理者権限は組織に1人のみ設定可能です
+            </p>
             <div className="mt-2 text-xs text-gray-600 space-y-1">
               <p>ℹ️ staff: 一般スタッフ（基本操作のみ）</p>
               <p>ℹ️ leader: リーダー（チーム管理権限）</p>
