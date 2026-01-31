@@ -214,9 +214,6 @@ export function EditStaffModal({ isOpen, onClose, onSuccess, staff, departments 
             {role !== staff.role && staff.role !== 'admin' && (
               <p className="mt-1 text-xs text-yellow-600">⚠️ 権限変更は履歴に記録されます</p>
             )}
-            {staff.role === 'admin' && role !== 'admin' && (
-              <p className="mt-1 text-xs text-red-600">⚠️ 最低1人のadminが必要です</p>
-            )}
           </div>
 
           <div>
