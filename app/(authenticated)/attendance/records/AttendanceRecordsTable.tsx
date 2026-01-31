@@ -303,6 +303,11 @@ export function AttendanceRecordsTable({
                         ● 休日出勤
                       </span>
                     )}
+                    {record.users?.work_patterns?.is_night_shift && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800" title="夜勤">
+                        🌙 夜勤
+                      </span>
+                    )}
                   </div>
                 </td>
                 <td className="px-3 py-3 text-sm text-gray-900">
@@ -389,6 +394,18 @@ export function AttendanceRecordsTable({
                 </div>
                 <div className="text-xs text-gray-500 mt-0.5">
                   {formatDate(record.date)}
+                </div>
+                <div className="flex items-center gap-1 mt-1">
+                  {record.is_holiday_work && (
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-800">
+                      休日
+                    </span>
+                  )}
+                  {record.users?.work_patterns?.is_night_shift && (
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
+                      夜勤
+                    </span>
+                  )}
                 </div>
                 {record.is_manually_edited && record.editor?.name && (
                   <div className="text-xs text-gray-500 mt-1">

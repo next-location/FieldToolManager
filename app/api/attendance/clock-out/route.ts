@@ -17,10 +17,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
     }
 
-    // ユーザー情報取得
+    // ユーザー情報と勤務パターンを取得
     const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('organization_id, name')
+      .select(`
+        organization_id,
+        name,
+        work_pattern_id,
+        is_shift_work,
+        work_patterns (
+          id,
+          name,
+          is_night_shift
+        )
+      `)
       .eq('id', user.id)
       .single()
 
@@ -30,6 +40,9 @@ export async function POST(request: NextRequest) {
         { status: 404 }
       )
     }
+
+    // 夜勤パターンかどうかを判定
+    const isNightShift = userData.work_patterns?.is_night_shift || false
 
     // リクエストボディ取得
     const body: ClockOutRequest = await request.json()
@@ -71,8 +84,8 @@ export async function POST(request: NextRequest) {
     const jstDate = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }))
     const dateString = jstDate.toISOString().split('T')[0] // YYYY-MM-DD
 
-    // 今日の出勤記録を取得
-    const { data: todayRecord, error: recordError } = await supabase
+    // まず今日の出勤記録を取得
+    let { data: todayRecord, error: recordError } = await supabase
       .from('attendance_records')
       .select('*')
       .eq('organization_id', userData?.organization_id)
@@ -88,9 +101,42 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 今日の記録が見つからず、かつ夜勤パターンの場合は前日の記録を確認
+    if (!todayRecord && isNightShift) {
+      const yesterday = new Date(jstDate)
+      yesterday.setDate(yesterday.getDate() - 1)
+      const yesterdayString = yesterday.toISOString().split('T')[0]
+
+      const { data: yesterdayRecord, error: yesterdayError } = await supabase
+        .from('attendance_records')
+        .select('*')
+        .eq('organization_id', userData?.organization_id)
+        .eq('user_id', user.id)
+        .eq('date', yesterdayString)
+        .is('clock_out_time', null) // 退勤未打刻のもののみ
+        .maybeSingle()
+
+      if (!yesterdayError && yesterdayRecord) {
+        // 前日の出勤時刻を確認（16:00以降なら夜勤の可能性が高い）
+        const clockInTime = new Date(yesterdayRecord.clock_in_time)
+        const clockInHour = new Date(clockInTime.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })).getHours()
+
+        if (clockInHour >= 16) {
+          // 夜勤の退勤として処理
+          todayRecord = yesterdayRecord
+        } else {
+          // 16:00より前の出勤は打刻忘れの可能性
+          return NextResponse.json(
+            { error: `前日(${yesterdayString})に未退勤の記録があります。先に前日の退勤処理を行ってください。` },
+            { status: 400 }
+          )
+        }
+      }
+    }
+
     if (!todayRecord) {
       return NextResponse.json(
-        { error: '本日の出勤記録がありません。先に出勤打刻を行ってください' },
+        { error: '出勤記録がありません。先に出勤打刻を行ってください' },
         { status: 400 }
       )
     }

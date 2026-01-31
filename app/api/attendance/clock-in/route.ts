@@ -17,10 +17,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
     }
 
-    // ユーザー情報取得
+    // ユーザー情報と勤務パターンを取得
     const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('organization_id, name')
+      .select(`
+        organization_id,
+        name,
+        work_pattern_id,
+        is_shift_work,
+        work_patterns (
+          id,
+          name,
+          is_night_shift
+        )
+      `)
       .eq('id', user.id)
       .single()
 
@@ -30,6 +40,9 @@ export async function POST(request: NextRequest) {
         { status: 404 }
       )
     }
+
+    // 夜勤パターンかどうかを判定
+    const isNightShift = userData.work_patterns?.is_night_shift || false
 
     // リクエストボディ取得
     const body: ClockInRequest = await request.json()
@@ -70,7 +83,18 @@ export async function POST(request: NextRequest) {
     // 現在日時（JST）
     const now = new Date()
     const jstDate = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }))
-    const dateString = jstDate.toISOString().split('T')[0] // YYYY-MM-DD
+
+    // 夜勤パターンの場合、午前5時を境界として出勤日を判定
+    let dateString = jstDate.toISOString().split('T')[0] // YYYY-MM-DD
+    if (isNightShift) {
+      const hour = jstDate.getHours()
+      // 午前0時〜5時の出勤は前日扱い
+      if (hour < 5) {
+        const adjustedDate = new Date(jstDate)
+        adjustedDate.setDate(adjustedDate.getDate() - 1)
+        dateString = adjustedDate.toISOString().split('T')[0]
+      }
+    }
 
     // 今日の出退勤記録が既に存在するかチェック
     const { data: existingRecord, error: checkError } = await supabase
