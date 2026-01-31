@@ -12,6 +12,7 @@ interface BasicAttendanceSettings {
 
   // QR設定
   qr_rotation_days: 1 | 3 | 7 | 30
+  night_shift_button_allowed: boolean
 
   // 休憩設定
   break_recording_enabled: boolean
@@ -24,6 +25,7 @@ const DEFAULT_SETTINGS: BasicAttendanceSettings = {
   allow_qr: false,
   allow_location: false,
   qr_rotation_days: 7,
+  night_shift_button_allowed: false,
   break_recording_enabled: false,
   auto_break_deduction: false,
   auto_break_minutes: 45,
@@ -45,6 +47,7 @@ export function AttendanceBasicSettings({
       allow_qr: old.allow_qr ?? false,
       allow_location: old.allow_location ?? false,
       qr_rotation_days: old.office_qr_rotation_days ?? 7,
+      night_shift_button_allowed: old.night_shift_button_allowed ?? false,
       break_recording_enabled: old.break_time_mode === 'simple' || old.break_time_mode === 'detailed',
       auto_break_deduction: old.auto_break_deduction ?? false,
       auto_break_minutes: old.auto_break_minutes ?? 45,
@@ -90,6 +93,7 @@ export function AttendanceBasicSettings({
           qr_display: settings.allow_qr,
         },
         office_qr_rotation_days: settings.qr_rotation_days,
+        night_shift_button_allowed: settings.night_shift_button_allowed,
         site_attendance_enabled: true,
         site_clock_methods: {
           manual: settings.allow_manual,
@@ -225,29 +229,60 @@ export function AttendanceBasicSettings({
         </div>
 
         {settings.allow_qr && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              QRコード更新頻度
-            </label>
-            <select
-              value={settings.qr_rotation_days}
-              onChange={(e) =>
-                setSettings({
-                  ...settings,
-                  qr_rotation_days: Number(e.target.value) as 1 | 3 | 7 | 30,
-                })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
-            >
-              <option value={1}>1日（当日23:59まで有効）</option>
-              <option value={3}>3日（3日後の23:59まで有効）</option>
-              <option value={7}>7日（7日後の23:59まで有効・推奨）</option>
-              <option value={30}>30日（30日後の23:59まで有効）</option>
-            </select>
-            <p className="mt-1 text-sm text-gray-500">
-              QRコードは指定した日数後の23:59まで有効です。それ以降は新しいQRコードが必要になります。
-            </p>
-          </div>
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                QRコード更新頻度
+              </label>
+              <select
+                value={settings.qr_rotation_days}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    qr_rotation_days: Number(e.target.value) as 1 | 3 | 7 | 30,
+                  })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+              >
+                <option value={1}>1日（当日23:59まで有効）</option>
+                <option value={3}>3日（3日後の23:59まで有効）</option>
+                <option value={7}>7日（7日後の23:59まで有効・推奨）</option>
+                <option value={30}>30日（30日後の23:59まで有効）</option>
+              </select>
+              <p className="mt-1 text-sm text-gray-500">
+                QRコードは指定した日数後の23:59まで有効です。それ以降は新しいQRコードが必要になります。
+              </p>
+            </div>
+
+            <div className="mt-4 p-4 bg-gray-50 rounded-md">
+              <h4 className="text-sm font-medium text-gray-900 mb-3">
+                QRコード打刻時の特例
+              </h4>
+              <div className="flex items-start">
+                <input
+                  id="night_shift_button_allowed"
+                  type="checkbox"
+                  checked={settings.night_shift_button_allowed}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      night_shift_button_allowed: e.target.checked,
+                    })
+                  }
+                  className="h-4 w-4 mt-1 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <div className="ml-2">
+                  <label htmlFor="night_shift_button_allowed" className="block text-sm text-gray-900">
+                    夜勤パターンのスタッフはボタン打刻も許可
+                  </label>
+                  <p className="mt-1 text-xs text-gray-500">
+                    勤務パターンが「夜勤」に設定されているスタッフは、QRコード必須の場合でもボタンで打刻できるようになります。
+                    夜間のリーダー不在時などに便利です。
+                  </p>
+                </div>
+              </div>
+            </div>
+          </>
         )}
       </div>
 

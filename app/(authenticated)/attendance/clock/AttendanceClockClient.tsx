@@ -17,12 +17,14 @@ interface OrgSettings {
   break_time_mode?: 'none' | 'simple' | 'detailed'
   auto_break_deduction?: boolean
   auto_break_minutes?: number
+  night_shift_button_allowed?: boolean
 }
 
 interface AttendanceClockClientProps {
   userId: string
   orgSettings: OrgSettings | null
   sites: Site[]
+  isNightShift?: boolean
 }
 
 interface TodayRecord {
@@ -32,7 +34,7 @@ interface TodayRecord {
   site_name: string | null
 }
 
-export function AttendanceClockClient({ userId, orgSettings, sites }: AttendanceClockClientProps) {
+export function AttendanceClockClient({ userId, orgSettings, sites, isNightShift = false }: AttendanceClockClientProps) {
   const [todayRecord, setTodayRecord] = useState<TodayRecord | null>(null)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
@@ -57,7 +59,10 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
   // SSR対応: 初期値をnullにしてuseEffectで設定
   const [currentTime, setCurrentTime] = useState<Date | null>(null)
 
-  const canUseManual = orgSettings?.allow_manual || false
+  // 打刻方法の判定
+  // 夜勤スタッフで夜勤ボタン許可が有効な場合、QRコードのみ設定でもボタンを表示
+  const isNightShiftWithButtonAllowed = isNightShift && orgSettings?.night_shift_button_allowed
+  const canUseManual = orgSettings?.allow_manual || isNightShiftWithButtonAllowed || false
   const canUseQR = orgSettings?.allow_qr || false
   const shouldRecordBreak = orgSettings?.break_time_mode === 'simple'
 
@@ -401,6 +406,11 @@ export function AttendanceClockClient({ userId, orgSettings, sites }: Attendance
             {['日', '月', '火', '水', '木', '金', '土'][today.getDay()]}）
           </h2>
           <p className="text-xs sm:text-sm text-gray-500 mt-1">{today.getFullYear()}年</p>
+          {isNightShiftWithButtonAllowed && (
+            <div className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+              夜勤モード
+            </div>
+          )}
         </div>
 
         {/* 当日の出退勤記録 */}
