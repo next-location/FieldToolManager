@@ -49,6 +49,7 @@ export default function AttendanceQRGenerator({ sites, existingQRs, userRole, is
   const [qrStates, setQrStates] = useState<QRState>({})
   const [selectedSiteId, setSelectedSiteId] = useState<string>('')
   const [isGenerating, setIsGenerating] = useState(false)
+  const [regeneratingSiteIds, setRegeneratingSiteIds] = useState<Set<string>>(new Set())
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [viewingSiteId, setViewingSiteId] = useState<string | null>(null)
 
@@ -179,7 +180,8 @@ export default function AttendanceQRGenerator({ sites, existingQRs, userRole, is
 
   // 再発行用の関数（現場IDを直接受け取って発行）
   const handleRegenerate = async (siteId: string) => {
-    setIsGenerating(true)
+    // この現場のみを再発行中状態にする
+    setRegeneratingSiteIds(prev => new Set([...prev, siteId]))
     setMessage(null)
 
     try {
@@ -214,7 +216,12 @@ export default function AttendanceQRGenerator({ sites, existingQRs, userRole, is
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message })
     } finally {
-      setIsGenerating(false)
+      // この現場の再発行中状態を解除
+      setRegeneratingSiteIds(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(siteId)
+        return newSet
+      })
     }
   }
 
@@ -555,10 +562,10 @@ export default function AttendanceQRGenerator({ sites, existingQRs, userRole, is
                       </button>
                       <button
                         onClick={() => handleRegenerate(site.id)}
-                        disabled={isGenerating}
+                        disabled={regeneratingSiteIds.has(site.id)}
                         className="rounded-lg bg-orange-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-700 disabled:bg-gray-300"
                       >
-                        {isGenerating ? '再発行中...' : '再発行'}
+                        {regeneratingSiteIds.has(site.id) ? '再発行中...' : '再発行'}
                       </button>
                     </div>
                   </div>
