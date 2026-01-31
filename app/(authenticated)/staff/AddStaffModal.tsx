@@ -122,10 +122,9 @@ export function AddStaffModal({ isOpen, onClose, onSuccess, departments }: AddSt
   }
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto z-40">
-      <div className="flex min-h-full items-center justify-center p-4 pt-20">
-        <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all my-8 w-full max-w-lg">
-          <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4 max-h-[calc(90vh-5rem)] overflow-y-auto">
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 z-40 flex items-center justify-center p-4">
+      <div className="relative transform rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-lg max-h-[90vh] mt-16 flex flex-col">
+        <div className="flex-1 overflow-y-auto px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
             <h2 className="text-lg font-medium text-gray-900 mb-4">新規スタッフを追加</h2>
 
             {error && (
@@ -307,25 +306,24 @@ export function AddStaffModal({ isOpen, onClose, onSuccess, departments }: AddSt
           )}
 
             </form>
-          </div>
-          <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-            <button
-              type="submit"
-              form="add-staff-form"
-              disabled={loading}
-              className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 sm:ml-3 sm:w-auto disabled:opacity-50"
-            >
-              {loading ? '追加中...' : '追加する'}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto disabled:opacity-50"
-            >
-              キャンセル
-            </button>
-          </div>
+        </div>
+        <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 border-t border-gray-200">
+          <button
+            type="submit"
+            form="add-staff-form"
+            disabled={loading}
+            className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 sm:ml-3 sm:w-auto disabled:opacity-50"
+          >
+            {loading ? '追加中...' : '追加する'}
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto disabled:opacity-50"
+          >
+            キャンセル
+          </button>
         </div>
       </div>
     </div>
