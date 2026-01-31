@@ -126,9 +126,17 @@ export function AttendanceAlertsSettings({
       }
 
       setMessage({ type: 'success', text: 'アラート・通知設定を更新しました' })
+      // メッセージ表示位置までスクロール
+      setTimeout(() => {
+        document.getElementById('attendance-alerts-message')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 100)
       router.refresh()
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message || '更新に失敗しました' })
+      // エラーメッセージ表示位置までスクロール
+      setTimeout(() => {
+        document.getElementById('attendance-alerts-message')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 100)
     } finally {
       setLoading(false)
     }
@@ -139,6 +147,7 @@ export function AttendanceAlertsSettings({
       {/* メッセージ表示 */}
       {message && (
         <div
+          id="attendance-alerts-message"
           className={`rounded-md p-4 ${
             message.type === 'success'
               ? 'bg-green-50 text-green-800'

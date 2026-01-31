@@ -138,9 +138,17 @@ export function AttendanceBasicSettings({
       }
 
       setMessage({ type: 'success', text: '基本設定を更新しました' })
+      // メッセージ表示位置までスクロール
+      setTimeout(() => {
+        document.getElementById('attendance-message')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 100)
       router.refresh()
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message || '更新に失敗しました' })
+      // エラーメッセージ表示位置までスクロール
+      setTimeout(() => {
+        document.getElementById('attendance-message')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 100)
     } finally {
       setLoading(false)
     }
@@ -151,6 +159,7 @@ export function AttendanceBasicSettings({
       {/* メッセージ表示 */}
       {message && (
         <div
+          id="attendance-message"
           className={`rounded-md p-4 ${
             message.type === 'success'
               ? 'bg-green-50 text-green-800'
