@@ -65,15 +65,25 @@ export async function POST(request: NextRequest) {
     // 出退勤設定を取得（QR有効期限設定を確認）
     const { data: attendanceSettings } = await supabase
       .from('organization_attendance_settings')
-      .select('qr_rotation_days')
+      .select('office_qr_rotation_days')
       .eq('organization_id', userData?.organization_id)
       .single()
 
     // QR更新頻度（デフォルト: 1日）
-    const rotationDays = attendanceSettings?.qr_rotation_days || 1
+    // 現場QRも会社QRと同じ設定を使用
+    const rotationDays = attendanceSettings?.office_qr_rotation_days || 1
 
     // 日本時間で今日の日付を取得
     const now = new Date()
+
+    // 既存の有効なQRコードを無効化（再発行対応）
+    await supabase
+      .from('site_leader_qr_logs')
+      .update({ is_active: false })
+      .eq('organization_id', userData?.organization_id)
+      .eq('site_id', site_id)
+      .eq('is_active', true)
+
     const jstOffset = 9 * 60 // 日本は UTC+9
     const jstDate = new Date(now.getTime() + jstOffset * 60 * 1000)
     const today = jstDate.toISOString().split('T')[0] // YYYY-MM-DD
