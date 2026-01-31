@@ -177,6 +177,47 @@ export default function AttendanceQRGenerator({ sites, existingQRs, userRole, is
     }
   }
 
+  // 再発行用の関数（現場IDを直接受け取って発行）
+  const handleRegenerate = async (siteId: string) => {
+    setIsGenerating(true)
+    setMessage(null)
+
+    try {
+      const response = await fetch('/api/attendance/qr/site/leader/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          site_id: siteId,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'QRコードの再発行に失敗しました')
+      }
+
+      setQrStates((prev) => ({
+        ...prev,
+        [siteId]: {
+          qr_data: data.qr_data,
+          qr_image: data.qr_image,
+          generated_at: data.generated_at,
+          expires_at: data.expires_at,
+        },
+      }))
+
+      setViewingSiteId(siteId)
+      setMessage({ type: 'success', text: `${data.site_name}のQRコードを再発行しました` })
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message })
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
   const handleView = (siteId: string) => {
     setViewingSiteId(viewingSiteId === siteId ? null : siteId)
   }
@@ -513,10 +554,7 @@ export default function AttendanceQRGenerator({ sites, existingQRs, userRole, is
                         印刷
                       </button>
                       <button
-                        onClick={() => {
-                          setSelectedSiteId(site.id)
-                          handleGenerate()
-                        }}
+                        onClick={() => handleRegenerate(site.id)}
                         disabled={isGenerating}
                         className="rounded-lg bg-orange-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-700 disabled:bg-gray-300"
                       >
