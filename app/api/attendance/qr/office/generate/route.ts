@@ -85,10 +85,10 @@ export async function POST(request: NextRequest) {
     const jstDate = new Date(now.getTime() + jstOffset * 60 * 1000)
     const today = jstDate.toISOString().split('T')[0] // YYYY-MM-DD
 
-    // 有効期限を計算（rotationDays日後の23:59:59）
-    const validUntil = new Date(today + 'T00:00:00+09:00') // 今日の00:00:00 JST
-    validUntil.setDate(validUntil.getDate() + rotationDays) // rotationDays日後
-    validUntil.setHours(23, 59, 59, 999) // 23:59:59.999に設定
+    // 有効期限を計算（rotationDays日後の23:59:59 JST → UTC）
+    // JST で指定日の23:59:59を作成
+    const validUntil = new Date(today + 'T23:59:59.999+09:00')
+    validUntil.setDate(validUntil.getDate() + rotationDays - 1) // 今日を含むので-1
 
     // QRデータフォーマット: ATT|${organization_id}|${random_token}|${valid_until}
     const qrData = `ATT|${userData?.organization_id}|${randomToken}|${validUntil.toISOString()}`

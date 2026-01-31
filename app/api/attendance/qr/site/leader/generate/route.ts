@@ -78,11 +78,11 @@ export async function POST(request: NextRequest) {
     const jstDate = new Date(now.getTime() + jstOffset * 60 * 1000)
     const today = jstDate.toISOString().split('T')[0] // YYYY-MM-DD
 
-    // 有効期限を計算（rotationDays日後の23:59:59）
-    const expiresDate = new Date(today + 'T00:00:00+09:00') // 今日の00:00:00 JST
-    expiresDate.setDate(expiresDate.getDate() + rotationDays) // rotationDays日後
-    expiresDate.setHours(23, 59, 59, 999) // 23:59:59.999に設定
-    const expiresAt = expiresDate // すでにJSTなのでそのまま使用
+    // 有効期限を計算（rotationDays日後の23:59:59 JST → UTC）
+    // JST で指定日の23:59:59を作成
+    const targetDate = new Date(today + 'T23:59:59.999+09:00')
+    targetDate.setDate(targetDate.getDate() + rotationDays - 1) // 今日を含むので-1
+    const expiresAt = targetDate // ISOStringで自動的にUTCに変換される
 
     // QRコードデータ生成（JSON形式）
     const qrData = JSON.stringify({
