@@ -101,33 +101,112 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 今日の記録が見つからず、かつ夜勤パターンの場合は前日の記録を確認
+    // 今日の記録が見つからず、かつ夜勤パターンの場合は過去の未退勤記録を確認
     if (!todayRecord && isNightShift) {
-      const yesterday = new Date(jstDate)
-      yesterday.setDate(yesterday.getDate() - 1)
-      const yesterdayString = yesterday.toISOString().split('T')[0]
+      // 過去7日分の未退勤記録を取得（最新順）
+      const sevenDaysAgo = new Date(jstDate)
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+      const sevenDaysAgoString = sevenDaysAgo.toISOString().split('T')[0]
 
-      const { data: yesterdayRecord, error: yesterdayError } = await supabase
+      const { data: unclockoutRecords, error: unclockoutError } = await supabase
         .from('attendance_records')
         .select('*')
         .eq('organization_id', userData?.organization_id)
         .eq('user_id', user.id)
-        .eq('date', yesterdayString)
+        .gte('date', sevenDaysAgoString)
+        .lt('date', dateString) // 今日より前
         .is('clock_out_time', null) // 退勤未打刻のもののみ
-        .maybeSingle()
+        .order('date', { ascending: false })
 
-      if (!yesterdayError && yesterdayRecord) {
-        // 前日の出勤時刻を確認（16:00以降なら夜勤の可能性が高い）
-        const clockInTime = new Date(yesterdayRecord.clock_in_time)
+      if (!unclockoutError && unclockoutRecords && unclockoutRecords.length > 0) {
+        // 最新の未退勤記録を確認
+        const latestRecord = unclockoutRecords[0]
+        const clockInTime = new Date(latestRecord.clock_in_time)
         const clockInHour = new Date(clockInTime.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })).getHours()
 
-        if (clockInHour >= 16) {
-          // 夜勤の退勤として処理
-          todayRecord = yesterdayRecord
-        } else {
-          // 16:00より前の出勤は打刻忘れの可能性
+        // 昨日の記録で16:00以降の出勤なら夜勤として処理
+        const yesterday = new Date(jstDate)
+        yesterday.setDate(yesterday.getDate() - 1)
+        const yesterdayString = yesterday.toISOString().split('T')[0]
+
+        if (latestRecord.date === yesterdayString && clockInHour >= 16) {
+          // 昨日の夜勤として処理
+          todayRecord = latestRecord
+        } else if (latestRecord.date === yesterdayString) {
+          // 昨日の記録だが16:00より前 → 休日チェック
+          const holidayCheckRes = await fetch(new URL('/api/attendance/check-holiday', request.url).toString(), {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Cookie: request.headers.get('cookie') || '',
+            },
+            body: JSON.stringify({ date: yesterdayString }),
+          })
+
+          if (holidayCheckRes.ok) {
+            const holidayCheck = await holidayCheckRes.json()
+            if (holidayCheck.is_holiday && latestRecord.is_holiday_work) {
+              // 前日が休日で休日出勤の記録 → 夜勤の可能性
+              todayRecord = latestRecord
+            } else if (unclockoutRecords.length > 1) {
+              // 複数の未退勤記録がある
+              const dates = unclockoutRecords.map(r => r.date).join(', ')
+              return NextResponse.json(
+                { error: `複数の未退勤記録があります（${dates}）。管理者に確認してください。` },
+                { status: 400 }
+              )
+            } else {
+              // 単一の打刻忘れ
+              return NextResponse.json(
+                { error: `${latestRecord.date}の退勤が未打刻です。先に退勤処理を行ってください。` },
+                { status: 400 }
+              )
+            }
+          }
+        } else if (unclockoutRecords.length > 1) {
+          // 2日以上前の未退勤記録が複数ある
+          const dates = unclockoutRecords.map(r => r.date).join(', ')
           return NextResponse.json(
-            { error: `前日(${yesterdayString})に未退勤の記録があります。先に前日の退勤処理を行ってください。` },
+            { error: `複数の未退勤記録があります（${dates}）。管理者に確認してください。` },
+            { status: 400 }
+          )
+        } else {
+          // 2日以上前の単一の未退勤記録
+          return NextResponse.json(
+            { error: `${latestRecord.date}の退勤が未打刻です。先に退勤処理を行ってください。` },
+            { status: 400 }
+          )
+        }
+      }
+    }
+
+    // 通常勤務で今日の記録が見つからない場合、過去の未退勤記録をチェック
+    if (!todayRecord && !isNightShift) {
+      // 過去7日分の未退勤記録を確認
+      const sevenDaysAgo = new Date(jstDate)
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+      const sevenDaysAgoString = sevenDaysAgo.toISOString().split('T')[0]
+
+      const { data: unclockoutRecords, error: unclockoutError } = await supabase
+        .from('attendance_records')
+        .select('date')
+        .eq('organization_id', userData?.organization_id)
+        .eq('user_id', user.id)
+        .gte('date', sevenDaysAgoString)
+        .lt('date', dateString) // 今日より前
+        .is('clock_out_time', null) // 退勤未打刻のもののみ
+        .order('date', { ascending: false })
+
+      if (!unclockoutError && unclockoutRecords && unclockoutRecords.length > 0) {
+        const dates = unclockoutRecords.map(r => r.date).join(', ')
+        if (unclockoutRecords.length === 1) {
+          return NextResponse.json(
+            { error: `${dates}の退勤が未打刻です。先に退勤処理を行ってください。` },
+            { status: 400 }
+          )
+        } else {
+          return NextResponse.json(
+            { error: `複数の未退勤記録があります（${dates}）。管理者に確認してください。` },
             { status: 400 }
           )
         }
