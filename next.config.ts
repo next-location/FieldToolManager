@@ -41,6 +41,27 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // マーケティング用リダイレクト設定
+  async redirects() {
+    return [
+      {
+        source: '/check',
+        destination: '/?utm_source=form&utm_medium=email&utm_campaign=202602',
+        permanent: false, // 302リダイレクト（一時的）
+      },
+      // 他のキャンペーン用URLも追加可能
+      {
+        source: '/demo',
+        destination: '/?utm_source=form&utm_medium=email&utm_campaign=demo202602',
+        permanent: false,
+      },
+      {
+        source: '/trial',
+        destination: '/?utm_source=form&utm_medium=email&utm_campaign=trial202602',
+        permanent: false,
+      },
+    ];
+  },
 };
 
 const withMDX = createMDX({

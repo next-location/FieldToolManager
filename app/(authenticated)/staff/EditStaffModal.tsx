@@ -28,7 +28,7 @@ interface EditStaffModalProps {
 export function EditStaffModal({ isOpen, onClose, onSuccess, staff, departments }: EditStaffModalProps) {
   const [name, setName] = useState(staff.name)
   const [email, setEmail] = useState(staff.email)
-  const [role, setRole] = useState<'staff' | 'leader' | 'manager' | 'admin'>(staff.role as 'staff' | 'leader' | 'manager' | 'admin')
+  const [role, setRole] = useState<'staff' | 'leader' | 'manager'>(staff.role === 'admin' ? 'manager' : staff.role as 'staff' | 'leader' | 'manager')
   const [department, setDepartment] = useState(staff.department || '')
   const [employeeId, setEmployeeId] = useState(staff.employee_id || '')
   const [phone, setPhone] = useState(staff.phone || '')
@@ -105,20 +105,20 @@ export function EditStaffModal({ isOpen, onClose, onSuccess, staff, departments 
     isShiftWork !== staff.is_shift_work
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 z-40 flex items-center justify-center p-4">
-      <div className="relative transform rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-lg max-h-[90vh] mt-16 flex flex-col">
-        <div className="flex-1 overflow-y-auto px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">
-          スタッフ情報を編集: {staff.name}
-        </h2>
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 z-50 flex items-center justify-center p-4">
+      <div className="relative transform rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="px-4 pb-4 pt-5 sm:p-6">
+          <h2 className="text-lg font-medium text-gray-900 mb-4">
+            スタッフ情報を編集: {staff.name}
+          </h2>
 
-        {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {error}
-          </div>
-        )}
+          {error && (
+            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+          )}
 
-        <form id="edit-staff-form" onSubmit={handleSubmit} className="space-y-4">
+          <form id="edit-staff-form" onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               名前 <span className="text-red-500">*</span>
@@ -195,7 +195,7 @@ export function EditStaffModal({ isOpen, onClose, onSuccess, staff, departments 
             </label>
             <select
               value={role}
-              onChange={(e) => setRole(e.target.value as 'staff' | 'leader' | 'manager' | 'admin')}
+              onChange={(e) => setRole(e.target.value as 'staff' | 'leader' | 'manager')}
               disabled={staff.role === 'admin'}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
@@ -289,25 +289,26 @@ export function EditStaffModal({ isOpen, onClose, onSuccess, staff, departments 
             </p>
           </div>
 
-            </form>
-        </div>
-        <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 border-t border-gray-200">
-          <button
-            type="submit"
-            form="edit-staff-form"
-            disabled={loading || !hasChanges}
-            className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 sm:ml-3 sm:w-auto disabled:opacity-50"
-          >
-            {loading ? '保存中...' : '保存する'}
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={loading}
-            className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto disabled:opacity-50"
-          >
-            キャンセル
-          </button>
+          </form>
+
+          <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            >
+              キャンセル
+            </button>
+            <button
+              type="submit"
+              form="edit-staff-form"
+              disabled={loading || !hasChanges}
+              className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            >
+              {loading ? '保存中...' : '保存する'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
