@@ -41,8 +41,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 夜勤パターンかどうかを判定
-    const isNightShift = userData.work_patterns?.is_night_shift || false
+    // 夜勤パターンかどうかを判定（TypeScript型エラー回避のためany型でアクセス）
+    const isNightShift = (userData as any).work_patterns?.is_night_shift || false
 
     // リクエストボディ取得
     const body: ClockInRequest = await request.json()
