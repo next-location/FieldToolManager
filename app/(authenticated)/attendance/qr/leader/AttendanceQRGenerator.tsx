@@ -478,6 +478,8 @@ export default function AttendanceQRGenerator({ sites, existingQRs, userRole, is
               const qr = qrStates[site.id]
               const isViewing = viewingSiteId === site.id
               const expiresAt = new Date(qr.expires_at)
+              const now = new Date()
+              const daysRemaining = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
 
               return (
                 <div key={site.id} className="rounded-lg border border-gray-200 p-4">
@@ -486,14 +488,12 @@ export default function AttendanceQRGenerator({ sites, existingQRs, userRole, is
                     <div>
                       <h3 className="font-medium text-gray-900">{site.name}</h3>
                       <p className="text-sm text-gray-500">
-                        発行日時: {new Date(qr.generated_at).toLocaleString('ja-JP')}
-                      </p>
-                      <p className="text-sm text-gray-500">
                         有効期限: {expiresAt.toLocaleString('ja-JP')}
                       </p>
+                      <p className="text-sm text-gray-500">残り {daysRemaining} 日</p>
                     </div>
-                    {/* スマホ: 3列グリッド、PC: 横並び */}
-                    <div className="grid grid-cols-3 gap-2 sm:flex sm:gap-2">
+                    {/* スマホ: 2x2グリッド、PC: 横並び */}
+                    <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-2">
                       <button
                         onClick={() => handleView(site.id)}
                         className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
@@ -511,6 +511,16 @@ export default function AttendanceQRGenerator({ sites, existingQRs, userRole, is
                         className="rounded-lg border-2 border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
                       >
                         印刷
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedSiteId(site.id)
+                          handleGenerate()
+                        }}
+                        disabled={isGenerating}
+                        className="rounded-lg bg-orange-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-700 disabled:bg-gray-300"
+                      >
+                        {isGenerating ? '再発行中...' : '再発行'}
                       </button>
                     </div>
                   </div>
