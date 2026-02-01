@@ -48,6 +48,11 @@ export async function POST(request: NextRequest) {
     const body: ClockInRequest = await request.json()
     const isHolidayWork = body.is_holiday_work || false
 
+    // GPS位置情報（オプショナル）
+    const gpsLatitude = body.gps_latitude
+    const gpsLongitude = body.gps_longitude
+    const gpsAccuracy = body.gps_accuracy
+
     // バリデーション（打刻方法）
     if (!['manual', 'qr'].includes(body.method)) {
       return NextResponse.json(
@@ -190,7 +195,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 出勤記録を作成
-    const attendanceData = {
+    const attendanceData: any = {
       organization_id: userData?.organization_id,
       user_id: user.id,
       date: dateString,
@@ -202,6 +207,13 @@ export async function POST(request: NextRequest) {
       planned_checkout_location_type: body.planned_checkout_location_type || null,
       planned_checkout_site_id: body.planned_checkout_site_id || null,
       is_holiday_work: isHolidayWork,
+    }
+
+    // GPS情報があれば追加（オプショナル）
+    if (gpsLatitude !== undefined && gpsLongitude !== undefined) {
+      attendanceData.clock_in_latitude = gpsLatitude
+      attendanceData.clock_in_longitude = gpsLongitude
+      attendanceData.clock_in_accuracy = gpsAccuracy || null
     }
 
     const { data: newRecord, error: insertError } = await supabase

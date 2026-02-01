@@ -193,3 +193,86 @@ DROP COLUMN IF EXISTS is_night_shift;
 ```
 
 ---
+
+## Migration #054: GPS打刻機能の追加
+### 実行日
+2025-02-01
+
+### 概要
+GPS位置情報を使用した打刻機能の実装。ボタン打刻時のGPS取得オプションと、シフト制/夜勤での必須設定機能を追加。
+
+### 実行SQL
+```sql
+-- attendance_records にGPS位置情報カラムを追加
+ALTER TABLE attendance_records
+ADD COLUMN IF NOT EXISTS clock_in_latitude DECIMAL(10, 8),
+ADD COLUMN IF NOT EXISTS clock_in_longitude DECIMAL(11, 8),
+ADD COLUMN IF NOT EXISTS clock_in_accuracy INTEGER,
+ADD COLUMN IF NOT EXISTS clock_out_latitude DECIMAL(10, 8),
+ADD COLUMN IF NOT EXISTS clock_out_longitude DECIMAL(11, 8),
+ADD COLUMN IF NOT EXISTS clock_out_accuracy INTEGER;
+
+-- organization_attendance_settings にGPS設定を追加
+ALTER TABLE organization_attendance_settings
+ADD COLUMN IF NOT EXISTS gps_requirement TEXT DEFAULT 'none'
+  CHECK (gps_requirement IN ('none', 'all', 'shift_only', 'shift_night')),
+ADD COLUMN IF NOT EXISTS gps_radius INTEGER DEFAULT 100;
+
+-- sites に位置情報を追加
+ALTER TABLE sites
+ADD COLUMN IF NOT EXISTS latitude DECIMAL(10, 8),
+ADD COLUMN IF NOT EXISTS longitude DECIMAL(11, 8),
+ADD COLUMN IF NOT EXISTS gps_radius INTEGER DEFAULT 100;
+
+-- 打刻可能エリアテーブルを新規作成
+CREATE TABLE IF NOT EXISTS attendance_allowed_areas (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  latitude DECIMAL(10, 8) NOT NULL,
+  longitude DECIMAL(11, 8) NOT NULL,
+  radius INTEGER NOT NULL DEFAULT 100,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### 影響する機能
+- 出勤簿画面（GPS取得機能）
+- 勤怠管理設定画面（GPS設定）
+- 打刻API（位置情報の保存）
+- 現場マスタ（位置情報の登録）
+
+### 確認クエリ
+```sql
+-- カラム追加確認
+\d attendance_records
+\d organization_attendance_settings
+\d sites
+\d attendance_allowed_areas
+```
+
+### ロールバック手順
+```sql
+ALTER TABLE attendance_records
+DROP COLUMN IF EXISTS clock_in_latitude,
+DROP COLUMN IF EXISTS clock_in_longitude,
+DROP COLUMN IF EXISTS clock_in_accuracy,
+DROP COLUMN IF EXISTS clock_out_latitude,
+DROP COLUMN IF EXISTS clock_out_longitude,
+DROP COLUMN IF EXISTS clock_out_accuracy;
+
+ALTER TABLE organization_attendance_settings
+DROP COLUMN IF EXISTS gps_requirement,
+DROP COLUMN IF EXISTS gps_radius;
+
+ALTER TABLE sites
+DROP COLUMN IF EXISTS latitude,
+DROP COLUMN IF EXISTS longitude,
+DROP COLUMN IF EXISTS gps_radius;
+
+DROP TABLE IF EXISTS attendance_allowed_areas;
+```
+
+---

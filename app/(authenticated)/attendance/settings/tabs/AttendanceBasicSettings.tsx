@@ -14,6 +14,10 @@ interface BasicAttendanceSettings {
   qr_rotation_days: 1 | 3 | 7 | 30
   night_shift_button_allowed: boolean
 
+  // GPS設定
+  gps_requirement: 'none' | 'all' | 'shift_only' | 'shift_night'
+  gps_radius: number
+
   // 休憩設定
   break_recording_enabled: boolean
   auto_break_deduction: boolean
@@ -26,6 +30,8 @@ const DEFAULT_SETTINGS: BasicAttendanceSettings = {
   allow_location: false,
   qr_rotation_days: 7,
   night_shift_button_allowed: false,
+  gps_requirement: 'none',
+  gps_radius: 100,
   break_recording_enabled: false,
   auto_break_deduction: false,
   auto_break_minutes: 45,
@@ -48,6 +54,8 @@ export function AttendanceBasicSettings({
       allow_location: old.allow_location ?? false,
       qr_rotation_days: old.office_qr_rotation_days ?? 7,
       night_shift_button_allowed: old.night_shift_button_allowed ?? false,
+      gps_requirement: old.gps_requirement ?? 'none',
+      gps_radius: old.gps_radius ?? 100,
       break_recording_enabled: old.break_time_mode === 'simple' || old.break_time_mode === 'detailed',
       auto_break_deduction: old.auto_break_deduction ?? false,
       auto_break_minutes: old.auto_break_minutes ?? 45,
@@ -94,6 +102,8 @@ export function AttendanceBasicSettings({
         },
         office_qr_rotation_days: settings.qr_rotation_days,
         night_shift_button_allowed: settings.night_shift_button_allowed,
+        gps_requirement: settings.gps_requirement,
+        gps_radius: settings.gps_radius,
         site_attendance_enabled: true,
         site_clock_methods: {
           manual: settings.allow_manual,
@@ -294,6 +304,179 @@ export function AttendanceBasicSettings({
           </>
         )}
       </div>
+
+      {/* GPS打刻設定 */}
+      {settings.allow_manual && (
+        <div className="space-y-6 pt-6">
+          <div>
+            <h3 className="text-lg font-medium leading-6 text-gray-900">
+              GPS打刻設定
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              ボタン打刻時のGPS位置情報取得設定
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <label className="block text-sm font-medium text-gray-700">
+              GPS位置確認の要件
+            </label>
+            <div className="space-y-3">
+              <div className="flex items-start">
+                <input
+                  id="gps_none"
+                  type="radio"
+                  name="gps_requirement"
+                  value="none"
+                  checked={settings.gps_requirement === 'none'}
+                  onChange={(e) =>
+                    setSettings({ ...settings, gps_requirement: e.target.value as any })
+                  }
+                  className="h-4 w-4 mt-1 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <div className="ml-2">
+                  <label htmlFor="gps_none" className="block text-sm text-gray-900">
+                    GPS位置確認を使用しない
+                  </label>
+                  <p className="text-xs text-gray-500">
+                    従来通りの打刻方法（場所選択のみ）
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start">
+                <input
+                  id="gps_all"
+                  type="radio"
+                  name="gps_requirement"
+                  value="all"
+                  checked={settings.gps_requirement === 'all'}
+                  onChange={(e) =>
+                    setSettings({ ...settings, gps_requirement: e.target.value as any })
+                  }
+                  className="h-4 w-4 mt-1 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <div className="ml-2">
+                  <label htmlFor="gps_all" className="block text-sm text-gray-900">
+                    すべてのスタッフにGPS位置確認を必須とする
+                  </label>
+                  <p className="text-xs text-gray-500">
+                    全員がボタン打刻時にGPS位置情報の提供が必要
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start">
+                <input
+                  id="gps_shift_only"
+                  type="radio"
+                  name="gps_requirement"
+                  value="shift_only"
+                  checked={settings.gps_requirement === 'shift_only'}
+                  onChange={(e) =>
+                    setSettings({ ...settings, gps_requirement: e.target.value as any })
+                  }
+                  className="h-4 w-4 mt-1 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <div className="ml-2">
+                  <label htmlFor="gps_shift_only" className="block text-sm text-gray-900">
+                    シフト制スタッフのみGPS位置確認を必須とする
+                  </label>
+                  <p className="text-xs text-gray-500">
+                    シフト制のスタッフのみGPS必須（固定勤務は不要）
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start">
+                <input
+                  id="gps_shift_night"
+                  type="radio"
+                  name="gps_requirement"
+                  value="shift_night"
+                  checked={settings.gps_requirement === 'shift_night'}
+                  onChange={(e) =>
+                    setSettings({ ...settings, gps_requirement: e.target.value as any })
+                  }
+                  className="h-4 w-4 mt-1 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <div className="ml-2">
+                  <label htmlFor="gps_shift_night" className="block text-sm text-gray-900">
+                    シフト制と夜勤スタッフのみGPS位置確認を必須とする
+                  </label>
+                  <p className="text-xs text-gray-500">
+                    シフト制または夜勤パターンのスタッフのみGPS必須
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {settings.gps_requirement !== 'none' && (
+              <div className="mt-4 pl-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  GPS許容範囲（メートル）
+                </label>
+                <input
+                  type="number"
+                  value={settings.gps_radius}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value)
+                    if (!isNaN(value) && value > 0) {
+                      setSettings({ ...settings, gps_radius: value })
+                    }
+                  }}
+                  min="50"
+                  max="1000"
+                  step="50"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  登録された勤務地から指定範囲内での打刻を許可（推奨: 100m）
+                </p>
+              </div>
+            )}
+
+            <div className="mt-4 p-4 bg-yellow-50 rounded-md">
+              <p className="text-sm text-yellow-800">
+                <strong>⚠️ 注意事項</strong>
+              </p>
+              <ul className="mt-2 text-xs text-yellow-700 space-y-1">
+                <li>• GPS打刻を利用するには、スタッフが端末の位置情報を許可する必要があります</li>
+                <li>• 屋内や地下ではGPS精度が低下する場合があります</li>
+                <li>• GPS取得に失敗した場合は、管理者承認による打刻となります</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* シフト制専用設定 */}
+      {settings.allow_manual && (
+        <div className="space-y-6 pt-6">
+          <div>
+            <h3 className="text-lg font-medium leading-6 text-gray-900">
+              シフト制専用設定
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              シフト制スタッフの打刻方法
+            </p>
+          </div>
+
+          <div className="p-4 bg-blue-50 rounded-md">
+            <div className="flex items-center">
+              <svg className="h-5 w-5 text-blue-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <p className="text-sm text-blue-800">
+                シフト制スタッフはQRコードスキャンが無効化され、ボタン打刻のみ利用可能になります
+              </p>
+            </div>
+            <p className="mt-2 text-xs text-blue-700">
+              理由: シフト制は勤務時間が不規則なため、QRコード管理が複雑になるため
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* 休憩時間設定 */}
       <div className="space-y-6 pt-6">

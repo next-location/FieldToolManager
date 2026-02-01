@@ -11,22 +11,24 @@ export default async function AttendanceClockPage() {
     .eq('id', userId)
     .single()
 
-  // 組織の出退勤設定を取得
+  // 組織の出退勤設定を取得（GPS設定を含む）
   const { data: orgSettings } = await supabase
     .from('organization_attendance_settings')
-    .select('clock_method, allow_manual, allow_qr, allow_location, break_time_mode, auto_break_deduction, auto_break_minutes, night_shift_button_allowed')
+    .select('clock_method, allow_manual, allow_qr, allow_location, break_time_mode, auto_break_deduction, auto_break_minutes, night_shift_button_allowed, gps_requirement, gps_radius')
     .eq('organization_id', organizationId)
     .single()
 
-  // 現在のユーザーの勤務パターンを取得
+  // 現在のユーザーの勤務パターンとシフト制フラグを取得
   const { data: userWithPattern } = await supabase
     .from('users')
-    .select('work_pattern_id')
+    .select('work_pattern_id, is_shift_work')
     .eq('id', userId)
     .single()
 
-  // 勤務パターンの詳細を取得
+  // 勤務パターンの詳細を取得（固定勤務の場合のみ）
   let isNightShift = false
+  const isShiftWork = userWithPattern?.is_shift_work || false
+
   if (userWithPattern?.work_pattern_id) {
     const { data: workPattern } = await supabase
       .from('work_patterns')
@@ -60,6 +62,7 @@ export default async function AttendanceClockPage() {
           orgSettings={orgSettings}
           sites={sites || []}
           isNightShift={isNightShift}
+          isShiftWork={isShiftWork}
         />
       </div>
     </div>

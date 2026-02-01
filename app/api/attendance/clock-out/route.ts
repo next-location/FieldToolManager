@@ -47,6 +47,11 @@ export async function POST(request: NextRequest) {
     // リクエストボディ取得
     const body: ClockOutRequest = await request.json()
 
+    // GPS位置情報（オプショナル）
+    const gpsLatitude = body.gps_latitude
+    const gpsLongitude = body.gps_longitude
+    const gpsAccuracy = body.gps_accuracy
+
     // バリデーション（打刻方法）
     if (!['manual', 'qr'].includes(body.method)) {
       return NextResponse.json(
@@ -294,6 +299,13 @@ export async function POST(request: NextRequest) {
       clock_out_method: body.method,
       clock_out_device_type: body.device_type || null,
       updated_at: now.toISOString(),
+    }
+
+    // GPS情報があれば追加（オプショナル）
+    if (gpsLatitude !== undefined && gpsLongitude !== undefined) {
+      updateData.clock_out_latitude = gpsLatitude
+      updateData.clock_out_longitude = gpsLongitude
+      updateData.clock_out_accuracy = gpsAccuracy || null
     }
 
     // 休憩時間が指定されている場合は記録

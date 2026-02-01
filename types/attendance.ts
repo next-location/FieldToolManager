@@ -234,6 +234,10 @@ export interface ClockInRequest {
   planned_checkout_location_type?: 'office' | 'site' | 'remote' | 'direct_home';
   planned_checkout_site_id?: string;
   is_holiday_work?: boolean;
+  // GPS位置情報（オプショナル）
+  gps_latitude?: number;
+  gps_longitude?: number;
+  gps_accuracy?: number;
 }
 
 // POST /api/attendance/clock-in のレスポンス
@@ -249,6 +253,10 @@ export interface ClockOutRequest {
   qr_data?: string;
   device_type: 'mobile' | 'tablet' | 'desktop';
   break_minutes?: number; // 休憩時間（分）
+  // GPS位置情報（オプショナル）
+  gps_latitude?: number;
+  gps_longitude?: number;
+  gps_accuracy?: number;
 }
 
 // POST /api/attendance/clock-out のレスポンス

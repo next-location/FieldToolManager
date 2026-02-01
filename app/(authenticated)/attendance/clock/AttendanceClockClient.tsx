@@ -18,6 +18,8 @@ interface OrgSettings {
   auto_break_deduction?: boolean
   auto_break_minutes?: number
   night_shift_button_allowed?: boolean
+  gps_requirement?: 'none' | 'all' | 'shift_only' | 'shift_night'
+  gps_radius?: number
 }
 
 interface AttendanceClockClientProps {
@@ -25,6 +27,7 @@ interface AttendanceClockClientProps {
   orgSettings: OrgSettings | null
   sites: Site[]
   isNightShift?: boolean
+  isShiftWork?: boolean
 }
 
 interface TodayRecord {
@@ -34,7 +37,7 @@ interface TodayRecord {
   site_name: string | null
 }
 
-export function AttendanceClockClient({ userId, orgSettings, sites, isNightShift = false }: AttendanceClockClientProps) {
+export function AttendanceClockClient({ userId, orgSettings, sites, isNightShift = false, isShiftWork = false }: AttendanceClockClientProps) {
   const [todayRecord, setTodayRecord] = useState<TodayRecord | null>(null)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
@@ -55,16 +58,34 @@ export function AttendanceClockClient({ userId, orgSettings, sites, isNightShift
   // 休憩時間入力用
   const [breakMinutes, setBreakMinutes] = useState<string>('')
 
+  // シフト制の打刻忘れ確認用
+  const [acknowledgeForgetClockOut, setAcknowledgeForgetClockOut] = useState(false)
+
+  // GPS位置情報用
+  const [gpsLocation, setGpsLocation] = useState<{ latitude: number; longitude: number; accuracy: number } | null>(null)
+  const [gpsLoading, setGpsLoading] = useState(false)
+  const [gpsError, setGpsError] = useState<string | null>(null)
+
   // 勤務時間表示用の状態（1分ごとに更新）
   // SSR対応: 初期値をnullにしてuseEffectで設定
   const [currentTime, setCurrentTime] = useState<Date | null>(null)
 
   // 打刻方法の判定
   // 夜勤スタッフで夜勤ボタン許可が有効な場合、QRコードのみ設定でもボタンを表示
+  // シフト制の場合もボタン打刻のみ
   const isNightShiftWithButtonAllowed = isNightShift && orgSettings?.night_shift_button_allowed
-  const canUseManual = orgSettings?.allow_manual || isNightShiftWithButtonAllowed || false
-  const canUseQR = orgSettings?.allow_qr || false
+  const canUseManual = orgSettings?.allow_manual || isNightShiftWithButtonAllowed || isShiftWork || false
+  const canUseQR = !isShiftWork && (orgSettings?.allow_qr || false) // シフト制はQR無効
   const shouldRecordBreak = orgSettings?.break_time_mode === 'simple'
+
+  // GPS要件の判定
+  const needsGPS = () => {
+    if (!orgSettings?.gps_requirement || orgSettings.gps_requirement === 'none') return false
+    if (orgSettings.gps_requirement === 'all') return true
+    if (orgSettings.gps_requirement === 'shift_only' && isShiftWork) return true
+    if (orgSettings.gps_requirement === 'shift_night' && (isShiftWork || isNightShift)) return true
+    return false
+  }
 
 
   // 当日の出退勤記録を取得
@@ -108,6 +129,63 @@ export function AttendanceClockClient({ userId, orgSettings, sites, isNightShift
     }
   }
 
+  // GPS位置情報を取得
+  const getGPSLocation = async (): Promise<boolean> => {
+    if (!needsGPS()) return true // GPS不要な場合は成功扱い
+
+    setGpsLoading(true)
+    setGpsError(null)
+
+    try {
+      return await new Promise((resolve) => {
+        if (!navigator.geolocation) {
+          setGpsError('お使いの端末はGPS機能に対応していません')
+          setGpsLoading(false)
+          resolve(false)
+          return
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setGpsLocation({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              accuracy: Math.round(position.coords.accuracy),
+            })
+            setGpsLoading(false)
+            resolve(true)
+          },
+          (error) => {
+            let errorMessage = 'GPS位置情報の取得に失敗しました'
+            switch (error.code) {
+              case error.PERMISSION_DENIED:
+                errorMessage = '位置情報の利用が許可されていません。設定から許可してください'
+                break
+              case error.POSITION_UNAVAILABLE:
+                errorMessage = '位置情報が取得できません。屋外で再度お試しください'
+                break
+              case error.TIMEOUT:
+                errorMessage = '位置情報の取得がタイムアウトしました'
+                break
+            }
+            setGpsError(errorMessage)
+            setGpsLoading(false)
+            resolve(false)
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0,
+          }
+        )
+      })
+    } catch (error) {
+      setGpsError('GPS取得中にエラーが発生しました')
+      setGpsLoading(false)
+      return false
+    }
+  }
+
   // 手動出勤打刻
   const handleManualClockIn = async () => {
     if (!location) {
@@ -123,34 +201,62 @@ export function AttendanceClockClient({ userId, orgSettings, sites, isNightShift
     setActionLoading(true)
     setMessage(null)
 
+    // GPS取得（必要な場合）
+    const gpsSuccess = await getGPSLocation()
+    if (!gpsSuccess && needsGPS()) {
+      setMessage({ type: 'error', text: gpsError || 'GPS位置情報が必要です' })
+      setActionLoading(false)
+      return
+    }
+
     try {
-      // 休日判定
-      const today = new Date()
-      const dateStr = today.toISOString().split('T')[0]
-
-      const holidayCheckRes = await fetch('/api/attendance/check-holiday', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: dateStr }),
-      })
-
       let isHolidayWork = false
 
-      if (holidayCheckRes.ok) {
-        const holidayCheck = await holidayCheckRes.json()
+      // シフト制の場合は休日判定をスキップ
+      if (!isShiftWork) {
+        // 固定勤務パターンの場合のみ休日判定
+        const today = new Date()
+        const dateStr = today.toISOString().split('T')[0]
 
-        if (holidayCheck.is_holiday) {
-          const confirmed = confirm(
-            `今日は${holidayCheck.reason}です。\n休日出勤として記録しますか？`
-          )
+        const holidayCheckRes = await fetch('/api/attendance/check-holiday', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date: dateStr }),
+        })
 
-          if (!confirmed) {
-            setActionLoading(false)
-            return
+        if (holidayCheckRes.ok) {
+          const holidayCheck = await holidayCheckRes.json()
+
+          if (holidayCheck.is_holiday) {
+            const confirmed = confirm(
+              `今日は${holidayCheck.reason}です。\n休日出勤として記録しますか？`
+            )
+
+            if (!confirmed) {
+              setActionLoading(false)
+              return
+            }
+
+            isHolidayWork = true
           }
-
-          isHolidayWork = true
         }
+      }
+
+      const requestBody: any = {
+        location_type: location,
+        site_id: location === 'site' ? selectedSiteId : null,
+        method: 'manual',
+        device_type: 'mobile',
+        is_holiday_work: isHolidayWork,
+        is_shift_work: isShiftWork,
+        acknowledge_forget_clock_out: acknowledgeForgetClockOut, // シフト制の打刻忘れ確認
+      }
+
+      // GPS情報を追加（利用可能な場合）
+      if (gpsLocation) {
+        requestBody.gps_latitude = gpsLocation.latitude
+        requestBody.gps_longitude = gpsLocation.longitude
+        requestBody.gps_accuracy = gpsLocation.accuracy
       }
 
       const response = await fetch('/api/attendance/clock-in', {
@@ -158,13 +264,7 @@ export function AttendanceClockClient({ userId, orgSettings, sites, isNightShift
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          location_type: location,
-          site_id: location === 'site' ? selectedSiteId : null,
-          method: 'manual',
-          device_type: 'mobile',
-          is_holiday_work: isHolidayWork,
-        }),
+        body: JSON.stringify(requestBody),
       })
 
       const data = await response.json()
@@ -206,17 +306,34 @@ export function AttendanceClockClient({ userId, orgSettings, sites, isNightShift
     setActionLoading(true)
     setMessage(null)
 
+    // GPS取得（必要な場合）
+    const gpsSuccess = await getGPSLocation()
+    if (!gpsSuccess && needsGPS()) {
+      setMessage({ type: 'error', text: gpsError || 'GPS位置情報が必要です' })
+      setActionLoading(false)
+      return
+    }
+
     try {
+      const requestBody: any = {
+        location_type: location,
+        site_id: location === 'site' ? selectedSiteId : null,
+        method: 'manual',
+        device_type: 'mobile',
+        break_minutes: shouldRecordBreak ? parseInt(breakMinutes) || 0 : undefined,
+      }
+
+      // GPS情報を追加（利用可能な場合）
+      if (gpsLocation) {
+        requestBody.gps_latitude = gpsLocation.latitude
+        requestBody.gps_longitude = gpsLocation.longitude
+        requestBody.gps_accuracy = gpsLocation.accuracy
+      }
+
       const response = await fetch('/api/attendance/clock-out', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          location_type: location,
-          site_id: location === 'site' ? selectedSiteId : null,
-          method: 'manual',
-          device_type: 'mobile',
-          break_minutes: shouldRecordBreak ? parseInt(breakMinutes) || 0 : undefined,
-        }),
+        body: JSON.stringify(requestBody),
       })
 
       const data = await response.json()
@@ -573,6 +690,61 @@ export function AttendanceClockClient({ userId, orgSettings, sites, isNightShift
                 出退勤用のQRコードをスキャンしてください
               </p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* シフト制の場合の注意表示 */}
+      {isShiftWork && (
+        <div className="bg-blue-50 rounded-lg p-4 mb-4">
+          <div className="flex items-start">
+            <svg className="h-5 w-5 text-blue-400 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+            <div className="text-sm">
+              <p className="text-blue-800 font-medium">シフト制勤務モード</p>
+              <p className="text-blue-700 mt-1">ボタン打刻のみ利用可能です</p>
+              {needsGPS() && (
+                <p className="text-blue-700 mt-1">📍 GPS位置情報の提供が必要です</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* GPS状態表示 */}
+      {gpsLoading && (
+        <div className="bg-yellow-50 rounded-lg p-4 mb-4">
+          <div className="flex items-center">
+            <svg className="animate-spin h-5 w-5 text-yellow-600 mr-2" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span className="text-sm text-yellow-800">GPS位置情報を取得中...</span>
+          </div>
+        </div>
+      )}
+
+      {gpsError && (
+        <div className="bg-red-50 rounded-lg p-4 mb-4">
+          <div className="flex items-start">
+            <svg className="h-5 w-5 text-red-400 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+            <span className="text-sm text-red-800">{gpsError}</span>
+          </div>
+        </div>
+      )}
+
+      {gpsLocation && needsGPS() && (
+        <div className="bg-green-50 rounded-lg p-4 mb-4">
+          <div className="flex items-start">
+            <svg className="h-5 w-5 text-green-400 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            <span className="text-sm text-green-800">
+              GPS位置情報取得済み（精度: {gpsLocation.accuracy}m）
+            </span>
           </div>
         </div>
       )}
